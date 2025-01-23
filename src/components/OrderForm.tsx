@@ -37,9 +37,9 @@ export const OrderForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    yourName: "",
     store: "",
-    date: "",
+    dateReceived: "",
     productNumber: "",
     description: "",
     quantity: "",
@@ -53,9 +53,8 @@ export const OrderForm = () => {
     setIsSubmitting(true);
     
     try {
-      const timestamp = new Date().toLocaleString();
       await submitToGoogleSheets({
-        timestamp,
+        timestamp: new Date().toLocaleString(),
         ...formData,
       });
       
@@ -66,9 +65,9 @@ export const OrderForm = () => {
       
       // Reset form
       setFormData({
-        name: "",
+        yourName: "",
         store: "",
-        date: "",
+        dateReceived: "",
         productNumber: "",
         description: "",
         quantity: "",
@@ -101,8 +100,8 @@ export const OrderForm = () => {
           <label className="block text-sm font-medium mb-1">Your Name</label>
           <Input
             required
-            value={formData.name}
-            onChange={(e) => handleChange("name", e.target.value)}
+            value={formData.yourName}
+            onChange={(e) => handleChange("yourName", e.target.value)}
             className="w-full"
             placeholder="Enter your name"
           />
@@ -128,12 +127,12 @@ export const OrderForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Today's Date</label>
+          <label className="block text-sm font-medium mb-1">Date Received</label>
           <Input
             type="datetime-local"
             required
-            value={formData.date}
-            onChange={(e) => handleChange("date", e.target.value)}
+            value={formData.dateReceived}
+            onChange={(e) => handleChange("dateReceived", e.target.value)}
             className="w-full"
           />
         </div>
