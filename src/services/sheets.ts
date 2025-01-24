@@ -58,7 +58,10 @@ export const submitToGoogleSheets = async (data: OrderData) => {
       }
     );
 
+    // Since we're using no-cors mode, we can't check the response status
+    // Instead, we'll log that the webhook was triggered
     console.log("Zapier webhook triggered");
+    
     return sheetsResult;
   } catch (error) {
     console.error("Error submitting data:", error);
