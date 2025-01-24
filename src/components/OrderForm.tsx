@@ -1,52 +1,20 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { submitToGoogleSheets } from "@/services/sheets";
-
-const stores = [
-  { id: "22", name: "Fort Worth 22" },
-  { id: "27", name: "Grand Prairie 27" },
-  { id: "28", name: "Houston 28" },
-  { id: "29", name: "San Antonio 29" },
-  { id: "30", name: "OKC 30" },
-  { id: "32", name: "Little Rock 32" },
-  { id: "33", name: "Kansas 33" },
-  { id: "35", name: "Laredo 35" },
-  { id: "36", name: "Tulsa 36" },
-  { id: "39", name: "Austin 39" },
-];
-
-const scheduleOptions = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Will Call Pick Up",
-];
+import { FormField } from "./order-form/FormField";
+import {
+  stores,
+  scheduleOptions,
+  crossDockOptions,
+  initialFormData,
+  type FormData,
+} from "./order-form/formConfig";
 
 export const OrderForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    yourName: "",
-    store: "",
-    dateReceived: "",
-    productNumber: "",
-    description: "",
-    quantity: "",
-    scheduleArrival: "",
-    notes: "",
-    crossDock: "",
-  });
+  const [formData, setFormData] = useState<FormData>(initialFormData);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,18 +31,7 @@ export const OrderForm = () => {
         description: "Your order has been successfully recorded.",
       });
       
-      // Reset form
-      setFormData({
-        yourName: "",
-        store: "",
-        dateReceived: "",
-        productNumber: "",
-        description: "",
-        quantity: "",
-        scheduleArrival: "",
-        notes: "",
-        crossDock: "",
-      });
+      setFormData(initialFormData);
     } catch (error) {
       toast({
         title: "Error",
@@ -86,7 +43,7 @@ export const OrderForm = () => {
     }
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -96,125 +53,77 @@ export const OrderForm = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6">
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Your Name</label>
-          <Input
-            required
-            value={formData.yourName}
-            onChange={(e) => handleChange("yourName", e.target.value)}
-            className="w-full"
-            placeholder="Enter your name"
-          />
-        </div>
+        <FormField
+          label="Your Name"
+          required
+          value={formData.yourName}
+          onChange={(value) => handleChange("yourName", value)}
+          placeholder="Enter your name"
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Store</label>
-          <Select
-            value={formData.store}
-            onValueChange={(value) => handleChange("store", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select store" />
-            </SelectTrigger>
-            <SelectContent>
-              {stores.map((store) => (
-                <SelectItem key={store.id} value={store.id}>
-                  {store.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <FormField
+          label="Store"
+          value={formData.store}
+          onChange={(value) => handleChange("store", value)}
+          options={stores}
+          placeholder="Select store"
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Date Received</label>
-          <Input
-            type="datetime-local"
-            required
-            value={formData.dateReceived}
-            onChange={(e) => handleChange("dateReceived", e.target.value)}
-            className="w-full"
-          />
-        </div>
+        <FormField
+          label="Date Received"
+          type="datetime-local"
+          required
+          value={formData.dateReceived}
+          onChange={(value) => handleChange("dateReceived", value)}
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Product Number</label>
-          <Input
-            required
-            value={formData.productNumber}
-            onChange={(e) => handleChange("productNumber", e.target.value)}
-            className="w-full"
-            placeholder="Enter product number"
-          />
-        </div>
+        <FormField
+          label="Product Number"
+          required
+          value={formData.productNumber}
+          onChange={(value) => handleChange("productNumber", value)}
+          placeholder="Enter product number"
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
-          <Input
-            required
-            value={formData.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-            className="w-full"
-            placeholder="Enter product description"
-          />
-        </div>
+        <FormField
+          label="Description"
+          required
+          value={formData.description}
+          onChange={(value) => handleChange("description", value)}
+          placeholder="Enter product description"
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Quantity</label>
-          <Input
-            type="number"
-            required
-            value={formData.quantity}
-            onChange={(e) => handleChange("quantity", e.target.value)}
-            className="w-full"
-            placeholder="Enter quantity"
-          />
-        </div>
+        <FormField
+          label="Quantity"
+          type="number"
+          required
+          value={formData.quantity}
+          onChange={(value) => handleChange("quantity", value)}
+          placeholder="Enter quantity"
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Schedule Arrival</label>
-          <Select
-            value={formData.scheduleArrival}
-            onValueChange={(value) => handleChange("scheduleArrival", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select arrival day" />
-            </SelectTrigger>
-            <SelectContent>
-              {scheduleOptions.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <FormField
+          label="Schedule Arrival"
+          value={formData.scheduleArrival}
+          onChange={(value) => handleChange("scheduleArrival", value)}
+          options={scheduleOptions}
+          placeholder="Select arrival day"
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Notes</label>
-          <Input
-            value={formData.notes}
-            onChange={(e) => handleChange("notes", e.target.value)}
-            className="w-full"
-            placeholder="Enter any additional notes"
-          />
-        </div>
+        <FormField
+          label="Notes"
+          value={formData.notes}
+          onChange={(value) => handleChange("notes", value)}
+          placeholder="Enter any additional notes"
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Cross Dock</label>
-          <Select
-            value={formData.crossDock}
-            onValueChange={(value) => handleChange("crossDock", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select yes/no" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="yes">Yes</SelectItem>
-              <SelectItem value="no">No</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <FormField
+          label="Cross Dock"
+          value={formData.crossDock}
+          onChange={(value) => handleChange("crossDock", value)}
+          options={crossDockOptions}
+          placeholder="Select yes/no"
+        />
       </div>
 
       <Button
