@@ -15,7 +15,8 @@ export const submitToGoogleSheets = async (data: OrderData) => {
   console.log("Submitting order to Google Sheets:", data);
   
   try {
-    const response = await fetch(
+    // Submit to Google Sheets
+    const sheetsResponse = await fetch(
       "https://script.google.com/macros/s/AKfycbzufv7QnjIXPRvBHJkxLq3tmJ3wD6M9DboOCmQIVe0wABhGuBBLdRCkBeOZ6CQ-Orms/exec",
       {
         method: "POST",
@@ -33,15 +34,34 @@ export const submitToGoogleSheets = async (data: OrderData) => {
       }
     );
 
-    if (!response.ok) {
-      throw new Error("Failed to submit order");
+    if (!sheetsResponse.ok) {
+      throw new Error("Failed to submit order to Google Sheets");
     }
 
-    const result = await response.json();
-    console.log("Google Sheets response:", result);
-    return result;
+    const sheetsResult = await sheetsResponse.json();
+    console.log("Google Sheets response:", sheetsResult);
+
+    // Submit to Zapier webhook
+    console.log("Submitting to Zapier webhook");
+    const zapierResponse = await fetch(
+      "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "no-cors", // Required for Zapier webhooks
+        body: JSON.stringify({
+          ...data,
+          triggered_from: window.location.origin,
+        }),
+      }
+    );
+
+    console.log("Zapier webhook triggered");
+    return sheetsResult;
   } catch (error) {
-    console.error("Error submitting to Google Sheets:", error);
+    console.error("Error submitting data:", error);
     throw error;
   }
 };
