@@ -34,12 +34,12 @@ export const submitToGoogleSheets = async (data: OrderData) => {
       }
     );
 
-    if (!sheetsResponse.ok) {
-      throw new Error("Failed to submit order to Google Sheets");
-    }
-
     const sheetsResult = await sheetsResponse.json();
     console.log("Google Sheets response:", sheetsResult);
+
+    if (sheetsResult.status === "error") {
+      throw new Error(sheetsResult.message || "Failed to submit order to Google Sheets");
+    }
 
     // Submit to Zapier webhook
     console.log("Submitting to Zapier webhook");
