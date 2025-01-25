@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const usernames = [
   "Fort Worth22",
@@ -54,68 +53,47 @@ export default function Login() {
             alt="Conlan Tire Logo"
             className="mx-auto h-24 object-contain"
           />
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">Welcome</h2>
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in</h2>
         </div>
-
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="login">
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Select Store
-                  </label>
-                  <Select
-                    value={username}
-                    onValueChange={(value) => setUsername(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select your store" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {usernames.map((name) => (
-                        <SelectItem key={name} value={name}>
-                          {name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
-                  </label>
-                  <Input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <Button type="submit" className="w-full">
-                Sign in
-              </Button>
-            </form>
-          </TabsContent>
-          
-          <TabsContent value="signup">
-            <div className="text-center p-4">
-              <p className="text-gray-600">
-                Please contact your administrator to create a new account.
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                For security reasons, new accounts can only be created by authorized personnel.
-              </p>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Select Store
+              </label>
+              <Select
+                value={username}
+                onValueChange={(value) => setUsername(value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select your store" />
+                </SelectTrigger>
+                <SelectContent>
+                  {usernames.map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </TabsContent>
-        </Tabs>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <Button type="submit" className="w-full">
+            Sign in
+          </Button>
+        </form>
       </div>
     </div>
   );
