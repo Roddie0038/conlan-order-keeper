@@ -4,6 +4,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const usernames = [
+  "Fort Worth22",
+  "Grand Prairie27",
+  "San Antonio29",
+  "Oklahoma30",
+  "Little Rock32",
+  "Kansas33",
+  "Laredo35",
+  "Tulsa36",
+  "Austin39",
+];
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -39,15 +58,29 @@ export default function Login() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <Input
-                type="text"
-                placeholder="Username"
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Username
+              </label>
+              <Select
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
+                onValueChange={(value) => setUsername(value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select username" />
+                </SelectTrigger>
+                <SelectContent>
+                  {usernames.map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
               <Input
                 type="password"
                 placeholder="Password"
