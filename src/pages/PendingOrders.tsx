@@ -80,86 +80,76 @@ export default function PendingOrders() {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-cover bg-center bg-fixed"
-      style={{
-        backgroundImage: 'url("/lovable-uploads/e0dbaa1b-91c9-4ed4-a72a-806e57fb3db2.png")',
-      }}
-    >
-      <div className="min-h-screen backdrop-blur-sm bg-black/30">
-        <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm">
-          <div className="container flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <img
-                src="/lovable-uploads/be43b300-3ff2-43c1-b522-e326db67e4e1.png"
-                alt="Conlan Tire Logo"
-                className="h-16 object-contain"
-              />
-              <h1 className="text-2xl font-bold">Pending Orders - {user?.store}</h1>
-            </div>
-            <div className="flex gap-4">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/completed-orders')}
-                className="border-[#F97316] font-bold text-white hover:bg-[#F97316] hover:text-white backdrop-blur-sm"
-              >
-                View Completed Orders
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleLogout}
-                className="border-[#F97316] font-bold text-white hover:bg-[#F97316] hover:text-white backdrop-blur-sm"
-              >
-                Logout
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-primary text-primary-foreground py-6 mb-8">
+        <div className="container flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <img
+              src="/lovable-uploads/be43b300-3ff2-43c1-b522-e326db67e4e1.png"
+              alt="Conlan Tire Logo"
+              className="h-16 object-contain"
+            />
+            <h1 className="text-2xl font-bold">Pending Orders - {user?.store}</h1>
           </div>
-        </header>
+          <div className="flex gap-4">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/completed-orders')}
+              className="border-[#F97316] font-bold text-black hover:bg-[#F97316] hover:text-white"
+            >
+              View Completed Orders
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="border-[#F97316] font-bold text-black hover:bg-[#F97316] hover:text-white"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
 
-        <main className="container space-y-8">
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-xl">
-            <OrderForm />
-          </div>
-          
-          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-lg shadow-xl">
-            <h2 className="text-xl font-semibold mb-4">Current Pending Orders</h2>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Actions</TableHead>
+      <main className="container space-y-8">
+        <OrderForm />
+        
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Current Pending Orders</h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Product</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Quantity</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell>{new Date(order.dateReceived).toLocaleDateString()}</TableCell>
+                  <TableCell>{order.productNumber}</TableCell>
+                  <TableCell>{order.description}</TableCell>
+                  <TableCell>{order.quantity}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleComplete(order.id)}
+                    >
+                      Mark Complete
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>{new Date(order.dateReceived).toLocaleDateString()}</TableCell>
-                    <TableCell>{order.productNumber}</TableCell>
-                    <TableCell>{order.description}</TableCell>
-                    <TableCell>{order.quantity}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleComplete(order.id)}
-                        className="hover:bg-[#F97316] hover:text-white"
-                      >
-                        Mark Complete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
 
-          {/* Elfsight Widget */}
-          <div className="elfsight-app-bc1d72f3-4978-48a3-9234-d8a290889b53 bg-white/90 backdrop-blur-sm rounded-lg p-6" data-elfsight-app-lazy></div>
-        </main>
-      </div>
+        {/* Elfsight Widget */}
+        <div className="elfsight-app-bc1d72f3-4978-48a3-9234-d8a290889b53" data-elfsight-app-lazy></div>
+      </main>
     </div>
   );
 }
