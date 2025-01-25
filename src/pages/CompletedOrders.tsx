@@ -43,6 +43,16 @@ export default function CompletedOrders() {
     navigate('/');
   };
 
+  const handleDelete = (orderId: string) => {
+    const savedOrders = localStorage.getItem('completedOrders');
+    if (savedOrders) {
+      const allOrders = JSON.parse(savedOrders);
+      const updatedOrders = allOrders.filter((order: Order) => order.id !== orderId);
+      localStorage.setItem('completedOrders', JSON.stringify(updatedOrders));
+      setOrders(updatedOrders.filter((order: Order) => order.store === user?.store));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-primary text-primary-foreground py-6 mb-8">
@@ -76,6 +86,7 @@ export default function CompletedOrders() {
                 <TableHead>Product</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Quantity</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -85,6 +96,15 @@ export default function CompletedOrders() {
                   <TableCell>{order.productNumber}</TableCell>
                   <TableCell>{order.description}</TableCell>
                   <TableCell>{order.quantity}</TableCell>
+                  <TableCell className="text-right">
+                    <Button 
+                      variant="outline"
+                      onClick={() => handleDelete(order.id)}
+                      className="bg-red-600 text-black font-bold hover:bg-red-700 hover:text-white"
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
