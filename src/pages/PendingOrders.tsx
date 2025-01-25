@@ -80,8 +80,15 @@ export default function PendingOrders() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-primary text-primary-foreground py-6 mb-8">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed"
+      style={{
+        backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundBlendMode: 'overlay',
+      }}
+    >
+      <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm">
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img
@@ -95,14 +102,14 @@ export default function PendingOrders() {
             <Button 
               variant="outline" 
               onClick={() => navigate('/completed-orders')}
-              className="border-[#F97316] font-bold text-black hover:bg-[#F97316] hover:text-white"
+              className="border-[#F97316] font-bold text-white hover:bg-[#F97316] hover:text-white"
             >
               View Completed Orders
             </Button>
             <Button 
               variant="outline" 
               onClick={handleLogout}
-              className="border-[#F97316] font-bold text-black hover:bg-[#F97316] hover:text-white"
+              className="border-[#F97316] font-bold text-white hover:bg-[#F97316] hover:text-white"
             >
               Logout
             </Button>
@@ -113,7 +120,7 @@ export default function PendingOrders() {
       <main className="container space-y-8">
         <OrderForm />
         
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Current Pending Orders</h2>
           <Table>
             <TableHeader>
