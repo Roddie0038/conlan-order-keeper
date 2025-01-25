@@ -34,9 +34,13 @@ export default function CompletedOrders() {
     const savedOrders = localStorage.getItem('completedOrders');
     if (savedOrders) {
       const allOrders = JSON.parse(savedOrders);
-      setOrders(allOrders.filter((order: Order) => order.store === user?.store));
+      // If admin, show all orders, otherwise filter by store
+      const filteredOrders = user?.isAdmin 
+        ? allOrders 
+        : allOrders.filter((order: Order) => order.store === user?.store);
+      setOrders(filteredOrders);
     }
-  }, [user?.store]);
+  }, [user?.store, user?.isAdmin]);
 
   const handleLogout = () => {
     logout();
@@ -49,7 +53,11 @@ export default function CompletedOrders() {
       const allOrders = JSON.parse(savedOrders);
       const updatedOrders = allOrders.filter((order: Order) => order.id !== orderId);
       localStorage.setItem('completedOrders', JSON.stringify(updatedOrders));
-      setOrders(updatedOrders.filter((order: Order) => order.store === user?.store));
+      // If admin, show all orders, otherwise filter by store
+      const filteredOrders = user?.isAdmin 
+        ? updatedOrders 
+        : updatedOrders.filter((order: Order) => order.store === user?.store);
+      setOrders(filteredOrders);
     }
   };
 
@@ -63,7 +71,9 @@ export default function CompletedOrders() {
               alt="Conlan Tire Logo"
               className="h-16 object-contain"
             />
-            <h1 className="text-2xl font-bold">Completed Orders - {user?.store}</h1>
+            <h1 className="text-2xl font-bold">
+              Completed Orders - {user?.isAdmin ? 'Admin View' : user?.store}
+            </h1>
           </div>
           <div className="flex gap-4">
             <Button 
@@ -91,28 +101,32 @@ export default function CompletedOrders() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date Completed</TableHead>
+                <TableHead>Store</TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Quantity</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {user?.isAdmin && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {orders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell>{new Date(order.dateReceived).toLocaleDateString()}</TableCell>
+                  <TableCell>{order.store}</TableCell>
                   <TableCell>{order.productNumber}</TableCell>
                   <TableCell>{order.description}</TableCell>
                   <TableCell>{order.quantity}</TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="outline"
-                      onClick={() => handleDelete(order.id)}
-                      className="bg-red-600 text-black font-bold hover:bg-red-700 hover:text-white"
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
+                  {user?.isAdmin && (
+                    <TableCell className="text-right">
+                      <Button 
+                        variant="outline"
+                        onClick={() => handleDelete(order.id)}
+                        className="bg-red-600 text-black font-bold hover:bg-red-700 hover:text-white"
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
