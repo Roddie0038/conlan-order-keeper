@@ -1,37 +1,20 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { submitToGoogleSheets } from "@/services/sheets";
 import { useAuth } from "@/contexts/AuthContext";
 import { OrderFormInputs } from "./order-form/OrderFormInputs";
 import { OrderSummaryTable } from "./order-form/OrderSummaryTable";
-import { TireSpinner } from "./ui/tire-spinner";
+import { OrderSubmissionHandler } from "./order-form/OrderSubmissionHandler";
+import { getCurrentDateTime } from "@/utils/dateTime";
 import {
   initialFormData,
   type FormData,
 } from "./order-form/formConfig";
-
-interface OrderSummary extends FormData {
-  id: string;
-  timestamp: string;
-  store: string;
-  selected?: boolean;
-}
+import type { OrderSummary } from "./order-form/types";
 
 export const OrderForm = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
-  
-  // Initialize with current date/time and update it properly
-  const getCurrentDateTime = () => {
-    const now = new Date();
-    // Adjust for local timezone
-    const tzOffset = now.getTimezoneOffset() * 60000; // offset in milliseconds
-    const localISOTime = (new Date(now.getTime() - tzOffset)).toISOString().slice(0, 16);
-    return localISOTime;
-  };
-
   const [formData, setFormData] = useState<FormData>({
     ...initialFormData,
     dateReceived: getCurrentDateTime(),
@@ -58,7 +41,7 @@ export const OrderForm = () => {
       
       setFormData({
         ...initialFormData,
-        dateReceived: getCurrentDateTime(), // Update with current time when form is reset
+        dateReceived: getCurrentDateTime(),
       });
     } catch (error) {
       toast({
@@ -88,36 +71,6 @@ export const OrderForm = () => {
     );
   };
 
-  const handleSubmitSelected = async () => {
-    setIsSubmitting(true);
-    const selectedOrders = orderSummaries.filter(order => order.selected);
-    
-    try {
-      for (const order of selectedOrders) {
-        await submitToGoogleSheets(order);
-        
-        const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-        existingOrders.push(order);
-        localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
-      }
-      
-      setOrderSummaries(prev => prev.filter(order => !order.selected));
-      
-      toast({
-        title: "Orders Submitted",
-        description: `Successfully submitted ${selectedOrders.length} orders.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to submit orders. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div className="space-y-8">
       <OrderFormInputs
@@ -127,18 +80,12 @@ export const OrderForm = () => {
       />
       <OrderSummaryTable
         orderSummaries={orderSummaries}
-        isSubmitting={isSubmitting}
         onToggleSelection={toggleOrderSelection}
-        onSubmitSelected={handleSubmitSelected}
       />
-      {isSubmitting && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center gap-4">
-            <TireSpinner size="lg" />
-            <p className="text-lg font-medium">Submitting Orders...</p>
-          </div>
-        </div>
-      )}
+      <OrderSubmissionHandler
+        orderSummaries={orderSummaries}
+        setOrderSummaries={setOrderSummaries}
+      />
     </div>
   );
 };
