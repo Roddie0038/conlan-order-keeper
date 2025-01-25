@@ -32,6 +32,19 @@ export default function PendingOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
+    // Load Elfsight widget script
+    const script = document.createElement('script');
+    script.src = "https://static.elfsight.com/platform/platform.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup script when component unmounts
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  useEffect(() => {
     // In a real app, this would fetch from your backend
     const savedOrders = localStorage.getItem('pendingOrders');
     if (savedOrders) {
@@ -125,6 +138,9 @@ export default function PendingOrders() {
             </TableBody>
           </Table>
         </div>
+
+        {/* Elfsight Widget */}
+        <div className="elfsight-app-bc1d72f3-4978-48a3-9234-d8a290889b53" data-elfsight-app-lazy></div>
       </main>
     </div>
   );
