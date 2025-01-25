@@ -22,9 +22,19 @@ export const OrderForm = () => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
+  
+  // Initialize with current date/time and update it properly
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    // Adjust for local timezone
+    const tzOffset = now.getTimezoneOffset() * 60000; // offset in milliseconds
+    const localISOTime = (new Date(now.getTime() - tzOffset)).toISOString().slice(0, 16);
+    return localISOTime;
+  };
+
   const [formData, setFormData] = useState<FormData>({
     ...initialFormData,
-    dateReceived: new Date().toISOString().slice(0, 16),
+    dateReceived: getCurrentDateTime(),
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +58,7 @@ export const OrderForm = () => {
       
       setFormData({
         ...initialFormData,
-        dateReceived: new Date().toISOString().slice(0, 16),
+        dateReceived: getCurrentDateTime(), // Update with current time when form is reset
       });
     } catch (error) {
       toast({
