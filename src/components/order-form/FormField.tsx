@@ -15,6 +15,7 @@ interface FormFieldProps {
   required?: boolean;
   placeholder?: string;
   options?: Array<{ id?: string; name?: string; value?: string }>;
+  disabled?: boolean;
 }
 
 export const FormField = ({
@@ -25,6 +26,7 @@ export const FormField = ({
   required = false,
   placeholder,
   options,
+  disabled = false,
 }: FormFieldProps) => {
   if (options) {
     return (
@@ -33,6 +35,7 @@ export const FormField = ({
         <Select
           value={value}
           onValueChange={(value) => onChange(value)}
+          disabled={disabled}
         >
           <SelectTrigger>
             <SelectValue placeholder={placeholder} />
@@ -62,6 +65,7 @@ export const FormField = ({
         onChange={(e) => onChange(e.target.value)}
         className="w-full"
         placeholder={placeholder}
+        disabled={disabled}
       />
     </div>
   );
