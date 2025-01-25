@@ -3,6 +3,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { FormField } from "./order-form/FormField";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   stores,
   scheduleOptions,
@@ -13,6 +14,7 @@ import {
 
 export const OrderForm = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>(initialFormData);
 
@@ -21,10 +23,19 @@ export const OrderForm = () => {
     setIsSubmitting(true);
     
     try {
-      await submitToGoogleSheets({
+      const orderData = {
+        id: crypto.randomUUID(),
         timestamp: new Date().toLocaleString(),
         ...formData,
-      });
+        store: user?.store || '',
+      };
+
+      await submitToGoogleSheets(orderData);
+      
+      // Save to pending orders in localStorage
+      const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
+      existingOrders.push(orderData);
+      localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
       
       toast({
         title: "Order Submitted",
@@ -51,7 +62,7 @@ export const OrderForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6 bg-white rounded-lg shadow">
       <div className="space-y-4">
         <FormField
           label="Your Name"
@@ -59,14 +70,6 @@ export const OrderForm = () => {
           value={formData.yourName}
           onChange={(value) => handleChange("yourName", value)}
           placeholder="Enter your name"
-        />
-
-        <FormField
-          label="Store"
-          value={formData.store}
-          onChange={(value) => handleChange("store", value)}
-          options={stores}
-          placeholder="Select store"
         />
 
         <FormField
