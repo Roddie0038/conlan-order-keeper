@@ -16,7 +16,10 @@ export const OrderForm = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [formData, setFormData] = useState<FormData>({
+    ...initialFormData,
+    dateReceived: new Date().toISOString().slice(0, 16), // Set current date and time in ISO format
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +45,10 @@ export const OrderForm = () => {
         description: "Your order has been successfully recorded.",
       });
       
-      setFormData(initialFormData);
+      setFormData({
+        ...initialFormData,
+        dateReceived: new Date().toISOString().slice(0, 16), // Reset with current date/time
+      });
     } catch (error) {
       toast({
         title: "Error",
@@ -55,6 +61,9 @@ export const OrderForm = () => {
   };
 
   const handleChange = (field: keyof FormData, value: string) => {
+    // Prevent dateReceived from being changed
+    if (field === 'dateReceived') return;
+    
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -78,6 +87,7 @@ export const OrderForm = () => {
           required
           value={formData.dateReceived}
           onChange={(value) => handleChange("dateReceived", value)}
+          disabled={true}
         />
 
         <FormField
