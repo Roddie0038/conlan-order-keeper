@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 
 const usernames = [
-  "Conlan97", // Added admin username
+  "Conlan97",
   "Fort Worth22",
   "Grand Prairie27",
   "San Antonio29",
@@ -46,27 +46,27 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white/10 backdrop-blur-sm rounded-lg shadow-2xl border border-white/20">
         <div className="text-center">
           <img
             src="/lovable-uploads/be43b300-3ff2-43c1-b522-e326db67e4e1.png"
             alt="Conlan Tire Logo"
-            className="mx-auto h-24 object-contain"
+            className="mx-auto h-24 object-contain drop-shadow-lg"
           />
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in</h2>
+          <h2 className="mt-6 text-3xl font-bold text-white">Sign in</h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
                 Select Store
               </label>
               <Select
                 value={username}
                 onValueChange={(value) => setUsername(value)}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
                   <SelectValue placeholder="Select your store" />
                 </SelectTrigger>
                 <SelectContent>
@@ -79,7 +79,7 @@ export default function Login() {
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
                 Password
               </label>
               <Input
@@ -88,10 +88,11 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               />
             </div>
           </div>
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
             Sign in
           </Button>
         </form>
