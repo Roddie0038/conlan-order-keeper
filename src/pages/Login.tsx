@@ -59,14 +59,14 @@ export default function Login() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Username
+                Select Store
               </label>
               <Select
                 value={username}
                 onValueChange={(value) => setUsername(value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select username" />
+                  <SelectValue placeholder="Select your store" />
                 </SelectTrigger>
                 <SelectContent>
                   {usernames.map((name) => (
