@@ -66,10 +66,18 @@ export default function CompletedOrders() {
             <h1 className="text-2xl font-bold">Completed Orders - {user?.store}</h1>
           </div>
           <div className="flex gap-4">
-            <Button variant="outline" onClick={() => navigate('/pending-orders')}>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/pending-orders')}
+              className="border-orange-500 text-black font-bold hover:bg-orange-500 hover:text-white"
+            >
               View Pending Orders
             </Button>
-            <Button variant="outline" onClick={handleLogout}>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="border-orange-500 text-black font-bold hover:bg-orange-500 hover:text-white"
+            >
               Logout
             </Button>
           </div>
