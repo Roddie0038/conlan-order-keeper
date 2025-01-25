@@ -110,20 +110,24 @@ export const OrderForm = () => {
 
   return (
     <div className="space-y-8">
-      <OrderFormInputs
-        formData={formData}
-        onSubmit={handleSubmit}
-        onChange={handleChange}
-      />
-      <OrderSummaryTable
-        orderSummaries={orderSummaries}
-        isSubmitting={isSubmitting}
-        onToggleSelection={toggleOrderSelection}
-        onSubmitSelected={handleSubmitSelected}
-      />
+      <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-xl border border-white/20">
+        <OrderFormInputs
+          formData={formData}
+          onSubmit={handleSubmit}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-xl border border-white/20">
+        <OrderSummaryTable
+          orderSummaries={orderSummaries}
+          isSubmitting={isSubmitting}
+          onToggleSelection={toggleOrderSelection}
+          onSubmitSelected={handleSubmitSelected}
+        />
+      </div>
       {isSubmitting && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center gap-4">
+          <div className="bg-white/80 backdrop-blur-md p-6 rounded-lg shadow-lg flex flex-col items-center gap-4">
             <TireSpinner size="lg" />
             <p className="text-lg font-medium">Submitting Orders...</p>
           </div>
