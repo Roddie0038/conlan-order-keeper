@@ -102,14 +102,14 @@ export default function PendingOrders() {
             <Button 
               variant="outline" 
               onClick={() => navigate('/completed-orders')}
-              className="border-[#F97316] font-bold text-white hover:bg-[#F97316] hover:text-white"
+              className="border-[#F97316] border-2 font-bold text-black hover:bg-[#F97316] hover:text-white"
             >
               View Completed Orders
             </Button>
             <Button 
               variant="outline" 
               onClick={handleLogout}
-              className="border-[#F97316] font-bold text-white hover:bg-[#F97316] hover:text-white"
+              className="border-[#F97316] border-2 font-bold text-black hover:bg-[#F97316] hover:text-white"
             >
               Logout
             </Button>
