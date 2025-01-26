@@ -50,7 +50,7 @@ export default function Login() {
       <div className="max-w-md w-full space-y-8 p-8 bg-white/10 backdrop-blur-sm rounded-lg shadow-2xl border border-white/20">
         <div className="text-center">
           <img
-            src="/lovable-uploads/be43b300-3ff2-43c1-b522-e326db67e4e1.png"
+            src="/lovable-uploads/b6f875b5-dba1-457d-b748-3b6e0578f676.png"
             alt="Conlan Tire Logo"
             className="mx-auto h-24 object-contain drop-shadow-lg"
           />
