@@ -96,7 +96,7 @@ export default function PendingOrders() {
               alt="Conlan Tire Logo"
               className="h-16 object-contain"
             />
-            <h1 className="text-2xl font-bold">Pending Orders - {user?.store}</h1>
+            <h1 className="text-2xl font-bold">New Order Form - {user?.store}</h1>
           </div>
           <div className="flex gap-4">
             <Button 
