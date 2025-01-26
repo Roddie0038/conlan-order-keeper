@@ -67,7 +67,7 @@ export default function CompletedOrders() {
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img
-              src="/lovable-uploads/be43b300-3ff2-43c1-b522-e326db67e4e1.png"
+              src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png"
               alt="Conlan Tire Logo"
               className="h-16 object-contain"
             />

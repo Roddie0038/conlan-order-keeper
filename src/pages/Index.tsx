@@ -6,7 +6,7 @@ const Index = () => {
       <header className="bg-primary text-primary-foreground py-6 mb-8">
         <div className="container flex flex-col items-center gap-4">
           <img 
-            src="/lovable-uploads/be43b300-3ff2-43c1-b522-e326db67e4e1.png" 
+            src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" 
             alt="Conlan Tire Logo" 
             className="h-24 object-contain"
           />
