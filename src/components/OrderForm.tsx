@@ -15,6 +15,7 @@ export const OrderForm = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     ...initialFormData,
     dateReceived: getCurrentDateTime(),
@@ -71,6 +72,21 @@ export const OrderForm = () => {
     );
   };
 
+  const handleSubmitSelected = async () => {
+    setIsSubmitting(true);
+    try {
+      // Your existing submission logic here
+      setIsSubmitting(false);
+    } catch (error) {
+      setIsSubmitting(false);
+      toast({
+        title: "Error",
+        description: "Failed to submit orders. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-8">
       <OrderFormInputs
@@ -81,6 +97,8 @@ export const OrderForm = () => {
       <OrderSummaryTable
         orderSummaries={orderSummaries}
         onToggleSelection={toggleOrderSelection}
+        isSubmitting={isSubmitting}
+        onSubmitSelected={handleSubmitSelected}
       />
       <OrderSubmissionHandler
         orderSummaries={orderSummaries}

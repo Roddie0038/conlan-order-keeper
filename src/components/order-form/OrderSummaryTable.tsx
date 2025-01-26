@@ -9,7 +9,7 @@ interface OrderSummary extends FormData {
   selected?: boolean;
 }
 
-interface OrderSummaryTableProps {
+export interface OrderSummaryTableProps {
   orderSummaries: OrderSummary[];
   isSubmitting: boolean;
   onToggleSelection: (orderId: string) => void;
