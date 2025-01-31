@@ -15,6 +15,7 @@ export const submitToGoogleSheets = async (data: OrderData) => {
   console.log("Submitting to Zapier webhook", data);
   
   try {
+    // Using fetch with no-cors mode
     await fetch(
       "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
       {
@@ -36,9 +37,9 @@ export const submitToGoogleSheets = async (data: OrderData) => {
     return { status: 'success' };
 
   } catch (error) {
-    // Even with an error, the webhook might have succeeded due to no-cors
     console.log("Note: Request completed but status unknown due to no-cors mode");
     // We return success since we can't reliably determine failure
+    // The webhook might have succeeded despite the error
     return { status: 'success' };
   }
 };
