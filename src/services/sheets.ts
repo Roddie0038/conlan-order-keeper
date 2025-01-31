@@ -12,7 +12,7 @@ interface OrderData {
 }
 
 export const submitToGoogleSheets = async (data: OrderData) => {
-  console.log("Submitting to Zapier webhook");
+  console.log("Submitting to Zapier webhook", data);
   
   try {
     const response = await fetch(
@@ -30,18 +30,14 @@ export const submitToGoogleSheets = async (data: OrderData) => {
       }
     );
 
-    // When using no-cors mode, the response will always have status 0
-    // This is expected behavior and doesn't mean the request failed
+    // When using no-cors mode, status 0 is expected and doesn't indicate failure
     console.log("Zapier webhook triggered successfully");
-    
-    // Return success since the webhook was triggered
     return { status: 'success' };
+
   } catch (error) {
-    // Even if we catch an error, the webhook might have succeeded
-    // due to no-cors mode limitations
+    // With no-cors, we can't determine if the request actually failed
     console.log("Note: Request completed but status unknown due to no-cors mode");
-    
-    // Return success since we can't reliably determine failure
+    // Return success since the webhook might have succeeded despite the error
     return { status: 'success' };
   }
 };
