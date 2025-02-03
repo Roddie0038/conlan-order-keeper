@@ -21,10 +21,10 @@ export function Navigation() {
               key={link.href}
               to={link.href}
               className={cn(
-                "px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                "px-3 py-2 text-sm font-bold text-black rounded-md transition-colors",
                 isActive(link.href)
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-primary hover:bg-accent"
+                  : "hover:text-primary hover:bg-accent"
               )}
             >
               {link.label}
