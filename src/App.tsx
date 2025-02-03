@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { Navigation } from "./components/Navigation";
 import Login from "./pages/Login";
 import PendingOrders from "./pages/PendingOrders";
 import CompletedOrders from "./pages/CompletedOrders";
@@ -23,7 +24,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!user) {
     return <Navigate to="/" replace />;
   }
-  return <>{children}</>;
+  return (
+    <>
+      <Navigation />
+      {children}
+    </>
+  );
 }
 
 function App() {
