@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./pages/Login";
 import PendingOrders from "./pages/PendingOrders";
 import CompletedOrders from "./pages/CompletedOrders";
+import MTOOrder from "./pages/MTOOrder";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,6 +49,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <CompletedOrders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mto-order"
+                element={
+                  <ProtectedRoute>
+                    <MTOOrder />
                   </ProtectedRoute>
                 }
               />

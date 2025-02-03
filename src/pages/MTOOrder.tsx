@@ -1,10 +1,6 @@
-import { OrderForm } from "@/components/OrderForm";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { MTOOrderForm } from "@/components/mto-order/MTOOrderForm";
 
-const Index = () => {
-  const navigate = useNavigate();
-
+const MTOOrder = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-primary text-primary-foreground py-6 mb-8">
@@ -14,20 +10,12 @@ const Index = () => {
             alt="Conlan Tire Logo" 
             className="h-24 object-contain"
           />
-          <h1 className="text-3xl font-bold text-center">Conlan Tire GP Orders</h1>
-          <div className="flex gap-4">
-            <Button 
-              variant="secondary"
-              onClick={() => navigate("/mto-order")}
-            >
-              Place MTO Order
-            </Button>
-          </div>
+          <h1 className="text-3xl font-bold text-center">MTO Order Form</h1>
         </div>
       </header>
       
-      <main className="container">
-        <OrderForm />
+      <main className="container pb-8">
+        <MTOOrderForm />
       </main>
       
       <footer className="mt-16 py-6 text-center text-gray-600">
@@ -37,4 +25,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default MTOOrder;
