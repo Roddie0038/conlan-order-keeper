@@ -7,7 +7,7 @@ export function Navigation() {
   const isActive = (path: string) => location.pathname === path;
 
   const links = [
-    { href: "/pending-orders", label: "Pending Orders" },
+    { href: "/pending-orders", label: "New Order" },
     { href: "/mto-order", label: "MTO Orders" },
     { href: "/completed-orders", label: "Completed Orders" },
   ];
