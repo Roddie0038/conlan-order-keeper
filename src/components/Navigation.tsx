@@ -8,8 +8,8 @@ export function Navigation() {
 
   const links = [
     { href: "/pending-orders", label: "Pending Orders" },
-    { href: "/completed-orders", label: "Completed Orders" },
     { href: "/mto-order", label: "MTO Orders" },
+    { href: "/completed-orders", label: "Completed Orders" },
   ];
 
   return (
