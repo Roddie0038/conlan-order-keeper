@@ -1,7 +1,10 @@
-interface OrderData {
+interface BaseOrderData {
   timestamp: string;
-  yourName: string;
   store: string;
+}
+
+export interface OrderData extends BaseOrderData {
+  yourName: string;
   dateReceived: string;
   productNumber: string;
   description: string;
@@ -11,11 +14,22 @@ interface OrderData {
   crossDock: string;
 }
 
-export const submitToGoogleSheets = async (data: OrderData) => {
+export interface MTOOrderData extends BaseOrderData {
+  name: string;
+  productNumber: string;
+  casingGrade: string;
+  tireSize: string;
+  tireTreadNeeded: string;
+  quantity: string;
+  scheduleArrival: string;
+  notes: string;
+  type: 'MTO';
+}
+
+export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("Submitting to Zapier webhook", data);
   
   try {
-    // Using fetch with no-cors mode
     await fetch(
       "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
       {
@@ -31,15 +45,11 @@ export const submitToGoogleSheets = async (data: OrderData) => {
       }
     );
 
-    // With no-cors mode, we won't get a proper response status
-    // This is expected behavior and the webhook is still triggered
     console.log("Zapier webhook triggered successfully");
     return { status: 'success' };
 
   } catch (error) {
     console.log("Note: Request completed but status unknown due to no-cors mode");
-    // We return success since we can't reliably determine failure
-    // The webhook might have succeeded despite the error
     return { status: 'success' };
   }
 };

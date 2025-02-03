@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FormField } from "../order-form/FormField";
 import { Button } from "@/components/ui/button";
 import { stores } from "../order-form/formConfig";
-import { submitToGoogleSheets } from "@/services/sheets";
+import { submitToGoogleSheets, type MTOOrderData } from "@/services/sheets";
 
 const casingGrades = [
   { value: "A Casing", name: "A Casing" },
@@ -60,9 +60,17 @@ export const MTOOrderForm = () => {
     try {
       const finalTireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       
-      const orderData = {
-        ...formData,
+      const orderData: MTOOrderData = {
+        store: formData.store,
+        timestamp: formData.timestamp,
+        name: formData.name,
+        productNumber: formData.productNumber,
+        casingGrade: formData.casingGrade,
         tireSize: finalTireSize,
+        tireTreadNeeded: formData.tireTreadNeeded,
+        quantity: formData.quantity,
+        scheduleArrival: formData.scheduleArrival,
+        notes: formData.notes,
         type: 'MTO',
       };
 
@@ -73,7 +81,6 @@ export const MTOOrderForm = () => {
         description: "Your MTO order has been submitted.",
       });
 
-      // Reset form
       setFormData({
         ...formData,
         name: "",
