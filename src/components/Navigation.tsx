@@ -13,7 +13,7 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-[#FEC6A1] shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex space-x-8 h-16 items-center">
           {links.map((link) => (
