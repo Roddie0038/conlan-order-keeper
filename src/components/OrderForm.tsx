@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { OrderFormInputs } from "./order-form/OrderFormInputs";
 import { OrderSummaryTable } from "./order-form/OrderSummaryTable";
 import { OrderSubmissionHandler } from "./order-form/OrderSubmissionHandler";
-import { CrossDockPaperworkForm } from "./order-form/CrossDockPaperworkForm";
 import { getCurrentDateTime } from "@/utils/dateTime";
 import {
   initialFormData,
@@ -12,7 +11,6 @@ import {
   stores,
 } from "./order-form/formConfig";
 import type { OrderSummary } from "./order-form/types";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const OrderForm = () => {
   const { toast } = useToast();
@@ -87,30 +85,19 @@ export const OrderForm = () => {
 
   return (
     <div className="space-y-8">
-      <Tabs defaultValue="order-form" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="order-form">Order Form</TabsTrigger>
-          <TabsTrigger value="cross-dock">Cross Dock Paperwork</TabsTrigger>
-        </TabsList>
-        <TabsContent value="order-form">
-          <OrderFormInputs
-            formData={formData}
-            onSubmit={handleSubmit}
-            onChange={handleChange}
-          />
-          <OrderSummaryTable
-            orderSummaries={orderSummaries}
-            onToggleSelection={toggleOrderSelection}
-          />
-          <OrderSubmissionHandler
-            orderSummaries={orderSummaries}
-            setOrderSummaries={setOrderSummaries}
-          />
-        </TabsContent>
-        <TabsContent value="cross-dock">
-          <CrossDockPaperworkForm />
-        </TabsContent>
-      </Tabs>
+      <OrderFormInputs
+        formData={formData}
+        onSubmit={handleSubmit}
+        onChange={handleChange}
+      />
+      <OrderSummaryTable
+        orderSummaries={orderSummaries}
+        onToggleSelection={toggleOrderSelection}
+      />
+      <OrderSubmissionHandler
+        orderSummaries={orderSummaries}
+        setOrderSummaries={setOrderSummaries}
+      />
     </div>
   );
 };
