@@ -34,7 +34,6 @@ export default function CompletedOrders() {
     const savedOrders = localStorage.getItem('completedOrders');
     if (savedOrders) {
       const allOrders = JSON.parse(savedOrders);
-      // If admin, show all orders, otherwise filter by store
       const filteredOrders = user?.isAdmin 
         ? allOrders 
         : allOrders.filter((order: Order) => order.store === user?.store);
@@ -53,7 +52,6 @@ export default function CompletedOrders() {
       const allOrders = JSON.parse(savedOrders);
       const updatedOrders = allOrders.filter((order: Order) => order.id !== orderId);
       localStorage.setItem('completedOrders', JSON.stringify(updatedOrders));
-      // If admin, show all orders, otherwise filter by store
       const filteredOrders = user?.isAdmin 
         ? updatedOrders 
         : updatedOrders.filter((order: Order) => order.store === user?.store);
@@ -62,8 +60,16 @@ export default function CompletedOrders() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-primary text-primary-foreground py-6 mb-8">
+    <div 
+      className="min-h-screen"
+      style={{
+        backgroundImage: "url('/lovable-uploads/310fc0d8-29ad-4965-98d1-a236b46f73e8.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm">
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img
@@ -95,7 +101,7 @@ export default function CompletedOrders() {
       </header>
 
       <main className="container">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white/90 p-6 rounded-lg shadow backdrop-blur-sm">
           <h2 className="text-xl font-semibold mb-4">Completed Orders</h2>
           <Table>
             <TableHeader>
