@@ -35,6 +35,7 @@ export type FormData = {
   scheduleArrival: string;
   notes: string;
   crossDock: string;
+  crossDockDestination?: string;
 };
 
 export const initialFormData: FormData = {
@@ -47,4 +48,5 @@ export const initialFormData: FormData = {
   scheduleArrival: "",
   notes: "",
   crossDock: "",
+  crossDockDestination: "",
 };

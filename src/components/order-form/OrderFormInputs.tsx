@@ -1,6 +1,6 @@
 import { FormField } from "./FormField";
 import { Button } from "@/components/ui/button";
-import { scheduleOptions, crossDockOptions, type FormData } from "./formConfig";
+import { scheduleOptions, crossDockOptions, stores, type FormData } from "./formConfig";
 
 interface OrderFormInputsProps {
   formData: FormData;
@@ -80,6 +80,17 @@ export const OrderFormInputs = ({
           options={crossDockOptions}
           placeholder="Select yes/no"
         />
+
+        {formData.crossDock === "yes" && (
+          <FormField
+            label="Cross Dock Destination"
+            value={formData.crossDockDestination || ""}
+            onChange={(value) => onChange("crossDockDestination", value)}
+            options={stores}
+            placeholder="Select destination"
+            required
+          />
+        )}
       </div>
 
       <Button type="submit" className="w-full">
