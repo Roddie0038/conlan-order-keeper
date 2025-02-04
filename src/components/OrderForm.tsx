@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { OrderFormInputs } from "./order-form/OrderFormInputs";
 import { OrderSummaryTable } from "./order-form/OrderSummaryTable";
 import { OrderSubmissionHandler } from "./order-form/OrderSubmissionHandler";
-import { CrossDockPaperworkForm } from "./order-form/CrossDockPaperworkForm";
 import { getCurrentDateTime } from "@/utils/dateTime";
 import {
   initialFormData,
@@ -88,9 +87,8 @@ export const OrderForm = () => {
   return (
     <div className="space-y-8">
       <Tabs defaultValue="order-form" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="order-form">Order Form</TabsTrigger>
-          <TabsTrigger value="cross-dock">Cross Dock Paperwork</TabsTrigger>
         </TabsList>
         <TabsContent value="order-form">
           <OrderFormInputs
@@ -106,9 +104,6 @@ export const OrderForm = () => {
             orderSummaries={orderSummaries}
             setOrderSummaries={setOrderSummaries}
           />
-        </TabsContent>
-        <TabsContent value="cross-dock">
-          <CrossDockPaperworkForm />
         </TabsContent>
       </Tabs>
     </div>
