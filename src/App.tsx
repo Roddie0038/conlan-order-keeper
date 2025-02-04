@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import PendingOrders from "./pages/PendingOrders";
 import CompletedOrders from "./pages/CompletedOrders";
 import MTOOrder from "./pages/MTOOrder";
+import CrossDockPaperwork from "./pages/CrossDockPaperwork";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +64,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <MTOOrder />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cross-dock"
+                element={
+                  <ProtectedRoute>
+                    <CrossDockPaperwork />
                   </ProtectedRoute>
                 }
               />
