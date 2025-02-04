@@ -8,6 +8,7 @@ import { getCurrentDateTime } from "@/utils/dateTime";
 import {
   initialFormData,
   type FormData,
+  stores,
 } from "./order-form/formConfig";
 import type { OrderSummary } from "./order-form/types";
 
@@ -25,11 +26,21 @@ export const OrderForm = () => {
     e.preventDefault();
     
     try {
+      // Find the full store name for cross dock destination if it exists
+      let crossDockFullName = formData.crossDockDestination;
+      if (formData.crossDock === "yes" && formData.crossDockDestination) {
+        const store = stores.find(s => s.id === formData.crossDockDestination);
+        if (store) {
+          crossDockFullName = `${store.name} (${store.id})`;
+        }
+      }
+
       const orderData: OrderSummary = {
         id: crypto.randomUUID(),
         timestamp: new Date().toLocaleString(),
         ...formData,
         store: user?.store || '',
+        crossDockDestination: crossDockFullName,
         selected: false,
       };
 
