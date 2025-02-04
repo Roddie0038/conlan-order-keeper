@@ -10,7 +10,6 @@ export function Navigation() {
     { href: "/pending-orders", label: "New Order" },
     { href: "/mto-order", label: "MTO Orders" },
     { href: "/completed-orders", label: "Completed Orders" },
-    { href: "/cross-dock-paperwork", label: "Cross Dock Paperwork" },
   ];
 
   return (
