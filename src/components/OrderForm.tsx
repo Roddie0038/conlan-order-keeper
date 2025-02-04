@@ -88,7 +88,12 @@ export const OrderForm = () => {
     <div className="space-y-8">
       <Tabs defaultValue="order-form" className="w-full">
         <TabsList className="grid w-full grid-cols-1">
-          <TabsTrigger value="order-form" className="font-bold text-red-600">For any orders exceeding 50 retread tires, please submit an MTO order to guarantee we can fulfill the complete request. If you're ordering more than 50 new tires, you can place the order here.</TabsTrigger>
+          <TabsTrigger 
+            value="order-form" 
+            className="font-bold text-red-600 text-sm bg-[#40E0D0] hover:bg-[#40E0D0]/90"
+          >
+            For any orders exceeding 50 retread tires, please submit an MTO order to guarantee we can fulfill the complete request. If you're ordering more than 50 new tires, you can place the order here.
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="order-form">
           <OrderFormInputs
