@@ -20,32 +20,32 @@ export const OrderSummaryTable = ({
   if (orderSummaries.length === 0) return null;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+    <div className="max-w-3xl mx-auto p-4 bg-white/90 rounded-lg shadow-lg border border-gray-200">
+      <h2 className="text-lg font-semibold mb-3 text-primary">Order Summary</h2>
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="border-b">
-              <th className="px-4 py-2">Select</th>
-              <th className="px-4 py-2">Product</th>
-              <th className="px-4 py-2">Description</th>
-              <th className="px-4 py-2">Quantity</th>
-              <th className="px-4 py-2">Schedule</th>
+            <tr className="border-b border-gray-200">
+              <th className="px-3 py-2 text-left">Select</th>
+              <th className="px-3 py-2 text-left">Product</th>
+              <th className="px-3 py-2 text-left">Description</th>
+              <th className="px-3 py-2 text-left">Qty</th>
+              <th className="px-3 py-2 text-left">Schedule</th>
             </tr>
           </thead>
           <tbody>
             {orderSummaries.map((order) => (
-              <tr key={order.id} className="border-b">
-                <td className="px-4 py-2">
+              <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="px-3 py-2">
                   <Checkbox
                     checked={order.selected}
                     onCheckedChange={() => onToggleSelection(order.id)}
                   />
                 </td>
-                <td className="px-4 py-2">{order.productNumber}</td>
-                <td className="px-4 py-2">{order.description}</td>
-                <td className="px-4 py-2">{order.quantity}</td>
-                <td className="px-4 py-2">{order.scheduleArrival}</td>
+                <td className="px-3 py-2">{order.productNumber}</td>
+                <td className="px-3 py-2 max-w-xs truncate">{order.description}</td>
+                <td className="px-3 py-2">{order.quantity}</td>
+                <td className="px-3 py-2">{order.scheduleArrival}</td>
               </tr>
             ))}
           </tbody>
