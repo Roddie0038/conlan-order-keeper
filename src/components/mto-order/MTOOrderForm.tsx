@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FormField } from "../order-form/FormField";
 import { Button } from "@/components/ui/button";
 import { stores } from "../order-form/formConfig";
-import { submitToGoogleSheets, type MTOOrderData } from "@/services/sheets";
 
 const casingGrades = [
   { value: "A Casing", name: "A Casing" },
@@ -56,11 +55,12 @@ export const MTOOrderForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    console.log("Submitting MTO order to Zapier webhook");
 
     try {
       const finalTireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       
-      const orderData: MTOOrderData = {
+      const orderData = {
         store: formData.store,
         timestamp: formData.timestamp,
         name: formData.name,
@@ -72,9 +72,23 @@ export const MTOOrderForm = () => {
         scheduleArrival: formData.scheduleArrival,
         notes: formData.notes,
         type: 'MTO',
+        triggered_from: window.location.origin,
       };
 
-      await submitToGoogleSheets(orderData);
+      // Send to Zapier webhook
+      await fetch(
+        "https://hooks.zapier.com/hooks/catch/21441385/2atp7qy/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          mode: "no-cors",
+          body: JSON.stringify(orderData),
+        }
+      );
+      
+      console.log("MTO order submitted successfully");
       
       toast({
         title: "Order Submitted Successfully",
@@ -94,6 +108,7 @@ export const MTOOrderForm = () => {
         notes: "",
       });
     } catch (error) {
+      console.error("Error submitting MTO order:", error);
       toast({
         title: "Error",
         description: "Failed to submit order. Please try again.",
