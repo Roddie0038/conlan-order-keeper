@@ -49,10 +49,10 @@ export default function Login() {
     <div 
       className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
       style={{
-        backgroundImage: "url('/lovable-uploads/33922cc2-73cb-40a4-8ba9-c0b505c7d9f0.png')",
+        backgroundImage: "url('/lovable-uploads/9fb26273-a1ac-4cd2-a8bf-80fb6669dff4.png')",
       }}
     >
-      <div className="max-w-md w-full space-y-8 p-8 bg-black/70 backdrop-blur-sm rounded-lg shadow-2xl border border-white/20">
+      <div className="max-w-md w-full space-y-8 p-8 bg-black/40 backdrop-blur-sm rounded-lg shadow-2xl border border-white/20">
         <div className="text-center">
           <img
             src="/lovable-uploads/b6f875b5-dba1-457d-b748-3b6e0578f676.png"
