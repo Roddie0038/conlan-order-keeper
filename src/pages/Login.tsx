@@ -46,15 +46,8 @@ export default function Login() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
-      style={{
-        backgroundImage: "url('/lovable-uploads/63303fa5-99d4-44a6-8707-89dabf982186.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div className="max-w-md w-full space-y-8 p-8 bg-black/50 backdrop-blur-sm rounded-lg shadow-2xl border border-white/20">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white/10 backdrop-blur-sm rounded-lg shadow-2xl border border-white/20">
         <div className="text-center">
           <img
             src="/lovable-uploads/b6f875b5-dba1-457d-b748-3b6e0578f676.png"
