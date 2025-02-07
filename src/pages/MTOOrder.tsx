@@ -1,4 +1,6 @@
+
 import { MTOOrderForm } from "@/components/mto-order/MTOOrderForm";
+import { MTOPendingOrders } from "@/components/mto-order/MTOPendingOrders";
 
 const MTOOrder = () => {
   return (
@@ -26,6 +28,7 @@ const MTOOrder = () => {
         <div className="bg-white/90 p-6 rounded-lg shadow-lg">
           <MTOOrderForm />
         </div>
+        <MTOPendingOrders />
       </main>
       
       <footer className="mt-16 py-6 text-center text-gray-600 bg-white/90">

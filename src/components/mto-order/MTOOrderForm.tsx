@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -61,6 +62,7 @@ export const MTOOrderForm = () => {
       const finalTireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       
       const orderData = {
+        id: crypto.randomUUID(),
         store: formData.store,
         timestamp: formData.timestamp,
         name: formData.name,
@@ -87,6 +89,11 @@ export const MTOOrderForm = () => {
           body: JSON.stringify(orderData),
         }
       );
+      
+      // Store in localStorage
+      const existingOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');
+      existingOrders.push(orderData);
+      localStorage.setItem('mtoOrders', JSON.stringify(existingOrders));
       
       console.log("MTO order submitted successfully");
       
