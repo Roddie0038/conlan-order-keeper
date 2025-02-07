@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { FormField } from "../order-form/FormField";
@@ -32,6 +32,11 @@ export const MTOOrderForm = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionValues, setSessionValues] = useState({
+    name: "",
+    scheduleArrival: "",
+  });
+  
   const [formData, setFormData] = useState({
     store: user?.store || "",
     timestamp: new Date().toLocaleString(),
@@ -46,11 +51,39 @@ export const MTOOrderForm = () => {
     notes: "",
   });
 
+  // Load retained values when component mounts
+  useEffect(() => {
+    const storedName = sessionStorage.getItem('mtoOrderName');
+    const storedSchedule = sessionStorage.getItem('mtoOrderSchedule');
+    
+    if (storedName || storedSchedule) {
+      setFormData(prev => ({
+        ...prev,
+        name: storedName || '',
+        scheduleArrival: storedSchedule || '',
+      }));
+      setSessionValues({
+        name: storedName || '',
+        scheduleArrival: storedSchedule || '',
+      });
+    }
+  }, []);
+
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+
+    // Store name and scheduleArrival in sessionStorage when they change
+    if (field === 'name') {
+      sessionStorage.setItem('mtoOrderName', value);
+      setSessionValues(prev => ({ ...prev, name: value }));
+    }
+    if (field === 'scheduleArrival') {
+      sessionStorage.setItem('mtoOrderSchedule', value);
+      setSessionValues(prev => ({ ...prev, scheduleArrival: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,7 +110,6 @@ export const MTOOrderForm = () => {
         triggered_from: window.location.origin,
       };
 
-      // Send to Zapier webhook
       await fetch(
         "https://hooks.zapier.com/hooks/catch/21441385/2atp7qy/",
         {
@@ -90,7 +122,6 @@ export const MTOOrderForm = () => {
         }
       );
       
-      // Store in localStorage
       const existingOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');
       existingOrders.push(orderData);
       localStorage.setItem('mtoOrders', JSON.stringify(existingOrders));
@@ -102,17 +133,18 @@ export const MTOOrderForm = () => {
         description: "Your MTO order has been submitted.",
       });
 
+      // Clear form but retain session values
       setFormData({
         ...formData,
-        name: "",
         productNumber: "",
         casingGrade: "",
         tireSize: "",
         customTireSize: "",
         tireTreadNeeded: "",
         quantity: "",
-        scheduleArrival: "",
         notes: "",
+        name: sessionValues.name,
+        scheduleArrival: sessionValues.scheduleArrival,
       });
     } catch (error) {
       console.error("Error submitting MTO order:", error);

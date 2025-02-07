@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { OrderFormInputs } from "./order-form/OrderFormInputs";
@@ -18,16 +19,38 @@ export const OrderForm = () => {
   const { user } = useAuth();
   const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionValues, setSessionValues] = useState({
+    yourName: "",
+    scheduleArrival: "",
+  });
+  
   const [formData, setFormData] = useState<FormData>({
     ...initialFormData,
     dateReceived: getCurrentDateTime(),
   });
 
+  // Load retained values when component mounts
+  useEffect(() => {
+    const storedName = sessionStorage.getItem('orderName');
+    const storedSchedule = sessionStorage.getItem('orderSchedule');
+    
+    if (storedName || storedSchedule) {
+      setFormData(prev => ({
+        ...prev,
+        yourName: storedName || '',
+        scheduleArrival: storedSchedule || '',
+      }));
+      setSessionValues({
+        yourName: storedName || '',
+        scheduleArrival: storedSchedule || '',
+      });
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      // Find the full store name for cross dock destination if it exists
       let crossDockFullName = formData.crossDockDestination;
       if (formData.crossDock === "yes" && formData.crossDockDestination) {
         const store = stores.find(s => s.id === formData.crossDockDestination);
@@ -52,9 +75,12 @@ export const OrderForm = () => {
         description: "Your order has been added to the summary table below.",
       });
       
+      // Reset form but retain session values
       setFormData({
         ...initialFormData,
         dateReceived: getCurrentDateTime(),
+        yourName: sessionValues.yourName,
+        scheduleArrival: sessionValues.scheduleArrival,
       });
     } catch (error) {
       toast({
@@ -72,6 +98,16 @@ export const OrderForm = () => {
       ...prev,
       [field]: value,
     }));
+
+    // Store name and scheduleArrival in sessionStorage when they change
+    if (field === 'yourName') {
+      sessionStorage.setItem('orderName', value);
+      setSessionValues(prev => ({ ...prev, yourName: value }));
+    }
+    if (field === 'scheduleArrival') {
+      sessionStorage.setItem('orderSchedule', value);
+      setSessionValues(prev => ({ ...prev, scheduleArrival: value }));
+    }
   };
 
   const toggleOrderSelection = (orderId: string) => {
