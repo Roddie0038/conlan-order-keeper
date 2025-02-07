@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +11,7 @@ import PendingOrders from "./pages/PendingOrders";
 import CompletedOrders from "./pages/CompletedOrders";
 import MTOOrder from "./pages/MTOOrder";
 import CrossDock from "./pages/CrossDock";
+import AllPendingOrders from "./pages/AllPendingOrders";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,6 +50,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <PendingOrders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/all-pending-orders"
+                element={
+                  <ProtectedRoute>
+                    <AllPendingOrders />
                   </ProtectedRoute>
                 }
               />

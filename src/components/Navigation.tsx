@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +9,7 @@ export function Navigation() {
 
   const links = [
     { href: "/pending-orders", label: "New Order" },
+    { href: "/all-pending-orders", label: "All Pending Orders" },
     { href: "/mto-order", label: "MTO Orders" },
     { href: "/completed-orders", label: "Completed Orders" },
     { href: "/cross-dock", label: "Cross Dock Paperwork" },
