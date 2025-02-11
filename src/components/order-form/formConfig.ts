@@ -1,3 +1,4 @@
+
 export const stores = [
   { id: "22", name: "Fort Worth 22" },
   { id: "27", name: "Grand Prairie 27" },
@@ -49,4 +50,17 @@ export const initialFormData: FormData = {
   notes: "",
   crossDock: "",
   crossDockDestination: "",
+};
+
+export const storeManagerEmails: Record<string, string> = {
+  "Fort Worth": "jmartinez@conlantire.com",
+  "Grand Prairie": "tosborn@conlantire.com, crichard@conlantire.com",
+  "Houston": "jhughes@conlantire.com",
+  "San Antonio": "ccase@conlantire.com",
+  "Oklahoma City": "dbaumgardner@conlantire.com",
+  "Little Rock": "jmilliken@conlantire.com",
+  "Kansas City": "lallen@conlantire.com, rowilson@conlantire.com",
+  "Laredo": "hgamez@conlantire.com",
+  "Tulsa": "rowilson@conlantire.com",
+  "Austin": "borozco@conlantire.com",
 };
