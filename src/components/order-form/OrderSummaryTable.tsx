@@ -29,11 +29,14 @@ export const OrderSummaryTable = ({
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">Select</TableHead>
+              <TableHead>Order ID</TableHead>
+              <TableHead>Store</TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Qty</TableHead>
               <TableHead>Schedule</TableHead>
               <TableHead>Manager Email</TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -45,11 +48,14 @@ export const OrderSummaryTable = ({
                     onCheckedChange={() => onToggleSelection(order.id)}
                   />
                 </TableCell>
+                <TableCell>{order.id}</TableCell>
+                <TableCell>{order.store}</TableCell>
                 <TableCell>{order.productNumber}</TableCell>
                 <TableCell className="max-w-xs truncate">{order.description}</TableCell>
                 <TableCell>{order.quantity}</TableCell>
                 <TableCell>{order.scheduleArrival}</TableCell>
                 <TableCell className="max-w-xs truncate">{order.managerEmail}</TableCell>
+                <TableCell>Pending</TableCell>
               </TableRow>
             ))}
           </TableBody>
