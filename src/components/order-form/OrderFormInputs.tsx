@@ -1,6 +1,7 @@
+
 import { FormField } from "./FormField";
 import { Button } from "@/components/ui/button";
-import { scheduleOptions, crossDockOptions, stores, type FormData } from "./formConfig";
+import { scheduleOptions, crossDockOptions, stores, type FormData, storeManagerEmails } from "./formConfig";
 
 interface OrderFormInputsProps {
   formData: FormData;
@@ -31,6 +32,15 @@ export const OrderFormInputs = ({
           value={formData.dateReceived}
           onChange={(value) => onChange("dateReceived", value)}
           disabled={true}
+        />
+
+        <FormField
+          label="Store Manager Email"
+          type="email"
+          value={formData.managerEmail || ''}
+          onChange={() => {}} // No-op since it's read-only
+          disabled={true}
+          placeholder="Store manager email will be automatically set"
         />
 
         <FormField
@@ -85,7 +95,12 @@ export const OrderFormInputs = ({
           <FormField
             label="Cross Dock Destination"
             value={formData.crossDockDestination || ""}
-            onChange={(value) => onChange("crossDockDestination", value)}
+            onChange={(value) => {
+              onChange("crossDockDestination", value);
+              // Set manager email based on selected store
+              const managerEmail = storeManagerEmails[value] || '';
+              onChange("managerEmail", managerEmail);
+            }}
             options={stores}
             placeholder="Select destination"
             required

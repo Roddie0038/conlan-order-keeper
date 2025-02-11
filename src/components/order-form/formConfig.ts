@@ -11,6 +11,19 @@ export const stores = [
   { id: "39", name: "Austin 39" },
 ];
 
+export const storeManagerEmails: Record<string, string> = {
+  "22": "jmartinez@conlantire.com",
+  "27": "tosborn@conlantire.com, crichard@conlantire.com",
+  "28": "jhughes@conlantire.com",
+  "29": "ccase@conlantire.com",
+  "30": "dbaumgardner@conlantire.com",
+  "32": "jmilliken@conlantire.com",
+  "33": "lallen@conlantire.com, rowilson@conlantire.com",
+  "35": "hgamez@conlantire.com",
+  "36": "rowilson@conlantire.com",
+  "39": "borozco@conlantire.com"
+};
+
 export const scheduleOptions = [
   "Monday",
   "Tuesday",
@@ -36,6 +49,7 @@ export type FormData = {
   notes: string;
   crossDock: string;
   crossDockDestination?: string;
+  managerEmail?: string;
 };
 
 export const initialFormData: FormData = {
@@ -49,4 +63,5 @@ export const initialFormData: FormData = {
   notes: "",
   crossDock: "",
   crossDockDestination: "",
+  managerEmail: "",
 };
