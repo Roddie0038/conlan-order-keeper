@@ -1,3 +1,4 @@
+
 interface BaseOrderData {
   timestamp: string;
   store: string;
