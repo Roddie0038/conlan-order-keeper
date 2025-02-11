@@ -97,7 +97,7 @@ export const OrderFormInputs = ({
             value={formData.crossDockDestination || ""}
             onChange={(value) => {
               onChange("crossDockDestination", value);
-              // Set manager email based on selected store
+              // Set manager email based on selected store ID
               const managerEmail = storeManagerEmails[value] || '';
               onChange("managerEmail", managerEmail);
             }}
