@@ -1,42 +1,35 @@
 
-import { OrderForm } from "@/components/OrderForm";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { storeManagerEmails } from "./order-form/formConfig";
+import { OrderFormInputs } from "./order-form/OrderFormInputs";
+import { OrderSummaryTable } from "./order-form/OrderSummaryTable";
+import { OrderSubmissionHandler } from "./order-form/OrderSubmissionHandler";
+import { useState } from "react";
+import type { OrderSummary } from "./order-form/types";
 
-const Index = () => {
-  const navigate = useNavigate();
+// Note: Using default export instead of named export
+const OrderForm = () => {
+  const { user } = useAuth();
+  const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-primary text-primary-foreground py-6 mb-8">
-        <div className="container flex flex-col items-center gap-4">
-          <img 
-            src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" 
-            alt="Conlan Tire Logo" 
-            className="h-24 object-contain"
-          />
-          <h1 className="text-3xl font-bold text-center">Conlan Tire GP Orders</h1>
-          <div className="flex gap-4">
-            <Button 
-              variant="secondary"
-              onClick={() => navigate("/mto-order")}
-            >
-              Place MTO Order
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="space-y-8">
+      <OrderFormInputs 
+        orderSummaries={orderSummaries} 
+        setOrderSummaries={setOrderSummaries} 
+      />
       
-      <main className="container">
-        <OrderForm />
-      </main>
+      <OrderSummaryTable 
+        orderSummaries={orderSummaries}
+        setOrderSummaries={setOrderSummaries}
+      />
       
-      <footer className="mt-16 py-6 text-center text-gray-600">
-        <p>© {new Date().getFullYear()} Conlan Tire. All rights reserved.</p>
-      </footer>
+      <OrderSubmissionHandler 
+        orderSummaries={orderSummaries}
+        setOrderSummaries={setOrderSummaries}
+      />
     </div>
   );
 };
 
-export default Index;
+export default OrderForm;

@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState, useEffect } from "react";
-import { OrderForm } from "@/components/OrderForm";
+import OrderForm from "@/components/OrderForm";
 
 interface Order {
   id: string;
