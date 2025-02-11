@@ -2,7 +2,6 @@
 interface BaseOrderData {
   timestamp: string;
   store: string;
-  managerEmail: string;
 }
 
 export interface OrderData extends BaseOrderData {
