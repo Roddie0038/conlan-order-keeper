@@ -30,7 +30,7 @@ export const OrderForm = () => {
   });
 
   const getManagerEmail = (storeName: string) => {
-    if (storeName === "Admin") return "";
+    if (storeName === "Admin") return storeManagerEmails["Admin"];
     
     // Match the store number at the end of the string
     const match = storeName.match(/\d+$/);

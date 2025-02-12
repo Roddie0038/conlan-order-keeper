@@ -1,3 +1,4 @@
+
 export const stores = [
   { id: "22", name: "Fort Worth 22" },
   { id: "27", name: "Grand Prairie 27" },
@@ -21,7 +22,8 @@ export const storeManagerEmails: Record<string, string> = {
   "33": "lallen@conlantire.com, rowilson@conlantire.com",
   "35": "hgamez@conlantire.com",
   "36": "rowilson@conlantire.com",
-  "39": "borozco@conlantire.com"
+  "39": "borozco@conlantire.com",
+  "Admin": "roderickdemarais@aol.com"
 };
 
 export const scheduleOptions = [
