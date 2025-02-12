@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { useState, useEffect } from "react";
 import { OrderForm } from "@/components/OrderForm";
+import { storeManagerEmails } from "@/components/order-form/formConfig";
 
 interface Order {
   id: string;
@@ -24,6 +26,7 @@ interface Order {
   scheduleArrival: string;
   notes: string;
   crossDock: string;
+  managerEmail?: string;
 }
 
 export default function PendingOrders() {
@@ -36,8 +39,13 @@ export default function PendingOrders() {
     const savedOrders = localStorage.getItem('pendingOrders');
     if (savedOrders) {
       const allOrders = JSON.parse(savedOrders);
-      // Filter orders for the current store
-      setOrders(allOrders.filter((order: Order) => order.store === user?.store));
+      // Filter orders for the current store and ensure manager email is set
+      const filteredOrders = allOrders.filter((order: Order) => order.store === user?.store)
+        .map((order: Order) => ({
+          ...order,
+          managerEmail: storeManagerEmails[order.store.split(' ')[1]] || ''
+        }));
+      setOrders(filteredOrders);
     }
   }, [user?.store]);
 
@@ -49,7 +57,10 @@ export default function PendingOrders() {
     if (orderToComplete) {
       // Add to completed orders
       const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-      completedOrders.push(orderToComplete);
+      completedOrders.push({
+        ...orderToComplete,
+        managerEmail: storeManagerEmails[orderToComplete.store.split(' ')[1]] || ''
+      });
       localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
       
       // Remove from pending
@@ -57,7 +68,13 @@ export default function PendingOrders() {
       localStorage.setItem('pendingOrders', JSON.stringify(updatedPendingOrders));
       
       // Update state
-      setOrders(updatedPendingOrders.filter((order: Order) => order.store === user?.store));
+      setOrders(updatedPendingOrders
+        .filter((order: Order) => order.store === user?.store)
+        .map((order: Order) => ({
+          ...order,
+          managerEmail: storeManagerEmails[order.store.split(' ')[1]] || ''
+        }))
+      );
     }
   };
 
@@ -116,6 +133,7 @@ export default function PendingOrders() {
                 <TableHead>Product</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Quantity</TableHead>
+                <TableHead>Manager Email</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -126,6 +144,7 @@ export default function PendingOrders() {
                   <TableCell>{order.productNumber}</TableCell>
                   <TableCell>{order.description}</TableCell>
                   <TableCell>{order.quantity}</TableCell>
+                  <TableCell>{order.managerEmail}</TableCell>
                   <TableCell>
                     <Button
                       variant="outline"
