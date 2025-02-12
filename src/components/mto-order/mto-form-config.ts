@@ -25,6 +25,7 @@ export interface MTOFormData {
   store: string;
   timestamp: string;
   name: string;
+  managerEmail: string;  // Added this field
   productNumber: string;
   casingGrade: string;
   tireSize: string;
@@ -39,6 +40,7 @@ export const initialMTOFormData: MTOFormData = {
   store: "",
   timestamp: new Date().toLocaleString(),
   name: "",
+  managerEmail: "",  // Added this field
   productNumber: "",
   casingGrade: "",
   tireSize: "",
