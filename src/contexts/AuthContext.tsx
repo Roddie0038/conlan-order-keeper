@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -13,16 +14,16 @@ interface AuthContextType {
 }
 
 const users = [
-  { username: 'Fort Worth22', password: 'Welcome22', store: 'Fort Worth', isAdmin: false },
-  { username: 'Grand Prairie27', password: 'Welcome27', store: 'Grand Prairie', isAdmin: false },
-  { username: 'Houston28', password: 'Welcome28', store: 'Houston', isAdmin: false },
-  { username: 'San Antonio29', password: 'Welcome29', store: 'San Antonio', isAdmin: false },
-  { username: 'Oklahoma30', password: 'Welcome30', store: 'Oklahoma City', isAdmin: false },
-  { username: 'Little Rock32', password: 'Welcome32', store: 'Little Rock', isAdmin: false },
-  { username: 'Kansas33', password: 'Welcome33', store: 'Kansas City', isAdmin: false },
-  { username: 'Laredo35', password: 'Welcome35', store: 'Laredo', isAdmin: false },
-  { username: 'Tulsa36', password: 'Welcome36', store: 'Tulsa', isAdmin: false },
-  { username: 'Austin39', password: 'Welcome39', store: 'Austin', isAdmin: false },
+  { username: 'Fort Worth22', password: 'Welcome22', store: 'Fort Worth 22', isAdmin: false },
+  { username: 'Grand Prairie27', password: 'Welcome27', store: 'Grand Prairie 27', isAdmin: false },
+  { username: 'Houston28', password: 'Welcome28', store: 'Houston 28', isAdmin: false },
+  { username: 'San Antonio29', password: 'Welcome29', store: 'San Antonio 29', isAdmin: false },
+  { username: 'Oklahoma30', password: 'Welcome30', store: 'Oklahoma City 30', isAdmin: false },
+  { username: 'Little Rock32', password: 'Welcome32', store: 'Little Rock 32', isAdmin: false },
+  { username: 'Kansas33', password: 'Welcome33', store: 'Kansas 33', isAdmin: false },
+  { username: 'Laredo35', password: 'Welcome35', store: 'Laredo 35', isAdmin: false },
+  { username: 'Tulsa36', password: 'Welcome36', store: 'Tulsa 36', isAdmin: false },
+  { username: 'Austin39', password: 'Welcome39', store: 'Austin 39', isAdmin: false },
   { username: 'Conlan97', password: '97orders', store: 'Admin', isAdmin: true }
 ];
 

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { MTOFormData, initialMTOFormData } from "../mto-form-config";
+import { storeManagerEmails } from "@/components/order-form/formConfig";
 
 interface SessionValues {
   name: string;
@@ -17,10 +18,17 @@ export const useMTOForm = () => {
     name: "",
     scheduleArrival: "",
   });
+
+  const getManagerEmail = (store: string) => {
+    // Extract store number from store name (e.g., "Fort Worth 22" -> "22")
+    const storeNumber = store.split(' ').pop();
+    return storeManagerEmails[storeNumber || ''] || '';
+  };
   
   const [formData, setFormData] = useState<MTOFormData>({
     ...initialMTOFormData,
     store: user?.store || "",
+    managerEmail: user?.store ? getManagerEmail(user.store) : "",
   });
 
   useEffect(() => {
@@ -39,6 +47,18 @@ export const useMTOForm = () => {
       });
     }
   }, []);
+
+  // Update manager email when store changes
+  useEffect(() => {
+    if (user?.store) {
+      const managerEmail = getManagerEmail(user.store);
+      setFormData(prev => ({
+        ...prev,
+        store: user.store,
+        managerEmail: managerEmail
+      }));
+    }
+  }, [user?.store]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -60,6 +80,7 @@ export const useMTOForm = () => {
     setFormData({
       ...initialMTOFormData,
       store: user?.store || "",
+      managerEmail: user?.store ? getManagerEmail(user.store) : "",
       name: sessionValues.name,
       scheduleArrival: sessionValues.scheduleArrival,
     });
