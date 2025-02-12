@@ -20,9 +20,10 @@ export const useMTOForm = () => {
   });
 
   const getManagerEmail = (store: string) => {
-    // Extract store number from store name (e.g., "Fort Worth 22" -> "22")
-    const storeNumber = store.split(' ').pop();
-    return storeManagerEmails[storeNumber || ''] || '';
+    // Match the store number at the end of the string
+    const match = store.match(/\d+$/);
+    const storeNumber = match ? match[0] : '';
+    return storeManagerEmails[storeNumber] || '';
   };
   
   const [formData, setFormData] = useState<MTOFormData>({

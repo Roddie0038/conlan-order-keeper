@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,11 +32,11 @@ export const OrderForm = () => {
   const getManagerEmail = (storeName: string) => {
     if (storeName === "Admin") return "";
     
-    // Find the store in the stores array by checking if the name contains the store name
-    const store = stores.find(s => storeName.includes(s.name.split(' ')[0]));
-    if (!store) return "";
+    // Match the store number at the end of the string
+    const match = storeName.match(/\d+$/);
+    if (!match) return "";
     
-    return storeManagerEmails[store.id] || "";
+    return storeManagerEmails[match[0]] || "";
   };
 
   // Load retained values when component mounts
