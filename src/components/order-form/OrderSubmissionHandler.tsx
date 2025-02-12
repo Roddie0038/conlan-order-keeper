@@ -21,9 +21,11 @@ export const OrderSubmissionHandler = ({
   const { user } = useAuth();
 
   const getManagerEmail = (store: string) => {
-    if (store === "Admin") return storeManagerEmails["Admin"];
-    const storeId = store.split(' ')[1];
-    return storeManagerEmails[storeId] || '';
+    // Extract store number from store name (e.g., "Fort Worth 22" -> "22")
+    const storeNumber = store.split(' ').pop();
+    if (!storeNumber) return '';
+    
+    return storeManagerEmails[storeNumber] || '';
   };
 
   const handleSubmitSelected = async () => {
@@ -32,16 +34,18 @@ export const OrderSubmissionHandler = ({
     
     try {
       for (const order of selectedOrders) {
-        const managerEmail = getManagerEmail(user?.store || '');
+        const managerEmail = getManagerEmail(order.store);
+        console.log(`Submitting order for store ${order.store} with manager email: ${managerEmail}`);
+        
         await submitToGoogleSheets({
           ...order,
-          managerEmail
+          managerEmail: managerEmail
         });
         
         const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
         existingOrders.push({
           ...order,
-          managerEmail
+          managerEmail: managerEmail
         });
         localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
       }
@@ -53,6 +57,7 @@ export const OrderSubmissionHandler = ({
         description: `Successfully submitted ${selectedOrders.length} orders.`,
       });
     } catch (error) {
+      console.error("Error submitting orders:", error);
       toast({
         title: "Error",
         description: "Failed to submit orders. Please try again.",
