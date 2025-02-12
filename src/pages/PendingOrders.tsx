@@ -34,6 +34,12 @@ export default function PendingOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
 
+  const getManagerEmail = (store: string) => {
+    if (store === "Admin") return storeManagerEmails["Admin"];
+    const storeId = store.split(' ')[1];
+    return storeManagerEmails[storeId] || '';
+  };
+
   useEffect(() => {
     // In a real app, this would fetch from your backend
     const savedOrders = localStorage.getItem('pendingOrders');
@@ -43,7 +49,7 @@ export default function PendingOrders() {
       const filteredOrders = allOrders.filter((order: Order) => order.store === user?.store)
         .map((order: Order) => ({
           ...order,
-          managerEmail: storeManagerEmails[order.store.split(' ')[1]] || ''
+          managerEmail: getManagerEmail(order.store)
         }));
       setOrders(filteredOrders);
     }
@@ -59,7 +65,7 @@ export default function PendingOrders() {
       const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
       completedOrders.push({
         ...orderToComplete,
-        managerEmail: storeManagerEmails[orderToComplete.store.split(' ')[1]] || ''
+        managerEmail: getManagerEmail(orderToComplete.store)
       });
       localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
       
@@ -72,7 +78,7 @@ export default function PendingOrders() {
         .filter((order: Order) => order.store === user?.store)
         .map((order: Order) => ({
           ...order,
-          managerEmail: storeManagerEmails[order.store.split(' ')[1]] || ''
+          managerEmail: getManagerEmail(order.store)
         }))
       );
     }
