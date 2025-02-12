@@ -4,6 +4,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import type { OrderSummary } from "./types";
 import { LoadingOverlay } from "./LoadingOverlay";
+import { useAuth } from "@/contexts/AuthContext";
+import { storeManagerEmails } from "./formConfig";
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: OrderSummary[];
@@ -16,6 +18,13 @@ export const OrderSubmissionHandler = ({
 }: OrderSubmissionHandlerProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+
+  const getManagerEmail = (store: string) => {
+    if (store === "Admin") return storeManagerEmails["Admin"];
+    const storeId = store.split(' ')[1];
+    return storeManagerEmails[storeId] || '';
+  };
 
   const handleSubmitSelected = async () => {
     setIsSubmitting(true);
@@ -23,10 +32,17 @@ export const OrderSubmissionHandler = ({
     
     try {
       for (const order of selectedOrders) {
-        await submitToGoogleSheets(order);
+        const managerEmail = getManagerEmail(user?.store || '');
+        await submitToGoogleSheets({
+          ...order,
+          managerEmail
+        });
         
         const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-        existingOrders.push(order);
+        existingOrders.push({
+          ...order,
+          managerEmail
+        });
         localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
       }
       
