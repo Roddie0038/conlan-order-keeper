@@ -33,8 +33,8 @@ export const OrderForm = () => {
   const getManagerEmail = (storeName: string) => {
     if (storeName === "Admin") return "";
     
-    // Find the store in the stores array based on the name
-    const store = stores.find(s => s.name.startsWith(storeName));
+    // Find the store in the stores array by checking if the name contains the store name
+    const store = stores.find(s => storeName.includes(s.name.split(' ')[0]));
     if (!store) return "";
     
     return storeManagerEmails[store.id] || "";
