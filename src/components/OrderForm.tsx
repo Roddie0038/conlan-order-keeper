@@ -10,6 +10,7 @@ import {
   initialFormData,
   type FormData,
   stores,
+  storeManagerEmails,
 } from "./order-form/formConfig";
 import type { OrderSummary } from "./order-form/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +29,12 @@ export const OrderForm = () => {
     ...initialFormData,
     dateReceived: getCurrentDateTime(),
   });
+
+  const getManagerEmail = (store: string) => {
+    if (store === "Admin") return storeManagerEmails["Admin"];
+    const storeId = store.split(' ')[1];
+    return storeManagerEmails[storeId] || '';
+  };
 
   // Load retained values when component mounts
   useEffect(() => {
@@ -59,6 +66,8 @@ export const OrderForm = () => {
         }
       }
 
+      const managerEmail = getManagerEmail(user?.store || '');
+
       const orderData: OrderSummary = {
         id: crypto.randomUUID(),
         timestamp: new Date().toLocaleString(),
@@ -66,6 +75,7 @@ export const OrderForm = () => {
         store: user?.store || '',
         crossDockDestination: crossDockFullName,
         selected: false,
+        managerEmail: managerEmail,
       };
 
       setOrderSummaries(prev => [...prev, orderData]);
