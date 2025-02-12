@@ -35,12 +35,12 @@ export const OrderFormInputs = ({
         />
 
         <FormField
-          label="Store Manager Email"
+          label="Manager's Email"
           type="email"
           value={formData.managerEmail || ''}
           onChange={() => {}} // No-op since it's read-only
           disabled={true}
-          placeholder="Store manager email will be automatically set"
+          placeholder="Manager's email will be automatically set"
         />
 
         <FormField

@@ -36,6 +36,15 @@ export const MTOFormFields = ({ formData, onChange }: MTOFormFieldsProps) => {
       />
 
       <FormField
+        label="Manager's Email"
+        type="email"
+        value={formData.managerEmail || ''}
+        onChange={() => {}}
+        disabled={true}
+        placeholder="Manager's email will be automatically set"
+      />
+
+      <FormField
         label="Product Number"
         value={formData.productNumber}
         onChange={(value) => onChange("productNumber", value)}
