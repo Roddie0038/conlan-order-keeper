@@ -30,10 +30,14 @@ export const OrderForm = () => {
     dateReceived: getCurrentDateTime(),
   });
 
-  const getManagerEmail = (store: string) => {
-    if (store === "Admin") return storeManagerEmails["Admin"];
-    const storeId = store.split(' ')[1];
-    return storeManagerEmails[storeId] || '';
+  const getManagerEmail = (storeName: string) => {
+    if (storeName === "Admin") return "";
+    
+    // Find the store in the stores array based on the name
+    const store = stores.find(s => s.name.startsWith(storeName));
+    if (!store) return "";
+    
+    return storeManagerEmails[store.id] || "";
   };
 
   // Load retained values when component mounts
@@ -67,6 +71,7 @@ export const OrderForm = () => {
       }
 
       const managerEmail = getManagerEmail(user?.store || '');
+      console.log("Setting manager email:", managerEmail, "for store:", user?.store);
 
       const orderData: OrderSummary = {
         id: crypto.randomUUID(),
