@@ -48,13 +48,15 @@ export const OrderSummaryTable = ({
                     onCheckedChange={() => onToggleSelection(order.id)}
                   />
                 </TableCell>
-                <TableCell>{order.id}</TableCell>
+                <TableCell className="max-w-[150px] truncate">{order.id}</TableCell>
                 <TableCell>{order.store}</TableCell>
                 <TableCell>{order.productNumber}</TableCell>
                 <TableCell className="max-w-xs truncate">{order.description}</TableCell>
                 <TableCell>{order.quantity}</TableCell>
                 <TableCell>{order.scheduleArrival}</TableCell>
-                <TableCell className="max-w-xs truncate">{order.managerEmail}</TableCell>
+                <TableCell className="max-w-xs truncate whitespace-normal break-words">
+                  {order.managerEmail || 'No email set'}
+                </TableCell>
                 <TableCell>Pending</TableCell>
               </TableRow>
             ))}

@@ -1,3 +1,4 @@
+
 import { FormData } from "./formConfig";
 
 export interface OrderSummary extends FormData {
@@ -5,4 +6,5 @@ export interface OrderSummary extends FormData {
   timestamp: string;
   store: string;
   selected?: boolean;
+  managerEmail?: string;
 }
