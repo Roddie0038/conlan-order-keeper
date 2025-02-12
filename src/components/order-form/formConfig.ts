@@ -17,7 +17,7 @@ export const storeManagerEmails: Record<string, string> = {
   "27": "tosborn@conlantire.com, crichard@conlantire.com",
   "28": "jhughes@conlantire.com",
   "29": "ccase@conlantire.com",
-  "30": "dbaumgardner@conlantire.com",
+  "30": "dbaumgardner@conlantire.com, bhunt@conlantire.com",
   "32": "jmilliken@conlantire.com",
   "33": "lallen@conlantire.com, rowilson@conlantire.com",
   "35": "hgamez@conlantire.com",
