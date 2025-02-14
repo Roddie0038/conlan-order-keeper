@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -91,13 +90,22 @@ export default function PendingOrders() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-fixed"
+      className="min-h-screen bg-cover bg-center bg-fixed relative"
       style={{
         backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
         backgroundBlendMode: 'overlay',
       }}
     >
+      {/* Fixed position logout button */}
+      <Button 
+        variant="outline" 
+        onClick={handleLogout}
+        className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold text-black hover:bg-[#F97316] hover:text-white"
+      >
+        Logout
+      </Button>
+
       <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm">
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
@@ -108,22 +116,13 @@ export default function PendingOrders() {
             />
             <h1 className="text-2xl font-bold">New Order Form - {user?.store}</h1>
           </div>
-          <div className="flex gap-4">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/completed-orders')}
-              className="border-[#F97316] border-2 font-bold text-black hover:bg-[#F97316] hover:text-white"
-            >
-              View Completed Orders
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-              className="border-[#F97316] border-2 font-bold text-black hover:bg-[#F97316] hover:text-white"
-            >
-              Logout
-            </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/completed-orders')}
+            className="border-[#F97316] border-2 font-bold text-black hover:bg-[#F97316] hover:text-white"
+          >
+            View Completed Orders
+          </Button>
         </div>
       </header>
 
