@@ -1,16 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState, useEffect } from "react";
-
 interface Order {
   id: string;
   timestamp: string;
@@ -24,76 +16,52 @@ interface Order {
   notes: string;
   crossDock: string;
 }
-
 export default function CompletedOrders() {
-  const { user, logout } = useAuth();
+  const {
+    user,
+    logout
+  } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
-
   useEffect(() => {
     const savedOrders = localStorage.getItem('completedOrders');
     if (savedOrders) {
       const allOrders = JSON.parse(savedOrders);
-      const filteredOrders = user?.isAdmin 
-        ? allOrders 
-        : allOrders.filter((order: Order) => order.store === user?.store);
+      const filteredOrders = user?.isAdmin ? allOrders : allOrders.filter((order: Order) => order.store === user?.store);
       setOrders(filteredOrders);
     }
   }, [user?.store, user?.isAdmin]);
-
   const handleLogout = () => {
     logout();
     navigate('/');
   };
-
   const handleDelete = (orderId: string) => {
     const savedOrders = localStorage.getItem('completedOrders');
     if (savedOrders) {
       const allOrders = JSON.parse(savedOrders);
       const updatedOrders = allOrders.filter((order: Order) => order.id !== orderId);
       localStorage.setItem('completedOrders', JSON.stringify(updatedOrders));
-      const filteredOrders = user?.isAdmin 
-        ? updatedOrders 
-        : updatedOrders.filter((order: Order) => order.store === user?.store);
+      const filteredOrders = user?.isAdmin ? updatedOrders : updatedOrders.filter((order: Order) => order.store === user?.store);
       setOrders(filteredOrders);
     }
   };
-
-  return (
-    <div 
-      className="min-h-screen"
-      style={{
-        backgroundImage: "url('/lovable-uploads/310fc0d8-29ad-4965-98d1-a236b46f73e8.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+  return <div className="min-h-screen" style={{
+    backgroundImage: "url('/lovable-uploads/310fc0d8-29ad-4965-98d1-a236b46f73e8.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat"
+  }}>
       <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm">
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <img
-              src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png"
-              alt="Conlan Tire Logo"
-              className="h-16 object-contain"
-            />
+            <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain" />
             <h1 className="text-2xl font-bold">
               Completed Orders - {user?.isAdmin ? 'Admin View' : user?.store}
             </h1>
           </div>
           <div className="flex gap-4">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/pending-orders')}
-              className="border-orange-500 text-black font-bold hover:bg-orange-500 hover:text-white"
-            >
-              View Pending Orders
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-              className="border-orange-500 text-black font-bold hover:bg-orange-500 hover:text-white"
-            >
+            
+            <Button variant="outline" onClick={handleLogout} className="border-orange-500 text-black font-bold hover:bg-orange-500 hover:text-white">
               Logout
             </Button>
           </div>
@@ -115,30 +83,21 @@ export default function CompletedOrders() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
+              {orders.map(order => <TableRow key={order.id}>
                   <TableCell>{new Date(order.dateReceived).toLocaleDateString()}</TableCell>
                   <TableCell>{order.store}</TableCell>
                   <TableCell>{order.productNumber}</TableCell>
                   <TableCell>{order.description}</TableCell>
                   <TableCell>{order.quantity}</TableCell>
-                  {user?.isAdmin && (
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="outline"
-                        onClick={() => handleDelete(order.id)}
-                        className="bg-red-600 text-black font-bold hover:bg-red-700 hover:text-white"
-                      >
+                  {user?.isAdmin && <TableCell className="text-right">
+                      <Button variant="outline" onClick={() => handleDelete(order.id)} className="bg-red-600 text-black font-bold hover:bg-red-700 hover:text-white">
                         Delete
                       </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    </TableCell>}
+                </TableRow>)}
             </TableBody>
           </Table>
         </div>
       </main>
-    </div>
-  );
+    </div>;
 }
