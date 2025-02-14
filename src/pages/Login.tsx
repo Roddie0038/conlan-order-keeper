@@ -28,7 +28,7 @@ export default function Login() {
       });
     }
   };
-  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800 rounded-2xl">
+  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800 rounded-3xl bg-green-800 hover:bg-green-700">
       <div className="max-w-md w-full space-y-8 p-8 backdrop-blur-sm shadow-2xl border border-white/20 rounded-3xl bg-zinc-700 hover:bg-zinc-600">
         <div className="text-center">
           <img src="/lovable-uploads/b6f875b5-dba1-457d-b748-3b6e0578f676.png" alt="Conlan Tire Logo" className="mx-auto h-24 object-contain drop-shadow-lg rounded-2xl" />
