@@ -78,7 +78,7 @@ export default function PendingOrders() {
     backgroundBlendMode: 'overlay'
   }}>
       {/* Fixed position logout button */}
-      <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold text-black hover:text-white bg-[#d80819] rounded-3xl">
+      <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 mx-[25px] bg-black">
         Logout
       </Button>
 
