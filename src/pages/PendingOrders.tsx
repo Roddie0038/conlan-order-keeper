@@ -78,7 +78,7 @@ export default function PendingOrders() {
     backgroundBlendMode: 'overlay'
   }}>
       {/* Fixed position logout button */}
-      <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 mx-[25px] bg-black">LOGOUT</Button>
+      <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 bg-black mx-0">LOGOUT</Button>
 
       <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm">
         <div className="container flex justify-between items-center">
