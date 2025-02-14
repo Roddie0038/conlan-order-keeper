@@ -26,8 +26,8 @@ export function Navigation() {
               className={cn(
                 "px-3 py-2 text-sm font-bold text-black rounded-md transition-colors",
                 isActive(link.href)
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:text-primary hover:bg-accent"
+                  ? "bg-[#F97316] text-white"
+                  : "hover:bg-[#F97316] hover:text-white"
               )}
             >
               {link.label}
