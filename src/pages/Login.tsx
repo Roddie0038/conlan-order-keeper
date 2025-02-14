@@ -58,9 +58,7 @@ export default function Login() {
               <Input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="bg-white/10 border-white/20 text-white placeholder:text-gray-400" />
             </div>
           </div>
-          <Button type="submit" className="w-full bg-rose-700 hover:bg-rose-600">
-            Sign in
-          </Button>
+          <Button type="submit" className="w-full bg-rose-700 hover:bg-rose-600">Sign IN</Button>
         </form>
       </div>
     </div>;
