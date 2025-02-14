@@ -23,7 +23,7 @@ export const storeManagerEmails: Record<string, string> = {
   "35": "hgamez@conlantire.com",
   "36": "kbrown@conlantire.com, rowilson@conlantire.com",
   "39": "borozco@conlantire.com",
-  "Admin": "roderickdemarais@aol.com"
+  "Admin": "rdemarais@conlantire.com"
 };
 
 export const scheduleOptions = [
