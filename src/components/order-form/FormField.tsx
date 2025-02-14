@@ -41,6 +41,6 @@ export const FormField = ({
   }
   return <div>
       <label className="block text-sm font-medium mb-1">{label}</label>
-      <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full bg-slate-400 hover:bg-slate-300" />
+      <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full bg-zinc-50" />
     </div>;
 };
