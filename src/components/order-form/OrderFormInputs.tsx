@@ -40,8 +40,6 @@ export const OrderFormInputs = ({
       }} options={stores} placeholder="Select destination" required />}
       </div>
 
-      <Button type="submit" className="w-full">
-        Add to Summary
-      </Button>
+      <Button type="submit" className="w-full text-slate-50 rounded-3xl bg-rose-600 hover:bg-rose-500">ADD TO ORDER </Button>
     </form>;
 };
