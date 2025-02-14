@@ -29,12 +29,12 @@ export default function Login() {
     }
   };
   return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800 rounded-3xl bg-green-800 hover:bg-green-700">
-      <div className="max-w-md w-full space-y-8 p-8 backdrop-blur-sm shadow-2xl border border-white/20 rounded-3xl bg-zinc-700 hover:bg-zinc-600">
+      <div className="max-w-md w-full space-y-8 p-8 backdrop-blur-sm shadow-2xl border border-white/20 rounded-3xl bg-gray-700 hover:bg-gray-600">
         <div className="text-center">
           <img src="/lovable-uploads/b6f875b5-dba1-457d-b748-3b6e0578f676.png" alt="Conlan Tire Logo" className="mx-auto h-24 object-contain drop-shadow-lg rounded-2xl" />
           <h2 className="mt-6 text-3xl font-bold text-zinc-200">Sign in</h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6 rounded-sm bg-transparent">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-1">
@@ -58,7 +58,7 @@ export default function Login() {
               <Input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="bg-white/10 border-white/20 text-white placeholder:text-gray-400" />
             </div>
           </div>
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+          <Button type="submit" className="w-full bg-rose-700 hover:bg-rose-600">
             Sign in
           </Button>
         </form>
