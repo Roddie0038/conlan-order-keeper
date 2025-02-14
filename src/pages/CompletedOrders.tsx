@@ -69,7 +69,7 @@ export default function CompletedOrders() {
       </header>
 
       <main className="container">
-        <div className="bg-white/90 p-6 rounded-lg shadow backdrop-blur-sm">
+        <div className="p-6 rounded-lg shadow backdrop-blur-sm bg-gray-500 hover:bg-gray-400">
           <h2 className="text-xl font-semibold mb-4">Completed Orders</h2>
           <Table>
             <TableHeader>
