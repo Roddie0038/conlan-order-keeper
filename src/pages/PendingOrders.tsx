@@ -83,12 +83,10 @@ export default function PendingOrders() {
       <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm">
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain" />
-            <h1 className="text-2xl font-bold">New Order Form - {user?.store}</h1>
+            <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain rounded-full" />
+            <h1 className="text-2xl font-bold py-0 mx-[240px]">New Order Form - {user?.store}</h1>
           </div>
-          <Button variant="outline" onClick={() => navigate('/completed-orders')} className="border-[#F97316] border-2 font-bold text-black hover:bg-[#F97316] hover:text-white">
-            View Completed Orders
-          </Button>
+          
         </div>
       </header>
 
