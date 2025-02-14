@@ -10,7 +10,7 @@ export default function CrossDock() {
   return <div className="min-h-screen bg-emerald-400 hover:bg-emerald-300">
       <main className="container py-8">
         <div className="p-6 rounded-lg shadow-lg max-w-2xl mx-auto bg-gray-500 hover:bg-gray-400">
-          <h1 className="text-2xl mb-6 font-extrabold mx-[18px] my-0">Cross Dock Paperwork</h1>
+          <h1 className="text-2xl mb-6 mx-0 font-bold my-0 px-[185px]">Cross Dock Paperwork</h1>
           
           <div className="flex flex-col items-center justify-center space-y-4">
             <p className="text-center mb-4 text-slate-50 font-bold py-[44px] text-3xl">
