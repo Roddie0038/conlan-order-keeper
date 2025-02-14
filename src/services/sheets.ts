@@ -33,35 +33,34 @@ const formatOrderForMake = (data: OrderData | MTOOrderData) => {
   if ('type' in data && data.type === 'MTO') {
     // Handle MTO order
     return {
-      'Timestamp A': data.timestamp,
-      'Name B': data.name,
-      'Store C': data.store,
-      'Product Number D': data.productNumber,
-      'Description E': `${data.tireSize} - ${data.tireTreadNeeded}`,
-      'Quantity F': data.quantity,
-      'Schedule Arrival G': data.scheduleArrival,
-      'Notes H': data.notes,
-      'Cross Dock I': 'No',
-      'Cross Dock Destination J': '',
-      'Pull Sheet L': '',
-      'Email N': data.managerEmail || ''
+      'timestamp': data.timestamp,
+      'your_name': data.name,
+      'store': data.store,
+      'product_number': data.productNumber,
+      'description': `${data.tireSize} - ${data.tireTreadNeeded}`,
+      'quantity': data.quantity,
+      'schedule_arrival': data.scheduleArrival,
+      'notes': data.notes,
+      'cross_dock': 'No',
+      'cross_dock_destination': '',
+      'managers_email': data.managerEmail || ''
     };
   } else {
     // Handle regular order
     const regularOrder = data as OrderData;
     return {
-      'Timestamp A': data.timestamp,
-      'Name B': regularOrder.yourName,
-      'Store C': data.store,
-      'Product Number D': data.productNumber,
-      'Description E': regularOrder.description,
-      'Quantity F': data.quantity,
-      'Schedule Arrival G': data.scheduleArrival,
-      'Notes H': data.notes,
-      'Cross Dock I': regularOrder.crossDock,
-      'Cross Dock Destination J': regularOrder.crossDockDestination || '',
-      'Pull Sheet L': '',
-      'Email N': data.managerEmail || ''
+      'timestamp': data.timestamp,
+      'your_name': regularOrder.yourName,
+      'store': data.store,
+      'date_received': regularOrder.dateReceived,
+      'product_number': regularOrder.productNumber,
+      'description': regularOrder.description,
+      'quantity': regularOrder.quantity,
+      'schedule_arrival': regularOrder.scheduleArrival,
+      'notes': regularOrder.notes,
+      'cross_dock': regularOrder.crossDock,
+      'cross_dock_destination': regularOrder.crossDockDestination || '',
+      'managers_email': data.managerEmail || ''
     };
   }
 };
