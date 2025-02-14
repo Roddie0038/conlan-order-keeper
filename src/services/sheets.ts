@@ -34,33 +34,30 @@ const formatOrderForMake = (data: OrderData | MTOOrderData) => {
     // Handle MTO order
     return {
       'timestamp': data.timestamp,
-      'your_name': data.name,
-      'store': data.store,
+      'name': data.name,
+      'email': data.managerEmail || '',
       'product_number': data.productNumber,
       'description': `${data.tireSize} - ${data.tireTreadNeeded}`,
       'quantity': data.quantity,
       'schedule_arrival': data.scheduleArrival,
       'notes': data.notes,
       'cross_dock': 'No',
-      'cross_dock_destination': '',
-      'managers_email': data.managerEmail || ''
+      'cross_dock_destination': ''
     };
   } else {
     // Handle regular order
     const regularOrder = data as OrderData;
     return {
-      'timestamp': data.timestamp,
-      'your_name': regularOrder.yourName,
-      'store': data.store,
-      'date_received': regularOrder.dateReceived,
+      'timestamp': regularOrder.dateReceived,
+      'name': regularOrder.yourName,
+      'email': data.managerEmail || '',
       'product_number': regularOrder.productNumber,
       'description': regularOrder.description,
       'quantity': regularOrder.quantity,
       'schedule_arrival': regularOrder.scheduleArrival,
       'notes': regularOrder.notes,
       'cross_dock': regularOrder.crossDock,
-      'cross_dock_destination': regularOrder.crossDockDestination || '',
-      'managers_email': data.managerEmail || ''
+      'cross_dock_destination': regularOrder.crossDockDestination || ''
     };
   }
 };
