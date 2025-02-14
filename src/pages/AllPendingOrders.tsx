@@ -139,7 +139,7 @@ export default function AllPendingOrders() {
                     <TableHead className="bg-blue-300 hover:bg-blue-200">Description</TableHead>
                     <TableHead className="bg-blue-300 hover:bg-blue-200">Quantity</TableHead>
                     <TableHead className="bg-blue-300 hover:bg-blue-200">Schedule</TableHead>
-                    {user?.isAdmin && <TableHead className="bg-primary-DEFAULT">Actions</TableHead>}
+                    {user?.isAdmin && <TableHead>Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
