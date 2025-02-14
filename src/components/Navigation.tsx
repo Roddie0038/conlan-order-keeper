@@ -16,7 +16,7 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="bg-[#FF8C00] shadow-sm">
+    <nav className="bg-[#1e40af] shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex space-x-8 h-16 items-center">
           {links.map((link) => (
@@ -24,10 +24,10 @@ export function Navigation() {
               key={link.href}
               to={link.href}
               className={cn(
-                "px-3 py-2 text-sm font-bold text-black rounded-md transition-colors",
+                "px-3 py-2 text-sm font-bold text-white rounded-md transition-colors",
                 isActive(link.href)
-                  ? "bg-[#F97316] text-white"
-                  : "hover:bg-[#F97316] hover:text-white"
+                  ? "bg-[#0ea5e9] text-white"
+                  : "hover:bg-[#0ea5e9] hover:text-white"
               )}
             >
               {link.label}
