@@ -2,7 +2,7 @@
 interface BaseOrderData {
   timestamp: string;
   store: string;
-  managerEmail?: string;
+  managersEmail?: string;  // Updated from managerEmail to managersEmail
 }
 
 export interface OrderData extends BaseOrderData {
@@ -33,31 +33,35 @@ const formatOrderForMake = (data: OrderData | MTOOrderData) => {
   if ('type' in data && data.type === 'MTO') {
     // Handle MTO order
     return {
-      'timestamp': data.timestamp,
-      'name': data.name,
-      'email': data.managerEmail || '',
-      'product_number': data.productNumber,
-      'description': `${data.tireSize} - ${data.tireTreadNeeded}`,
-      'quantity': data.quantity,
-      'schedule_arrival': data.scheduleArrival,
-      'notes': data.notes,
-      'cross_dock': 'No',
-      'cross_dock_destination': ''
+      timestamp: data.timestamp,
+      yourName: data.name,
+      store: data.store,
+      dateReceived: data.timestamp,
+      productNumber: data.productNumber,
+      description: `${data.tireSize} - ${data.tireTreadNeeded}`,
+      quantity: data.quantity,
+      scheduleArrival: data.scheduleArrival,
+      notes: data.notes,
+      crossDock: 'No',
+      crossDockDestination: '',
+      managersEmail: data.managersEmail || ''
     };
   } else {
     // Handle regular order
     const regularOrder = data as OrderData;
     return {
-      'timestamp': regularOrder.dateReceived,
-      'name': regularOrder.yourName,
-      'email': data.managerEmail || '',
-      'product_number': regularOrder.productNumber,
-      'description': regularOrder.description,
-      'quantity': regularOrder.quantity,
-      'schedule_arrival': regularOrder.scheduleArrival,
-      'notes': regularOrder.notes,
-      'cross_dock': regularOrder.crossDock,
-      'cross_dock_destination': regularOrder.crossDockDestination || ''
+      timestamp: regularOrder.dateReceived,
+      yourName: regularOrder.yourName,
+      store: regularOrder.store,
+      dateReceived: regularOrder.dateReceived,
+      productNumber: regularOrder.productNumber,
+      description: regularOrder.description,
+      quantity: regularOrder.quantity,
+      scheduleArrival: regularOrder.scheduleArrival,
+      notes: regularOrder.notes,
+      crossDock: regularOrder.crossDock,
+      crossDockDestination: regularOrder.crossDockDestination || '',
+      managersEmail: regularOrder.managersEmail || ''
     };
   }
 };
