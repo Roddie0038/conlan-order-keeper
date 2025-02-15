@@ -6,5 +6,5 @@ export interface OrderSummary extends FormData {
   timestamp: string;
   store: string;
   selected?: boolean;
-  managerEmail?: string;
+  managersEmail?: string;
 }

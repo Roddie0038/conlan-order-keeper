@@ -51,7 +51,7 @@ export type FormData = {
   notes: string;
   crossDock: string;
   crossDockDestination?: string;
-  managerEmail?: string;
+  managersEmail?: string;
 };
 
 export const initialFormData: FormData = {
@@ -65,5 +65,5 @@ export const initialFormData: FormData = {
   notes: "",
   crossDock: "",
   crossDockDestination: "",
-  managerEmail: "",
+  managersEmail: "",
 };
