@@ -55,7 +55,7 @@ export const OrderSummaryTable = ({
                 <TableCell>{order.quantity}</TableCell>
                 <TableCell>{order.scheduleArrival}</TableCell>
                 <TableCell className="max-w-xs truncate whitespace-normal break-words">
-                  {order.managerEmail || 'No email set'}
+                  {order.managersEmail || 'No email set'}
                 </TableCell>
                 <TableCell>Pending</TableCell>
               </TableRow>

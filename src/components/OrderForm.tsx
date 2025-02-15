@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,13 +9,10 @@ import { getCurrentDateTime } from "@/utils/dateTime";
 import { initialFormData, type FormData, stores, storeManagerEmails } from "./order-form/formConfig";
 import type { OrderSummary } from "./order-form/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 export const OrderForm = () => {
-  const {
-    toast
-  } = useToast();
-  const {
-    user
-  } = useAuth();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionValues, setSessionValues] = useState({
@@ -25,6 +23,7 @@ export const OrderForm = () => {
     ...initialFormData,
     dateReceived: getCurrentDateTime()
   });
+
   const getManagerEmail = (storeName: string) => {
     if (storeName === "Admin") return storeManagerEmails["Admin"];
 
@@ -50,6 +49,7 @@ export const OrderForm = () => {
       });
     }
   }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -60,8 +60,8 @@ export const OrderForm = () => {
           crossDockFullName = `${store.name} (${store.id})`;
         }
       }
-      const managerEmail = getManagerEmail(user?.store || '');
-      console.log("Setting manager email:", managerEmail, "for store:", user?.store);
+      const managersEmail = getManagerEmail(user?.store || '');
+      console.log("Setting managers email:", managersEmail, "for store:", user?.store);
       const orderData: OrderSummary = {
         id: crypto.randomUUID(),
         timestamp: new Date().toLocaleString(),
@@ -69,7 +69,7 @@ export const OrderForm = () => {
         store: user?.store || '',
         crossDockDestination: crossDockFullName,
         selected: false,
-        managerEmail: managerEmail
+        managersEmail: managersEmail
       };
       setOrderSummaries(prev => [...prev, orderData]);
       toast({
@@ -92,6 +92,7 @@ export const OrderForm = () => {
       });
     }
   };
+
   const handleChange = (field: keyof FormData, value: string) => {
     if (field === 'dateReceived') return;
     setFormData(prev => ({
@@ -115,12 +116,14 @@ export const OrderForm = () => {
       }));
     }
   };
+
   const toggleOrderSelection = (orderId: string) => {
     setOrderSummaries(prev => prev.map(order => order.id === orderId ? {
       ...order,
       selected: !order.selected
     } : order));
   };
+
   return <div className="space-y-8">
       <Tabs defaultValue="order-form" className="w-full">
         <TabsList className="grid w-full grid-cols-1">

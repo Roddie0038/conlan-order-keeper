@@ -1,11 +1,14 @@
+
 import { FormField } from "./FormField";
 import { Button } from "@/components/ui/button";
 import { scheduleOptions, crossDockOptions, stores, type FormData, storeManagerEmails } from "./formConfig";
+
 interface OrderFormInputsProps {
   formData: FormData;
   onSubmit: (e: React.FormEvent) => void;
   onChange: (field: keyof FormData, value: string) => void;
 }
+
 export const OrderFormInputs = ({
   formData,
   onSubmit,
@@ -17,7 +20,7 @@ export const OrderFormInputs = ({
 
         <FormField label="Date Received" type="datetime-local" required value={formData.dateReceived} onChange={value => onChange("dateReceived", value)} disabled={true} />
 
-        <FormField label="Manager's Email" type="email" value={formData.managerEmail || ''} onChange={() => {}} // No-op since it's read-only
+        <FormField label="Manager's Email" type="email" value={formData.managersEmail || ''} onChange={() => {}} // No-op since it's read-only
       disabled={true} placeholder="Manager's email will be automatically set" />
 
         <FormField label="Product Number" required value={formData.productNumber} onChange={value => onChange("productNumber", value)} placeholder="Enter product number" />
@@ -35,11 +38,11 @@ export const OrderFormInputs = ({
         {formData.crossDock === "yes" && <FormField label="Cross Dock Destination" value={formData.crossDockDestination || ""} onChange={value => {
         onChange("crossDockDestination", value);
         // Set manager email based on selected store ID
-        const managerEmail = storeManagerEmails[value] || '';
-        onChange("managerEmail", managerEmail);
+        const managersEmail = storeManagerEmails[value] || '';
+        onChange("managersEmail", managersEmail);
       }} options={stores} placeholder="Select destination" required />}
       </div>
 
-      <Button type="submit" className="w-full text-slate-50 rounded-3xl bg-rose-600 hover:bg-rose-500">ADD TO ORDER </Button>
+      <Button type="submit" className="w-full text-slate-50 rounded-3xl bg-rose-600 hover:bg-rose-500">ADD TO ORDER</Button>
     </form>;
 };
