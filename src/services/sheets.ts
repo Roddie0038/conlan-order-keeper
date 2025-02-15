@@ -88,7 +88,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
 
     // Submit to Make.com webhook with formatted data
     await fetch(
-      "https://hook.us2.make.com/n1ir8pougteuvd4i61zhr7eruplop3jc",
+      "https://hook.us2.make.com/kvjp5z4ojqffqx85e82wpy2skmc7n71e",
       {
         method: "POST",
         headers: {

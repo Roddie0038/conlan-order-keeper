@@ -34,18 +34,18 @@ export const OrderSubmissionHandler = ({
     
     try {
       for (const order of selectedOrders) {
-        const managerEmail = getManagerEmail(order.store);
-        console.log(`Submitting order for store ${order.store} with manager email: ${managerEmail}`);
+        const managersEmail = getManagerEmail(order.store);
+        console.log(`Submitting order for store ${order.store} with manager email: ${managersEmail}`);
         
         await submitToGoogleSheets({
           ...order,
-          managerEmail: managerEmail
+          managersEmail: managersEmail
         });
         
         const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
         existingOrders.push({
           ...order,
-          managerEmail: managerEmail
+          managersEmail: managersEmail
         });
         localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
       }
