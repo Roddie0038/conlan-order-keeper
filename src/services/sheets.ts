@@ -32,6 +32,8 @@ export interface MTOOrderData extends BaseOrderData {
 const formatOrderForMake = (data: OrderData | MTOOrderData) => {
   console.log("Incoming data for formatting:", data);
   console.log("Manager's email from incoming data:", data.managersEmail);
+  
+  const timestamp = new Date().toISOString();
 
   if ('type' in data && data.type === 'MTO') {
     // Handle MTO order
@@ -44,7 +46,9 @@ const formatOrderForMake = (data: OrderData | MTOOrderData) => {
       scheduleArrival: data.scheduleArrival,
       notes: data.notes,
       managersEmail: data.managersEmail || '',
-      type: 'MTO'
+      type: 'MTO',
+      yourName: data.name,
+      timestamp: timestamp
     };
     console.log("Formatted MTO data:", formattedData);
     return formattedData;
@@ -62,7 +66,9 @@ const formatOrderForMake = (data: OrderData | MTOOrderData) => {
       crossDock: regularOrder.crossDock,
       crossDockDestination: regularOrder.crossDockDestination || '',
       managersEmail: regularOrder.managersEmail || '',
-      type: 'regular'
+      type: 'regular',
+      yourName: regularOrder.yourName,
+      timestamp: timestamp
     };
     console.log("Formatted regular order data:", formattedData);
     return formattedData;
