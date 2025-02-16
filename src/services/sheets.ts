@@ -30,9 +30,12 @@ export interface MTOOrderData extends BaseOrderData {
 }
 
 const formatOrderForMake = (data: OrderData | MTOOrderData) => {
+  console.log("Incoming data for formatting:", data);
+  console.log("Manager's email from incoming data:", data.managersEmail);
+
   if ('type' in data && data.type === 'MTO') {
     // Handle MTO order
-    return {
+    const formattedData = {
       orderId: crypto.randomUUID(),
       product: data.productNumber,
       quantity: data.quantity,
@@ -40,12 +43,15 @@ const formatOrderForMake = (data: OrderData | MTOOrderData) => {
       description: `${data.tireSize} - ${data.tireTreadNeeded}`,
       scheduleArrival: data.scheduleArrival,
       notes: data.notes,
-      managersEmail: data.managersEmail || ''
+      managersEmail: data.managersEmail || '',
+      type: 'MTO'
     };
+    console.log("Formatted MTO data:", formattedData);
+    return formattedData;
   } else {
     // Handle regular order
     const regularOrder = data as OrderData;
-    return {
+    const formattedData = {
       orderId: crypto.randomUUID(),
       product: regularOrder.productNumber,
       quantity: regularOrder.quantity,
@@ -55,13 +61,17 @@ const formatOrderForMake = (data: OrderData | MTOOrderData) => {
       notes: regularOrder.notes,
       crossDock: regularOrder.crossDock,
       crossDockDestination: regularOrder.crossDockDestination || '',
-      managersEmail: regularOrder.managersEmail || ''
+      managersEmail: regularOrder.managersEmail || '',
+      type: 'regular'
     };
+    console.log("Formatted regular order data:", formattedData);
+    return formattedData;
   }
 };
 
 export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("Submitting to webhooks", data);
+  console.log("Manager's email in submitToGoogleSheets:", data.managersEmail);
   
   try {
     // Submit to Zapier webhook with original format
@@ -83,6 +93,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     // Submit to Pipedream webhook with formatted data
     const formattedData = formatOrderForMake(data);
     console.log("Sending formatted data to Pipedream:", formattedData);
+    console.log("Manager's email in formatted data:", formattedData.managersEmail);
     
     await fetch(
       "https://eovyfr6d4bqx3kg.m.pipedream.net",
