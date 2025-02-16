@@ -33,30 +33,24 @@ const formatOrderForMake = (data: OrderData | MTOOrderData) => {
   if ('type' in data && data.type === 'MTO') {
     // Handle MTO order
     return {
-      timestamp: data.timestamp,
-      yourName: data.name,
-      store: data.store,
-      dateReceived: data.timestamp,
-      productNumber: data.productNumber,
-      description: `${data.tireSize} - ${data.tireTreadNeeded}`,
+      orderId: crypto.randomUUID(),
+      product: data.productNumber,
       quantity: data.quantity,
+      storeName: data.store,
+      description: `${data.tireSize} - ${data.tireTreadNeeded}`,
       scheduleArrival: data.scheduleArrival,
       notes: data.notes,
-      crossDock: 'No',
-      crossDockDestination: '',
       managersEmail: data.managersEmail || ''
     };
   } else {
     // Handle regular order
     const regularOrder = data as OrderData;
     return {
-      timestamp: regularOrder.dateReceived,
-      yourName: regularOrder.yourName,
-      store: regularOrder.store,
-      dateReceived: regularOrder.dateReceived,
-      productNumber: regularOrder.productNumber,
-      description: regularOrder.description,
+      orderId: crypto.randomUUID(),
+      product: regularOrder.productNumber,
       quantity: regularOrder.quantity,
+      storeName: regularOrder.store,
+      description: regularOrder.description,
       scheduleArrival: regularOrder.scheduleArrival,
       notes: regularOrder.notes,
       crossDock: regularOrder.crossDock,
@@ -87,6 +81,9 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     );
 
     // Submit to Pipedream webhook with formatted data
+    const formattedData = formatOrderForMake(data);
+    console.log("Sending formatted data to Pipedream:", formattedData);
+    
     await fetch(
       "https://eovyfr6d4bqx3kg.m.pipedream.net",
       {
@@ -95,7 +92,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
           "Content-Type": "application/json",
         },
         mode: "no-cors",
-        body: JSON.stringify(formatOrderForMake(data)),
+        body: JSON.stringify(formattedData),
       }
     );
 
