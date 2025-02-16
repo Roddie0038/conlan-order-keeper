@@ -2,7 +2,7 @@
 interface BaseOrderData {
   timestamp: string;
   store: string;
-  managersEmail?: string;  // Updated from managerEmail to managersEmail
+  managersEmail?: string;
 }
 
 export interface OrderData extends BaseOrderData {
@@ -86,9 +86,9 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       }
     );
 
-    // Submit to Make.com webhook with formatted data
+    // Submit to Pipedream webhook with formatted data
     await fetch(
-      "https://hook.us2.make.com/kvjp5z4ojqffqx85e82wpy2skmc7n71e",
+      "https://eo26lfdxla5sh8a.m.pipedream.net",
       {
         method: "POST",
         headers: {
