@@ -97,13 +97,13 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       }
     );
 
-    // Submit to Pipedream webhook with formatted data
+    // Submit to Make.com webhook with formatted data
     const formattedData = formatOrderForMake(data);
-    console.log("Sending formatted data to Pipedream:", formattedData);
+    console.log("Sending formatted data to Make.com:", formattedData);
     console.log("Manager's email in formatted data:", formattedData.managersEmail);
     
     await fetch(
-      "https://eovyfr6d4bqx3kg.m.pipedream.net",
+      "https://hook.us2.make.com/kvjp5z4ojqffqx85e82wpy2skmc7n71e",
       {
         method: "POST",
         headers: {
