@@ -88,7 +88,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
 
     // Submit to Pipedream webhook with formatted data
     await fetch(
-      "https://eo26lfdxla5sh8a.m.pipedream.net",
+      "https://eovyfr6d4bqx3kg.m.pipedream.net",
       {
         method: "POST",
         headers: {
