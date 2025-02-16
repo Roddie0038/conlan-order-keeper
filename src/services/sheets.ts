@@ -29,59 +29,12 @@ export interface MTOOrderData extends BaseOrderData {
   type: 'MTO';
 }
 
-const formatOrderForMake = (data: OrderData | MTOOrderData) => {
-  console.log("Incoming data for formatting:", data);
-  console.log("Manager's email from incoming data:", data.managersEmail);
-
-  const now = new Date();
-  const timestamp = now.toLocaleString();
-
-  if ('type' in data && data.type === 'MTO') {
-    // Handle MTO order
-    const formattedData = {
-      orderId: crypto.randomUUID(),
-      product: data.productNumber,
-      quantity: data.quantity,
-      storeName: data.store,
-      description: `${data.tireSize} - ${data.tireTreadNeeded}`,
-      scheduleArrival: data.scheduleArrival,
-      notes: data.notes,
-      managersEmail: data.managersEmail || '',
-      type: 'MTO',
-      submittedBy: data.name,
-      timestamp
-    };
-    console.log("Formatted MTO data:", formattedData);
-    return formattedData;
-  } else {
-    // Handle regular order
-    const regularOrder = data as OrderData;
-    const formattedData = {
-      orderId: crypto.randomUUID(),
-      product: regularOrder.productNumber,
-      quantity: regularOrder.quantity,
-      storeName: regularOrder.store,
-      description: regularOrder.description,
-      scheduleArrival: regularOrder.scheduleArrival,
-      notes: regularOrder.notes,
-      crossDock: regularOrder.crossDock,
-      crossDockDestination: regularOrder.crossDockDestination || '',
-      managersEmail: regularOrder.managersEmail || '',
-      type: 'regular',
-      submittedBy: regularOrder.yourName,
-      timestamp
-    };
-    console.log("Formatted regular order data:", formattedData);
-    return formattedData;
-  }
-};
-
 export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
-  console.log("Submitting to webhooks", data);
+  console.log("Submitting to Zapier webhook:", data);
   console.log("Manager's email in submitToGoogleSheets:", data.managersEmail);
   
   try {
-    // Submit to Zapier webhook with original format
+    // Submit to Zapier webhook
     await fetch(
       "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
       {
@@ -92,29 +45,13 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
         mode: "no-cors",
         body: JSON.stringify({
           ...data,
+          orderId: crypto.randomUUID(),
           triggered_from: window.location.origin,
         }),
       }
     );
 
-    // Submit to Make.com webhook with formatted data
-    const formattedData = formatOrderForMake(data);
-    console.log("Sending formatted data to Make.com:", formattedData);
-    console.log("Manager's email in formatted data:", formattedData.managersEmail);
-    
-    await fetch(
-      "https://hook.us2.make.com/kvjp5z4ojqffqx85e82wpy2skmc7n71e",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "no-cors",
-        body: JSON.stringify(formattedData),
-      }
-    );
-
-    console.log("Webhooks triggered successfully");
+    console.log("Zapier webhook triggered successfully");
     return { status: 'success' };
 
   } catch (error) {
