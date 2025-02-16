@@ -23,7 +23,7 @@ export const storeManagerEmails: Record<string, string> = {
   "35": "hgamez@conlantire.com",
   "36": "kbrown@conlantire.com, rowilson@conlantire.com",
   "39": "borozco@conlantire.com",
-  "Admin": "rdemarais@conlantire.com"
+  "Admin": "Roderickdemarais@aol.com, Conlantire97@gmail.com"
 };
 
 export const scheduleOptions = [
@@ -67,3 +67,4 @@ export const initialFormData: FormData = {
   crossDockDestination: "",
   managersEmail: "",
 };
+
