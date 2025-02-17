@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,10 +8,13 @@ import { getCurrentDateTime } from "@/utils/dateTime";
 import { initialFormData, type FormData, stores, storeManagerEmails } from "./order-form/formConfig";
 import type { OrderSummary } from "./order-form/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 export const OrderForm = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    user
+  } = useAuth();
   const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionValues, setSessionValues] = useState({
@@ -23,7 +25,6 @@ export const OrderForm = () => {
     ...initialFormData,
     dateReceived: getCurrentDateTime()
   });
-
   const getManagerEmail = (storeName: string) => {
     if (storeName === "Admin") return storeManagerEmails["Admin"];
 
@@ -49,7 +50,6 @@ export const OrderForm = () => {
       });
     }
   }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -92,7 +92,6 @@ export const OrderForm = () => {
       });
     }
   };
-
   const handleChange = (field: keyof FormData, value: string) => {
     if (field === 'dateReceived') return;
     setFormData(prev => ({
@@ -116,18 +115,16 @@ export const OrderForm = () => {
       }));
     }
   };
-
   const toggleOrderSelection = (orderId: string) => {
     setOrderSummaries(prev => prev.map(order => order.id === orderId ? {
       ...order,
       selected: !order.selected
     } : order));
   };
-
   return <div className="space-y-8">
       <Tabs defaultValue="order-form" className="w-full">
         <TabsList className="grid w-full grid-cols-1">
-          <TabsTrigger value="order-form" className="font-bold text-sm bg-[#fff934]/[0.93] rounded-3xl text-[#101010]">
+          <TabsTrigger value="order-form" className="font-bold text-sm rounded-3xl text-[#101010] bg-yellow-300 hover:bg-yellow-200">
             For any orders exceeding 50 retread tires, please submit an MTO order to guarantee we can fulfill the complete request. If you're ordering more than 50 new tires, you can place the order here.
           </TabsTrigger>
         </TabsList>
