@@ -80,11 +80,11 @@ export default function PendingOrders() {
       {/* Fixed position logout button */}
       <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 bg-black mx-0">LOGOUT</Button>
 
-      <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm">
+      <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm rounded-full">
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain rounded-full" />
-            <h1 className="text-2xl font-bold py-0 mx-[240px]">New Order Form - {user?.store}</h1>
+            <h1 className="mx-[240px] font-extrabold text-2xl my-[4px] px-0 py-[4px]">New Order Form - {user?.store}</h1>
           </div>
           
         </div>
