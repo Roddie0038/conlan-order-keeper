@@ -63,7 +63,7 @@ export const OrderSubmissionHandler = ({
   return <>
       <LoadingOverlay isVisible={isSubmitting} />
       {orderSummaries.length > 0 && <div className="flex justify-end mt-4">
-          <button onClick={handleSubmitSelected} disabled={isSubmitting || !orderSummaries.some(order => order.selected)} className="text-white rounded disabled:opacity-50 my-0 mx-0 px-[240px] py-[50px] bg-red-600 hover:bg-red-500">
+          <button onClick={handleSubmitSelected} disabled={isSubmitting || !orderSummaries.some(order => order.selected)} className="text-white disabled:opacity-50 bg-red-600 hover:bg-red-500 py-[20px] rounded-3xl px-[240px] mx-[240px] my-0">
             Submit Selected Orders
           </button>
         </div>}
