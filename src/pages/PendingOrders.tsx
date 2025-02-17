@@ -93,7 +93,7 @@ export default function PendingOrders() {
       <main className="container space-y-8">
         <OrderForm />
         
-        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow">
+        <div className="backdrop-blur-sm p-6 shadow bg-sky-500 hover:bg-sky-400 rounded-3xl">
           <h2 className="text-xl font-semibold mb-4">Current Pending Orders</h2>
           <Table>
             <TableHeader>

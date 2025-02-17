@@ -1,20 +1,17 @@
-
 import { FormField } from "./FormField";
 import { Button } from "@/components/ui/button";
 import { scheduleOptions, crossDockOptions, stores, type FormData, storeManagerEmails } from "./formConfig";
-
 interface OrderFormInputsProps {
   formData: FormData;
   onSubmit: (e: React.FormEvent) => void;
   onChange: (field: keyof FormData, value: string) => void;
 }
-
 export const OrderFormInputs = ({
   formData,
   onSubmit,
   onChange
 }: OrderFormInputsProps) => {
-  return <form onSubmit={onSubmit} className="space-y-6 max-w-2xl mx-auto p-6 rounded-lg shadow bg-blue-300 hover:bg-blue-200">
+  return <form onSubmit={onSubmit} className="space-y-6 max-w-2xl mx-auto p-6 shadow bg-blue-300 hover:bg-blue-200 rounded-3xl">
       <div className="space-y-4">
         <FormField label="Your Name" required value={formData.yourName} onChange={value => onChange("yourName", value)} placeholder="Enter your name" />
 
