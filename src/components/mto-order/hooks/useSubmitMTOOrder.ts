@@ -1,6 +1,7 @@
 
 import { MTOFormData } from "../mto-form-config";
 import { storeManagerEmails } from "@/components/order-form/formConfig";
+import { submitToGoogleSheets } from "@/services/sheets";
 
 interface SubmitMTOOrderProps {
   formData: MTOFormData;
@@ -18,7 +19,7 @@ export const useSubmitMTOOrder = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    console.log("Submitting MTO order to Zapier webhook");
+    console.log("Submitting MTO order to webhooks");
 
     try {
       const finalTireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
@@ -32,35 +33,29 @@ export const useSubmitMTOOrder = ({
         id: crypto.randomUUID(),
         ...formData,
         tireSize: finalTireSize,
-        type: 'MTO',
+        type: 'MTO' as const,
         managerEmail,
         triggered_from: window.location.origin,
       };
 
-      await fetch(
-        "https://hooks.zapier.com/hooks/catch/21441385/2atp7qy/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          mode: "no-cors",
-          body: JSON.stringify(orderData),
-        }
-      );
+      const result = await submitToGoogleSheets(orderData);
       
-      const existingOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');
-      existingOrders.push(orderData);
-      localStorage.setItem('mtoOrders', JSON.stringify(existingOrders));
-      
-      console.log("MTO order submitted successfully");
-      
-      toast({
-        title: "Order Submitted Successfully",
-        description: "Your MTO order has been submitted.",
-      });
+      if (result.status === 'success' || result.status === 'partial_success') {
+        const existingOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');
+        existingOrders.push(orderData);
+        localStorage.setItem('mtoOrders', JSON.stringify(existingOrders));
+        
+        console.log("MTO order submitted successfully");
+        
+        toast({
+          title: "Order Submitted Successfully",
+          description: "Your MTO order has been submitted.",
+        });
 
-      resetForm();
+        resetForm();
+      } else {
+        throw new Error("Failed to submit order");
+      }
     } catch (error) {
       console.error("Error submitting MTO order:", error);
       toast({

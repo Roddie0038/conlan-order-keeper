@@ -29,33 +29,56 @@ export interface MTOOrderData extends BaseOrderData {
   type: 'MTO';
 }
 
+const submitToWebhook = async (url: string, data: any) => {
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      mode: "no-cors",
+      body: JSON.stringify({
+        ...data,
+        orderId: crypto.randomUUID(),
+        triggered_from: window.location.origin,
+      }),
+    });
+    console.log(`Successfully triggered webhook: ${url}`);
+    return true;
+  } catch (error) {
+    console.error(`Error triggering webhook ${url}:`, error);
+    return false;
+  }
+};
+
 export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
-  console.log("Submitting to Zapier webhook:", data);
+  console.log("Submitting to webhooks:", data);
   console.log("Manager's email in submitToGoogleSheets:", data.managersEmail);
   
+  const webhooks = [
+    "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
+    "https://conlantire97.app.n8n.cloud/webhook/order-webhook"
+  ];
+
   try {
-    // Submit to Zapier webhook
-    await fetch(
-      "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "no-cors",
-        body: JSON.stringify({
-          ...data,
-          orderId: crypto.randomUUID(),
-          triggered_from: window.location.origin,
-        }),
-      }
+    // Submit to all webhooks concurrently
+    const results = await Promise.all(
+      webhooks.map(webhook => submitToWebhook(webhook, data))
     );
 
-    console.log("Zapier webhook triggered successfully");
-    return { status: 'success' };
+    // Check if all webhooks were successful
+    const allSuccessful = results.every(result => result === true);
+    
+    if (allSuccessful) {
+      console.log("All webhooks triggered successfully");
+      return { status: 'success' };
+    } else {
+      console.log("Some webhooks failed to trigger");
+      return { status: 'partial_success' };
+    }
 
   } catch (error) {
-    console.log("Note: Request completed but status unknown due to no-cors mode");
-    return { status: 'success' };
+    console.error("Error submitting to webhooks:", error);
+    return { status: 'error' };
   }
 };
