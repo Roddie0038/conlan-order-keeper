@@ -20,16 +20,19 @@ export const useMTOForm = () => {
   });
 
   const getManagerEmail = (store: string) => {
-    // Match the store number at the end of the string
+    if (store === "Admin") return storeManagerEmails["Admin"];
     const match = store.match(/\d+$/);
     const storeNumber = match ? match[0] : '';
     return storeManagerEmails[storeNumber] || '';
   };
   
-  const [formData, setFormData] = useState<MTOFormData>({
-    ...initialMTOFormData,
-    store: user?.store || "",
-    managerEmail: user?.store ? getManagerEmail(user.store) : "",
+  const [formData, setFormData] = useState<MTOFormData>(() => {
+    // Initialize with user's store and corresponding manager email
+    return {
+      ...initialMTOFormData,
+      store: user?.store || "",
+      managerEmail: user?.store ? getManagerEmail(user.store) : "",
+    };
   });
 
   useEffect(() => {
@@ -49,7 +52,6 @@ export const useMTOForm = () => {
     }
   }, []);
 
-  // Update manager email when store changes
   useEffect(() => {
     if (user?.store) {
       const managerEmail = getManagerEmail(user.store);
@@ -62,6 +64,11 @@ export const useMTOForm = () => {
   }, [user?.store]);
 
   const handleChange = (field: string, value: string) => {
+    // Don't allow changing the store field unless user is admin
+    if (field === 'store' && !user?.isAdmin) {
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -94,6 +101,7 @@ export const useMTOForm = () => {
     sessionValues,
     handleChange,
     resetForm,
-    toast
+    toast,
+    isAdmin: user?.isAdmin || false
   };
 };

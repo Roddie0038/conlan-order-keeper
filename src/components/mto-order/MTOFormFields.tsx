@@ -6,19 +6,30 @@ import { casingGrades, tireSizes, scheduleOptions, MTOFormData } from "./mto-for
 interface MTOFormFieldsProps {
   formData: MTOFormData;
   onChange: (field: string, value: string) => void;
+  isAdmin?: boolean;
 }
 
-export const MTOFormFields = ({ formData, onChange }: MTOFormFieldsProps) => {
+export const MTOFormFields = ({ formData, onChange, isAdmin = false }: MTOFormFieldsProps) => {
   return (
     <div className="space-y-4">
-      <FormField
-        label="Store"
-        value={formData.store}
-        onChange={(value) => onChange("store", value)}
-        options={stores}
-        placeholder="Select store"
-        required
-      />
+      {isAdmin ? (
+        <FormField
+          label="Store"
+          value={formData.store}
+          onChange={(value) => onChange("store", value)}
+          options={stores}
+          placeholder="Select store"
+          required
+        />
+      ) : (
+        <FormField
+          label="Store"
+          value={formData.store}
+          onChange={() => {}}
+          disabled={true}
+          required
+        />
+      )}
 
       <FormField
         label="Timestamp"
