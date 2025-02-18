@@ -25,7 +25,7 @@ export const useSubmitMTOOrder = ({
       const finalTireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       
       const storeId = formData.store.split(' ')[1];
-      const managerEmail = formData.store === "Admin" 
+      const managersEmail = formData.store === "Admin" 
         ? storeManagerEmails["Admin"]
         : storeManagerEmails[storeId] || '';
       
@@ -34,7 +34,7 @@ export const useSubmitMTOOrder = ({
         ...formData,
         tireSize: finalTireSize,
         type: 'MTO' as const,
-        managerEmail,
+        managersEmail, // Changed from managerEmail to managersEmail to match interface
         triggered_from: window.location.origin,
       };
 

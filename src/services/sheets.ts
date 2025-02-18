@@ -55,6 +55,8 @@ const submitToWebhook = async (url: string, data: any) => {
       timestamp: formatDate(new Date().toISOString()),
       orderId: crypto.randomUUID(),
       triggered_from: window.location.origin,
+      // Ensure manager's email is included with the consistent property name
+      managersEmail: data.managerEmail || data.managersEmail,
     };
 
     console.log("Sending formatted data to webhook:", formattedData);
