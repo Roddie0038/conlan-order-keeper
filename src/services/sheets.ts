@@ -29,19 +29,43 @@ export interface MTOOrderData extends BaseOrderData {
   type: 'MTO';
 }
 
+const formatDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    // Format as MM/DD/YYYY HH:mm
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${month}/${day}/${year} ${hours}:${minutes}`;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return dateString; // Return original string if parsing fails
+  }
+};
+
 const submitToWebhook = async (url: string, data: any) => {
   try {
+    // Format the date before sending
+    const formattedData = {
+      ...data,
+      dateReceived: formatDate(data.dateReceived),
+      timestamp: formatDate(new Date().toISOString()),
+      orderId: crypto.randomUUID(),
+      triggered_from: window.location.origin,
+    };
+
+    console.log("Sending formatted data to webhook:", formattedData);
+
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      mode: "no-cors", // Re-added no-cors mode
-      body: JSON.stringify({
-        ...data,
-        orderId: crypto.randomUUID(),
-        triggered_from: window.location.origin,
-      }),
+      mode: "no-cors", // Keep no-cors mode for CORS handling
+      body: JSON.stringify(formattedData),
     });
 
     // With no-cors, we won't get a meaningful status, but the request will go through
