@@ -81,9 +81,10 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("Submitting to webhooks:", data);
   console.log("Manager's email in submitToGoogleSheets:", data.managersEmail);
   
-  const webhooks = [
-    "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
-  ];
+  // Determine which webhook to use based on order type
+  const webhooks = 'type' in data && data.type === 'MTO' 
+    ? ["https://hooks.zapier.com/hooks/catch/21741437/2wax8rh/"]  // MTO orders webhook
+    : ["https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"]; // Regular orders webhook
 
   try {
     // Submit to all webhooks concurrently
