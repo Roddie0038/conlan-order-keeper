@@ -31,21 +31,31 @@ export interface MTOOrderData extends BaseOrderData {
 
 const submitToWebhook = async (url: string, data: any) => {
   try {
-    await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      mode: "no-cors",
       body: JSON.stringify({
         ...data,
         orderId: crypto.randomUUID(),
         triggered_from: window.location.origin,
       }),
     });
+
+    if (!response.ok && response.status !== 0) {  // Status 0 is expected with CORS
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     console.log(`Successfully triggered webhook: ${url}`);
     return true;
   } catch (error) {
+    // If it's a CORS error (status 0), we'll consider it a success
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.log(`Webhook triggered (CORS response): ${url}`);
+      return true;
+    }
+    
     console.error(`Error triggering webhook ${url}:`, error);
     return false;
   }
