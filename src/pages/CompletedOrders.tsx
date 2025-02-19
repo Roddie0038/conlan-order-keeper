@@ -74,12 +74,12 @@ export default function CompletedOrders() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date Completed</TableHead>
-                <TableHead>Store</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Quantity</TableHead>
-                {user?.isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                <TableHead className="bg-gray-300 hover:bg-gray-200">Date Completed</TableHead>
+                <TableHead className="bg-slate-300 hover:bg-slate-200">Store</TableHead>
+                <TableHead className="bg-slate-300 hover:bg-slate-200">Product</TableHead>
+                <TableHead className="bg-slate-300 hover:bg-slate-200">Description</TableHead>
+                <TableHead className="bg-slate-300 hover:bg-slate-200">Quantity</TableHead>
+                {user?.isAdmin && <TableHead className="text-right bg-slate-300 hover:bg-slate-200">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
