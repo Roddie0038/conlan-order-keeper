@@ -32,7 +32,7 @@ export const MTOFormFields = ({
         <Label>Casing Grade (Select all that apply)</Label>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {casingGrades.map(grade => <div key={grade.value} className="flex items-center space-x-2">
-              <Checkbox id={grade.value} checked={formData.casingGrade.includes(grade.value)} onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)} className="font-bold text-red-600" />
+              <Checkbox id={grade.value} checked={formData.casingGrade.includes(grade.value)} onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)} className="text-yellow-500 font-extrabold text-7xl text-center" />
               <Label htmlFor={grade.value} className="rounded-3xl px-0">{grade.name}</Label>
             </div>)}
         </div>
