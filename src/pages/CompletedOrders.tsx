@@ -51,11 +51,11 @@ export default function CompletedOrders() {
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat"
   }}>
-      <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm">
+      <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm rounded-full">
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain" />
-            <h1 className="text-2xl font-bold">
+            <h1 className="font-extrabold text-4xl text-center">
               Completed Orders - {user?.isAdmin ? 'Admin View' : user?.store}
             </h1>
           </div>
