@@ -34,7 +34,7 @@ const MTOOrder = () => {
         </div>
       </header>
       
-      <main className="container pb-8">
+      <main className="container pb-8 py-px">
         <div className="p-6 rounded-lg shadow-lg py-[25px] bg-transparent">
           <MTOOrderForm />
         </div>
