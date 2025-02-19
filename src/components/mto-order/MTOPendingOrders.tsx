@@ -53,7 +53,7 @@ export const MTOPendingOrders = () => {
     });
   };
   return <div className="mt-8 bg-white/90 p-6 rounded-lg shadow">
-      <h2 className="mb-4 py-0 px-0 font-extrabold text-2xl">                                            Pending MTO Orders</h2>
+      <h2 className="mb-4 py-0 px-0 font-extrabold text-center text-3xl text-zinc-950">                                            Pending MTO Orders</h2>
       <Table>
         <TableHeader>
           <TableRow>
