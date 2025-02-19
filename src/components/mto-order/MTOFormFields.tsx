@@ -2,14 +2,23 @@
 import { FormField } from "../order-form/FormField";
 import { stores } from "../order-form/formConfig";
 import { casingGrades, tireSizes, scheduleOptions, MTOFormData } from "./mto-form-config";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface MTOFormFieldsProps {
   formData: MTOFormData;
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: string | string[]) => void;
   isAdmin?: boolean;
 }
 
 export const MTOFormFields = ({ formData, onChange, isAdmin = false }: MTOFormFieldsProps) => {
+  const handleCasingGradeChange = (grade: string, checked: boolean) => {
+    const updatedGrades = checked
+      ? [...formData.casingGrade, grade]
+      : formData.casingGrade.filter(g => g !== grade);
+    onChange("casingGrade", updatedGrades);
+  };
+
   return (
     <div className="space-y-4">
       {isAdmin ? (
@@ -63,14 +72,23 @@ export const MTOFormFields = ({ formData, onChange, isAdmin = false }: MTOFormFi
         required
       />
 
-      <FormField
-        label="Casing Grade"
-        value={formData.casingGrade}
-        onChange={(value) => onChange("casingGrade", value)}
-        options={casingGrades}
-        placeholder="Select casing grade"
-        required
-      />
+      <div className="space-y-2">
+        <Label>Casing Grade (Select all that apply)</Label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {casingGrades.map((grade) => (
+            <div key={grade.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={grade.value}
+                checked={formData.casingGrade.includes(grade.value)}
+                onCheckedChange={(checked) => 
+                  handleCasingGradeChange(grade.value, checked as boolean)
+                }
+              />
+              <Label htmlFor={grade.value}>{grade.name}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
 
       <FormField
         label="Tire Size"

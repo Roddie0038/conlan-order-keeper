@@ -25,9 +25,9 @@ export interface MTOFormData {
   store: string;
   timestamp: string;
   name: string;
-  managerEmail: string;  // Added this field
+  managerEmail: string;
   productNumber: string;
-  casingGrade: string;
+  casingGrade: string[];  // Changed to string array for multiple selections
   tireSize: string;
   customTireSize: string;
   tireTreadNeeded: string;
@@ -40,9 +40,9 @@ export const initialMTOFormData: MTOFormData = {
   store: "",
   timestamp: new Date().toLocaleString(),
   name: "",
-  managerEmail: "",  // Added this field
+  managerEmail: "",
   productNumber: "",
-  casingGrade: "",
+  casingGrade: [],  // Initialize as empty array
   tireSize: "",
   customTireSize: "",
   tireTreadNeeded: "",

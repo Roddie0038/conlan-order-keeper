@@ -27,7 +27,6 @@ export const useMTOForm = () => {
   };
   
   const [formData, setFormData] = useState<MTOFormData>(() => {
-    // Initialize with user's store and corresponding manager email
     return {
       ...initialMTOFormData,
       store: user?.store || "",
@@ -63,8 +62,7 @@ export const useMTOForm = () => {
     }
   }, [user?.store]);
 
-  const handleChange = (field: string, value: string) => {
-    // Don't allow changing the store field unless user is admin
+  const handleChange = (field: string, value: string | string[]) => {
     if (field === 'store' && !user?.isAdmin) {
       return;
     }
@@ -75,12 +73,12 @@ export const useMTOForm = () => {
     }));
 
     if (field === 'name') {
-      sessionStorage.setItem('mtoOrderName', value);
-      setSessionValues(prev => ({ ...prev, name: value }));
+      sessionStorage.setItem('mtoOrderName', value as string);
+      setSessionValues(prev => ({ ...prev, name: value as string }));
     }
     if (field === 'scheduleArrival') {
-      sessionStorage.setItem('mtoOrderSchedule', value);
-      setSessionValues(prev => ({ ...prev, scheduleArrival: value }));
+      sessionStorage.setItem('mtoOrderSchedule', value as string);
+      setSessionValues(prev => ({ ...prev, scheduleArrival: value as string }));
     }
   };
 
