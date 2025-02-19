@@ -120,8 +120,8 @@ export default function AllPendingOrders() {
     backgroundBlendMode: 'overlay'
   }}>
       <div className="container py-8">
-        <div className="p-6 rounded-lg shadow bg-gray-500 hover:bg-gray-400">
-          <h2 className="text-2xl font-bold mb-4">All Pending Orders</h2>
+        <div className="p-6 shadow bg-gray-500 hover:bg-gray-400 rounded-full">
+          <h2 className="mb-4 text-center font-bold text-4xl text-amber-300">All Pending Orders</h2>
           
           <Tabs defaultValue="regular" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -133,13 +133,13 @@ export default function AllPendingOrders() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="bg-blue-300 hover:bg-blue-200">Date</TableHead>
-                    <TableHead className="bg-blue-300 hover:bg-blue-200">Store</TableHead>
-                    <TableHead className="bg-blue-300 hover:bg-blue-200">Product</TableHead>
-                    <TableHead className="bg-blue-300 hover:bg-blue-200">Description</TableHead>
-                    <TableHead className="bg-blue-300 hover:bg-blue-200">Quantity</TableHead>
-                    <TableHead className="bg-blue-300 hover:bg-blue-200">Schedule</TableHead>
-                    {user?.isAdmin && <TableHead>Actions</TableHead>}
+                    <TableHead className="bg-blue-300 hover:bg-blue-200 rounded-full">Date</TableHead>
+                    <TableHead className="bg-blue-300 hover:bg-blue-200 rounded-full">Store</TableHead>
+                    <TableHead className="bg-blue-300 hover:bg-blue-200 rounded-full">Product</TableHead>
+                    <TableHead className="bg-blue-300 hover:bg-blue-200 rounded-full">Description</TableHead>
+                    <TableHead className="bg-blue-300 hover:bg-blue-200 rounded-full">Quantity</TableHead>
+                    <TableHead className="bg-blue-300 hover:bg-blue-200 rounded-full">Schedule</TableHead>
+                    {user?.isAdmin && <TableHead className="bg-blue-400 hover:bg-blue-300 rounded-full">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
