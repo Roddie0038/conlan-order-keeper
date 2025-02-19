@@ -27,10 +27,10 @@ const MTOOrder = () => {
         LOGOUT
       </Button>
 
-      <header className="bg-primary text-primary-foreground py-6 mb-8">
-        <div className="container flex flex-col items-center gap-4">
+      <header className="bg-primary text-primary-foreground py-6 mb-8 rounded-full">
+        <div className="container flex flex-col items-center gap-4 rounded-full">
           <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-24 object-contain" />
-          <h1 className="text-3xl font-bold text-center">MTO Order Form - {user.store}</h1>
+          <h1 className="font-bold text-center text-white text-4xl">MTO Order Form - {user.store}</h1>
         </div>
       </header>
       
