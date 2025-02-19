@@ -20,7 +20,7 @@ export interface OrderData extends BaseOrderData {
 export interface MTOOrderData extends BaseOrderData {
   name: string;
   productNumber: string;
-  casingGrade: string;
+  casingGrade: string[];  // Updated to string array
   tireSize: string;
   tireTreadNeeded: string;
   quantity: string;
@@ -57,6 +57,8 @@ const submitToWebhook = async (url: string, data: any) => {
       triggered_from: window.location.origin,
       // Ensure manager's email is included with the consistent property name
       managersEmail: data.managerEmail || data.managersEmail,
+      // Join multiple casing grades into a comma-separated string if it's an array
+      casingGrade: Array.isArray(data.casingGrade) ? data.casingGrade.join(', ') : data.casingGrade
     };
 
     console.log("Sending formatted data to webhook:", formattedData);

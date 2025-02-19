@@ -34,7 +34,7 @@ export const useSubmitMTOOrder = ({
         ...formData,
         tireSize: finalTireSize,
         type: 'MTO' as const,
-        managersEmail, // Changed from managerEmail to managersEmail to match interface
+        managersEmail,
         triggered_from: window.location.origin,
       };
 
