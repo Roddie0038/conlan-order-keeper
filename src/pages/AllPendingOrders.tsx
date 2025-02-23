@@ -4,6 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Navigation } from "@/components/Navigation";
+
 interface Order {
   id: string;
   timestamp: string;
@@ -17,6 +19,7 @@ interface Order {
   notes: string;
   crossDock: string;
 }
+
 interface MTOOrder {
   id: string;
   timestamp: string;
@@ -30,6 +33,7 @@ interface MTOOrder {
   scheduleArrival: string;
   notes: string;
 }
+
 export default function AllPendingOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [mtoOrders, setMTOOrders] = useState<MTOOrder[]>([]);
@@ -114,11 +118,13 @@ export default function AllPendingOrders() {
       description: "The order has been successfully deleted."
     });
   };
-  return <div className="min-h-screen bg-cover bg-center bg-fixed" style={{
+  return <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{
     backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     backgroundBlendMode: 'overlay'
   }}>
+      <Navigation />
+      
       <div className="container py-8">
         <div className="p-6 shadow bg-gray-500 hover:bg-gray-400 rounded-full">
           <h2 className="mb-4 text-center font-bold text-4xl text-amber-300">All Pending Orders</h2>
