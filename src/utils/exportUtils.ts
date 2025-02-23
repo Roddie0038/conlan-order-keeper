@@ -61,7 +61,6 @@ export const formatOrdersForExport = (orders: OrderSummary[]) => {
     'Description': order.description,
     'Quantity': order.quantity,
     'Schedule': order.scheduleArrival,
-    'Priority': order.priority || 'Normal',
     'Notes': order.notes,
     'Cross Dock': order.crossDock,
     'Cross Dock Destination': order.crossDockDestination || 'N/A',
@@ -84,7 +83,6 @@ export const formatMTOOrdersForExport = (orders: any[]) => {
       'Tire Tread': order.tireTreadNeeded || 'N/A',
       'Quantity': order.quantity || 'N/A',
       'Schedule': order.scheduleArrival || 'N/A',
-      'Priority': order.priority || 'Normal',
       'Notes': order.notes || 'N/A',
       "Manager's Email": order.managerEmail || order.managersEmail || 'N/A'
     };
