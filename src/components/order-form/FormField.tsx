@@ -26,7 +26,7 @@ export const FormField = ({
 }: FormFieldProps) => {
   if (options) {
     return <div>
-        <label className="block text-sm font-medium mb-1">{label}</label>
+        <label className="block text-sm font-medium mb-1 bg-orange-500">{label}</label>
         <Select value={value} onValueChange={value => onChange(value)} disabled={disabled}>
           <SelectTrigger className="text-black font-bold">
             <SelectValue placeholder={placeholder} />
