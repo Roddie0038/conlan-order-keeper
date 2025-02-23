@@ -2,6 +2,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Navigation() {
   const location = useLocation();
@@ -34,27 +35,32 @@ export function Navigation() {
   if (!user) return null;
 
   return (
-    <nav className="bg-[#1e40af] dark:bg-slate-800 shadow-sm mb-4">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex space-x-8 items-center">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                className={cn(
-                  "px-3 py-2 text-sm font-bold text-white rounded-md transition-colors",
-                  isActive(link.href)
-                    ? "bg-[#0ea5e9] text-white dark:bg-blue-600"
-                    : "hover:bg-[#0ea5e9] hover:text-white dark:hover:bg-blue-600"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+    <>
+      <div className="fixed top-0 left-1/2 transform -translate-x-1/2 z-50 mt-2">
+        <ThemeToggle />
+      </div>
+      <nav className="bg-[#1e40af] dark:bg-slate-800 shadow-sm mb-4 mt-16">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex space-x-8 items-center">
+              {links.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className={cn(
+                    "px-3 py-2 text-sm font-bold text-white rounded-md transition-colors",
+                    isActive(link.href)
+                      ? "bg-[#0ea5e9] text-white dark:bg-blue-600"
+                      : "hover:bg-[#0ea5e9] hover:text-white dark:hover:bg-blue-600"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 }
