@@ -88,3 +88,68 @@ export const formatMTOOrdersForExport = (orders: any[]) => {
     };
   });
 };
+
+export const generateCrossDockPDF = (data: {
+  date: string;
+  fromStore: string;
+  toStore: string;
+  receiverNo: string;
+  productCode: string;
+  description: string;
+  quantity: string;
+}) => {
+  const doc = new jsPDF();
+  
+  // Set title and subtitle
+  doc.setFontSize(18);
+  doc.text('Cross Dock Form', 105, 20, { align: 'center' });
+  
+  doc.setFontSize(12);
+  doc.text('This form is used when sending tires/material to another store using the Warehouse as a cross dock location.', 105, 30, { align: 'center', maxWidth: 180 });
+
+  // Add form fields
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  
+  const startY = 50;
+  const lineHeight = 10;
+  
+  // Form fields
+  doc.text('Date:', 20, startY);
+  doc.setFont('helvetica', 'normal');
+  doc.text(data.date, 60, startY);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.text('FROM Store:', 20, startY + lineHeight);
+  doc.setFont('helvetica', 'normal');
+  doc.text(data.fromStore, 60, startY + lineHeight);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.text('TO Store:', 20, startY + lineHeight * 2);
+  doc.setFont('helvetica', 'normal');
+  doc.text(data.toStore, 60, startY + lineHeight * 2);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.text('Receiver No (MaddenCo):', 20, startY + lineHeight * 3);
+  doc.setFont('helvetica', 'normal');
+  doc.text(data.receiverNo, 80, startY + lineHeight * 3);
+
+  // Add products table
+  doc.autoTable({
+    startY: startY + lineHeight * 4,
+    head: [['Product Code', 'Description', 'Qty']],
+    body: [[data.productCode, data.description, data.quantity]],
+    theme: 'grid',
+    headStyles: {
+      fillColor: [0, 123, 255],
+      textColor: 255,
+      fontStyle: 'bold'
+    },
+    styles: {
+      fontSize: 10,
+      cellPadding: 5
+    }
+  });
+
+  doc.save('cross-dock-form.pdf');
+};

@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { FormField } from "./FormField";
 import { stores } from "./formConfig";
 import { useAuth } from "@/contexts/AuthContext";
-import { exportToExcel, exportToPDF } from "@/utils/exportUtils";
+import { exportToExcel, exportToPDF, generateCrossDockPDF } from "@/utils/exportUtils";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
@@ -52,7 +52,7 @@ export const CrossDockPaperworkForm = () => {
     if (type === 'excel') {
       exportToExcel(exportData, `cross-dock-paperwork-${new Date().toISOString().split('T')[0]}`);
     } else {
-      exportToPDF(exportData, `cross-dock-paperwork-${new Date().toISOString().split('T')[0]}`, headers);
+      generateCrossDockPDF(formData);
     }
   };
 
