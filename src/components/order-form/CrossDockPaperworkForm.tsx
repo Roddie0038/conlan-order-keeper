@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { FormField } from "./FormField";
@@ -83,77 +84,82 @@ export const CrossDockPaperworkForm = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-primary">Cross Dock Paperwork</h2>
-        <p className="text-sm text-gray-600 mt-2">
-          This form is intended for sending tires or materials to another store using the Warehouse as a cross dock location
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <FormField
-          label="Date"
-          type="date"
-          value={formData.date}
-          onChange={(value) => handleChange("date", value)}
-          required
-        />
-        
-        <FormField
-          label="From Store"
-          value={formData.fromStore}
-          onChange={(value) => handleChange("fromStore", value)}
-          options={stores}
-          required
-        />
-        
-        <FormField
-          label="To Store"
-          value={formData.toStore}
-          onChange={(value) => handleChange("toStore", value)}
-          options={stores}
-          required
-        />
-        
-        <FormField
-          label="Receiver No (MaddenCo)"
-          value={formData.receiverNo}
-          onChange={(value) => handleChange("receiverNo", value)}
-          required
-        />
-        
-        <FormField
-          label="Product Code"
-          value={formData.productCode}
-          onChange={(value) => handleChange("productCode", value)}
-          required
-        />
-        
-        <FormField
-          label="Description"
-          value={formData.description}
-          onChange={(value) => handleChange("description", value)}
-          required
-        />
-        
-        <FormField
-          label="Quantity"
-          type="number"
-          value={formData.quantity}
-          onChange={(value) => handleChange("quantity", value)}
-          required
-        />
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors"
-          >
-            Submit Paperwork
-          </button>
+    <div className="container mx-auto p-6">
+      <div className="max-w-2xl mx-auto bg-white/90 dark:bg-slate-800/90 rounded-lg shadow-lg p-6 space-y-6">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-primary">Cross Dock Paperwork</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            This form is intended for sending tires or materials to another store using the Warehouse as a cross dock location
+          </p>
         </div>
-      </form>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FormField
+            label="Date"
+            type="date"
+            value={formData.date}
+            onChange={(value) => handleChange("date", value)}
+            required
+          />
+          
+          <FormField
+            label="From Store"
+            value={formData.fromStore}
+            onChange={(value) => handleChange("fromStore", value)}
+            options={stores}
+            required
+          />
+          
+          <FormField
+            label="To Store"
+            value={formData.toStore}
+            onChange={(value) => handleChange("toStore", value)}
+            options={stores}
+            required
+          />
+          
+          <FormField
+            label="Receiver No (MaddenCo)"
+            type="text"
+            value={formData.receiverNo}
+            onChange={(value) => handleChange("receiverNo", value)}
+            required
+          />
+          
+          <FormField
+            label="Product Code"
+            type="text"
+            value={formData.productCode}
+            onChange={(value) => handleChange("productCode", value)}
+            required
+          />
+          
+          <FormField
+            label="Description"
+            type="text"
+            value={formData.description}
+            onChange={(value) => handleChange("description", value)}
+            required
+          />
+          
+          <FormField
+            label="Quantity"
+            type="number"
+            value={formData.quantity}
+            onChange={(value) => handleChange("quantity", value)}
+            required
+          />
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Submit Paperwork
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
