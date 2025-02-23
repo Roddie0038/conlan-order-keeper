@@ -1,32 +1,13 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { FormField } from "./FormField";
 import { stores } from "./formConfig";
 import { useAuth } from "@/contexts/AuthContext";
-import { exportToExcel, exportToPDF, generateCrossDockPDF } from "@/utils/exportUtils";
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
-
-interface CrossDockPaperworkData {
-  date: string;
-  fromStore: string;
-  toStore: string;
-  receiverNo: string;
-  productCode: string;
-  description: string;
-  quantity: string;
-}
-
-const initialFormData: CrossDockPaperworkData = {
-  date: new Date().toISOString().split('T')[0],
-  fromStore: "",
-  toStore: "",
-  receiverNo: "",
-  productCode: "",
-  description: "",
-  quantity: "",
-};
+import { exportToExcel, generateCrossDockPDF } from "@/utils/exportUtils";
+import { CrossDockHeader } from "./cross-dock/CrossDockHeader";
+import { CrossDockFormFields } from "./cross-dock/CrossDockFormFields";
+import { ExportButtons } from "./cross-dock/ExportButtons";
+import { CrossDockPaperworkData, initialFormData } from "./cross-dock/types";
 
 export const CrossDockPaperworkForm = () => {
   const { toast } = useToast();
@@ -47,8 +28,6 @@ export const CrossDockPaperworkForm = () => {
       Quantity: formData.quantity,
     }];
 
-    const headers = ['Date', 'From Store', 'To Store', 'Receiver No', 'Product Code', 'Description', 'Quantity'];
-    
     if (type === 'excel') {
       exportToExcel(exportData, `cross-dock-paperwork-${new Date().toISOString().split('T')[0]}`);
     } else {
@@ -60,7 +39,6 @@ export const CrossDockPaperworkForm = () => {
     e.preventDefault();
     
     try {
-      // Find full store names
       const fromStore = stores.find(s => s.id === formData.fromStore);
       const toStore = stores.find(s => s.id === formData.toStore);
       
@@ -72,7 +50,6 @@ export const CrossDockPaperworkForm = () => {
 
       console.log("Submitting cross dock paperwork:", documentData);
       
-      // Submit to Google Docs via webhook
       await fetch("https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/", {
         method: "POST",
         headers: {
@@ -91,7 +68,6 @@ export const CrossDockPaperworkForm = () => {
         description: "Cross dock paperwork has been submitted.",
       });
 
-      // After successful submission, trigger downloads
       handleExport('excel');
       handleExport('pdf');
 
@@ -116,96 +92,15 @@ export const CrossDockPaperworkForm = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="max-w-2xl mx-auto bg-white/90 dark:bg-slate-800/90 rounded-lg shadow-lg p-6 space-y-6">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-primary">Cross Dock Paperwork</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            This form is intended for sending tires or materials to another store using the Warehouse as a cross dock location
-          </p>
-        </div>
+        <CrossDockHeader />
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormField
-            label="Date"
-            type="date"
-            value={formData.date}
-            onChange={(value) => handleChange("date", value)}
-            required
-          />
-          
-          <FormField
-            label="From Store"
-            value={formData.fromStore}
-            onChange={(value) => handleChange("fromStore", value)}
-            options={stores}
-            required
-          />
-          
-          <FormField
-            label="To Store"
-            value={formData.toStore}
-            onChange={(value) => handleChange("toStore", value)}
-            options={stores}
-            required
-          />
-          
-          <FormField
-            label="Receiver No (MaddenCo)"
-            type="text"
-            value={formData.receiverNo}
-            onChange={(value) => handleChange("receiverNo", value)}
-            required
-          />
-          
-          <FormField
-            label="Product Code"
-            type="text"
-            value={formData.productCode}
-            onChange={(value) => handleChange("productCode", value)}
-            required
-          />
-          
-          <FormField
-            label="Description"
-            type="text"
-            value={formData.description}
-            onChange={(value) => handleChange("description", value)}
-            required
-          />
-          
-          <FormField
-            label="Quantity"
-            type="number"
-            value={formData.quantity}
-            onChange={(value) => handleChange("quantity", value)}
-            required
+          <CrossDockFormFields 
+            formData={formData}
+            onChange={handleChange}
           />
 
-          <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleExport('excel')}
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export Excel
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleExport('pdf')}
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export PDF
-            </Button>
-            <Button
-              type="submit"
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              Submit Paperwork
-            </Button>
-          </div>
+          <ExportButtons onExport={handleExport} />
         </form>
       </div>
     </div>
