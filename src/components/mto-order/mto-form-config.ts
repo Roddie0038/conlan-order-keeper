@@ -21,19 +21,26 @@ export const scheduleOptions = [
   "Will Call Pick Up",
 ].map(value => ({ value }));
 
+export const priorityOptions = [
+  { value: "normal", name: "Normal" },
+  { value: "urgent", name: "Urgent" },
+  { value: "critical", name: "Critical" },
+];
+
 export interface MTOFormData {
   store: string;
   timestamp: string;
   name: string;
   managerEmail: string;
   productNumber: string;
-  casingGrade: string[];  // Changed to string array for multiple selections
+  casingGrade: string[];
   tireSize: string;
   customTireSize: string;
   tireTreadNeeded: string;
   quantity: string;
   scheduleArrival: string;
   notes: string;
+  priority: string;
 }
 
 export const initialMTOFormData: MTOFormData = {
@@ -42,11 +49,12 @@ export const initialMTOFormData: MTOFormData = {
   name: "",
   managerEmail: "",
   productNumber: "",
-  casingGrade: [],  // Initialize as empty array
+  casingGrade: [],
   tireSize: "",
   customTireSize: "",
   tireTreadNeeded: "",
   quantity: "",
   scheduleArrival: "",
   notes: "",
+  priority: "normal",
 };
