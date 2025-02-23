@@ -40,12 +40,6 @@ export const crossDockOptions = [
   { value: "no", name: "No" },
 ];
 
-export const priorityOptions = [
-  { value: "normal", name: "Normal" },
-  { value: "urgent", name: "Urgent" },
-  { value: "critical", name: "Critical" },
-];
-
 export type FormData = {
   yourName: string;
   store: string;
@@ -58,7 +52,6 @@ export type FormData = {
   crossDock: string;
   crossDockDestination?: string;
   managersEmail?: string;
-  priority: string;
 };
 
 export const initialFormData: FormData = {
@@ -73,5 +66,4 @@ export const initialFormData: FormData = {
   crossDock: "",
   crossDockDestination: "",
   managersEmail: "",
-  priority: "normal",
 };

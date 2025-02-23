@@ -21,12 +21,6 @@ export const scheduleOptions = [
   "Will Call Pick Up",
 ].map(value => ({ value }));
 
-export const priorityOptions = [
-  { value: "normal", name: "Normal" },
-  { value: "urgent", name: "Urgent" },
-  { value: "critical", name: "Critical" },
-];
-
 export interface MTOFormData {
   store: string;
   timestamp: string;
@@ -40,7 +34,6 @@ export interface MTOFormData {
   quantity: string;
   scheduleArrival: string;
   notes: string;
-  priority: string;
 }
 
 export const initialMTOFormData: MTOFormData = {
@@ -56,5 +49,4 @@ export const initialMTOFormData: MTOFormData = {
   quantity: "",
   scheduleArrival: "",
   notes: "",
-  priority: "normal",
 };

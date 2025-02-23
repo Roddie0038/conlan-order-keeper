@@ -1,7 +1,7 @@
 
 import { FormField } from "../order-form/FormField";
 import { stores } from "../order-form/formConfig";
-import { casingGrades, tireSizes, scheduleOptions, MTOFormData, priorityOptions } from "./mto-form-config";
+import { casingGrades, tireSizes, scheduleOptions, MTOFormData } from "./mto-form-config";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
@@ -25,15 +25,6 @@ export const MTOFormFields = ({
 
   return (
     <div className="space-y-4">
-      <FormField
-        label="Priority"
-        required
-        value={formData.priority}
-        onChange={value => onChange("priority", value)}
-        options={priorityOptions}
-        placeholder="Select priority level"
-      />
-
       {isAdmin ? (
         <FormField 
           label="Store" 
