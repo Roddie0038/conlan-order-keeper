@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormData } from "./formConfig";
-import { Save, FileDown } from "lucide-react";
+import { Save, FileDown, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface OrderTemplatesProps {
@@ -31,6 +31,17 @@ export const OrderTemplates = ({ currentFormData, onLoadTemplate }: OrderTemplat
     toast({
       title: "Template Saved",
       description: `Template "${templateName}" has been saved.`,
+    });
+  };
+
+  const deleteTemplate = (templateName: string) => {
+    const templates = JSON.parse(localStorage.getItem('orderTemplates') || '[]');
+    const filteredTemplates = templates.filter((t: any) => t.name !== templateName);
+    localStorage.setItem('orderTemplates', JSON.stringify(filteredTemplates));
+    
+    toast({
+      title: "Template Deleted",
+      description: `Template "${templateName}" has been deleted.`,
     });
   };
 
@@ -70,8 +81,23 @@ export const OrderTemplates = ({ currentFormData, onLoadTemplate }: OrderTemplat
           </SelectTrigger>
           <SelectContent>
             {getTemplates().map((template: any) => (
-              <SelectItem key={template.name} value={template.name}>
-                {template.name}
+              <SelectItem 
+                key={template.name} 
+                value={template.name}
+                className="flex items-center justify-between group"
+              >
+                <span>{template.name}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden group-hover:flex items-center ml-2 h-6 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteTemplate(template.name);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </SelectItem>
             ))}
           </SelectContent>
