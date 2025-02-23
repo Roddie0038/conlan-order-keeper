@@ -1,10 +1,11 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "./ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Navigation() {
   const location = useLocation();
+  const { user } = useAuth();
   const isActive = (path: string) => location.pathname === path;
 
   const links = [
@@ -26,13 +27,15 @@ export function Navigation() {
     },
     {
       href: "/cross-dock",
-      label: "Cross Dock Paperwork",
+      label: "Cross Dock",
     },
   ];
 
+  if (!user) return null;
+
   return (
-    <nav className="bg-[#1e40af] dark:bg-slate-800 shadow-sm">
-      <div className="container mx-auto px-4 bg-zinc-600 hover:bg-zinc-500 dark:bg-slate-700 dark:hover:bg-slate-600">
+    <nav className="bg-[#1e40af] dark:bg-slate-800 shadow-sm mb-4">
+      <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex space-x-8 items-center">
             {links.map((link) => (
@@ -50,7 +53,6 @@ export function Navigation() {
               </Link>
             ))}
           </div>
-          <ThemeToggle />
         </div>
       </div>
     </nav>
