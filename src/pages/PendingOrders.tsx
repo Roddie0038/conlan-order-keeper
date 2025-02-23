@@ -126,7 +126,7 @@ export default function PendingOrders() {
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain rounded-full" />
-            <h1 className="mx-[240px] font-extrabold text-2xl my-[4px] px-0 py-[4px]">New Order Form - {user?.store}</h1>
+            <h1 className="mx-[240px] font-extrabold px-[150px] text-5xl py-0 my-0 text-[#e8e824]">New Order Form - {user?.store}</h1>
           </div>
           
           <div className="flex gap-2">
