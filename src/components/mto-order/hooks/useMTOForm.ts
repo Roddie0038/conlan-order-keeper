@@ -27,6 +27,16 @@ export const useMTOForm = () => {
   };
   
   const [formData, setFormData] = useState<MTOFormData>(() => {
+    // Try to load saved draft from localStorage
+    const savedDraft = localStorage.getItem('mtoOrderDraft');
+    if (savedDraft) {
+      const parsedDraft = JSON.parse(savedDraft);
+      return {
+        ...parsedDraft,
+        store: user?.store || parsedDraft.store,
+        managerEmail: user?.store ? getManagerEmail(user.store) : parsedDraft.managerEmail,
+      };
+    }
     return {
       ...initialMTOFormData,
       store: user?.store || "",
@@ -62,6 +72,16 @@ export const useMTOForm = () => {
     }
   }, [user?.store]);
 
+  // Auto-save effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem('mtoOrderDraft', JSON.stringify(formData));
+      console.log('Auto-saved MTO order draft');
+    }, 1000); // Debounce auto-save to avoid too frequent saves
+
+    return () => clearTimeout(timeoutId);
+  }, [formData]);
+
   const handleChange = (field: string, value: string | string[]) => {
     if (field === 'store' && !user?.isAdmin) {
       return;
@@ -83,6 +103,8 @@ export const useMTOForm = () => {
   };
 
   const resetForm = () => {
+    // Clear the draft when form is reset
+    localStorage.removeItem('mtoOrderDraft');
     setFormData({
       ...initialMTOFormData,
       store: user?.store || "",
