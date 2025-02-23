@@ -25,25 +25,28 @@ export const useMTOForm = () => {
     const storeNumber = match ? match[0] : '';
     return storeManagerEmails[storeNumber] || '';
   };
-  
-  const [formData, setFormData] = useState<MTOFormData>(() => {
-    // Try to load saved draft from localStorage
+
+  // Initialize form data with a regular useState
+  const [formData, setFormData] = useState<MTOFormData>({
+    ...initialMTOFormData,
+    store: user?.store || "",
+    managerEmail: user?.store ? getManagerEmail(user.store) : "",
+  });
+
+  // Load saved draft in a separate useEffect
+  useEffect(() => {
     const savedDraft = localStorage.getItem('mtoOrderDraft');
     if (savedDraft) {
       const parsedDraft = JSON.parse(savedDraft);
-      return {
+      setFormData(prev => ({
         ...parsedDraft,
         store: user?.store || parsedDraft.store,
         managerEmail: user?.store ? getManagerEmail(user.store) : parsedDraft.managerEmail,
-      };
+      }));
     }
-    return {
-      ...initialMTOFormData,
-      store: user?.store || "",
-      managerEmail: user?.store ? getManagerEmail(user.store) : "",
-    };
-  });
+  }, []); // Only run once on mount
 
+  // Load session values
   useEffect(() => {
     const storedName = sessionStorage.getItem('mtoOrderName');
     const storedSchedule = sessionStorage.getItem('mtoOrderSchedule');
@@ -51,16 +54,17 @@ export const useMTOForm = () => {
     if (storedName || storedSchedule) {
       setFormData(prev => ({
         ...prev,
-        name: storedName || '',
-        scheduleArrival: storedSchedule || '',
+        name: storedName || prev.name,
+        scheduleArrival: storedSchedule || prev.scheduleArrival,
       }));
       setSessionValues({
         name: storedName || '',
         scheduleArrival: storedSchedule || '',
       });
     }
-  }, []);
+  }, []); // Only run once on mount
 
+  // Update store and manager email when user changes
   useEffect(() => {
     if (user?.store) {
       const managerEmail = getManagerEmail(user.store);
