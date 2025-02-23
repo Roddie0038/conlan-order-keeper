@@ -36,10 +36,10 @@ export function Navigation() {
 
   return (
     <>
-      <div className="fixed top-0 left-1/2 transform -translate-x-1/2 z-50 mt-2">
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100]">
         <ThemeToggle />
       </div>
-      <nav className="bg-[#1e40af] dark:bg-slate-800 shadow-sm mb-4 mt-16">
+      <nav className="sticky top-16 bg-[#1e40af] dark:bg-slate-800 shadow-sm mb-4">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex space-x-8 items-center">
