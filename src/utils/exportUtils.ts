@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -11,7 +10,17 @@ declare module 'jspdf' {
 }
 
 export const exportToExcel = (data: any[], fileName: string) => {
-  const ws = XLSX.utils.json_to_sheet(data);
+  // Transform data to match the exact header keys
+  const transformedData = data.map(item => {
+    const transformed: { [key: string]: any } = {};
+    Object.entries(item).forEach(([key, value]) => {
+      // Keep the key exactly as is without transformation
+      transformed[key] = value;
+    });
+    return transformed;
+  });
+
+  const ws = XLSX.utils.json_to_sheet(transformedData);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Orders');
   XLSX.writeFile(wb, `${fileName}.xlsx`);
@@ -20,18 +29,23 @@ export const exportToExcel = (data: any[], fileName: string) => {
 export const exportToPDF = (data: any[], fileName: string, headers: string[]) => {
   const doc = new jsPDF();
   
-  const tableData = data.map(item => 
-    headers.map(header => {
-      const value = item[header.toLowerCase().replace(/ /g, '')];
+  const tableData = data.map(item => {
+    return headers.map(header => {
+      // Get the value using the exact header name
+      const value = item[header];
+      if (Array.isArray(value)) {
+        return value.join(', ');
+      }
       return value?.toString() || '';
-    })
-  );
+    });
+  });
 
   doc.autoTable({
     head: [headers],
     body: tableData,
     styles: { fontSize: 8 },
     headStyles: { fillColor: [41, 128, 185] },
+    theme: 'grid'
   });
 
   doc.save(`${fileName}.pdf`);
@@ -57,20 +71,22 @@ export const formatOrdersForExport = (orders: OrderSummary[]) => {
 
 // Function to format MTO orders for export
 export const formatMTOOrdersForExport = (orders: any[]) => {
-  return orders.map(order => ({
-    'Date': order.timestamp || new Date().toLocaleString(),
-    'Store': order.store || 'N/A',
-    'Name': order.name || 'N/A',
-    'Product Number': order.productNumber || 'N/A',
-    'Tire Size': order.tireSize || 'N/A',
-    'Custom Tire Size': order.customTireSize || 'N/A',
-    'Casing Grade': Array.isArray(order.casingGrade) ? order.casingGrade.join(', ') : (order.casingGrade || 'N/A'),
-    'Tire Tread': order.tireTreadNeeded || 'N/A',
-    'Quantity': order.quantity || 'N/A',
-    'Schedule': order.scheduleArrival || 'N/A',
-    'Priority': order.priority || 'Normal',
-    'Notes': order.notes || 'N/A',
-    "Manager's Email": order.managerEmail || order.managersEmail || 'N/A'
-  }));
+  return orders.map(order => {
+    // Create an object that exactly matches the headers used in the export
+    return {
+      'Date': order.timestamp || new Date().toLocaleString(),
+      'Store': order.store || 'N/A',
+      'Name': order.name || 'N/A',
+      'Product Number': order.productNumber || 'N/A',
+      'Tire Size': order.tireSize || 'N/A',
+      'Custom Tire Size': order.customTireSize || 'N/A',
+      'Casing Grade': Array.isArray(order.casingGrade) ? order.casingGrade.join(', ') : (order.casingGrade || 'N/A'),
+      'Tire Tread': order.tireTreadNeeded || 'N/A',
+      'Quantity': order.quantity || 'N/A',
+      'Schedule': order.scheduleArrival || 'N/A',
+      'Priority': order.priority || 'Normal',
+      'Notes': order.notes || 'N/A',
+      "Manager's Email": order.managerEmail || order.managersEmail || 'N/A'
+    };
+  });
 };
-

@@ -68,7 +68,13 @@ export const MTOPendingOrders = () => {
       return;
     }
     
+    const headers = [
+      'Date', 'Store', 'Name', 'Product Number', 'Tire Size', 'Custom Tire Size',
+      'Casing Grade', 'Tire Tread', 'Quantity', 'Schedule', 'Priority', 'Notes', "Manager's Email"
+    ];
+    
     const formattedOrders = formatMTOOrdersForExport(orders);
+    console.log('Formatted orders for export:', formattedOrders); // Debug log
     exportToExcel(formattedOrders, 'mto-orders');
     
     toast({
@@ -87,11 +93,13 @@ export const MTOPendingOrders = () => {
       return;
     }
 
-    const formattedOrders = formatMTOOrdersForExport(orders);
     const headers = [
       'Date', 'Store', 'Name', 'Product Number', 'Tire Size', 'Custom Tire Size',
       'Casing Grade', 'Tire Tread', 'Quantity', 'Schedule', 'Priority', 'Notes', "Manager's Email"
     ];
+    
+    const formattedOrders = formatMTOOrdersForExport(orders);
+    console.log('Formatted orders for export:', formattedOrders); // Debug log
     exportToPDF(formattedOrders, 'mto-orders', headers);
     
     toast({
