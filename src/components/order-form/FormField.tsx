@@ -1,5 +1,7 @@
+
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 interface FormFieldProps {
   label: string;
   type?: string;
@@ -14,6 +16,7 @@ interface FormFieldProps {
   }>;
   disabled?: boolean;
 }
+
 export const FormField = ({
   label,
   type = "text",
@@ -25,22 +28,41 @@ export const FormField = ({
   disabled = false
 }: FormFieldProps) => {
   if (options) {
-    return <div>
+    return (
+      <div>
         <label className="block text-sm font-medium mb-1">{label}</label>
         <Select value={value} onValueChange={value => onChange(value)} disabled={disabled}>
-          <SelectTrigger>
+          <SelectTrigger className="text-black font-bold">
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
-            {options.map(option => <SelectItem key={option.id || option.value} value={option.id || option.value || ""}>
+            {options.map(option => (
+              <SelectItem 
+                key={option.id || option.value} 
+                value={option.id || option.value || ""}
+                className="text-black font-bold"
+              >
                 {option.name || option.value}
-              </SelectItem>)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-      </div>;
+      </div>
+    );
   }
-  return <div>
+
+  return (
+    <div>
       <label className="block text-sm font-medium mb-1">{label}</label>
-      <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full bg-zinc-50" />
-    </div>;
+      <Input 
+        type={type} 
+        required={required} 
+        value={value} 
+        onChange={e => onChange(e.target.value)} 
+        placeholder={placeholder} 
+        disabled={disabled} 
+        className="w-full bg-zinc-50 text-black font-bold" 
+      />
+    </div>
+  );
 };
