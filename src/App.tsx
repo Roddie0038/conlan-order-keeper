@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ThemeProvider } from "./components/theme-provider";
 import { Navigation } from "./components/Navigation";
 import Login from "./pages/Login";
 import PendingOrders from "./pages/PendingOrders";
@@ -38,57 +39,59 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Login />} />
-              <Route
-                path="/pending-orders"
-                element={
-                  <ProtectedRoute>
-                    <PendingOrders />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/all-pending-orders"
-                element={
-                  <ProtectedRoute>
-                    <AllPendingOrders />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/completed-orders"
-                element={
-                  <ProtectedRoute>
-                    <CompletedOrders />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/mto-order"
-                element={
-                  <ProtectedRoute>
-                    <MTOOrder />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/cross-dock"
-                element={
-                  <ProtectedRoute>
-                    <CrossDock />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+      <ThemeProvider defaultTheme="light" storageKey="conlan-tire-theme">
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Login />} />
+                <Route
+                  path="/pending-orders"
+                  element={
+                    <ProtectedRoute>
+                      <PendingOrders />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/all-pending-orders"
+                  element={
+                    <ProtectedRoute>
+                      <AllPendingOrders />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/completed-orders"
+                  element={
+                    <ProtectedRoute>
+                      <CompletedOrders />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/mto-order"
+                  element={
+                    <ProtectedRoute>
+                      <MTOOrder />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/cross-dock"
+                  element={
+                    <ProtectedRoute>
+                      <CrossDock />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
