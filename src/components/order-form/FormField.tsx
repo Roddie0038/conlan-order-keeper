@@ -40,7 +40,7 @@ export const FormField = ({
       </div>;
   }
   return <div>
-      <label className="block text-sm font-medium mb-1 py-0 px-[240px] rounded-full mx-0 my-0 bg-orange-400">{label}</label>
+      <label className="block text-sm font-medium mb-1 py-0 px-[240px] mx-0 my-0 bg-orange-500 rounded-3xl">{label}</label>
       <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full text-black font-bold px-[200px] bg-gray-100" />
     </div>;
 };
