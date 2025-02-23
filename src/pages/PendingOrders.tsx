@@ -5,6 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react";
 import { OrderForm } from "@/components/OrderForm";
 import { storeManagerEmails } from "@/components/order-form/formConfig";
+import { Download, FileSpreadsheet, FileText } from "lucide-react";
+import { exportToExcel, exportToPDF, formatOrdersForExport } from "@/utils/exportUtils";
+
 interface Order {
   id: string;
   timestamp: string;
@@ -18,25 +21,24 @@ interface Order {
   notes: string;
   crossDock: string;
   managerEmail?: string;
+  priority?: string;
 }
+
 export default function PendingOrders() {
-  const {
-    user,
-    logout
-  } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
+
   const getManagerEmail = (store: string) => {
     if (store === "Admin") return storeManagerEmails["Admin"];
     const storeId = store.split(' ')[1];
     return storeManagerEmails[storeId] || '';
   };
+
   useEffect(() => {
-    // In a real app, this would fetch from your backend
     const savedOrders = localStorage.getItem('pendingOrders');
     if (savedOrders) {
       const allOrders = JSON.parse(savedOrders);
-      // Filter orders for the current store and ensure manager email is set
       const filteredOrders = allOrders.filter((order: Order) => order.store === user?.store).map((order: Order) => ({
         ...order,
         managerEmail: getManagerEmail(order.store)
@@ -44,6 +46,7 @@ export default function PendingOrders() {
       setOrders(filteredOrders);
     }
   }, [user?.store]);
+
   const handleComplete = (orderId: string) => {
     // Move order to completed
     const allPendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
@@ -68,17 +71,31 @@ export default function PendingOrders() {
       })));
     }
   };
+
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  const handleExportExcel = () => {
+    const formattedOrders = formatOrdersForExport(orders);
+    exportToExcel(formattedOrders, 'pending-orders');
+  };
+
+  const handleExportPDF = () => {
+    const formattedOrders = formatOrdersForExport(orders);
+    const headers = ['Order ID', 'Date', 'Store', 'Product Number', 'Description', 'Quantity', 'Schedule', 'Priority', 'Notes', 'Cross Dock', 'Cross Dock Destination', "Manager's Email"];
+    exportToPDF(formattedOrders, 'pending-orders', headers);
+  };
+
   return <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{
     backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     backgroundBlendMode: 'overlay'
   }}>
-      {/* Fixed position logout button */}
-      <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 bg-black mx-0">LOGOUT</Button>
+      <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 bg-black mx-0">
+        LOGOUT
+      </Button>
 
       <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm rounded-full">
         <div className="container flex justify-between items-center">
@@ -87,6 +104,24 @@ export default function PendingOrders() {
             <h1 className="mx-[240px] font-extrabold text-2xl my-[4px] px-0 py-[4px]">New Order Form - {user?.store}</h1>
           </div>
           
+          <div className="flex gap-2">
+            <Button
+              onClick={handleExportExcel}
+              variant="outline"
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              Export Excel
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              variant="outline"
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white"
+            >
+              <FileText className="w-4 h-4" />
+              Export PDF
+            </Button>
+          </div>
         </div>
       </header>
 
