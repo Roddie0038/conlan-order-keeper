@@ -35,11 +35,13 @@ export function Navigation() {
   if (!user) return null;
 
   return (
-    <>
-      <div className="fixed top-0 left-1/2 transform -translate-x-1/2 z-[100]">
-        <ThemeToggle />
+    <div className="fixed top-0 left-0 right-0 z-50 w-full">
+      <div className="bg-gray-200 dark:bg-slate-800 py-4">
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+          <ThemeToggle />
+        </div>
       </div>
-      <nav className="fixed top-16 left-0 right-0 bg-[#1e40af] dark:bg-slate-800 shadow-sm z-50">
+      <nav className="bg-[#1e40af] dark:bg-slate-800 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex space-x-8 items-center">
@@ -62,6 +64,6 @@ export function Navigation() {
         </div>
       </nav>
       <div className="h-32"></div>
-    </>
+    </div>
   );
 }
