@@ -58,17 +58,19 @@ export const formatOrdersForExport = (orders: OrderSummary[]) => {
 // Function to format MTO orders for export
 export const formatMTOOrdersForExport = (orders: any[]) => {
   return orders.map(order => ({
-    'Date': order.timestamp,
-    'Store': order.store,
-    'Product Number': order.productNumber,
-    'Tire Size': order.tireSize,
+    'Date': order.timestamp || new Date().toLocaleString(),
+    'Store': order.store || 'N/A',
+    'Name': order.name || 'N/A',
+    'Product Number': order.productNumber || 'N/A',
+    'Tire Size': order.tireSize || 'N/A',
     'Custom Tire Size': order.customTireSize || 'N/A',
-    'Casing Grade': order.casingGrade.join(', '),
-    'Tire Tread': order.tireTreadNeeded,
-    'Quantity': order.quantity,
-    'Schedule': order.scheduleArrival,
+    'Casing Grade': Array.isArray(order.casingGrade) ? order.casingGrade.join(', ') : (order.casingGrade || 'N/A'),
+    'Tire Tread': order.tireTreadNeeded || 'N/A',
+    'Quantity': order.quantity || 'N/A',
+    'Schedule': order.scheduleArrival || 'N/A',
     'Priority': order.priority || 'Normal',
-    'Notes': order.notes,
-    "Manager's Email": order.managerEmail || 'N/A'
+    'Notes': order.notes || 'N/A',
+    "Manager's Email": order.managerEmail || order.managersEmail || 'N/A'
   }));
 };
+
