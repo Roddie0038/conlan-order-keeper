@@ -5,7 +5,7 @@ import { CrossDockPaperworkData } from "./types";
 
 interface CrossDockFormFieldsProps {
   formData: CrossDockPaperworkData;
-  onChange: (field: keyof CrossDockPaperworkData, value: string) => void;
+  onChange: (field: keyof Omit<CrossDockPaperworkData, 'products'>, value: string) => void;
 }
 
 export const CrossDockFormFields = ({ formData, onChange }: CrossDockFormFieldsProps) => {
@@ -40,30 +40,6 @@ export const CrossDockFormFields = ({ formData, onChange }: CrossDockFormFieldsP
         type="text"
         value={formData.receiverNo}
         onChange={(value) => onChange("receiverNo", value)}
-        required
-      />
-      
-      <FormField
-        label="Product Code"
-        type="text"
-        value={formData.productCode}
-        onChange={(value) => onChange("productCode", value)}
-        required
-      />
-      
-      <FormField
-        label="Description"
-        type="text"
-        value={formData.description}
-        onChange={(value) => onChange("description", value)}
-        required
-      />
-      
-      <FormField
-        label="Quantity"
-        type="number"
-        value={formData.quantity}
-        onChange={(value) => onChange("quantity", value)}
         required
       />
     </>
