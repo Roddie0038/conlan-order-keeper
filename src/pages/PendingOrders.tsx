@@ -131,10 +131,7 @@ export default function PendingOrders() {
           
           <div className="flex gap-2">
             
-            <Button onClick={handleExportPDF} variant="outline" className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white">
-              <FileText className="w-4 h-4" />
-              Export PDF
-            </Button>
+            
           </div>
         </div>
       </header>
