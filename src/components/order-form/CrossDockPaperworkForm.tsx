@@ -4,6 +4,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { FormField } from "./FormField";
 import { stores } from "./formConfig";
 import { useAuth } from "@/contexts/AuthContext";
+import { exportToExcel, exportToPDF } from "@/utils/exportUtils";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 interface CrossDockPaperworkData {
   date: string;
@@ -29,6 +32,29 @@ export const CrossDockPaperworkForm = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [formData, setFormData] = useState<CrossDockPaperworkData>(initialFormData);
+
+  const handleExport = (type: 'excel' | 'pdf') => {
+    const fromStore = stores.find(s => s.id === formData.fromStore);
+    const toStore = stores.find(s => s.id === formData.toStore);
+    
+    const exportData = [{
+      Date: formData.date,
+      'From Store': fromStore ? `${fromStore.name} (${fromStore.id})` : formData.fromStore,
+      'To Store': toStore ? `${toStore.name} (${toStore.id})` : formData.toStore,
+      'Receiver No': formData.receiverNo,
+      'Product Code': formData.productCode,
+      Description: formData.description,
+      Quantity: formData.quantity,
+    }];
+
+    const headers = ['Date', 'From Store', 'To Store', 'Receiver No', 'Product Code', 'Description', 'Quantity'];
+    
+    if (type === 'excel') {
+      exportToExcel(exportData, `cross-dock-paperwork-${new Date().toISOString().split('T')[0]}`);
+    } else {
+      exportToPDF(exportData, `cross-dock-paperwork-${new Date().toISOString().split('T')[0]}`, headers);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +90,10 @@ export const CrossDockPaperworkForm = () => {
         title: "Success",
         description: "Cross dock paperwork has been submitted.",
       });
+
+      // After successful submission, trigger downloads
+      handleExport('excel');
+      handleExport('pdf');
 
       setFormData(initialFormData);
     } catch (error) {
@@ -150,13 +180,31 @@ export const CrossDockPaperworkForm = () => {
             required
           />
 
-          <div className="flex justify-end">
-            <button
+          <div className="flex justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleExport('excel')}
+              className="flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export Excel
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleExport('pdf')}
+              className="flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export PDF
+            </Button>
+            <Button
               type="submit"
               className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
             >
               Submit Paperwork
-            </button>
+            </Button>
           </div>
         </form>
       </div>
