@@ -34,9 +34,9 @@ export const ProductTable = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Product Code</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Qty</TableHead>
+            <TableHead className="px-[15px] bg-slate-100">Product Code</TableHead>
+            <TableHead className="bg-zinc-100">Description</TableHead>
+            <TableHead className="bg-zinc-100">Qty</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
