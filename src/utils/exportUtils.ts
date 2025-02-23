@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import type { OrderSummary } from '@/components/order-form/types';
+import { CrossDockPaperworkData } from '@/components/order-form/cross-dock/types';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -89,20 +90,14 @@ export const formatMTOOrdersForExport = (orders: any[]) => {
   });
 };
 
-export const generateCrossDockPDF = (data: {
-  date: string;
-  fromStore: string;
-  toStore: string;
-  receiverNo: string;
-  productCode: string;
-  description: string;
-  quantity: string;
-}) => {
+export const generateCrossDockPDF = (data: CrossDockPaperworkData) => {
   const doc = new jsPDF();
   
   // Set title and subtitle
-  doc.setFontSize(18);
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
   doc.text('Cross Dock Form', 105, 20, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
   
   doc.setFontSize(12);
   doc.text('This form is used when sending tires/material to another store using the Warehouse as a cross dock location.', 105, 30, { align: 'center', maxWidth: 180 });
@@ -138,7 +133,11 @@ export const generateCrossDockPDF = (data: {
   doc.autoTable({
     startY: startY + lineHeight * 4,
     head: [['Product Code', 'Description', 'Qty']],
-    body: [[data.productCode, data.description, data.quantity]],
+    body: data.products.map(product => [
+      product.productCode,
+      product.description,
+      product.quantity
+    ]),
     theme: 'grid',
     headStyles: {
       fillColor: [0, 123, 255],

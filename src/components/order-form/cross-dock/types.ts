@@ -1,12 +1,16 @@
 
+export interface ProductRow {
+  productCode: string;
+  description: string;
+  quantity: string;
+}
+
 export interface CrossDockPaperworkData {
   date: string;
   fromStore: string;
   toStore: string;
   receiverNo: string;
-  productCode: string;
-  description: string;
-  quantity: string;
+  products: ProductRow[];
 }
 
 export const initialFormData: CrossDockPaperworkData = {
@@ -14,7 +18,5 @@ export const initialFormData: CrossDockPaperworkData = {
   fromStore: "",
   toStore: "",
   receiverNo: "",
-  productCode: "",
-  description: "",
-  quantity: "",
+  products: [{ productCode: "", description: "", quantity: "" }],
 };

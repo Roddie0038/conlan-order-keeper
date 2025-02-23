@@ -4,9 +4,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { stores } from "./formConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { exportToExcel, generateCrossDockPDF } from "@/utils/exportUtils";
-import { CrossDockHeader } from "./cross-dock/CrossDockHeader";
-import { CrossDockFormFields } from "./cross-dock/CrossDockFormFields";
-import { ExportButtons } from "./cross-dock/ExportButtons";
+import { Button } from "@/components/ui/button";
+import { FormField } from "./FormField";
+import { ProductTable } from "./cross-dock/ProductTable";
 import { CrossDockPaperworkData, initialFormData } from "./cross-dock/types";
 
 export const CrossDockPaperworkForm = () => {
@@ -18,15 +18,15 @@ export const CrossDockPaperworkForm = () => {
     const fromStore = stores.find(s => s.id === formData.fromStore);
     const toStore = stores.find(s => s.id === formData.toStore);
     
-    const exportData = [{
+    const exportData = formData.products.map(product => ({
       Date: formData.date,
       'From Store': fromStore ? `${fromStore.name} (${fromStore.id})` : formData.fromStore,
       'To Store': toStore ? `${toStore.name} (${toStore.id})` : formData.toStore,
       'Receiver No': formData.receiverNo,
-      'Product Code': formData.productCode,
-      Description: formData.description,
-      Quantity: formData.quantity,
-    }];
+      'Product Code': product.productCode,
+      Description: product.description,
+      Quantity: product.quantity,
+    }));
 
     if (type === 'excel') {
       exportToExcel(exportData, `cross-dock-paperwork-${new Date().toISOString().split('T')[0]}`);
@@ -82,7 +82,7 @@ export const CrossDockPaperworkForm = () => {
     }
   };
 
-  const handleChange = (field: keyof CrossDockPaperworkData, value: string) => {
+  const handleChange = (field: keyof Omit<CrossDockPaperworkData, 'products'>, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -91,16 +91,58 @@ export const CrossDockPaperworkForm = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="max-w-2xl mx-auto bg-white/90 dark:bg-slate-800/90 rounded-lg shadow-lg p-6 space-y-6">
-        <CrossDockHeader />
+      <div className="max-w-2xl mx-auto bg-white/90 dark:bg-slate-800/90 rounded-lg shadow-lg p-6">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-primary underline">Cross Dock Form</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            This form is used when sending tires/material to another store using the Warehouse as a cross dock location.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <CrossDockFormFields 
-            formData={formData}
-            onChange={handleChange}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <FormField
+            label="Date"
+            type="date"
+            value={formData.date}
+            onChange={(value) => handleChange("date", value)}
+            required
+          />
+          
+          <FormField
+            label="FROM Store"
+            value={formData.fromStore}
+            onChange={(value) => handleChange("fromStore", value)}
+            options={stores}
+            required
+          />
+          
+          <FormField
+            label="TO Store"
+            value={formData.toStore}
+            onChange={(value) => handleChange("toStore", value)}
+            options={stores}
+            required
+          />
+          
+          <FormField
+            label="Receiver No (MaddenCo)"
+            type="text"
+            value={formData.receiverNo}
+            onChange={(value) => handleChange("receiverNo", value)}
+            required
+          />
+          
+          <ProductTable 
+            products={formData.products}
+            onProductsChange={(products) => setFormData(prev => ({ ...prev, products }))}
           />
 
-          <ExportButtons onExport={handleExport} />
+          <Button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700"
+          >
+            Submit
+          </Button>
         </form>
       </div>
     </div>
