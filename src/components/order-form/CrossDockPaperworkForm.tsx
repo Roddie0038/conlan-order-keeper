@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { stores } from "./formConfig";
 import { useAuth } from "@/contexts/AuthContext";
-import { exportToExcel, generateCrossDockPDF } from "@/utils/exportUtils";
+import { generateCrossDockPDF } from "@/utils/exportUtils";
 import { Button } from "@/components/ui/button";
 import { FormField } from "./FormField";
 import { ProductTable } from "./cross-dock/ProductTable";
@@ -13,27 +13,6 @@ export const CrossDockPaperworkForm = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [formData, setFormData] = useState<CrossDockPaperworkData>(initialFormData);
-
-  const handleExport = (type: 'excel' | 'pdf') => {
-    const fromStore = stores.find(s => s.id === formData.fromStore);
-    const toStore = stores.find(s => s.id === formData.toStore);
-    
-    const exportData = formData.products.map(product => ({
-      Date: formData.date,
-      'From Store': fromStore ? `${fromStore.name} (${fromStore.id})` : formData.fromStore,
-      'To Store': toStore ? `${toStore.name} (${toStore.id})` : formData.toStore,
-      'Receiver No': formData.receiverNo,
-      'Product Code': product.productCode,
-      Description: product.description,
-      Quantity: product.quantity,
-    }));
-
-    if (type === 'excel') {
-      exportToExcel(exportData, `cross-dock-paperwork-${new Date().toISOString().split('T')[0]}`);
-    } else {
-      generateCrossDockPDF(formData);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,9 +47,7 @@ export const CrossDockPaperworkForm = () => {
         description: "Cross dock paperwork has been submitted.",
       });
 
-      handleExport('excel');
-      handleExport('pdf');
-
+      generateCrossDockPDF(formData);
       setFormData(initialFormData);
     } catch (error) {
       console.error("Error submitting cross dock paperwork:", error);
