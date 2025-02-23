@@ -14,7 +14,7 @@ export default function CrossDock() {
       <Navigation />
       
       <div className="container mx-auto p-6">
-        <Alert variant="warning" className="mb-6 bg-yellow-100/90 dark:bg-yellow-900/90 border-yellow-500">
+        <Alert variant="destructive" className="mb-6 bg-yellow-100/90 dark:bg-yellow-900/90 border-yellow-500">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="text-lg font-bold">Page Under Construction</AlertTitle>
           <AlertDescription className="text-sm">
