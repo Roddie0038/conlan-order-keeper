@@ -8,14 +8,16 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
-      size="icon"
+      variant="outline"
+      size="lg"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="rounded-full"
+      className="relative px-8 py-6 rounded-lg border-2 border-primary flex items-center gap-2 hover:bg-primary/10 transition-all"
     >
-      <Sun className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-[1.5rem] w-[1.5rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
+      <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-yellow-500" />
+      <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-500" />
+      <span className="ml-2 text-lg font-medium">
+        {theme === 'light' ? 'Light' : 'Dark'} Mode
+      </span>
     </Button>
   );
 }
