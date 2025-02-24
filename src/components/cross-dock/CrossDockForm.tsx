@@ -27,7 +27,7 @@ export const CrossDockForm = () => {
   const formRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
-    copyStyles: true,
+    content: () => formRef.current,
     documentTitle: 'Cross_Dock_Form',
     onAfterPrint: () => {
       console.log('Print job completed');
@@ -157,7 +157,7 @@ export const CrossDockForm = () => {
           <Plus className="w-4 h-4 mr-2" />
           Add Row
         </Button>
-        <Button onClick={handlePrint} className="w-full bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => handlePrint()} className="w-full bg-blue-600 hover:bg-blue-700">
           <Printer className="w-4 h-4 mr-2" />
           Print PDF
         </Button>
