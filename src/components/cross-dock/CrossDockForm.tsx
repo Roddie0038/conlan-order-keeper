@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +31,7 @@ export const CrossDockForm = () => {
     pageStyle: "@page { size: auto; margin: 0mm }",
     removeAfterPrint: true,
     documentTitle: 'Cross_Dock_Form',
-    onBeforePrint: () => {
+    onBeforePrint: async () => {
       console.log("Preparing to print...");
     },
     onPrintError: (error) => {
@@ -79,7 +78,7 @@ export const CrossDockForm = () => {
 
   const onPrintClick = () => {
     if (printRef.current) {
-      handlePrint(printRef.current);
+      handlePrint();
     } else {
       toast({
         variant: "destructive",
