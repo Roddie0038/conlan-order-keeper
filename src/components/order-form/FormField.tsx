@@ -25,8 +25,8 @@ export const FormField = ({
   disabled = false
 }: FormFieldProps) => {
   if (options) {
-    return <div className="px-0 mx-[50px]">
-        <label className="block text-sm font-medium mb-1 bg-zinc-50 rounded-full px-[200px]">{label}</label>
+    return <div>
+        <label className="block text-sm font-medium mb-1">{label}</label>
         <Select value={value} onValueChange={value => onChange(value)} disabled={disabled}>
           <SelectTrigger>
             <SelectValue placeholder={placeholder} />
@@ -40,7 +40,7 @@ export const FormField = ({
       </div>;
   }
   return <div>
-      <label className="block text-sm font-medium mb-1 bg-orange-400 px-[240px]">{label}</label>
-      <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full bg-zinc-50 rounded-full px-[230px]" />
+      <label className="block text-sm font-medium mb-1">{label}</label>
+      <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full bg-zinc-50" />
     </div>;
 };
