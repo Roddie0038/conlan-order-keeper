@@ -27,7 +27,7 @@ export interface MTOFormData {
   name: string;
   managerEmail: string;
   productNumber: string;
-  casingGrade: string[];
+  casingGrade: string[];  // Changed to string array for multiple selections
   tireSize: string;
   customTireSize: string;
   tireTreadNeeded: string;
@@ -42,7 +42,7 @@ export const initialMTOFormData: MTOFormData = {
   name: "",
   managerEmail: "",
   productNumber: "",
-  casingGrade: [],
+  casingGrade: [],  // Initialize as empty array
   tireSize: "",
   customTireSize: "",
   tireTreadNeeded: "",

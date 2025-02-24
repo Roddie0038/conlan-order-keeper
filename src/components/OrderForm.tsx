@@ -8,30 +8,33 @@ import { getCurrentDateTime } from "@/utils/dateTime";
 import { initialFormData, type FormData, stores, storeManagerEmails } from "./order-form/formConfig";
 import type { OrderSummary } from "./order-form/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OrderTemplates } from "./order-form/OrderTemplates";
-
 export const OrderForm = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    user
+  } = useAuth();
   const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionValues, setSessionValues] = useState({
     yourName: "",
     scheduleArrival: ""
   });
-
   const [formData, setFormData] = useState<FormData>({
     ...initialFormData,
     dateReceived: getCurrentDateTime()
   });
-
   const getManagerEmail = (storeName: string) => {
     if (storeName === "Admin") return storeManagerEmails["Admin"];
+
+    // Match the store number at the end of the string
     const match = storeName.match(/\d+$/);
     if (!match) return "";
     return storeManagerEmails[match[0]] || "";
   };
 
+  // Load retained values when component mounts
   useEffect(() => {
     const storedName = sessionStorage.getItem('orderName');
     const storedSchedule = sessionStorage.getItem('orderSchedule');
@@ -47,16 +50,6 @@ export const OrderForm = () => {
       });
     }
   }, []);
-
-  const handleLoadTemplate = (templateData: FormData) => {
-    setFormData(prev => ({
-      ...templateData,
-      dateReceived: getCurrentDateTime(),
-      yourName: sessionValues.yourName,
-      scheduleArrival: sessionValues.scheduleArrival,
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -99,7 +92,6 @@ export const OrderForm = () => {
       });
     }
   };
-
   const handleChange = (field: keyof FormData, value: string) => {
     if (field === 'dateReceived') return;
     setFormData(prev => ({
@@ -123,16 +115,13 @@ export const OrderForm = () => {
       }));
     }
   };
-
   const toggleOrderSelection = (orderId: string) => {
     setOrderSummaries(prev => prev.map(order => order.id === orderId ? {
       ...order,
       selected: !order.selected
     } : order));
   };
-
-  return (
-    <div className="space-y-8">
+  return <div className="space-y-8">
       <Tabs defaultValue="order-form" className="w-full">
         <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="order-form" className="font-bold text-sm rounded-3xl text-[#101010] bg-yellow-300 hover:bg-yellow-200">
@@ -140,15 +129,10 @@ export const OrderForm = () => {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="order-form">
-          <OrderTemplates 
-            currentFormData={formData}
-            onLoadTemplate={handleLoadTemplate}
-          />
           <OrderFormInputs formData={formData} onSubmit={handleSubmit} onChange={handleChange} />
           <OrderSummaryTable orderSummaries={orderSummaries} onToggleSelection={toggleOrderSelection} />
           <OrderSubmissionHandler orderSummaries={orderSummaries} setOrderSummaries={setOrderSummaries} />
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };

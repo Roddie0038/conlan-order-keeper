@@ -25,28 +25,15 @@ export const useMTOForm = () => {
     const storeNumber = match ? match[0] : '';
     return storeManagerEmails[storeNumber] || '';
   };
-
-  // Initialize form data with a regular useState
-  const [formData, setFormData] = useState<MTOFormData>({
-    ...initialMTOFormData,
-    store: user?.store || "",
-    managerEmail: user?.store ? getManagerEmail(user.store) : "",
+  
+  const [formData, setFormData] = useState<MTOFormData>(() => {
+    return {
+      ...initialMTOFormData,
+      store: user?.store || "",
+      managerEmail: user?.store ? getManagerEmail(user.store) : "",
+    };
   });
 
-  // Load saved draft in a separate useEffect
-  useEffect(() => {
-    const savedDraft = localStorage.getItem('mtoOrderDraft');
-    if (savedDraft) {
-      const parsedDraft = JSON.parse(savedDraft);
-      setFormData(prev => ({
-        ...parsedDraft,
-        store: user?.store || parsedDraft.store,
-        managerEmail: user?.store ? getManagerEmail(user.store) : parsedDraft.managerEmail,
-      }));
-    }
-  }, []); // Only run once on mount
-
-  // Load session values
   useEffect(() => {
     const storedName = sessionStorage.getItem('mtoOrderName');
     const storedSchedule = sessionStorage.getItem('mtoOrderSchedule');
@@ -54,17 +41,16 @@ export const useMTOForm = () => {
     if (storedName || storedSchedule) {
       setFormData(prev => ({
         ...prev,
-        name: storedName || prev.name,
-        scheduleArrival: storedSchedule || prev.scheduleArrival,
+        name: storedName || '',
+        scheduleArrival: storedSchedule || '',
       }));
       setSessionValues({
         name: storedName || '',
         scheduleArrival: storedSchedule || '',
       });
     }
-  }, []); // Only run once on mount
+  }, []);
 
-  // Update store and manager email when user changes
   useEffect(() => {
     if (user?.store) {
       const managerEmail = getManagerEmail(user.store);
@@ -75,16 +61,6 @@ export const useMTOForm = () => {
       }));
     }
   }, [user?.store]);
-
-  // Auto-save effect
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      localStorage.setItem('mtoOrderDraft', JSON.stringify(formData));
-      console.log('Auto-saved MTO order draft');
-    }, 1000); // Debounce auto-save to avoid too frequent saves
-
-    return () => clearTimeout(timeoutId);
-  }, [formData]);
 
   const handleChange = (field: string, value: string | string[]) => {
     if (field === 'store' && !user?.isAdmin) {
@@ -107,8 +83,6 @@ export const useMTOForm = () => {
   };
 
   const resetForm = () => {
-    // Clear the draft when form is reset
-    localStorage.removeItem('mtoOrderDraft');
     setFormData({
       ...initialMTOFormData,
       store: user?.store || "",
@@ -120,7 +94,6 @@ export const useMTOForm = () => {
 
   return {
     formData,
-    setFormData, // Add setFormData to the return object
     isSubmitting,
     setIsSubmitting,
     sessionValues,

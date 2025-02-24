@@ -26,13 +26,13 @@ export const FormField = ({
 }: FormFieldProps) => {
   if (options) {
     return <div>
-        <label className="block text-sm font-medium mb-1 bg-orange-500 px-[240px] rounded-full">{label}</label>
+        <label className="block text-sm font-medium mb-1">{label}</label>
         <Select value={value} onValueChange={value => onChange(value)} disabled={disabled}>
-          <SelectTrigger className="text-black font-bold">
+          <SelectTrigger>
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
-            {options.map(option => <SelectItem key={option.id || option.value} value={option.id || option.value || ""} className="text-black font-bold">
+            {options.map(option => <SelectItem key={option.id || option.value} value={option.id || option.value || ""}>
                 {option.name || option.value}
               </SelectItem>)}
           </SelectContent>
@@ -40,7 +40,7 @@ export const FormField = ({
       </div>;
   }
   return <div>
-      <label className="block text-sm font-medium mb-1 py-0 px-[240px] mx-0 my-0 bg-orange-500 rounded-3xl">{label}</label>
-      <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full text-black font-bold px-[200px] bg-zinc-400 rounded-3xl" />
+      <label className="block text-sm font-medium mb-1">{label}</label>
+      <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full bg-zinc-50" />
     </div>;
 };

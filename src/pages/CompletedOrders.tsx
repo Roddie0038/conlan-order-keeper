@@ -1,13 +1,12 @@
-
-import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Navigation } from "@/components/Navigation";
-
-interface CompletedOrder {
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useState, useEffect } from "react";
+interface Order {
   id: string;
   timestamp: string;
+  yourName: string;
   store: string;
   dateReceived: string;
   productNumber: string;
@@ -15,67 +14,90 @@ interface CompletedOrder {
   quantity: string;
   scheduleArrival: string;
   notes: string;
+  crossDock: string;
 }
-
 export default function CompletedOrders() {
-  const [orders, setOrders] = useState<CompletedOrder[]>([]);
-  const { user } = useAuth();
-
+  const {
+    user,
+    logout
+  } = useAuth();
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState<Order[]>([]);
   useEffect(() => {
-    const loadOrders = () => {
-      const savedOrders = localStorage.getItem('completedOrders');
-      if (savedOrders) {
-        const parsedOrders = JSON.parse(savedOrders);
-        const filteredOrders = user?.isAdmin 
-          ? parsedOrders 
-          : parsedOrders.filter((order: CompletedOrder) => order.store === user?.store);
-        setOrders(filteredOrders);
-      }
-    };
+    const savedOrders = localStorage.getItem('completedOrders');
+    if (savedOrders) {
+      const allOrders = JSON.parse(savedOrders);
+      const filteredOrders = user?.isAdmin ? allOrders : allOrders.filter((order: Order) => order.store === user?.store);
+      setOrders(filteredOrders);
+    }
+  }, [user?.store, user?.isAdmin]);
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+  const handleDelete = (orderId: string) => {
+    const savedOrders = localStorage.getItem('completedOrders');
+    if (savedOrders) {
+      const allOrders = JSON.parse(savedOrders);
+      const updatedOrders = allOrders.filter((order: Order) => order.id !== orderId);
+      localStorage.setItem('completedOrders', JSON.stringify(updatedOrders));
+      const filteredOrders = user?.isAdmin ? updatedOrders : updatedOrders.filter((order: Order) => order.store === user?.store);
+      setOrders(filteredOrders);
+    }
+  };
+  return <div className="min-h-screen" style={{
+    backgroundImage: "url('/lovable-uploads/310fc0d8-29ad-4965-98d1-a236b46f73e8.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat"
+  }}>
+      <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm rounded-full">
+        <div className="container flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain" />
+            <h1 className="font-extrabold text-4xl text-center">
+              Completed Orders - {user?.isAdmin ? 'Admin View' : user?.store}
+            </h1>
+          </div>
+          <div className="flex gap-4">
+            
+            <Button variant="outline" onClick={handleLogout} className="border-orange-500 text-black font-bold hover:bg-orange-500 hover:text-white">
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
 
-    loadOrders();
-    window.addEventListener('storage', loadOrders);
-    return () => window.removeEventListener('storage', loadOrders);
-  }, [user]);
-
-  return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{
-      backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      backgroundBlendMode: 'overlay'
-    }}>
-      <Navigation />
-      
-      <div className="container py-8">
-        <div className="p-6 shadow bg-gray-500 hover:bg-gray-400 rounded-full">
-          <h2 className="mb-4 text-center font-bold text-4xl text-amber-300">Completed Orders</h2>
-          
+      <main className="container">
+        <div className="p-6 rounded-lg shadow backdrop-blur-sm bg-gray-500 hover:bg-gray-400">
+          <h2 className="text-xl font-semibold mb-4">Completed Orders</h2>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Store</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Schedule</TableHead>
+                <TableHead className="bg-gray-300 hover:bg-gray-200">Date Completed</TableHead>
+                <TableHead className="bg-slate-300 hover:bg-slate-200">Store</TableHead>
+                <TableHead className="bg-slate-300 hover:bg-slate-200">Product</TableHead>
+                <TableHead className="bg-slate-300 hover:bg-slate-200">Description</TableHead>
+                <TableHead className="bg-slate-300 hover:bg-slate-200">Quantity</TableHead>
+                {user?.isAdmin && <TableHead className="text-right bg-slate-300 hover:bg-slate-200">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map(order => (
-                <TableRow key={order.id}>
+              {orders.map(order => <TableRow key={order.id}>
                   <TableCell>{new Date(order.dateReceived).toLocaleDateString()}</TableCell>
                   <TableCell>{order.store}</TableCell>
                   <TableCell>{order.productNumber}</TableCell>
                   <TableCell>{order.description}</TableCell>
                   <TableCell>{order.quantity}</TableCell>
-                  <TableCell>{order.scheduleArrival}</TableCell>
-                </TableRow>
-              ))}
+                  {user?.isAdmin && <TableCell className="text-right">
+                      <Button variant="outline" onClick={() => handleDelete(order.id)} className="bg-red-600 text-black font-bold hover:bg-red-700 hover:text-white">
+                        Delete
+                      </Button>
+                    </TableCell>}
+                </TableRow>)}
             </TableBody>
           </Table>
         </div>
-      </div>
-    </div>
-  );
+      </main>
+    </div>;
 }
