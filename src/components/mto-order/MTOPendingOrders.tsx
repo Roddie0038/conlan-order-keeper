@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileSpreadsheet, FileText } from "lucide-react";
-import { exportToExcel, exportToPDF, formatMTOOrdersForExport } from "@/utils/exportUtils";
+import { FileText } from "lucide-react";
+import { exportToPDF, formatMTOOrdersForExport } from "@/utils/exportUtils";
 import { useToast } from "@/components/ui/use-toast";
 
 interface MTOOrder {
@@ -58,31 +58,6 @@ export const MTOPendingOrders = () => {
     });
   };
 
-  const handleExportExcel = () => {
-    if (orders.length === 0) {
-      toast({
-        title: "No Orders to Export",
-        description: "There are currently no MTO orders to export.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const headers = [
-      'Date', 'Store', 'Name', 'Product Number', 'Tire Size', 'Custom Tire Size',
-      'Casing Grade', 'Tire Tread', 'Quantity', 'Schedule', 'Priority', 'Notes', "Manager's Email"
-    ];
-    
-    const formattedOrders = formatMTOOrdersForExport(orders);
-    console.log('Formatted orders for export:', formattedOrders); // Debug log
-    exportToExcel(formattedOrders, 'mto-orders');
-    
-    toast({
-      title: "Export Successful",
-      description: "MTO orders have been exported to Excel.",
-    });
-  };
-
   const handleExportPDF = () => {
     if (orders.length === 0) {
       toast({
@@ -113,14 +88,6 @@ export const MTOPendingOrders = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Current MTO Orders</h2>
         <div className="flex gap-2">
-          <Button
-            onClick={handleExportExcel}
-            variant="outline"
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            Export Excel
-          </Button>
           <Button
             onClick={handleExportPDF}
             variant="outline"

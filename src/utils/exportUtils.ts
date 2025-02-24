@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import type { OrderSummary } from '@/components/order-form/types';
@@ -9,23 +9,6 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
   }
 }
-
-export const exportToExcel = (data: any[], fileName: string) => {
-  // Transform data to match the exact header keys
-  const transformedData = data.map(item => {
-    const transformed: { [key: string]: any } = {};
-    Object.entries(item).forEach(([key, value]) => {
-      // Keep the key exactly as is without transformation
-      transformed[key] = value;
-    });
-    return transformed;
-  });
-
-  const ws = XLSX.utils.json_to_sheet(transformedData);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Orders');
-  XLSX.writeFile(wb, `${fileName}.xlsx`);
-};
 
 export const exportToPDF = (data: any[], fileName: string, headers: string[]) => {
   const doc = new jsPDF();
@@ -72,7 +55,6 @@ export const formatOrdersForExport = (orders: OrderSummary[]) => {
 // Function to format MTO orders for export
 export const formatMTOOrdersForExport = (orders: any[]) => {
   return orders.map(order => {
-    // Create an object that exactly matches the headers used in the export
     return {
       'Date': order.timestamp || new Date().toLocaleString(),
       'Store': order.store || 'N/A',
