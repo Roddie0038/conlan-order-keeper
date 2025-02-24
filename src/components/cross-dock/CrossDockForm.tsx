@@ -27,8 +27,30 @@ export const CrossDockForm = () => {
   const formRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
-    content: () => formRef.current,
     documentTitle: 'Cross_Dock_Form',
+    onBeforeGetContent: () => {
+      return new Promise<void>((resolve) => {
+        resolve();
+      });
+    },
+    removeAfterPrint: true,
+    pageStyle: "@page { size: auto; margin: 20mm }",
+    copyStyles: true,
+    print: (printIframe) => {
+      const document = printIframe.contentDocument;
+      if (document) {
+        const html = document.getElementsByTagName("html")[0];
+        html.style.fontSize = "14px";
+      }
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          if (printIframe.contentWindow) {
+            printIframe.contentWindow.print();
+          }
+          resolve();
+        }, 500);
+      });
+    },
   });
 
   const addRow = () => {
@@ -42,6 +64,12 @@ export const CrossDockForm = () => {
     setProducts(products.map(product => 
       product.id === id ? { ...product, [field]: value } : product
     ));
+  };
+
+  const printForm = () => {
+    if (formRef.current) {
+      handlePrint();
+    }
   };
 
   return (
@@ -154,7 +182,7 @@ export const CrossDockForm = () => {
           <Plus className="w-4 h-4 mr-2" />
           Add Row
         </Button>
-        <Button onClick={handlePrint} className="w-full bg-blue-600 hover:bg-blue-700">
+        <Button onClick={printForm} className="w-full bg-blue-600 hover:bg-blue-700">
           <Printer className="w-4 h-4 mr-2" />
           Print PDF
         </Button>
