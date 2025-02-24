@@ -27,11 +27,11 @@ export const CrossDockForm = () => {
   const formRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
-    content: () => formRef.current,
+    pageStyle: "@page { size: auto; margin: 0mm }",
     documentTitle: 'Cross_Dock_Form',
-    onAfterPrint: () => {
-      console.log('Print job completed');
-    }
+    onAfterPrint: () => console.log('Print job completed'),
+    // @ts-ignore
+    content: () => formRef.current
   });
 
   const addRow = () => {
