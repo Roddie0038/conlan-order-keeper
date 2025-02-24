@@ -32,7 +32,9 @@ export const CrossDockForm = () => {
 
   const handlePrint = useReactToPrint({
     documentTitle: 'Cross_Dock_Form',
-    removeAfterPrint: true,
+    onAfterPrint: () => {
+      console.log('Print job completed');
+    },
     print: async (printIframe) => {
       const document = printIframe.contentDocument;
       if (document) {
