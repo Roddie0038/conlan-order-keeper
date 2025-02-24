@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MTOFormFields } from "./MTOFormFields";
 import { useMTOForm } from "./hooks/useMTOForm";
 import { useSubmitMTOOrder } from "./hooks/useSubmitMTOOrder";
+import { OrderTemplate } from "../order-templates/OrderTemplate";
 
 export const MTOOrderForm = () => {
   const {
@@ -12,7 +13,8 @@ export const MTOOrderForm = () => {
     handleChange,
     resetForm,
     toast,
-    isAdmin
+    isAdmin,
+    setFormData
   } = useMTOForm();
 
   const handleSubmit = useSubmitMTOOrder({
@@ -22,8 +24,25 @@ export const MTOOrderForm = () => {
     toast
   });
 
+  const handleLoadTemplate = (templateData: any) => {
+    setFormData({
+      ...templateData,
+      timestamp: new Date().toLocaleString() // Always use current timestamp
+    });
+    toast({
+      title: "Template Loaded",
+      description: "The template has been loaded successfully."
+    });
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6 rounded-lg shadow bg-slate-500 hover:bg-slate-400">
+      <OrderTemplate
+        type="mto"
+        currentData={formData}
+        onLoadTemplate={handleLoadTemplate}
+      />
+      
       <MTOFormFields 
         formData={formData} 
         onChange={handleChange} 

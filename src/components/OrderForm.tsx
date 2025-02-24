@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +9,7 @@ import { initialFormData, type FormData, stores, storeManagerEmails } from "./or
 import type { OrderSummary } from "./order-form/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAutoDraft } from "@/hooks/useAutoDraft";
+import { OrderTemplate } from "./order-templates/OrderTemplate";
 
 export const OrderForm = () => {
   const { toast } = useToast();
@@ -131,6 +131,17 @@ export const OrderForm = () => {
     ));
   };
 
+  const handleLoadTemplate = (templateData: FormData) => {
+    setFormData({
+      ...templateData,
+      dateReceived: getCurrentDateTime() // Always use current date
+    });
+    toast({
+      title: "Template Loaded",
+      description: "The template has been loaded successfully."
+    });
+  };
+
   return (
     <div className="space-y-8">
       <Tabs defaultValue="order-form" className="w-full">
@@ -140,6 +151,11 @@ export const OrderForm = () => {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="order-form">
+          <OrderTemplate
+            type="regular"
+            currentData={formData}
+            onLoadTemplate={handleLoadTemplate}
+          />
           <OrderFormInputs formData={formData} onSubmit={handleSubmit} onChange={handleChange} />
           <OrderSummaryTable orderSummaries={orderSummaries} onToggleSelection={toggleOrderSelection} />
           <OrderSubmissionHandler orderSummaries={orderSummaries} setOrderSummaries={setOrderSummaries} />
