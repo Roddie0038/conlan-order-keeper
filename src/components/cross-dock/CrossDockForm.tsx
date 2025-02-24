@@ -7,6 +7,7 @@ import { stores } from "@/components/order-form/formConfig";
 import { Printer, Plus } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ProductRow {
   id: string;
@@ -23,15 +24,44 @@ export const CrossDockForm = () => {
   const [products, setProducts] = useState<ProductRow[]>([
     { id: crypto.randomUUID(), productCode: "", description: "", quantity: "" }
   ]);
-
-  const formRef = useRef<HTMLDivElement>(null);
+  
+  const { toast } = useToast();
+  const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
     pageStyle: "@page { size: auto; margin: 0mm }",
+    removeAfterPrint: true,
     documentTitle: 'Cross_Dock_Form',
-    onAfterPrint: () => console.log('Print job completed'),
-    // @ts-ignore
-    content: () => formRef.current
+    onBeforePrint: () => {
+      console.log("Preparing to print...");
+    },
+    onPrintError: (error) => {
+      console.error('Print failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Print Error",
+        description: "Failed to generate PDF. Please try again.",
+      });
+    },
+    onAfterPrint: () => {
+      console.log('Print completed');
+      toast({
+        title: "Success",
+        description: "PDF generated successfully!",
+      });
+    },
+    print: async (printIframe) => {
+      try {
+        const document = printIframe.contentDocument;
+        if (document) {
+          const html = document.getElementsByTagName('html')[0];
+          html.style.transform = 'scale(1)';
+        }
+        await printIframe.contentWindow?.print();
+      } catch (error) {
+        console.error('Print error:', error);
+      }
+    },
   });
 
   const addRow = () => {
@@ -47,9 +77,21 @@ export const CrossDockForm = () => {
     ));
   };
 
+  const onPrintClick = () => {
+    if (printRef.current) {
+      handlePrint(printRef.current);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Print Error",
+        description: "Could not generate PDF. Please try again.",
+      });
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg print:shadow-none">
-      <div ref={formRef} className="space-y-6">
+      <div ref={printRef} className="space-y-6">
         <div className="text-center space-y-2 print:mb-8">
           <h2 className="text-xl font-bold underline">Cross Dock Form</h2>
           <p className="text-sm text-gray-600">
@@ -157,7 +199,7 @@ export const CrossDockForm = () => {
           <Plus className="w-4 h-4 mr-2" />
           Add Row
         </Button>
-        <Button onClick={() => handlePrint()} className="w-full bg-blue-600 hover:bg-blue-700">
+        <Button onClick={onPrintClick} className="w-full bg-blue-600 hover:bg-blue-700">
           <Printer className="w-4 h-4 mr-2" />
           Print PDF
         </Button>
