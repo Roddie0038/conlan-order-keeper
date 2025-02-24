@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { stores } from "@/components/order-form/formConfig";
 import { Printer, Plus } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 
 interface ProductRow {
   id: string;
@@ -26,9 +26,24 @@ export const CrossDockForm = () => {
 
   const formRef = useRef<HTMLDivElement>(null);
 
+  const reactToPrintContent = useCallback(() => {
+    return formRef.current;
+  }, []);
+
   const handlePrint = useReactToPrint({
     documentTitle: 'Cross_Dock_Form',
-    content: () => formRef.current,
+    removeAfterPrint: true,
+    print: async (printIframe) => {
+      const document = printIframe.contentDocument;
+      if (document) {
+        document.documentElement.style.fontSize = "14px";
+      }
+      if (printIframe.contentWindow) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        printIframe.contentWindow.print();
+      }
+    },
+    content: reactToPrintContent
   });
 
   const addRow = () => {
@@ -42,6 +57,12 @@ export const CrossDockForm = () => {
     setProducts(products.map(product => 
       product.id === id ? { ...product, [field]: value } : product
     ));
+  };
+
+  const onPrintClick = () => {
+    if (formRef.current) {
+      handlePrint();
+    }
   };
 
   return (
@@ -154,7 +175,7 @@ export const CrossDockForm = () => {
           <Plus className="w-4 h-4 mr-2" />
           Add Row
         </Button>
-        <Button onClick={handlePrint} className="w-full bg-blue-600 hover:bg-blue-700">
+        <Button onClick={onPrintClick} className="w-full bg-blue-600 hover:bg-blue-700">
           <Printer className="w-4 h-4 mr-2" />
           Print PDF
         </Button>
