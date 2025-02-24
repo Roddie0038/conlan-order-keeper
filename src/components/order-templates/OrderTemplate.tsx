@@ -76,7 +76,7 @@ export const OrderTemplate = ({
       description: "The template has been removed."
     });
   };
-  return <div className="mb-6 space-y-4">
+  return <div className="mb-6 space-y-4 px-[24px]">
       <div className="flex gap-4 items-start">
         <div className="flex-1">
           <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
@@ -99,9 +99,9 @@ export const OrderTemplate = ({
           </div>}
       </div>
 
-      {showSaveForm && <div className="flex gap-2">
+      {showSaveForm && <div className="flex gap-2 mx-0 px-0">
           <input type="text" placeholder="Enter template name" value={templateName} onChange={e => setTemplateName(e.target.value)} className="flex-1 border px-[240px] rounded-full bg-green-300 mx-[240px] py-0" />
-          <Button onClick={saveTemplate} variant="outline" className="gap-2 bg-green-400 hover:bg-green-300 text-slate-950 px-0 py-[2px] mx-0 my-[5px] text-center rounded-3xl">
+          <Button onClick={saveTemplate} variant="outline" className="gap-2 bg-green-400 hover:bg-green-300 text-slate-950 my-[5px] rounded-3xl py-0 mx-0 px-0 text-left">
             <Save className="h-4 w-4" />
             Save Template
           </Button>
