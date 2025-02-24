@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +30,6 @@ export const CrossDockForm = () => {
 
   const handlePrint = useReactToPrint({
     pageStyle: "@page { size: auto; margin: 0mm }",
-    removeAfterPrint: true,
     documentTitle: 'Cross_Dock_Form',
     onBeforePrint: async () => {
       console.log("Preparing to print...");
@@ -49,18 +49,7 @@ export const CrossDockForm = () => {
         description: "PDF generated successfully!",
       });
     },
-    print: async (printIframe) => {
-      try {
-        const document = printIframe.contentDocument;
-        if (document) {
-          const html = document.getElementsByTagName('html')[0];
-          html.style.transform = 'scale(1)';
-        }
-        await printIframe.contentWindow?.print();
-      } catch (error) {
-        console.error('Print error:', error);
-      }
-    },
+    content: () => printRef.current,
   });
 
   const addRow = () => {
