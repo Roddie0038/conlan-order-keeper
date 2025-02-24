@@ -151,11 +151,14 @@ export const OrderForm = () => {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="order-form">
-          <OrderTemplate
-            type="regular"
-            currentData={formData}
-            onLoadTemplate={handleLoadTemplate}
-          />
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4">Order Templates</h3>
+            <OrderTemplate
+              type="regular"
+              currentData={formData}
+              onLoadTemplate={handleLoadTemplate}
+            />
+          </div>
           <OrderFormInputs formData={formData} onSubmit={handleSubmit} onChange={handleChange} />
           <OrderSummaryTable orderSummaries={orderSummaries} onToggleSelection={toggleOrderSelection} />
           <OrderSubmissionHandler orderSummaries={orderSummaries} setOrderSummaries={setOrderSummaries} />

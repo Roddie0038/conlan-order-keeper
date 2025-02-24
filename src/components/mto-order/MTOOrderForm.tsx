@@ -37,11 +37,14 @@ export const MTOOrderForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6 rounded-lg shadow bg-slate-500 hover:bg-slate-400">
-      <OrderTemplate
-        type="mto"
-        currentData={formData}
-        onLoadTemplate={handleLoadTemplate}
-      />
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-4 text-white">Order Templates</h3>
+        <OrderTemplate
+          type="mto"
+          currentData={formData}
+          onLoadTemplate={handleLoadTemplate}
+        />
+      </div>
       
       <MTOFormFields 
         formData={formData} 
