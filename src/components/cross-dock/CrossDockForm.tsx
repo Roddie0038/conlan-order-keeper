@@ -7,63 +7,64 @@ import { Printer, Plus } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
-
 interface ProductRow {
   id: string;
   productCode: string;
   description: string;
   quantity: string;
 }
-
 export const CrossDockForm = () => {
   const [date, setDate] = useState("");
   const [fromStore, setFromStore] = useState("");
   const [toStore, setToStore] = useState("");
   const [receiverNo, setReceiverNo] = useState("");
-  const [products, setProducts] = useState<ProductRow[]>([
-    { id: crypto.randomUUID(), productCode: "", description: "", quantity: "" }
-  ]);
-  
-  const { toast } = useToast();
+  const [products, setProducts] = useState<ProductRow[]>([{
+    id: crypto.randomUUID(),
+    productCode: "",
+    description: "",
+    quantity: ""
+  }]);
+  const {
+    toast
+  } = useToast();
   const printRef = useRef<HTMLDivElement>(null);
-
   const handlePrint = useReactToPrint({
     pageStyle: "@page { size: auto; margin: 0mm }",
     documentTitle: 'Cross_Dock_Form',
     onBeforePrint: async () => {
       console.log("Preparing to print...");
     },
-    onPrintError: (error) => {
+    onPrintError: error => {
       console.error('Print failed:', error);
       toast({
         variant: "destructive",
         title: "Print Error",
-        description: "Failed to generate PDF. Please try again.",
+        description: "Failed to generate PDF. Please try again."
       });
     },
     onAfterPrint: () => {
       console.log('Print completed');
       toast({
         title: "Success",
-        description: "PDF generated successfully!",
+        description: "PDF generated successfully!"
       });
     },
-    contentRef: printRef,
+    contentRef: printRef
   });
-
   const addRow = () => {
-    setProducts([
-      ...products,
-      { id: crypto.randomUUID(), productCode: "", description: "", quantity: "" }
-    ]);
+    setProducts([...products, {
+      id: crypto.randomUUID(),
+      productCode: "",
+      description: "",
+      quantity: ""
+    }]);
   };
-
   const updateProduct = (id: string, field: keyof ProductRow, value: string) => {
-    setProducts(products.map(product => 
-      product.id === id ? { ...product, [field]: value } : product
-    ));
+    setProducts(products.map(product => product.id === id ? {
+      ...product,
+      [field]: value
+    } : product));
   };
-
   const onPrintClick = () => {
     if (printRef.current) {
       handlePrint();
@@ -71,16 +72,14 @@ export const CrossDockForm = () => {
       toast({
         variant: "destructive",
         title: "Print Error",
-        description: "Could not generate PDF. Please try again.",
+        description: "Could not generate PDF. Please try again."
       });
     }
   };
-
-  return (
-    <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg print:shadow-none">
+  return <div className="max-w-4xl mx-auto p-8 rounded-lg shadow-lg print:shadow-none bg-stone-400">
       <div ref={printRef} className="space-y-6">
         <div className="text-center space-y-2 print:mb-8">
-          <h2 className="text-xl font-bold underline">Cross Dock Form</h2>
+          <h2 className="underline text-slate-950 font-extrabold text-5xl">Cross Dock Form</h2>
           <p className="text-sm text-gray-600">
             This form is used when sending tires/material to another store using the Warehouse as a cross dock location.
           </p>
@@ -89,22 +88,12 @@ export const CrossDockForm = () => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium mb-1">Date:</label>
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full"
-            />
+            <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full" />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">Receiver No (MaddenCo):</label>
-            <Input
-              type="text"
-              value={receiverNo}
-              onChange={(e) => setReceiverNo(e.target.value)}
-              className="w-full"
-            />
+            <Input type="text" value={receiverNo} onChange={e => setReceiverNo(e.target.value)} className="w-full" />
           </div>
 
           <div>
@@ -114,11 +103,9 @@ export const CrossDockForm = () => {
                 <SelectValue placeholder="Select store" />
               </SelectTrigger>
               <SelectContent>
-                {stores.map(store => (
-                  <SelectItem key={store.id} value={store.id}>
+                {stores.map(store => <SelectItem key={store.id} value={store.id}>
                     {store.name}
-                  </SelectItem>
-                ))}
+                  </SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -130,11 +117,9 @@ export const CrossDockForm = () => {
                 <SelectValue placeholder="Select store" />
               </SelectTrigger>
               <SelectContent>
-                {stores.map(store => (
-                  <SelectItem key={store.id} value={store.id}>
+                {stores.map(store => <SelectItem key={store.id} value={store.id}>
                     {store.name}
-                  </SelectItem>
-                ))}
+                  </SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -150,32 +135,17 @@ export const CrossDockForm = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
-                <tr key={product.id}>
+              {products.map(product => <tr key={product.id}>
                   <td className="border p-2">
-                    <Input
-                      type="text"
-                      value={product.productCode}
-                      onChange={(e) => updateProduct(product.id, "productCode", e.target.value)}
-                    />
+                    <Input type="text" value={product.productCode} onChange={e => updateProduct(product.id, "productCode", e.target.value)} />
                   </td>
                   <td className="border p-2">
-                    <Input
-                      type="text"
-                      value={product.description}
-                      onChange={(e) => updateProduct(product.id, "description", e.target.value)}
-                    />
+                    <Input type="text" value={product.description} onChange={e => updateProduct(product.id, "description", e.target.value)} />
                   </td>
                   <td className="border p-2">
-                    <Input
-                      type="number"
-                      min="1"
-                      value={product.quantity}
-                      onChange={(e) => updateProduct(product.id, "quantity", e.target.value)}
-                    />
+                    <Input type="number" min="1" value={product.quantity} onChange={e => updateProduct(product.id, "quantity", e.target.value)} />
                   </td>
-                </tr>
-              ))}
+                </tr>)}
             </tbody>
           </table>
         </div>
@@ -191,6 +161,5 @@ export const CrossDockForm = () => {
           Print PDF
         </Button>
       </div>
-    </div>
-  );
+    </div>;
 };
