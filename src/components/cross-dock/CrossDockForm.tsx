@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +48,7 @@ export const CrossDockForm = () => {
         description: "PDF generated successfully!",
       });
     },
-    content: () => printRef.current,
+    contentRef: printRef,
   });
 
   const addRow = () => {
