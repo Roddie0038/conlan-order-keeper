@@ -19,7 +19,7 @@ export default function CrossDock() {
           
           <Tabs defaultValue="fillable-form" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-zinc-500">
-              <TabsTrigger value="fillable-form" className="data-[state=active]:bg-[#F97316] data-[state=active]:text-white text-2xl px-0 my-0 mx-[24px] py-0">
+              <TabsTrigger value="fillable-form" className="data-[state=active]:bg-[#F97316] text-2xl px-0 my-0 mx-[24px] py-0 text-gray-950">
                 Fillable Form
               </TabsTrigger>
               <TabsTrigger value="google-doc" className="text-2xl bg-orange-600 hover:bg-orange-500 px-0 mx-[24px] py-0 text-zinc-950">
