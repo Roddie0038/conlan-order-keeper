@@ -9,15 +9,33 @@ export default function CrossDock() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-emerald-400">
-      <main className="container py-8">
-        <div className="p-6 rounded-lg shadow-lg mx-auto bg-gray-500">
-          <h1 className="text-2xl mb-6 text-center font-bold">Cross Dock Paperwork</h1>
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat relative"
+      style={{
+        backgroundImage: "url('/lovable-uploads/f9c6ac53-6ea8-4e88-b2f9-93cd6538896c.png')",
+      }}
+    >
+      {/* Overlay to ensure content readability */}
+      <div className="absolute inset-0 bg-black/50" />
+      
+      <main className="container py-8 relative z-10">
+        <div className="p-6 rounded-lg shadow-lg mx-auto bg-black/80">
+          <h1 className="text-2xl mb-6 text-center font-bold text-[#F97316]">Cross Dock Paperwork</h1>
           
           <Tabs defaultValue="fillable-form" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="fillable-form">Fillable Form</TabsTrigger>
-              <TabsTrigger value="google-doc">Google Doc</TabsTrigger>
+              <TabsTrigger 
+                value="fillable-form"
+                className="data-[state=active]:bg-[#F97316] data-[state=active]:text-white"
+              >
+                Fillable Form
+              </TabsTrigger>
+              <TabsTrigger 
+                value="google-doc"
+                className="data-[state=active]:bg-[#F97316] data-[state=active]:text-white"
+              >
+                Google Doc
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="fillable-form">
@@ -26,7 +44,7 @@ export default function CrossDock() {
 
             <TabsContent value="google-doc">
               <div className="flex flex-col items-center justify-center space-y-4">
-                <p className="text-center mb-4 text-slate-50 font-bold py-[44px] text-3xl">
+                <p className="text-center mb-4 text-white font-bold py-[44px] text-3xl">
                   Click below to access the printable Cross Dock documentation.
                 </p>
                 
@@ -36,7 +54,7 @@ export default function CrossDock() {
                   rel="noopener noreferrer" 
                   className="w-full max-w-md"
                 >
-                  <Button className="w-full bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white">
+                  <Button className="w-full bg-[#F97316] hover:bg-[#F97316]/90 text-white">
                     <FileText className="mr-2 h-5 w-5" />
                     Open Cross Dock Form
                   </Button>
