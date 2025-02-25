@@ -93,17 +93,18 @@ export default function PendingOrders() {
       <main className="container space-y-8">
         <OrderForm />
         
-        <div className="backdrop-blur-sm p-6 shadow bg-sky-500 hover:bg-sky-400 rounded-3xl">
-          <h2 className="text-xl font-semibold mb-4">Current Pending Orders</h2>
+        <div className="backdrop-blur-sm p-6 shadow rounded-3xl bg-transparent">
+          <h2 className="font-semibold mb-4 text-slate-50 px-[240px] text-center text-2xl">Current Pending Orders</h2>
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Manager Email</TableHead>
-                <TableHead>Actions</TableHead>
+            <TableHeader className="bg-red-500">
+              <TableRow className="bg-red-200 rounded-full">
+                <TableHead className="rounded-full bg-emerald-400">Date</TableHead>
+                <TableHead className="bg-emerald-400 rounded-full">Product</TableHead>
+                <TableHead className="bg-emerald-400 rounded-3xl px-0">Description</TableHead>
+                <TableHead className="bg-emerald-400 rounded-full">Quantity</TableHead>
+                <TableHead className="bg-emerald-400 rounded-full">Manager Email</TableHead>
+                <TableHead className="rounded-full bg-emerald-400">
+              </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
