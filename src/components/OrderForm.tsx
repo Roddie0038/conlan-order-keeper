@@ -10,32 +10,34 @@ import type { OrderSummary } from "./order-form/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAutoDraft } from "@/hooks/useAutoDraft";
 import { OrderTemplate } from "./order-templates/OrderTemplate";
-
 export const OrderForm = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    user
+  } = useAuth();
   const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionValues, setSessionValues] = useState({
     yourName: "",
     scheduleArrival: ""
   });
-
   const [formData, setFormData] = useState<FormData>({
     ...initialFormData,
     dateReceived: getCurrentDateTime()
   });
 
   // Initialize auto-draft functionality
-  const { clearDraft } = useAutoDraft(formData, setFormData);
-
+  const {
+    clearDraft
+  } = useAutoDraft(formData, setFormData);
   const getManagerEmail = (storeName: string) => {
     if (storeName === "Admin") return storeManagerEmails["Admin"];
     const match = storeName.match(/\d+$/);
     if (!match) return "";
     return storeManagerEmails[match[0]] || "";
   };
-
   useEffect(() => {
     const storedName = sessionStorage.getItem('orderName');
     const storedSchedule = sessionStorage.getItem('orderSchedule');
@@ -51,7 +53,6 @@ export const OrderForm = () => {
       });
     }
   }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -97,7 +98,6 @@ export const OrderForm = () => {
       });
     }
   };
-
   const handleChange = (field: keyof FormData, value: string) => {
     if (field === 'dateReceived') return;
     setFormData(prev => ({
@@ -121,16 +121,12 @@ export const OrderForm = () => {
       }));
     }
   };
-
   const toggleOrderSelection = (orderId: string) => {
-    setOrderSummaries(prev => prev.map(order => 
-      order.id === orderId ? {
-        ...order,
-        selected: !order.selected
-      } : order
-    ));
+    setOrderSummaries(prev => prev.map(order => order.id === orderId ? {
+      ...order,
+      selected: !order.selected
+    } : order));
   };
-
   const handleLoadTemplate = (templateData: FormData) => {
     setFormData({
       ...templateData,
@@ -141,29 +137,22 @@ export const OrderForm = () => {
       description: "The template has been loaded successfully."
     });
   };
-
-  return (
-    <div className="space-y-8">
+  return <div className="space-y-8">
       <Tabs defaultValue="order-form" className="w-full">
         <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="order-form" className="font-bold text-sm rounded-3xl text-[#101010] bg-yellow-300 hover:bg-yellow-200">
             For any orders exceeding 50 retread tires, please submit an MTO order to guarantee we can fulfill the complete request. If you're ordering more than 50 new tires, you can place the order here.
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="order-form">
+        <TabsContent value="order-form" className="bg-transparent">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Order Templates</h3>
-            <OrderTemplate
-              type="regular"
-              currentData={formData}
-              onLoadTemplate={handleLoadTemplate}
-            />
+            <h3 className="mb-4 text-slate-50 text-center font-bold text-2xl">Order Templates</h3>
+            <OrderTemplate type="regular" currentData={formData} onLoadTemplate={handleLoadTemplate} />
           </div>
           <OrderFormInputs formData={formData} onSubmit={handleSubmit} onChange={handleChange} />
           <OrderSummaryTable orderSummaries={orderSummaries} onToggleSelection={toggleOrderSelection} />
           <OrderSubmissionHandler orderSummaries={orderSummaries} setOrderSummaries={setOrderSummaries} />
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
