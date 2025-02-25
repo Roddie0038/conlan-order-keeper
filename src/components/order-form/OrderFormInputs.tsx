@@ -11,7 +11,7 @@ export const OrderFormInputs = ({
   onSubmit,
   onChange
 }: OrderFormInputsProps) => {
-  return <form onSubmit={onSubmit} className="space-y-6 max-w-2xl mx-auto p-6 shadow bg-zinc-500 rounded-md px-[100px]">
+  return <form onSubmit={onSubmit} className="space-y-6 max-w-2xl mx-auto p-6 shadow rounded-md px-[100px] bg-transparent">
       <div className="space-y-4">
         <FormField label="Your Name" required value={formData.yourName} onChange={value => onChange("yourName", value)} placeholder="Enter your name" />
 
