@@ -22,9 +22,7 @@ export default function CrossDock() {
               <TabsTrigger value="fillable-form" className="data-[state=active]:bg-[#F97316] text-2xl px-0 my-0 mx-[24px] py-0 text-gray-950">
                 Fillable Form
               </TabsTrigger>
-              <TabsTrigger value="google-doc" className="text-2xl bg-orange-600 hover:bg-orange-500 px-0 mx-[24px] py-0 text-zinc-950">
-                Google Doc
-              </TabsTrigger>
+              <TabsTrigger value="google-doc" className="text-2xl bg-orange-600 hover:bg-orange-500 px-0 mx-[24px] py-0 text-zinc-950">Physical printout Cross-Dock</TabsTrigger>
             </TabsList>
 
             <TabsContent value="fillable-form">
