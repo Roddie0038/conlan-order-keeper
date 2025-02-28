@@ -18,6 +18,80 @@ export const useSubmitMTOOrder = ({
 }: SubmitMTOOrderProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.store) {
+      toast({
+        title: "Missing Store",
+        description: "Please select a store.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.name) {
+      toast({
+        title: "Missing Name",
+        description: "Please enter your name.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.productNumber) {
+      toast({
+        title: "Missing Product Number",
+        description: "Please enter a product number.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (formData.casingGrade.length === 0) {
+      toast({
+        title: "Missing Casing Grade",
+        description: "Please select at least one casing grade.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.tireSize) {
+      toast({
+        title: "Missing Tire Size",
+        description: "Please select a tire size.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (formData.tireSize === 'custom' && !formData.customTireSize) {
+      toast({
+        title: "Missing Custom Tire Size",
+        description: "Please enter your custom tire size.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.tireTreadNeeded) {
+      toast({
+        title: "Missing Tire Tread",
+        description: "Please enter the tire tread needed.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.quantity) {
+      toast({
+        title: "Missing Quantity",
+        description: "Please enter a quantity.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     console.log("Submitting MTO order to webhooks");
 

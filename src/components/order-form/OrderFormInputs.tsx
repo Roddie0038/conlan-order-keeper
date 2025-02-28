@@ -1,3 +1,4 @@
+
 import { FormField } from "./FormField";
 import { Button } from "@/components/ui/button";
 import { scheduleOptions, crossDockOptions, stores, type FormData, storeManagerEmails } from "./formConfig";
@@ -26,11 +27,11 @@ export const OrderFormInputs = ({
 
         <FormField label="Quantity" type="number" required value={formData.quantity} onChange={value => onChange("quantity", value)} placeholder="Enter quantity" />
 
-        <FormField label="Schedule Arrival" value={formData.scheduleArrival} onChange={value => onChange("scheduleArrival", value)} options={scheduleOptions} placeholder="Select arrival day" />
+        <FormField label="Schedule Arrival" required value={formData.scheduleArrival} onChange={value => onChange("scheduleArrival", value)} options={scheduleOptions} placeholder="Select arrival day" />
 
         <FormField label="Notes" value={formData.notes} onChange={value => onChange("notes", value)} placeholder="Enter any additional notes" />
 
-        <FormField label="Cross Dock" value={formData.crossDock} onChange={value => onChange("crossDock", value)} options={crossDockOptions} placeholder="Select yes/no" />
+        <FormField label="Cross Dock" required value={formData.crossDock} onChange={value => onChange("crossDock", value)} options={crossDockOptions} placeholder="Select yes/no" />
 
         {formData.crossDock === "yes" && <FormField label="Cross Dock Destination" value={formData.crossDockDestination || ""} onChange={value => {
         onChange("crossDockDestination", value);

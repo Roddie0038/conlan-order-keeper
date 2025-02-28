@@ -1,3 +1,4 @@
+
 import { FormField } from "../order-form/FormField";
 import { stores } from "../order-form/formConfig";
 import { casingGrades, tireSizes, scheduleOptions, MTOFormData } from "./mto-form-config";
@@ -29,7 +30,7 @@ export const MTOFormFields = ({
       <FormField label="Product Number" value={formData.productNumber} onChange={value => onChange("productNumber", value)} placeholder="Enter product number" required />
 
       <div className="space-y-2">
-        <Label>Casing Grade (Select all that apply)</Label>
+        <Label className="text-sm font-medium">Casing Grade (Select all that apply) <span className="text-red-500">*</span></Label>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {casingGrades.map(grade => <div key={grade.value} className="flex items-center space-x-2">
               <Checkbox id={grade.value} checked={formData.casingGrade.includes(grade.value)} onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)} className="font-extrabold text-7xl text-center rounded-full text-red-600 bg-slate-500 hover:bg-slate-400" />

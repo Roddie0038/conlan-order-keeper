@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -55,6 +56,71 @@ export const OrderForm = () => {
   }, []);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.yourName) {
+      toast({
+        title: "Missing Name",
+        description: "Please enter your name.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.productNumber) {
+      toast({
+        title: "Missing Product Number",
+        description: "Please enter a product number.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.description) {
+      toast({
+        title: "Missing Description",
+        description: "Please enter a product description.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.quantity) {
+      toast({
+        title: "Missing Quantity",
+        description: "Please enter a quantity.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.scheduleArrival) {
+      toast({
+        title: "Missing Schedule Arrival",
+        description: "Please select an arrival day.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.crossDock) {
+      toast({
+        title: "Missing Cross Dock Selection",
+        description: "Please specify if this is a cross dock order.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (formData.crossDock === "yes" && !formData.crossDockDestination) {
+      toast({
+        title: "Missing Cross Dock Destination",
+        description: "Please select a cross dock destination.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       let crossDockFullName = formData.crossDockDestination;
       if (formData.crossDock === "yes" && formData.crossDockDestination) {
