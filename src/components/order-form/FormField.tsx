@@ -26,7 +26,7 @@ export const FormField = ({
 }: FormFieldProps) => {
   if (options) {
     return <div>
-        <label className="block text-sm font-medium mb-1">{label}</label>
+        <label className="block text-sm font-medium mb-1 bg-amber-500 px-[155px] rounded-2xl">{label}</label>
         <Select value={value} onValueChange={value => onChange(value)} disabled={disabled}>
           <SelectTrigger>
             <SelectValue placeholder={placeholder} />
@@ -40,7 +40,7 @@ export const FormField = ({
       </div>;
   }
   return <div>
-      <label className="block text-sm font-medium mb-1 mx-0 px-[160px] bg-amber-500">{label}</label>
+      <label className="block text-sm font-medium mb-1 mx-0 px-[160px] bg-amber-500 rounded-3xl">{label}</label>
       <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full bg-zinc-50 rounded-lg" />
     </div>;
 };
