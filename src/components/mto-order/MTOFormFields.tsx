@@ -47,8 +47,6 @@ export const MTOFormFields = ({
 
       <FormField label="Quantity" type="number" value={formData.quantity} onChange={value => onChange("quantity", value)} placeholder="Enter quantity" required />
 
-      <FormField label="Schedule Arrival" value={formData.scheduleArrival} onChange={value => onChange("scheduleArrival", value)} options={scheduleOptions} placeholder="Select arrival day" required />
-
       <FormField label="Notes" value={formData.notes} onChange={value => onChange("notes", value)} placeholder="Enter any additional notes" />
     </div>;
 };

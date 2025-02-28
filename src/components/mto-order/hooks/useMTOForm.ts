@@ -7,7 +7,6 @@ import { storeManagerEmails } from "@/components/order-form/formConfig";
 
 interface SessionValues {
   name: string;
-  scheduleArrival: string;
 }
 
 export const useMTOForm = () => {
@@ -16,7 +15,6 @@ export const useMTOForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionValues, setSessionValues] = useState<SessionValues>({
     name: "",
-    scheduleArrival: "",
   });
 
   const getManagerEmail = (store: string) => {
@@ -36,17 +34,14 @@ export const useMTOForm = () => {
 
   useEffect(() => {
     const storedName = sessionStorage.getItem('mtoOrderName');
-    const storedSchedule = sessionStorage.getItem('mtoOrderSchedule');
     
-    if (storedName || storedSchedule) {
+    if (storedName) {
       setFormData(prev => ({
         ...prev,
         name: storedName || '',
-        scheduleArrival: storedSchedule || '',
       }));
       setSessionValues({
         name: storedName || '',
-        scheduleArrival: storedSchedule || '',
       });
     }
   }, []);
@@ -76,10 +71,6 @@ export const useMTOForm = () => {
       sessionStorage.setItem('mtoOrderName', value as string);
       setSessionValues(prev => ({ ...prev, name: value as string }));
     }
-    if (field === 'scheduleArrival') {
-      sessionStorage.setItem('mtoOrderSchedule', value as string);
-      setSessionValues(prev => ({ ...prev, scheduleArrival: value as string }));
-    }
   };
 
   const resetForm = () => {
@@ -88,7 +79,6 @@ export const useMTOForm = () => {
       store: user?.store || "",
       managerEmail: user?.store ? getManagerEmail(user.store) : "",
       name: sessionValues.name,
-      scheduleArrival: sessionValues.scheduleArrival,
     });
   };
 

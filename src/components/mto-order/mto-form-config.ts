@@ -32,7 +32,7 @@ export interface MTOFormData {
   customTireSize: string;
   tireTreadNeeded: string;
   quantity: string;
-  scheduleArrival: string;
+  scheduleArrival: string; // Kept but now optional (not required)
   notes: string;
 }
 
