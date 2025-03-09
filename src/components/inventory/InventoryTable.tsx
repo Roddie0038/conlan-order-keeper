@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Save } from "lucide-react";
+import { Search, Plus, Save, Trash2 } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 
 interface InventoryItem {
@@ -144,6 +143,23 @@ export function InventoryTable() {
     );
   };
 
+  const handleDeleteItem = (id: string) => {
+    // Don't delete in edit mode - wait for save
+    if (editMode) {
+      setEditedInventory(prev => prev.filter(item => item.id !== id));
+    } else {
+      // Delete immediately in view mode
+      const updatedInventory = inventory.filter(item => item.id !== id);
+      setInventory(updatedInventory);
+      localStorage.setItem('inventory', JSON.stringify(updatedInventory));
+      
+      toast({
+        title: "Item Deleted",
+        description: "Inventory item has been removed."
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -193,12 +209,13 @@ export function InventoryTable() {
               <TableHead className="w-[100px]">Min Stock</TableHead>
               <TableHead className="w-[150px]">Last Updated</TableHead>
               <TableHead className="w-[100px]">Low Stock</TableHead>
+              <TableHead className="w-[70px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredInventory.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   No inventory items found
                 </TableCell>
               </TableRow>
@@ -267,6 +284,16 @@ export function InventoryTable() {
                         className={item.lowStock ? "bg-red-500 text-white" : ""}
                       />
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleDeleteItem(item.id)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
