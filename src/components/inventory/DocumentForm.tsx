@@ -1,213 +1,241 @@
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
 import { FileUploader } from "./FileUploader";
-import { useDocuments } from "@/hooks/useDocuments";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-export function DocumentForm() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [docType, setDocType] = useState("inventory-update");
-  const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+const formSchema = z.object({
+  title: z.string().min(2, {
+    message: "Title must be at least 2 characters.",
+  }),
+  description: z.string().optional(),
+  type: z.string().min(1, {
+    message: "Please select a document type.",
+  }),
+  file: z.instanceof(File).optional(),
+});
+
+type DocumentFormValues = z.infer<typeof formSchema>;
+
+interface DocumentFormProps {
+  onFormSubmitted?: () => void;
+}
+
+export function DocumentForm({ onFormSubmitted }: DocumentFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { addDocument } = useDocuments();
+  
+  const form = useForm<DocumentFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      type: "",
+    },
+  });
 
-  const documentTypes = [
-    { value: "inventory-update", label: "Inventory Update" },
-    { value: "supplier-invoice", label: "Supplier Invoice" },
-    { value: "shipping-manifest", label: "Shipping Manifest" },
-    { value: "quality-report", label: "Quality Report" },
-    { value: "other", label: "Other Document" }
-  ];
-
-  const validateForm = (): boolean => {
-    if (!title.trim()) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter a document title",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    if (!selectedFile) {
-      toast({
-        title: "Missing File",
-        description: "Please select a file to upload",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-      'application/vnd.ms-excel', // .xls
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/csv',
-      'image/jpeg',
-      'image/png'
-    ];
-
-    if (!allowedTypes.includes(selectedFile.type)) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please upload a supported file format (XLSX, PDF, DOCX, CSV, JPG, PNG)",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const handleFileSelected = (file: File) => {
-    setSelectedFile(file);
-    
-    // Auto-fill the title with the file name if empty
-    if (!title) {
-      setTitle(file.name.split('.')[0]);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
-    setUploading(true);
-
+  const onSubmit = async (values: DocumentFormValues) => {
     try {
-      // 1. Upload file to Supabase Storage
-      const fileExt = selectedFile!.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `inventory-docs/${fileName}`;
+      setIsSubmitting(true);
       
-      // Make sure the bucket exists first
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(bucket => bucket.name === 'inventory-docs');
+      // Initialize variables to store file info
+      let file_path = null;
+      let file_name = null;
+      let file_size = null;
       
-      if (!bucketExists) {
-        // Create the bucket if it doesn't exist
-        await supabase.storage.createBucket('inventory-docs', {
-          public: false,
-          fileSizeLimit: 52428800, // 50MB
-        });
+      // Handle file upload if file exists
+      if (values.file) {
+        const file = values.file;
+        file_name = file.name;
+        file_size = formatFileSize(file.size);
+        
+        // Create a unique file path
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+        file_path = fileName;
+        
+        console.log(`Uploading file: ${file_name}, size: ${file_size}, path: ${file_path}`);
+        
+        // Upload file to Supabase storage
+        const { error: uploadError } = await supabase.storage
+          .from('inventory-docs')
+          .upload(file_path, file);
+        
+        if (uploadError) {
+          console.error('Error uploading file:', uploadError);
+          throw uploadError;
+        }
       }
       
-      const { error: uploadError } = await supabase.storage
-        .from('inventory-docs')
-        .upload(filePath, selectedFile!, {
-          cacheControl: '3600',
-          upsert: false
+      // Save document metadata to the database
+      const { error: dbError } = await supabase
+        .from('inventory_documents')
+        .insert({
+          title: values.title,
+          description: values.description || null,
+          type: values.type,
+          file_name,
+          file_size,
+          file_path,
+          date: new Date().toISOString(),
         });
-
-      if (uploadError) throw uploadError;
-
-      // 2. Add document record to database
-      await addDocument({
-        title,
-        description: description || null,
-        type: docType,
-        file_name: selectedFile!.name,
-        file_size: formatFileSize(selectedFile!.size),
-        file_path: filePath
-      });
-
-      // 3. Reset form
-      setTitle("");
-      setDescription("");
-      setDocType("inventory-update");
-      setSelectedFile(null);
       
+      if (dbError) {
+        console.error('Error inserting document record:', dbError);
+        throw dbError;
+      }
+      
+      console.log('Document uploaded successfully');
+      
+      // Show success toast
       toast({
         title: "Document Uploaded",
-        description: "Your document has been successfully uploaded."
+        description: "Your document has been successfully uploaded.",
       });
+      
+      // Reset form
+      form.reset();
+      
+      // Call the callback function if provided
+      if (onFormSubmitted) {
+        console.log('Calling onFormSubmitted callback');
+        onFormSubmitted();
+      }
     } catch (error) {
       console.error("Error uploading document:", error);
       toast({
         title: "Upload Failed",
-        description: "Failed to upload document. Please try again.",
-        variant: "destructive"
+        description: "There was a problem uploading your document. Please try again.",
+        variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      setIsSubmitting(false);
     }
   };
 
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' bytes';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Upload Inventory Document</CardTitle>
-        <CardDescription>Upload documents related to inventory updates, invoices, or manifests.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Document Title</label>
-          <Input 
-            placeholder="Enter document title" 
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="bg-white"
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-6">Upload Document</h2>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Document Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter document title" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Document Type</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select document type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="inventory">Inventory Sheet</SelectItem>
+                      <SelectItem value="invoice">Invoice</SelectItem>
+                      <SelectItem value="purchase_order">Purchase Order</SelectItem>
+                      <SelectItem value="packing_slip">Packing Slip</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Enter a brief description of the document" 
+                    {...field} 
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Provide any additional details about this document.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Document Type</label>
-          <Select value={docType} onValueChange={setDocType}>
-            <SelectTrigger className="bg-white">
-              <SelectValue placeholder="Select document type" />
-            </SelectTrigger>
-            <SelectContent>
-              {documentTypes.map(type => (
-                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Description</label>
-          <Textarea 
-            placeholder="Enter document description" 
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="bg-white"
-            rows={3}
+          
+          <FormField
+            control={form.control}
+            name="file"
+            render={({ field: { value, onChange, ...fieldProps } }) => (
+              <FormItem>
+                <FormLabel>Upload File</FormLabel>
+                <FormControl>
+                  <FileUploader
+                    value={value as File}
+                    onChange={onChange}
+                    {...fieldProps}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Upload Excel, CSV or other inventory related documents. Maximum file size: 5MB.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        
-        <FileUploader
-          selectedFile={selectedFile}
-          onFileSelected={handleFileSelected}
-        />
-      </CardContent>
-      <CardFooter>
-        <Button 
-          onClick={handleUpload} 
-          disabled={uploading || !selectedFile} 
-          className={`w-full ${!selectedFile ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
-        >
-          {uploading ? "Uploading..." : "Upload Document"}
-        </Button>
-      </CardFooter>
-    </Card>
+          
+          <Button 
+            type="submit" 
+            className="w-full md:w-auto" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Uploading..." : "Upload Document"}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }

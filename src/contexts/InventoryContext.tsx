@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -34,12 +35,19 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   const refreshInventory = async () => {
     try {
       setLoading(true);
+      console.log('Fetching inventory from Supabase...');
+      
       const { data, error } = await supabase
         .from('inventory_items')
         .select('*')
         .order('product_number');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Fetched inventory data:', data);
 
       // Map database column names to our component's expected format
       const formattedData = data.map(item => ({
@@ -192,6 +200,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   // Load initial inventory data
   useEffect(() => {
+    console.log('InventoryProvider mounted, fetching initial data');
     refreshInventory();
   }, []);
 

@@ -17,129 +17,92 @@ export interface Document {
 export function useDocuments() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fetchDocuments = async () => {
+  const refreshDocuments = async () => {
     try {
       setLoading(true);
+      console.log('Fetching documents from Supabase...');
+      
       const { data, error } = await supabase
         .from('inventory_documents')
         .select('*')
         .order('date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching documents:', error);
+        throw error;
+      }
 
-      setDocuments(data);
-      setError(null);
-    } catch (err: any) {
-      console.error('Error fetching documents:', err);
-      setError('Failed to load documents');
+      console.log('Documents fetched:', data);
+      setDocuments(data as Document[]);
+    } catch (err) {
+      console.error('Failed to load documents:', err);
       toast({
-        title: 'Error',
-        description: 'Failed to load documents. Please try again.',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load documents. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const addDocument = async (documentData: {
-    title: string;
-    description: string | null;
-    type: string;
-    file_name: string | null;
-    file_size: string | null;
-    file_path: string | null;
-  }) => {
-    try {
-      const { data, error } = await supabase
-        .from('inventory_documents')
-        .insert([
-          {
-            ...documentData,
-            date: new Date().toISOString()
-          }
-        ])
-        .select();
-
-      if (error) throw error;
-
-      // Refresh documents list
-      await fetchDocuments();
-      
-      toast({
-        title: "Document Added",
-        description: "Document has been successfully saved."
-      });
-
-      return data[0];
-    } catch (err: any) {
-      console.error('Error adding document:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to add document. Please try again.',
-        variant: 'destructive'
-      });
-      throw err;
-    }
-  };
-
   const deleteDocument = async (id: string) => {
     try {
-      // First check if there's a file associated with this document
-      const document = documents.find(doc => doc.id === id);
-      
-      if (document?.file_path) {
+      // First get the document to find its file path
+      const { data, error: fetchError } = await supabase
+        .from('inventory_documents')
+        .select('file_path')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (data.file_path) {
         // Delete the file from storage
         const { error: storageError } = await supabase.storage
           .from('inventory-docs')
-          .remove([document.file_path]);
-          
-        if (storageError) {
-          console.error('Error deleting file from storage:', storageError);
-          // Continue with document deletion even if file deletion fails
-        }
+          .remove([data.file_path]);
+
+        if (storageError) throw storageError;
       }
-      
+
       // Delete the document record
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('inventory_documents')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
 
       // Update local state
       setDocuments(documents.filter(doc => doc.id !== id));
       
       toast({
         title: "Document Deleted",
-        description: "Document has been removed."
+        description: "The document has been removed successfully.",
       });
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting document:', err);
       toast({
-        title: 'Error',
-        description: 'Failed to delete document. Please try again.',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to delete document. Please try again.",
+        variant: "destructive",
       });
-      throw err;
     }
   };
 
-  // Load initial documents
+  // Load documents on component mount
   useEffect(() => {
-    fetchDocuments();
+    console.log('useDocuments hook initialized, fetching documents');
+    refreshDocuments();
   }, []);
 
   return {
     documents,
     loading,
-    error,
-    fetchDocuments,
-    addDocument,
-    deleteDocument
+    deleteDocument,
+    refreshDocuments
   };
 }

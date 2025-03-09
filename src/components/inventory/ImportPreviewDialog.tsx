@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { 
   AlertDialog,
@@ -53,24 +54,33 @@ export function ImportPreviewDialog({
       
       const fetchDocumentAndParse = async () => {
         try {
+          console.log(`Fetching document with ID: ${documentId}`);
           const document = documents.find(doc => doc.id === documentId);
           
           if (!document || !document.file_path) {
             throw new Error('Document not found or has no file path');
           }
           
+          console.log(`Found document: ${document.title}, file path: ${document.file_path}`);
+          
           // 1. Get a download URL for the file
           const { data: fileData, error: fileError } = await supabase.storage
             .from('inventory-docs')
             .download(document.file_path);
             
-          if (fileError) throw fileError;
+          if (fileError) {
+            console.error('Error downloading file:', fileError);
+            throw fileError;
+          }
+          
+          console.log('File downloaded successfully, size:', fileData.size);
           
           // 2. Parse the file based on its type
           let parsedItems = [];
           const fileName = document.file_name?.toLowerCase() || '';
           
           if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+            console.log('Parsing Excel file');
             // Convert Blob to File with the original filename
             const file = new File([fileData], document.file_name || 'unknown.xlsx', {
               type: fileData.type,
@@ -78,10 +88,12 @@ export function ImportPreviewDialog({
             });
             parsedItems = await parseExcelFile(file);
           } else if (fileName.endsWith('.csv')) {
+            console.log('Parsing CSV file');
             const csvText = await fileData.text();
             parsedItems = parseCSV(csvText);
           } else {
-            // For other file types, generate mock data
+            console.log('Unknown file type, attempting to parse as Excel');
+            // For other file types, attempt to parse as Excel
             const file = new File([fileData], document.file_name || 'unknown.xlsx', {
               type: fileData.type,
               lastModified: Date.now(),
@@ -89,19 +101,22 @@ export function ImportPreviewDialog({
             parsedItems = await parseExcelFile(file);
           }
           
+          console.log('Parsed items:', parsedItems);
+          
           // 3. Convert to ImportItem format
           const existingProductNumbers = new Set(inventory.map(item => item.product_number));
           
           const items: ImportItem[] = parsedItems.map(item => ({
             id: crypto.randomUUID(),
-            product_number: item.product_number,
-            description: item.description,
-            quantity: item.quantity,
-            min_threshold: item.min_threshold,
+            product_number: item.product_number || '',
+            description: item.description || '',
+            quantity: typeof item.quantity === 'number' ? item.quantity : 0,
+            min_threshold: typeof item.min_threshold === 'number' ? item.min_threshold : 5,
             // Pre-select new items that don't exist in inventory
             selected: !existingProductNumbers.has(item.product_number)
           }));
           
+          console.log('Prepared import items:', items);
           setImportItems(items);
         } catch (error) {
           console.error("Error parsing document:", error);
@@ -152,6 +167,8 @@ export function ImportPreviewDialog({
       quantity,
       min_threshold
     }));
+    
+    console.log('Importing items:', itemsToImport);
     
     try {
       // Add to inventory

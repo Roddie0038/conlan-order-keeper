@@ -11,16 +11,25 @@ export function DocumentUpload() {
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const { toast } = useToast();
-  const { addInventoryItems } = useInventoryContext();
-  const { documents, loading, deleteDocument } = useDocuments();
+  const { addInventoryItems, refreshInventory } = useInventoryContext();
+  const { documents, loading, deleteDocument, refreshDocuments } = useDocuments();
 
   const handleDelete = (id: string) => {
     deleteDocument(id);
   };
 
   const handleImport = (id: string) => {
+    console.log(`Opening import dialog for document ID: ${id}`);
     setSelectedDocumentId(id);
     setIsImportDialogOpen(true);
+  };
+
+  const handleImportComplete = () => {
+    console.log('Import complete, refreshing inventory');
+    setIsImportDialogOpen(false);
+    setSelectedDocumentId(null);
+    // Refresh inventory after import
+    refreshInventory();
   };
 
   return (
@@ -34,7 +43,7 @@ export function DocumentUpload() {
         />
       </div>
       <div className="bg-white rounded-lg shadow">
-        <DocumentForm />
+        <DocumentForm onFormSubmitted={refreshDocuments} />
       </div>
 
       {selectedDocumentId && (
@@ -43,10 +52,7 @@ export function DocumentUpload() {
           setIsOpen={setIsImportDialogOpen}
           documentId={selectedDocumentId}
           documents={documents}
-          onImportComplete={() => {
-            setIsImportDialogOpen(false);
-            setSelectedDocumentId(null);
-          }}
+          onImportComplete={handleImportComplete}
         />
       )}
     </div>
