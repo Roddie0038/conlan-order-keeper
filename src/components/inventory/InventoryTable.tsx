@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Save, Trash2 } from "lucide-react";
+import { Search, Plus, Save, Trash2, List, X } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 
 interface InventoryItem {
@@ -22,6 +22,7 @@ export function InventoryTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [editedInventory, setEditedInventory] = useState<InventoryItem[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -158,6 +159,52 @@ export function InventoryTable() {
         description: "Inventory item has been removed."
       });
     }
+    // Clear selection if item was selected
+    setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+  };
+
+  const handleSelectItem = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedItems(prev => [...prev, id]);
+    } else {
+      setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+    }
+  };
+
+  const handleSelectAll = () => {
+    const currentItems = (editMode ? editedInventory : inventory)
+      .filter(item => 
+        item.productNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .map(item => item.id);
+    
+    if (selectedItems.length === currentItems.length) {
+      // If all are selected, deselect all
+      setSelectedItems([]);
+    } else {
+      // Otherwise, select all filtered items
+      setSelectedItems(currentItems);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedItems.length === 0) return;
+
+    if (editMode) {
+      setEditedInventory(prev => prev.filter(item => !selectedItems.includes(item.id)));
+    } else {
+      const updatedInventory = inventory.filter(item => !selectedItems.includes(item.id));
+      setInventory(updatedInventory);
+      localStorage.setItem('inventory', JSON.stringify(updatedInventory));
+      
+      toast({
+        title: "Items Deleted",
+        description: `${selectedItems.length} inventory items have been removed.`
+      });
+    }
+    // Clear selection after delete
+    setSelectedItems([]);
   };
 
   return (
@@ -173,6 +220,16 @@ export function InventoryTable() {
           />
         </div>
         <div className="flex items-center space-x-2">
+          {selectedItems.length > 0 && (
+            <Button 
+              onClick={handleDeleteSelected} 
+              variant="destructive"
+              className="flex items-center"
+            >
+              <Trash2 size={18} className="mr-2" />
+              Delete Selected ({selectedItems.length})
+            </Button>
+          )}
           <ExportButton 
             data={inventory} 
             filename="inventory" 
@@ -185,6 +242,7 @@ export function InventoryTable() {
               <Button onClick={() => {
                 setEditMode(false);
                 setEditedInventory(JSON.parse(JSON.stringify(inventory)));
+                setSelectedItems([]);
               }} variant="outline">Cancel</Button>
               <Button onClick={handleSaveChanges} className="bg-blue-600 hover:bg-blue-700">
                 <Save size={18} className="mr-2" />
@@ -203,6 +261,16 @@ export function InventoryTable() {
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-200">
+              <TableHead className="w-[50px]">
+                <Checkbox 
+                  checked={
+                    filteredInventory.length > 0 && 
+                    selectedItems.length === filteredInventory.length
+                  }
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead className="w-[120px]">Product #</TableHead>
               <TableHead className="w-[300px]">Description</TableHead>
               <TableHead className="w-[100px]">Quantity</TableHead>
@@ -215,7 +283,7 @@ export function InventoryTable() {
           <TableBody>
             {filteredInventory.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                   No inventory items found
                 </TableCell>
               </TableRow>
@@ -227,6 +295,13 @@ export function InventoryTable() {
                 )
                 .map(item => (
                 <TableRow key={item.id} className={item.lowStock ? "bg-red-50" : ""}>
+                  <TableCell>
+                    <Checkbox 
+                      checked={selectedItems.includes(item.id)}
+                      onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
+                      aria-label={`Select item ${item.productNumber}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     {editMode ? (
                       <Input 
