@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Save, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { InventoryTableHeader } from "./InventoryTableHeader";
 import { InventoryTableRow } from "./InventoryTableRow";
-import { useInventory, InventoryItem } from "@/hooks/useInventory";
+import { useInventory, InventoryItem, SortField } from "@/hooks/useInventory";
+import { cn } from "@/lib/utils";
 
 export function InventoryTable() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,12 +23,32 @@ export function InventoryTable() {
     handleSelectAll,
     handleDeleteSelected,
     cancelEdit,
-    setEditMode
+    setEditMode,
+    sortField,
+    sortDirection,
+    handleSort,
+    getSortedData
   } = useInventory();
 
   const filteredInventory = (editMode ? editedInventory : inventory).filter(item => 
     item.productNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const sortedFilteredInventory = getSortedData(filteredInventory);
+
+  const SortableColumnHeader = ({ field, label, className }: { field: SortField, label: string, className?: string }) => (
+    <TableHead 
+      className={cn("cursor-pointer select-none", className)} 
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center space-x-1">
+        <span>{label}</span>
+        {sortField === field ? (
+          sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+        ) : null}
+      </div>
+    </TableHead>
   );
 
   return (
@@ -52,31 +73,31 @@ export function InventoryTable() {
               <TableHead className="w-[50px]">
                 <Checkbox 
                   checked={
-                    filteredInventory.length > 0 && 
-                    selectedItems.length === filteredInventory.length
+                    sortedFilteredInventory.length > 0 && 
+                    selectedItems.length === sortedFilteredInventory.length
                   }
-                  onCheckedChange={() => handleSelectAll(filteredInventory)}
+                  onCheckedChange={() => handleSelectAll(sortedFilteredInventory)}
                   aria-label="Select all"
                 />
               </TableHead>
-              <TableHead className="w-[120px]">Product #</TableHead>
-              <TableHead className="w-[300px]">Description</TableHead>
-              <TableHead className="w-[100px]">Quantity</TableHead>
-              <TableHead className="w-[100px]">Min Stock</TableHead>
-              <TableHead className="w-[150px]">Last Updated</TableHead>
+              <SortableColumnHeader field="productNumber" label="Product #" className="w-[120px]" />
+              <SortableColumnHeader field="description" label="Description" className="w-[300px]" />
+              <SortableColumnHeader field="quantity" label="Quantity" className="w-[100px]" />
+              <SortableColumnHeader field="minThreshold" label="Min Stock" className="w-[100px]" />
+              <SortableColumnHeader field="lastUpdated" label="Last Updated" className="w-[150px]" />
               <TableHead className="w-[100px]">Low Stock</TableHead>
               <TableHead className="w-[70px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredInventory.length === 0 ? (
+            {sortedFilteredInventory.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                   No inventory items found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredInventory.map(item => (
+              sortedFilteredInventory.map(item => (
                 <InventoryTableRow
                   key={item.id}
                   item={item}

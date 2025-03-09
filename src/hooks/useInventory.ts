@@ -11,11 +11,16 @@ export interface InventoryItem {
   lowStock: boolean;
 }
 
+export type SortField = 'productNumber' | 'description' | 'quantity' | 'minThreshold' | 'lastUpdated';
+export type SortDirection = 'asc' | 'desc';
+
 export function useInventory() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [editMode, setEditMode] = useState(false);
   const [editedInventory, setEditedInventory] = useState<InventoryItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -62,6 +67,33 @@ export function useInventory() {
     setInventory(loadedInventory);
     setEditedInventory(JSON.parse(JSON.stringify(loadedInventory)));
   }, []);
+
+  const handleSort = (field: SortField) => {
+    const isAsc = sortField === field && sortDirection === 'asc';
+    setSortDirection(isAsc ? 'desc' : 'asc');
+    setSortField(field);
+  };
+
+  const getSortedData = (data: InventoryItem[]) => {
+    if (!sortField) return data;
+    
+    return [...data].sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc' 
+          ? aValue.localeCompare(bValue) 
+          : bValue.localeCompare(aValue);
+      }
+      
+      // For numeric fields
+      const aNum = Number(aValue);
+      const bNum = Number(bValue);
+      
+      return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+    });
+  };
 
   const handleAddItem = () => {
     const newItem: InventoryItem = {
@@ -203,6 +235,10 @@ export function useInventory() {
     selectedItems,
     setSelectedItems,
     setEditMode,
+    sortField,
+    sortDirection,
+    handleSort,
+    getSortedData,
     handleAddItem,
     handleSaveChanges,
     handleEdit,
