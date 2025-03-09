@@ -7,9 +7,11 @@ import { InventoryTableHeader } from "./InventoryTableHeader";
 import { InventoryTableRow } from "./InventoryTableRow";
 import { useInventory, InventoryItem, SortField } from "@/hooks/useInventory";
 import { cn } from "@/lib/utils";
+import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 
 export function InventoryTable() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const {
     inventory,
     editMode,
@@ -37,6 +39,17 @@ export function InventoryTable() {
 
   const sortedFilteredInventory = getSortedData(filteredInventory);
 
+  const handleConfirmBulkDelete = () => {
+    handleDeleteSelected();
+    setShowBulkDeleteDialog(false);
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (selectedItems.length > 0) {
+      setShowBulkDeleteDialog(true);
+    }
+  };
+
   const SortableColumnHeader = ({ field, label, className }: { field: SortField, label: string, className?: string }) => (
     <TableHead 
       className={cn("cursor-pointer select-none", className)} 
@@ -62,8 +75,15 @@ export function InventoryTable() {
         handleSaveChanges={handleSaveChanges}
         cancelEdit={cancelEdit}
         selectedItems={selectedItems}
-        handleDeleteSelected={handleDeleteSelected}
+        handleDeleteSelected={handleBulkDeleteClick}
         inventory={inventory}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={showBulkDeleteDialog}
+        setIsOpen={setShowBulkDeleteDialog}
+        onConfirm={handleConfirmBulkDelete}
+        itemCount={selectedItems.length}
       />
 
       <div className="border rounded-lg overflow-x-auto">

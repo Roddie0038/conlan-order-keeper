@@ -1,9 +1,11 @@
 
+import { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
+import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 
 interface InventoryItem {
   id: string;
@@ -32,6 +34,13 @@ export function InventoryTableRow({
   handleEdit,
   handleDeleteItem
 }: InventoryTableRowProps) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const handleConfirmDelete = () => {
+    handleDeleteItem(item.id);
+    setShowDeleteDialog(false);
+  };
+
   return (
     <TableRow key={item.id} className={item.lowStock ? "bg-red-50" : ""}>
       <TableCell>
@@ -103,11 +112,19 @@ export function InventoryTableRow({
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => handleDeleteItem(item.id)}
+          onClick={() => setShowDeleteDialog(true)}
           className="text-red-500 hover:text-red-700 hover:bg-red-50"
         >
           <Trash2 size={16} />
         </Button>
+        
+        <DeleteConfirmationDialog
+          isOpen={showDeleteDialog}
+          setIsOpen={setShowDeleteDialog}
+          onConfirm={handleConfirmDelete}
+          itemCount={1}
+          itemName={item.description || item.productNumber}
+        />
       </TableCell>
     </TableRow>
   );
