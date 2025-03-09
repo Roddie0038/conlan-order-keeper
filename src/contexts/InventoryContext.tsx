@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -79,7 +78,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         low_stock: item.quantity <= item.min_threshold
       }));
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('inventory_items')
         .upsert(
           itemsToInsert,
@@ -87,15 +86,12 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
             onConflict: 'product_number',
             ignoreDuplicates: false
           }
-        )
-        .select();
+        );
 
       if (error) throw error;
 
       // Refresh inventory to get the latest data
       await refreshInventory();
-      
-      return data;
     } catch (err: any) {
       console.error('Error adding inventory items:', err);
       toast({

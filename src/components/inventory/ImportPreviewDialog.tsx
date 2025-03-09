@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   AlertDialog,
@@ -72,13 +71,22 @@ export function ImportPreviewDialog({
           const fileName = document.file_name?.toLowerCase() || '';
           
           if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-            parsedItems = await parseExcelFile(fileData);
+            // Convert Blob to File with the original filename
+            const file = new File([fileData], document.file_name || 'unknown.xlsx', {
+              type: fileData.type,
+              lastModified: Date.now(),
+            });
+            parsedItems = await parseExcelFile(file);
           } else if (fileName.endsWith('.csv')) {
             const csvText = await fileData.text();
             parsedItems = parseCSV(csvText);
           } else {
             // For other file types, generate mock data
-            parsedItems = await parseExcelFile(new File([fileData], document.file_name || 'unknown.xlsx'));
+            const file = new File([fileData], document.file_name || 'unknown.xlsx', {
+              type: fileData.type,
+              lastModified: Date.now(),
+            });
+            parsedItems = await parseExcelFile(file);
           }
           
           // 3. Convert to ImportItem format
