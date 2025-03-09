@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +16,7 @@ interface Document {
   type: string;
   date: string;
   fileSize: string;
+  fileName?: string; // Add fileName to store the original file name
 }
 
 export function DocumentUpload() {
@@ -28,7 +29,97 @@ export function DocumentUpload() {
   const [description, setDescription] = useState("");
   const [docType, setDocType] = useState("inventory-update");
   const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      setSelectedFile(file);
+      
+      // Auto-fill the title with the file name if empty
+      if (!title) {
+        setTitle(file.name.split('.')[0]);
+      }
+      
+      toast({
+        title: "File Selected",
+        description: `${file.name} (${formatFileSize(file.size)})`,
+      });
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleSelectFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      setSelectedFile(file);
+      
+      // Auto-fill the title with the file name if empty
+      if (!title) {
+        setTitle(file.name.split('.')[0]);
+      }
+      
+      toast({
+        title: "File Dropped",
+        description: `${file.name} (${formatFileSize(file.size)})`,
+      });
+    }
+  };
+
+  const validateFile = (file: File | null): boolean => {
+    if (!file) {
+      toast({
+        title: "Missing File",
+        description: "Please select a file to upload",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel', // .xls
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/csv',
+      'image/jpeg',
+      'image/png'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a supported file format (XLSX, PDF, DOCX, CSV, JPG, PNG)",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
 
   const handleUpload = () => {
     if (!title.trim()) {
@@ -37,6 +128,10 @@ export function DocumentUpload() {
         description: "Please enter a document title",
         variant: "destructive"
       });
+      return;
+    }
+
+    if (!validateFile(selectedFile)) {
       return;
     }
 
@@ -50,7 +145,8 @@ export function DocumentUpload() {
         description,
         type: docType,
         date: new Date().toISOString(),
-        fileSize: `${Math.floor(Math.random() * 10) + 1} MB`
+        fileSize: selectedFile ? formatFileSize(selectedFile.size) : `${Math.floor(Math.random() * 10) + 1} MB`,
+        fileName: selectedFile?.name
       };
 
       const updatedDocuments = [...documents, newDocument];
@@ -60,6 +156,8 @@ export function DocumentUpload() {
       setTitle("");
       setDescription("");
       setDocType("inventory-update");
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       setUploading(false);
       
       toast({
@@ -133,25 +231,56 @@ export function DocumentUpload() {
           
           <div className="space-y-2">
             <label className="text-sm font-medium">File</label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-white">
-              <FileUp className="mx-auto h-10 w-10 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-500">
-                Drag and drop file here, or click to select file
-              </p>
-              <p className="mt-1 text-xs text-gray-400">
-                Supported formats: PDF, XLSX, CSV, DOCX, JPG, PNG
-              </p>
-              <Button variant="outline" className="mt-3">
-                Select File
-              </Button>
+            <div 
+              className={`border-2 border-dashed ${selectedFile ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-white'} rounded-lg p-8 text-center cursor-pointer`}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onClick={handleSelectFileClick}
+            >
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                onChange={handleFileChange}
+                accept=".xlsx,.xls,.pdf,.doc,.docx,.csv,.jpg,.jpeg,.png"
+              />
+              {selectedFile ? (
+                <>
+                  <FileText className="mx-auto h-10 w-10 text-green-500" />
+                  <p className="mt-2 text-sm font-medium text-green-700">
+                    {selectedFile.name} ({formatFileSize(selectedFile.size)})
+                  </p>
+                  <p className="mt-1 text-xs text-green-600">
+                    File selected - click to change
+                  </p>
+                </>
+              ) : (
+                <>
+                  <FileUp className="mx-auto h-10 w-10 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-500">
+                    Drag and drop file here, or click to select file
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    Supported formats: XLSX, PDF, DOCX, CSV, JPG, PNG
+                  </p>
+                </>
+              )}
+              {!selectedFile && (
+                <Button variant="outline" className="mt-3" onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectFileClick();
+                }}>
+                  Select File
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
         <CardFooter>
           <Button 
             onClick={handleUpload} 
-            disabled={uploading} 
-            className="w-full bg-blue-600 hover:bg-blue-700"
+            disabled={uploading || !selectedFile} 
+            className={`w-full ${!selectedFile ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
           >
             {uploading ? "Uploading..." : "Upload Document"}
           </Button>
@@ -186,6 +315,9 @@ export function DocumentUpload() {
                     <div className="flex items-center">
                       <FileText className="mr-2 h-4 w-4 text-blue-500" />
                       {doc.title}
+                      {doc.fileName && doc.fileName !== doc.title && (
+                        <span className="ml-2 text-xs text-gray-500">({doc.fileName})</span>
+                      )}
                     </div>
                     {doc.description && (
                       <p className="text-xs text-gray-500 mt-1">{doc.description}</p>
