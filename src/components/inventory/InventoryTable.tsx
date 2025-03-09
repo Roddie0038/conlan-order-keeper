@@ -113,18 +113,34 @@ export function InventoryTable() {
 
   const handleEdit = (id: string, field: keyof InventoryItem, value: string | number | boolean) => {
     setEditedInventory(prev => 
-      prev.map(item => 
-        item.id === id 
-          ? { 
-              ...item, 
-              [field]: value,
-              lastUpdated: new Date().toISOString(),
-              lowStock: field === 'quantity' || field === 'minThreshold' 
-                ? Number(value) <= (field === 'quantity' ? item.minThreshold : Number(value) >= item.quantity ? false : item.quantity) 
-                : item.lowStock
-            } 
-          : item
-      )
+      prev.map(item => {
+        if (item.id !== id) return item;
+        
+        // Create updated item with the new field value
+        const updatedItem = { 
+          ...item, 
+          [field]: value,
+          lastUpdated: new Date().toISOString()
+        };
+        
+        // Determine if item is low stock based on updated values
+        let isLowStock = item.lowStock;
+        
+        // Only recalculate low stock status if quantity or min threshold changed
+        if (field === 'quantity' || field === 'minThreshold') {
+          const currentQuantity = field === 'quantity' ? Number(value) : item.quantity;
+          const currentThreshold = field === 'minThreshold' ? Number(value) : item.minThreshold;
+          isLowStock = currentQuantity <= currentThreshold;
+        } else if (field === 'lowStock') {
+          // If directly setting lowStock, use the provided boolean value
+          isLowStock = Boolean(value);
+        }
+        
+        return {
+          ...updatedItem,
+          lowStock: isLowStock
+        };
+      })
     );
   };
 
