@@ -1,8 +1,11 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { ExportButton } from "@/components/ExportButton";
+
 interface MTOOrder {
   id: string;
   timestamp: string;
@@ -16,14 +19,12 @@ interface MTOOrder {
   scheduleArrival: string;
   notes: string;
 }
+
 export const MTOPendingOrders = () => {
   const [orders, setOrders] = useState<MTOOrder[]>([]);
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
   useEffect(() => {
     const loadOrders = () => {
       const savedOrders = localStorage.getItem('mtoOrders');
@@ -35,6 +36,7 @@ export const MTOPendingOrders = () => {
     window.addEventListener('storage', loadOrders);
     return () => window.removeEventListener('storage', loadOrders);
   }, []);
+
   const handleDelete = (orderId: string) => {
     if (!user?.isAdmin) {
       toast({
@@ -52,8 +54,16 @@ export const MTOPendingOrders = () => {
       description: "The order has been successfully deleted."
     });
   };
+
   return <div className="mt-8 bg-white/90 p-6 rounded-lg shadow">
-      <h2 className="mb-4 py-0 px-0 font-extrabold text-center text-3xl text-zinc-950">                                            Pending MTO Orders</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="py-0 px-0 font-extrabold text-center text-3xl text-zinc-950">Pending MTO Orders</h2>
+        <ExportButton 
+          data={orders} 
+          filename="mto-orders" 
+          variant="outline"
+        />
+      </div>
       <Table>
         <TableHeader>
           <TableRow>

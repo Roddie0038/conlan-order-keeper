@@ -1,17 +1,29 @@
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { OrderSummary } from "./types";
+import { ExportButton } from "@/components/ExportButton";
+
 export interface OrderSummaryTableProps {
   orderSummaries: OrderSummary[];
   onToggleSelection: (orderId: string) => void;
 }
+
 export const OrderSummaryTable = ({
   orderSummaries,
   onToggleSelection
 }: OrderSummaryTableProps) => {
   if (orderSummaries.length === 0) return null;
+  
   return <div className="max-w-3xl mx-auto p-4 rounded-lg shadow-lg border border-gray-200 bg-sky-500 hover:bg-sky-400 px-0 py-[16px]">
-      <h2 className="mb-3 text-4xl mx-[240px] text-inherit font-extrabold">Order Summary</h2>
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-4xl mx-[240px] text-inherit font-extrabold">Order Summary</h2>
+        <ExportButton 
+          data={orderSummaries} 
+          filename="pending-orders" 
+          variant="outline"
+        />
+      </div>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>

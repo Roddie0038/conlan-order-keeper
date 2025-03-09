@@ -12,6 +12,8 @@ import CompletedOrders from "./pages/CompletedOrders";
 import MTOOrder from "./pages/MTOOrder";
 import CrossDock from "./pages/CrossDock";
 import AllPendingOrders from "./pages/AllPendingOrders";
+import { useEffect } from "react";
+import { orderApi } from "./api/orderApi";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,9 +26,19 @@ const queryClient = new QueryClient({
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  
+  // Initialize the API when the app starts
+  useEffect(() => {
+    if (window) {
+      window.orderApi = orderApi;
+      console.log("Order API initialized and available via window.orderApi");
+    }
+  }, []);
+  
   if (!user) {
     return <Navigate to="/" replace />;
   }
+  
   return (
     <>
       <Navigation />
