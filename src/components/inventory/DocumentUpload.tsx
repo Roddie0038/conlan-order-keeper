@@ -47,8 +47,12 @@ export function DocumentUpload() {
 
   return (
     <div className="space-y-8">
-      <DocumentForm onDocumentSubmit={handleDocumentSubmit} />
-      <DocumentList documents={documents} onDelete={handleDelete} />
+      <div className="mb-8">
+        <DocumentList documents={documents} onDelete={handleDelete} />
+      </div>
+      <div className="bg-white rounded-lg shadow">
+        <DocumentForm onDocumentSubmit={handleDocumentSubmit} />
+      </div>
     </div>
   );
 }

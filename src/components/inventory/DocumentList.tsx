@@ -28,25 +28,26 @@ export function DocumentList({ documents, onDelete }: DocumentListProps) {
   ];
 
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="p-4 bg-gray-100 border-b">
-        <h3 className="font-medium">Document Library</h3>
+    <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
+      <div className="p-4 bg-primary/5 border-b">
+        <h3 className="font-semibold text-lg">Recent Documents</h3>
       </div>
       
       {documents.length === 0 ? (
         <div className="p-8 text-center text-gray-500">
-          <FileText className="mx-auto h-10 w-10 text-gray-400" />
-          <p className="mt-2">No documents have been uploaded yet</p>
+          <FileText className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+          <p className="text-lg font-medium">No documents uploaded</p>
+          <p className="text-sm text-gray-400 mt-1">Upload inventory documents to get started</p>
         </div>
       ) : (
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead>Title</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Date Uploaded</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="bg-gray-50/50">
+              <TableHead className="font-semibold">Title</TableHead>
+              <TableHead className="font-semibold">Type</TableHead>
+              <TableHead className="font-semibold">Date Uploaded</TableHead>
+              <TableHead className="font-semibold">Size</TableHead>
+              <TableHead className="text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
