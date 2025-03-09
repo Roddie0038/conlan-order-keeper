@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DocumentForm } from "./DocumentForm";
 import { DocumentList, Document } from "./DocumentList";
+import { ImportPreviewDialog } from "./ImportPreviewDialog";
+import { useInventoryContext } from "@/contexts/InventoryContext";
 
 export function DocumentUpload() {
   const [documents, setDocuments] = useState<Document[]>(() => {
@@ -10,7 +12,10 @@ export function DocumentUpload() {
     return saved ? JSON.parse(saved) : [];
   });
   
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { addInventoryItems } = useInventoryContext();
 
   const handleDocumentSubmit = (documentData: {
     title: string;
@@ -45,14 +50,36 @@ export function DocumentUpload() {
     });
   };
 
+  const handleImport = (id: string) => {
+    setSelectedDocumentId(id);
+    setIsImportDialogOpen(true);
+  };
+
   return (
     <div className="space-y-8">
       <div className="mb-8">
-        <DocumentList documents={documents} onDelete={handleDelete} />
+        <DocumentList 
+          documents={documents} 
+          onDelete={handleDelete} 
+          onImport={handleImport}
+        />
       </div>
       <div className="bg-white rounded-lg shadow">
         <DocumentForm onDocumentSubmit={handleDocumentSubmit} />
       </div>
+
+      {selectedDocumentId && (
+        <ImportPreviewDialog
+          isOpen={isImportDialogOpen}
+          setIsOpen={setIsImportDialogOpen}
+          documentId={selectedDocumentId}
+          documents={documents}
+          onImportComplete={() => {
+            setIsImportDialogOpen(false);
+            setSelectedDocumentId(null);
+          }}
+        />
+      )}
     </div>
   );
 }

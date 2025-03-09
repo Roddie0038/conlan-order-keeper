@@ -228,6 +228,50 @@ export function useInventory() {
     setSelectedItems([]);
   };
 
+  const handleAddImportedItems = (importedItems: InventoryItem[]) => {
+    // Get current inventory to check for duplicates
+    const currentInventory = [...inventory];
+    const updatedInventory = [...currentInventory];
+    
+    // Track stats for toast
+    let addedCount = 0;
+    let updatedCount = 0;
+    
+    // Process each imported item
+    importedItems.forEach(newItem => {
+      // Check if product already exists
+      const existingItemIndex = currentInventory.findIndex(
+        item => item.productNumber === newItem.productNumber
+      );
+      
+      if (existingItemIndex >= 0) {
+        // Update existing item
+        updatedInventory[existingItemIndex] = {
+          ...updatedInventory[existingItemIndex],
+          quantity: updatedInventory[existingItemIndex].quantity + newItem.quantity,
+          lastUpdated: new Date().toISOString(),
+          lowStock: (updatedInventory[existingItemIndex].quantity + newItem.quantity) <= updatedInventory[existingItemIndex].minThreshold
+        };
+        updatedCount++;
+      } else {
+        // Add new item
+        updatedInventory.push(newItem);
+        addedCount++;
+      }
+    });
+    
+    // Update state and save to localStorage
+    setInventory(updatedInventory);
+    setEditedInventory(JSON.parse(JSON.stringify(updatedInventory)));
+    localStorage.setItem('inventory', JSON.stringify(updatedInventory));
+    
+    // Show toast
+    toast({
+      title: "Inventory Updated",
+      description: `Added ${addedCount} new items and updated ${updatedCount} existing items.`
+    });
+  };
+
   return {
     inventory,
     editMode,
@@ -246,6 +290,7 @@ export function useInventory() {
     handleSelectItem,
     handleSelectAll,
     handleDeleteSelected,
-    cancelEdit
+    cancelEdit,
+    handleAddImportedItems // Add this new function
   };
 }

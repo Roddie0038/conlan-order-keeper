@@ -1,7 +1,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, Trash2 } from "lucide-react";
+import { FileText, Trash2, Import } from "lucide-react";
 
 export interface Document {
   id: string;
@@ -16,9 +16,10 @@ export interface Document {
 interface DocumentListProps {
   documents: Document[];
   onDelete: (id: string) => void;
+  onImport?: (id: string) => void;
 }
 
-export function DocumentList({ documents, onDelete }: DocumentListProps) {
+export function DocumentList({ documents, onDelete, onImport }: DocumentListProps) {
   const documentTypes = [
     { value: "inventory-update", label: "Inventory Update" },
     { value: "supplier-invoice", label: "Supplier Invoice" },
@@ -71,14 +72,27 @@ export function DocumentList({ documents, onDelete }: DocumentListProps) {
                 <TableCell>{new Date(doc.date).toLocaleString()}</TableCell>
                 <TableCell>{doc.fileSize}</TableCell>
                 <TableCell className="text-right">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => onDelete(doc.id)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 size={16} />
-                  </Button>
+                  <div className="flex justify-end space-x-2">
+                    {onImport && doc.type === "inventory-update" && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => onImport(doc.id)}
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      >
+                        <Import size={16} className="mr-1" />
+                        <span>Import</span>
+                      </Button>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => onDelete(doc.id)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
