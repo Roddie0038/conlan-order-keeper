@@ -21,7 +21,8 @@ export function InventoryTable() {
     handleSelectItem,
     handleSelectAll,
     handleDeleteSelected,
-    cancelEdit
+    cancelEdit,
+    setEditMode
   } = useInventory();
 
   const filteredInventory = (editMode ? editedInventory : inventory).filter(item => 
@@ -36,7 +37,7 @@ export function InventoryTable() {
         setSearchTerm={setSearchTerm}
         handleAddItem={handleAddItem}
         editMode={editMode}
-        setEditMode={(mode) => setEditMode(mode)}
+        setEditMode={setEditMode}
         handleSaveChanges={handleSaveChanges}
         cancelEdit={cancelEdit}
         selectedItems={selectedItems}
