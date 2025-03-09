@@ -2,10 +2,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { DarkModeToggle } from "./DarkModeToggle";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Navigation() {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
+  const { user } = useAuth();
 
   const links = [
     { href: "/pending-orders", label: "New Order" },
@@ -14,6 +16,11 @@ export function Navigation() {
     { href: "/completed-orders", label: "Completed Orders" },
     { href: "/cross-dock", label: "Cross Dock Paperwork" },
   ];
+
+  // Add admin inventory link for admin users
+  if (user?.isAdmin) {
+    links.push({ href: "/admin-inventory", label: "Inventory Management" });
+  }
 
   return (
     <nav className="bg-[#1e40af] dark:bg-gray-900 shadow-sm">

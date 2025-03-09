@@ -12,6 +12,7 @@ import CompletedOrders from "./pages/CompletedOrders";
 import MTOOrder from "./pages/MTOOrder";
 import CrossDock from "./pages/CrossDock";
 import AllPendingOrders from "./pages/AllPendingOrders";
+import AdminInventory from "./pages/AdminInventory";
 import { useEffect } from "react";
 import { orderApi } from "./api/orderApi";
 
@@ -94,6 +95,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <CrossDock />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin-inventory"
+                element={
+                  <ProtectedRoute>
+                    <AdminInventory />
                   </ProtectedRoute>
                 }
               />
