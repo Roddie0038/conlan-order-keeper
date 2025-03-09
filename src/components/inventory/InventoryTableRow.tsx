@@ -6,16 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
-
-interface InventoryItem {
-  id: string;
-  productNumber: string;
-  description: string;
-  quantity: number;
-  minThreshold: number;
-  lastUpdated: string;
-  lowStock: boolean;
-}
+import { InventoryItem } from "@/contexts/InventoryContext";
 
 interface InventoryTableRowProps {
   item: InventoryItem;
@@ -42,23 +33,23 @@ export function InventoryTableRow({
   };
 
   return (
-    <TableRow key={item.id} className={item.lowStock ? "bg-red-50" : ""}>
+    <TableRow key={item.id} className={item.low_stock ? "bg-red-50" : ""}>
       <TableCell>
         <Checkbox 
           checked={selectedItems.includes(item.id)}
           onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
-          aria-label={`Select item ${item.productNumber}`}
+          aria-label={`Select item ${item.product_number}`}
         />
       </TableCell>
       <TableCell>
         {editMode ? (
           <Input 
-            value={item.productNumber} 
-            onChange={(e) => handleEdit(item.id, "productNumber", e.target.value)}
+            value={item.product_number} 
+            onChange={(e) => handleEdit(item.id, "product_number", e.target.value)}
             className="max-w-[100px]"
           />
         ) : (
-          item.productNumber
+          item.product_number
         )}
       </TableCell>
       <TableCell>
@@ -87,24 +78,24 @@ export function InventoryTableRow({
         {editMode ? (
           <Input 
             type="number"
-            value={item.minThreshold} 
-            onChange={(e) => handleEdit(item.id, "minThreshold", parseInt(e.target.value) || 0)}
+            value={item.min_threshold} 
+            onChange={(e) => handleEdit(item.id, "min_threshold", parseInt(e.target.value) || 0)}
             className="max-w-[80px]"
           />
         ) : (
-          item.minThreshold
+          item.min_threshold
         )}
       </TableCell>
       <TableCell>
-        {new Date(item.lastUpdated).toLocaleString()}
+        {new Date(item.last_updated).toLocaleString()}
       </TableCell>
       <TableCell>
         <div className="flex items-center">
           <Checkbox 
-            checked={item.lowStock} 
-            onCheckedChange={(checked) => editMode && handleEdit(item.id, "lowStock", !!checked)}
+            checked={item.low_stock} 
+            onCheckedChange={(checked) => editMode && handleEdit(item.id, "low_stock", !!checked)}
             disabled={!editMode}
-            className={item.lowStock ? "bg-red-500 text-white" : ""}
+            className={item.low_stock ? "bg-red-500 text-white" : ""}
           />
         </div>
       </TableCell>
@@ -123,7 +114,7 @@ export function InventoryTableRow({
           setIsOpen={setShowDeleteDialog}
           onConfirm={handleConfirmDelete}
           itemCount={1}
-          itemName={item.description || item.productNumber}
+          itemName={item.description || item.product_number}
         />
       </TableCell>
     </TableRow>

@@ -7,24 +7,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { FileUploader } from "./FileUploader";
+import { useDocuments } from "@/hooks/useDocuments";
+import { supabase } from "@/integrations/supabase/client";
 
-interface DocumentFormProps {
-  onDocumentSubmit: (document: {
-    title: string;
-    description: string;
-    type: string;
-    fileName?: string;
-    fileSize: string;
-  }) => void;
-}
-
-export function DocumentForm({ onDocumentSubmit }: DocumentFormProps) {
+export function DocumentForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [docType, setDocType] = useState("inventory-update");
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
+  const { addDocument } = useDocuments();
 
   const documentTypes = [
     { value: "inventory-update", label: "Inventory Update" },
@@ -93,34 +86,70 @@ export function DocumentForm({ onDocumentSubmit }: DocumentFormProps) {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!validateForm()) {
       return;
     }
 
     setUploading(true);
 
-    // Simulate upload delay
-    setTimeout(() => {
-      onDocumentSubmit({
-        title,
-        description,
-        type: docType,
-        fileSize: selectedFile ? formatFileSize(selectedFile.size) : `${Math.floor(Math.random() * 10) + 1} MB`,
-        fileName: selectedFile?.name
-      });
+    try {
+      // 1. Upload file to Supabase Storage
+      const fileExt = selectedFile!.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `inventory-docs/${fileName}`;
       
+      // Make sure the bucket exists first
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(bucket => bucket.name === 'inventory-docs');
+      
+      if (!bucketExists) {
+        // Create the bucket if it doesn't exist
+        await supabase.storage.createBucket('inventory-docs', {
+          public: false,
+          fileSizeLimit: 52428800, // 50MB
+        });
+      }
+      
+      const { error: uploadError } = await supabase.storage
+        .from('inventory-docs')
+        .upload(filePath, selectedFile!, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // 2. Add document record to database
+      await addDocument({
+        title,
+        description: description || null,
+        type: docType,
+        file_name: selectedFile!.name,
+        file_size: formatFileSize(selectedFile!.size),
+        file_path: filePath
+      });
+
+      // 3. Reset form
       setTitle("");
       setDescription("");
       setDocType("inventory-update");
       setSelectedFile(null);
-      setUploading(false);
       
       toast({
         title: "Document Uploaded",
         description: "Your document has been successfully uploaded."
       });
-    }, 1500);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload document. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (

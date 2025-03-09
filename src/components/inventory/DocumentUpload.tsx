@@ -2,52 +2,20 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DocumentForm } from "./DocumentForm";
-import { DocumentList, Document } from "./DocumentList";
+import { DocumentList } from "./DocumentList";
 import { ImportPreviewDialog } from "./ImportPreviewDialog";
 import { useInventoryContext } from "@/contexts/InventoryContext";
+import { useDocuments } from "@/hooks/useDocuments";
 
 export function DocumentUpload() {
-  const [documents, setDocuments] = useState<Document[]>(() => {
-    const saved = localStorage.getItem('inventoryDocuments');
-    return saved ? JSON.parse(saved) : [];
-  });
-  
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const { toast } = useToast();
   const { addInventoryItems } = useInventoryContext();
-
-  const handleDocumentSubmit = (documentData: {
-    title: string;
-    description: string;
-    type: string;
-    fileName?: string;
-    fileSize: string;
-  }) => {
-    const newDocument: Document = {
-      id: crypto.randomUUID(),
-      title: documentData.title,
-      description: documentData.description,
-      type: documentData.type,
-      date: new Date().toISOString(),
-      fileSize: documentData.fileSize,
-      fileName: documentData.fileName
-    };
-
-    const updatedDocuments = [...documents, newDocument];
-    setDocuments(updatedDocuments);
-    localStorage.setItem('inventoryDocuments', JSON.stringify(updatedDocuments));
-  };
+  const { documents, loading, deleteDocument } = useDocuments();
 
   const handleDelete = (id: string) => {
-    const updatedDocuments = documents.filter(doc => doc.id !== id);
-    setDocuments(updatedDocuments);
-    localStorage.setItem('inventoryDocuments', JSON.stringify(updatedDocuments));
-    
-    toast({
-      title: "Document Deleted",
-      description: "Document has been removed."
-    });
+    deleteDocument(id);
   };
 
   const handleImport = (id: string) => {
@@ -60,12 +28,13 @@ export function DocumentUpload() {
       <div className="mb-8">
         <DocumentList 
           documents={documents} 
+          loading={loading}
           onDelete={handleDelete} 
           onImport={handleImport}
         />
       </div>
       <div className="bg-white rounded-lg shadow">
-        <DocumentForm onDocumentSubmit={handleDocumentSubmit} />
+        <DocumentForm />
       </div>
 
       {selectedDocumentId && (

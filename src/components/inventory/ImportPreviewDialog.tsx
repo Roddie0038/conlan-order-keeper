@@ -14,8 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { useInventory } from "@/hooks/useInventory";
-import { Document } from "./DocumentList";
+import { useInventoryContext } from "@/contexts/InventoryContext";
+import { Document } from "@/hooks/useDocuments";
+import { parseExcelFile, parseCSV } from "@/utils/excelParser";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImportPreviewDialogProps {
   isOpen: boolean;
@@ -27,10 +29,10 @@ interface ImportPreviewDialogProps {
 
 interface ImportItem {
   id: string;
-  productNumber: string;
+  product_number: string;
   description: string;
   quantity: number;
-  minThreshold: number;
+  min_threshold: number;
   selected: boolean;
 }
 
@@ -44,50 +46,71 @@ export function ImportPreviewDialog({
   const [importItems, setImportItems] = useState<ImportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { inventory, handleAddImportedItems } = useInventory();
+  const { inventory, addInventoryItems } = useInventoryContext();
 
   useEffect(() => {
     if (isOpen) {
       setLoading(true);
-      // Simulate fetching document data
-      setTimeout(() => {
-        const document = documents.find(doc => doc.id === documentId);
-        
-        if (document) {
-          // Generate mock data based on document title/type
-          const mockItems: ImportItem[] = generateMockImportItems(document, inventory);
-          setImportItems(mockItems);
-        }
-        
-        setLoading(false);
-      }, 1000);
-    }
-  }, [isOpen, documentId, documents, inventory]);
-
-  const generateMockImportItems = (document: Document, existingInventory: any[]): ImportItem[] => {
-    // In a real app, this would parse the actual document content
-    // For this demo, we'll generate mock data based on the document title
-    const existingProductNumbers = new Set(existingInventory.map(item => item.productNumber));
-    
-    const numItems = 3 + Math.floor(Math.random() * 4); // 3-6 items
-    const mockItems: ImportItem[] = [];
-    
-    for (let i = 0; i < numItems; i++) {
-      const productNumber = `PT-${1000 + Math.floor(Math.random() * 9000)}`;
       
-      mockItems.push({
-        id: crypto.randomUUID(),
-        productNumber,
-        description: `${document.title} - Item ${i + 1}`,
-        quantity: 5 + Math.floor(Math.random() * 20),
-        minThreshold: 3 + Math.floor(Math.random() * 5),
-        // Pre-select items that don't already exist in inventory
-        selected: !existingProductNumbers.has(productNumber)
-      });
+      const fetchDocumentAndParse = async () => {
+        try {
+          const document = documents.find(doc => doc.id === documentId);
+          
+          if (!document || !document.file_path) {
+            throw new Error('Document not found or has no file path');
+          }
+          
+          // 1. Get a download URL for the file
+          const { data: fileData, error: fileError } = await supabase.storage
+            .from('inventory-docs')
+            .download(document.file_path);
+            
+          if (fileError) throw fileError;
+          
+          // 2. Parse the file based on its type
+          let parsedItems = [];
+          const fileName = document.file_name?.toLowerCase() || '';
+          
+          if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+            parsedItems = await parseExcelFile(fileData);
+          } else if (fileName.endsWith('.csv')) {
+            const csvText = await fileData.text();
+            parsedItems = parseCSV(csvText);
+          } else {
+            // For other file types, generate mock data
+            parsedItems = await parseExcelFile(new File([fileData], document.file_name || 'unknown.xlsx'));
+          }
+          
+          // 3. Convert to ImportItem format
+          const existingProductNumbers = new Set(inventory.map(item => item.product_number));
+          
+          const items: ImportItem[] = parsedItems.map(item => ({
+            id: crypto.randomUUID(),
+            product_number: item.product_number,
+            description: item.description,
+            quantity: item.quantity,
+            min_threshold: item.min_threshold,
+            // Pre-select new items that don't exist in inventory
+            selected: !existingProductNumbers.has(item.product_number)
+          }));
+          
+          setImportItems(items);
+        } catch (error) {
+          console.error("Error parsing document:", error);
+          toast({
+            title: "Import Error",
+            description: "Failed to read document contents. Please try again or contact support.",
+            variant: "destructive"
+          });
+          setImportItems([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchDocumentAndParse();
     }
-    
-    return mockItems;
-  };
+  }, [isOpen, documentId, documents, inventory, toast]);
 
   const handleSelectAll = (checked: boolean) => {
     setImportItems(importItems.map(item => ({
@@ -102,7 +125,7 @@ export function ImportPreviewDialog({
     ));
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     const selectedItems = importItems.filter(item => item.selected);
     
     if (selectedItems.length === 0) {
@@ -115,25 +138,31 @@ export function ImportPreviewDialog({
     }
     
     // Map to inventory format
-    const inventoryItems = selectedItems.map(item => ({
-      id: crypto.randomUUID(),
-      productNumber: item.productNumber,
-      description: item.description,
-      quantity: item.quantity,
-      minThreshold: item.minThreshold,
-      lastUpdated: new Date().toISOString(),
-      lowStock: item.quantity <= item.minThreshold
+    const itemsToImport = selectedItems.map(({ product_number, description, quantity, min_threshold }) => ({
+      product_number,
+      description,
+      quantity,
+      min_threshold
     }));
     
-    // Add to inventory
-    handleAddImportedItems(inventoryItems);
-    
-    toast({
-      title: "Import Successful",
-      description: `Added ${selectedItems.length} items to inventory.`
-    });
-    
-    onImportComplete();
+    try {
+      // Add to inventory
+      await addInventoryItems(itemsToImport);
+      
+      toast({
+        title: "Import Successful",
+        description: `Added ${selectedItems.length} items to inventory.`
+      });
+      
+      onImportComplete();
+    } catch (error) {
+      console.error("Error importing items:", error);
+      toast({
+        title: "Import Failed",
+        description: "Failed to import selected items. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -184,10 +213,10 @@ export function ImportPreviewDialog({
                           onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
                         />
                       </TableCell>
-                      <TableCell>{item.productNumber}</TableCell>
+                      <TableCell>{item.product_number}</TableCell>
                       <TableCell>{item.description}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
-                      <TableCell>{item.minThreshold}</TableCell>
+                      <TableCell>{item.min_threshold}</TableCell>
                     </TableRow>
                   ))
                 )}

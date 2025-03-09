@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { InventoryTableHeader } from "./InventoryTableHeader";
 import { InventoryTableRow } from "./InventoryTableRow";
-import { useInventory, InventoryItem, SortField } from "@/hooks/useInventory";
+import { useInventory, SortField } from "@/hooks/useInventory";
 import { cn } from "@/lib/utils";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 
@@ -14,6 +14,8 @@ export function InventoryTable() {
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const {
     inventory,
+    loading,
+    error,
     editMode,
     editedInventory,
     selectedItems,
@@ -29,11 +31,13 @@ export function InventoryTable() {
     sortField,
     sortDirection,
     handleSort,
-    getSortedData
+    getSortedData,
+    refreshInventory
   } = useInventory();
 
+  // Filter inventory based on search term
   const filteredInventory = (editMode ? editedInventory : inventory).filter(item => 
-    item.productNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.product_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -63,6 +67,30 @@ export function InventoryTable() {
       </div>
     </TableHead>
   );
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <p className="text-gray-500">Loading inventory data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-center bg-red-50 border border-red-200 rounded-md">
+        <h3 className="text-lg font-medium text-red-800 mb-2">Failed to load inventory</h3>
+        <p className="text-red-600">{error}</p>
+        <button 
+          onClick={refreshInventory}
+          className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded-md transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -100,11 +128,11 @@ export function InventoryTable() {
                   aria-label="Select all"
                 />
               </TableHead>
-              <SortableColumnHeader field="productNumber" label="Product #" className="w-[120px]" />
+              <SortableColumnHeader field="product_number" label="Product #" className="w-[120px]" />
               <SortableColumnHeader field="description" label="Description" className="w-[300px]" />
               <SortableColumnHeader field="quantity" label="Quantity" className="w-[100px]" />
-              <SortableColumnHeader field="minThreshold" label="Min Stock" className="w-[100px]" />
-              <SortableColumnHeader field="lastUpdated" label="Last Updated" className="w-[150px]" />
+              <SortableColumnHeader field="min_threshold" label="Min Stock" className="w-[100px]" />
+              <SortableColumnHeader field="last_updated" label="Last Updated" className="w-[150px]" />
               <TableHead className="w-[100px]">Low Stock</TableHead>
               <TableHead className="w-[70px]">Actions</TableHead>
             </TableRow>
@@ -133,7 +161,7 @@ export function InventoryTable() {
         </Table>
       </div>
       
-      {inventory.some(item => item.lowStock) && (
+      {inventory.some(item => item.low_stock) && (
         <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-md text-red-800">
           <strong>Attention:</strong> Some items are below minimum stock threshold. Please reorder soon.
         </div>

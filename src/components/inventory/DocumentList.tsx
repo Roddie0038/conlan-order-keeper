@@ -2,24 +2,16 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FileText, Trash2, Import } from "lucide-react";
-
-export interface Document {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  date: string;
-  fileSize: string;
-  fileName?: string;
-}
+import { Document } from "@/hooks/useDocuments";
 
 interface DocumentListProps {
   documents: Document[];
+  loading: boolean;
   onDelete: (id: string) => void;
   onImport?: (id: string) => void;
 }
 
-export function DocumentList({ documents, onDelete, onImport }: DocumentListProps) {
+export function DocumentList({ documents, loading, onDelete, onImport }: DocumentListProps) {
   const documentTypes = [
     { value: "inventory-update", label: "Inventory Update" },
     { value: "supplier-invoice", label: "Supplier Invoice" },
@@ -27,6 +19,20 @@ export function DocumentList({ documents, onDelete, onImport }: DocumentListProp
     { value: "quality-report", label: "Quality Report" },
     { value: "other", label: "Other Document" }
   ];
+
+  if (loading) {
+    return (
+      <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
+        <div className="p-4 bg-primary/5 border-b">
+          <h3 className="font-semibold text-lg">Recent Documents</h3>
+        </div>
+        <div className="p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-gray-500">Loading documents...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
@@ -58,8 +64,8 @@ export function DocumentList({ documents, onDelete, onImport }: DocumentListProp
                   <div className="flex items-center">
                     <FileText className="mr-2 h-4 w-4 text-blue-500" />
                     {doc.title}
-                    {doc.fileName && doc.fileName !== doc.title && (
-                      <span className="ml-2 text-xs text-gray-500">({doc.fileName})</span>
+                    {doc.file_name && doc.file_name !== doc.title && (
+                      <span className="ml-2 text-xs text-gray-500">({doc.file_name})</span>
                     )}
                   </div>
                   {doc.description && (
@@ -70,7 +76,7 @@ export function DocumentList({ documents, onDelete, onImport }: DocumentListProp
                   {documentTypes.find(type => type.value === doc.type)?.label || doc.type}
                 </TableCell>
                 <TableCell>{new Date(doc.date).toLocaleString()}</TableCell>
-                <TableCell>{doc.fileSize}</TableCell>
+                <TableCell>{doc.file_size}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
                     {onImport && doc.type === "inventory-update" && (
