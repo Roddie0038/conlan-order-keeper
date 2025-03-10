@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -15,12 +14,21 @@ export interface InventoryItem {
 
 // Define a type for the database item as it comes from Supabase
 interface DatabaseInventoryItem {
+  id?: string;
   product_number: string;
   description: string;
   quantity: number;
-  id?: string;
   min_threshold?: number;
   last_updated?: string;
+  low_stock?: boolean;
+}
+
+// Define a type for update data to avoid recursion
+interface InventoryItemUpdateData {
+  product_number?: string;
+  description?: string;
+  quantity?: number;
+  min_threshold?: number;
   low_stock?: boolean;
 }
 
@@ -30,7 +38,7 @@ interface InventoryContextType {
   error: string | null;
   refreshInventory: () => Promise<void>;
   addInventoryItems: (items: Omit<InventoryItem, 'id' | 'last_updated' | 'low_stock'>[]) => Promise<void>;
-  updateInventoryItem: (id: string, data: Partial<Omit<InventoryItem, 'id' | 'last_updated'>>) => Promise<void>;
+  updateInventoryItem: (id: string, data: InventoryItemUpdateData) => Promise<void>;
   deleteInventoryItem: (id: string) => Promise<void>;
   deleteMultipleItems: (ids: string[]) => Promise<void>;
 }
@@ -134,7 +142,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateInventoryItem = async (id: string, data: Partial<Omit<InventoryItem, 'id' | 'last_updated'>>) => {
+  const updateInventoryItem = async (id: string, data: InventoryItemUpdateData) => {
     try {
       // If quantity or min_threshold is updated, recalculate low_stock
       let updateData = { ...data };
