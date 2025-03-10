@@ -70,7 +70,7 @@ export async function addInventoryItems(items: Omit<InventoryItem, 'id' | 'last_
 
 export async function updateInventoryItem(
   id: string, 
-  data: InventoryItemUpdateData, 
+  data: InventoryItemUpdateData,
   currentItem?: InventoryItem
 ) {
   // If quantity or min_threshold is updated, recalculate low_stock
