@@ -73,15 +73,21 @@ export async function updateInventoryItem(
   data: InventoryItemUpdateData,
   currentItem?: InventoryItem
 ) {
-  // Create update data object without type inference
-  const updateData: {
+  // Define a specific interface for the update data to avoid excessive type inference
+  interface UpdateDataType {
     product_number?: string;
     description?: string;
     quantity?: number;
     min_threshold?: number;
     low_stock?: boolean;
-    last_updated?: string;
-  } = { ...data };
+    last_updated: string;
+  }
+  
+  // Create update data object with explicit type
+  const updateData: UpdateDataType = { 
+    ...data,
+    last_updated: new Date().toISOString() 
+  };
   
   // If quantity or min_threshold is updated, recalculate low_stock
   if (data.quantity !== undefined || data.min_threshold !== undefined) {
@@ -91,9 +97,6 @@ export async function updateInventoryItem(
       updateData.low_stock = newQuantity <= newThreshold;
     }
   }
-
-  // Add the last_updated field explicitly
-  updateData.last_updated = new Date().toISOString();
 
   const { error } = await supabase
     .from('inventory_items')
