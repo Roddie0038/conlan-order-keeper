@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   InventoryItem, 
@@ -141,19 +142,23 @@ export async function decreaseInventoryQuantity(productNumber: string, quantityT
   const inventoryItem = data[0];
   console.log('Found inventory item:', inventoryItem);
   
+  // Set default min_threshold if it's undefined
   const minThreshold = inventoryItem.min_threshold !== undefined ? inventoryItem.min_threshold : 5;
   const currentQuantity = inventoryItem.quantity;
   const newQuantity = Math.max(0, currentQuantity - quantityToDecrease);
   
   console.log(`Updating inventory: Current quantity: ${currentQuantity}, New quantity: ${newQuantity}`);
   
+  // Use a simplified update payload to avoid type issues
+  const updatePayload = { 
+    quantity: newQuantity,
+    low_stock: newQuantity <= minThreshold,
+    last_updated: new Date().toISOString()
+  };
+  
   const { error: updateError } = await supabase
     .from('inventory_items')
-    .update({ 
-      quantity: newQuantity,
-      low_stock: newQuantity <= minThreshold,
-      last_updated: new Date().toISOString()
-    })
+    .update(updatePayload)
     .eq('id', inventoryItem.id);
   
   if (updateError) {
