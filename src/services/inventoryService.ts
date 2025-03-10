@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   InventoryItem, 
@@ -68,15 +67,15 @@ export async function addInventoryItems(items: Omit<InventoryItem, 'id' | 'last_
   if (error) throw error;
 }
 
-// Define a simple type for update data to prevent excessive type recursion
-type UpdateDataType = {
+// Define a simple type for update data to avoid type recursion issues
+interface UpdateDataType {
   product_number?: string;
   description?: string;
   quantity?: number;
   min_threshold?: number;
   low_stock?: boolean;
   last_updated: string;
-};
+}
 
 export async function updateInventoryItem(
   id: string, 
