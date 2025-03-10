@@ -74,7 +74,8 @@ export async function updateInventoryItem(
   currentItem?: InventoryItem
 ) {
   // If quantity or min_threshold is updated, recalculate low_stock
-  const updateData = { ...data };
+  // Using type assertion to avoid circular type reference
+  const updateData: Record<string, any> = { ...data };
   
   if (data.quantity !== undefined || data.min_threshold !== undefined) {
     if (currentItem) {
