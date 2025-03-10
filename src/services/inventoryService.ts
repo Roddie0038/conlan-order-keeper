@@ -73,10 +73,17 @@ export async function updateInventoryItem(
   data: InventoryItemUpdateData,
   currentItem?: InventoryItem
 ) {
-  // If quantity or min_threshold is updated, recalculate low_stock
-  // Using type assertion to avoid circular type reference
-  const updateData: Record<string, any> = { ...data };
+  // Create update data object without type inference
+  const updateData: {
+    product_number?: string;
+    description?: string;
+    quantity?: number;
+    min_threshold?: number;
+    low_stock?: boolean;
+    last_updated?: string;
+  } = { ...data };
   
+  // If quantity or min_threshold is updated, recalculate low_stock
   if (data.quantity !== undefined || data.min_threshold !== undefined) {
     if (currentItem) {
       const newQuantity = data.quantity ?? currentItem.quantity;
@@ -85,12 +92,12 @@ export async function updateInventoryItem(
     }
   }
 
+  // Add the last_updated field explicitly
+  updateData.last_updated = new Date().toISOString();
+
   const { error } = await supabase
     .from('inventory_items')
-    .update({
-      ...updateData,
-      last_updated: new Date().toISOString()
-    })
+    .update(updateData)
     .eq('id', id);
 
   if (error) throw error;
