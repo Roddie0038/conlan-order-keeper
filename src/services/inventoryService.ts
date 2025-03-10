@@ -68,13 +68,23 @@ export async function addInventoryItems(items: Omit<InventoryItem, 'id' | 'last_
   if (error) throw error;
 }
 
+// Define a simple type for update data to prevent excessive type recursion
+type UpdateDataType = {
+  product_number?: string;
+  description?: string;
+  quantity?: number;
+  min_threshold?: number;
+  low_stock?: boolean;
+  last_updated: string;
+};
+
 export async function updateInventoryItem(
   id: string, 
   data: InventoryItemUpdateData,
   currentItem?: InventoryItem
 ) {
-  // Use a simple Record type to avoid excessive type recursion
-  const updateData: Record<string, any> = { 
+  // Use the simplified type to avoid type recursion issues
+  const updateData: UpdateDataType = { 
     ...data,
     last_updated: new Date().toISOString() 
   };
@@ -130,6 +140,7 @@ export async function decreaseInventoryQuantity(productNumber: string, quantityT
     return { status: 'error', message: 'Item not found in inventory' };
   }
   
+  // Now we have data with all columns, including min_threshold
   const currentQuantity = data.quantity;
   const newQuantity = Math.max(0, currentQuantity - quantityToDecrease);
   
