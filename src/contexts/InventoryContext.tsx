@@ -50,17 +50,28 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       console.log('Fetched inventory data:', data);
 
       // Map database column names to our component's expected format
-      // This is needed because the Supabase database schema has limited columns
-      // compared to what our front-end expects
-      const formattedData = data.map(item => ({
-        id: item.id || crypto.randomUUID(), // Generate ID if not in database
-        product_number: item.product_number,
-        description: item.description,
-        quantity: item.quantity,
-        min_threshold: item.min_threshold || 5, // Default to 5 if not in DB
-        last_updated: item.last_updated || new Date().toISOString(), // Default to now if not in DB
-        low_stock: item.low_stock || (item.quantity <= (item.min_threshold || 5)) // Calculate if not in DB
-      }));
+      // This is needed because the database schema might be different from
+      // what our front-end expects if the migration wasn't fully applied
+      const formattedData = data.map(item => {
+        // TypeScript treats item as the database schema type, so we need to be careful
+        // about accessing properties that may not exist yet
+        const baseItem = {
+          product_number: item.product_number,
+          description: item.description,
+          quantity: item.quantity,
+        };
+
+        return {
+          // Use type assertion to safely access possibly undefined properties
+          id: (item as any).id || crypto.randomUUID(),
+          ...baseItem,
+          min_threshold: (item as any).min_threshold || 5,
+          last_updated: (item as any).last_updated || new Date().toISOString(),
+          low_stock: (item as any).low_stock !== undefined 
+            ? (item as any).low_stock 
+            : baseItem.quantity <= ((item as any).min_threshold || 5)
+        } as InventoryItem;
+      });
 
       setInventory(formattedData);
       setError(null);
