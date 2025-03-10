@@ -13,6 +13,17 @@ export interface InventoryItem {
   low_stock: boolean;
 }
 
+// Define a type for the database item as it comes from Supabase
+interface DatabaseInventoryItem {
+  product_number: string;
+  description: string;
+  quantity: number;
+  id?: string;
+  min_threshold?: number;
+  last_updated?: string;
+  low_stock?: boolean;
+}
+
 interface InventoryContextType {
   inventory: InventoryItem[];
   loading: boolean;
@@ -52,7 +63,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       // Map database column names to our component's expected format
       // This is needed because the database schema might be different from
       // what our front-end expects if the migration wasn't fully applied
-      const formattedData = data.map(item => {
+      const formattedData = data.map((item: DatabaseInventoryItem) => {
         // TypeScript treats item as the database schema type, so we need to be careful
         // about accessing properties that may not exist yet
         const baseItem = {
@@ -62,14 +73,13 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         };
 
         return {
-          // Use type assertion to safely access possibly undefined properties
-          id: (item as any).id || crypto.randomUUID(),
+          id: item.id || crypto.randomUUID(),
           ...baseItem,
-          min_threshold: (item as any).min_threshold || 5,
-          last_updated: (item as any).last_updated || new Date().toISOString(),
-          low_stock: (item as any).low_stock !== undefined 
-            ? (item as any).low_stock 
-            : baseItem.quantity <= ((item as any).min_threshold || 5)
+          min_threshold: item.min_threshold || 5,
+          last_updated: item.last_updated || new Date().toISOString(),
+          low_stock: item.low_stock !== undefined 
+            ? item.low_stock 
+            : baseItem.quantity <= (item.min_threshold || 5)
         } as InventoryItem;
       });
 
