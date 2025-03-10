@@ -1,47 +1,21 @@
+
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-export interface InventoryItem {
-  id: string;
-  product_number: string;
-  description: string;
-  quantity: number;
-  min_threshold: number;
-  last_updated: string;
-  low_stock: boolean;
-}
-
-// Define a type for the database item as it comes from Supabase
-interface DatabaseInventoryItem {
-  id?: string;
-  product_number: string;
-  description: string;
-  quantity: number;
-  min_threshold?: number;
-  last_updated?: string;
-  low_stock?: boolean;
-}
-
-// Define a type for update data to avoid recursion
-interface InventoryItemUpdateData {
-  product_number?: string;
-  description?: string;
-  quantity?: number;
-  min_threshold?: number;
-  low_stock?: boolean;
-}
-
-interface InventoryContextType {
-  inventory: InventoryItem[];
-  loading: boolean;
-  error: string | null;
-  refreshInventory: () => Promise<void>;
-  addInventoryItems: (items: Omit<InventoryItem, 'id' | 'last_updated' | 'low_stock'>[]) => Promise<void>;
-  updateInventoryItem: (id: string, data: InventoryItemUpdateData) => Promise<void>;
-  deleteInventoryItem: (id: string) => Promise<void>;
-  deleteMultipleItems: (ids: string[]) => Promise<void>;
-}
+import { 
+  InventoryItem, 
+  InventoryContextType,
+  InventoryItemUpdateData
+} from '@/types/inventory';
+import {
+  fetchInventory,
+  addInventoryItems as addItems,
+  updateInventoryItem as updateItem,
+  deleteInventoryItem as deleteItem,
+  deleteMultipleItems as deleteItems,
+  setupRealtimeSubscription,
+  setupLowStockSubscription
+} from '@/services/inventoryService';
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
 
@@ -54,43 +28,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   const refreshInventory = async () => {
     try {
       setLoading(true);
-      console.log('Fetching inventory from Supabase...');
-      
-      const { data, error } = await supabase
-        .from('inventory_items')
-        .select('*')
-        .order('product_number');
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Fetched inventory data:', data);
-
-      // Map database column names to our component's expected format
-      // This is needed because the database schema might be different from
-      // what our front-end expects if the migration wasn't fully applied
-      const formattedData = data.map((item: DatabaseInventoryItem) => {
-        // TypeScript treats item as the database schema type, so we need to be careful
-        // about accessing properties that may not exist yet
-        const baseItem = {
-          product_number: item.product_number,
-          description: item.description,
-          quantity: item.quantity,
-        };
-
-        return {
-          id: item.id || crypto.randomUUID(),
-          ...baseItem,
-          min_threshold: item.min_threshold || 5,
-          last_updated: item.last_updated || new Date().toISOString(),
-          low_stock: item.low_stock !== undefined 
-            ? item.low_stock 
-            : baseItem.quantity <= (item.min_threshold || 5)
-        } as InventoryItem;
-      });
-
+      const formattedData = await fetchInventory();
       setInventory(formattedData);
       setError(null);
     } catch (err: any) {
@@ -108,27 +46,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   const addInventoryItems = async (items: Omit<InventoryItem, 'id' | 'last_updated' | 'low_stock'>[]) => {
     try {
-      // Map each item to check for low stock and format for database
-      const itemsToInsert = items.map(item => ({
-        product_number: item.product_number,
-        description: item.description,
-        quantity: item.quantity,
-        min_threshold: item.min_threshold,
-        low_stock: item.quantity <= item.min_threshold
-      }));
-
-      const { error } = await supabase
-        .from('inventory_items')
-        .upsert(
-          itemsToInsert,
-          { 
-            onConflict: 'product_number',
-            ignoreDuplicates: false
-          }
-        );
-
-      if (error) throw error;
-
+      await addItems(items);
       // Refresh inventory to get the latest data
       await refreshInventory();
     } catch (err: any) {
@@ -144,29 +62,9 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   const updateInventoryItem = async (id: string, data: InventoryItemUpdateData) => {
     try {
-      // If quantity or min_threshold is updated, recalculate low_stock
-      let updateData = { ...data };
-      
-      if (data.quantity !== undefined || data.min_threshold !== undefined) {
-        // Find the current item
-        const currentItem = inventory.find(item => item.id === id);
-        if (currentItem) {
-          const newQuantity = data.quantity ?? currentItem.quantity;
-          const newThreshold = data.min_threshold ?? currentItem.min_threshold;
-          updateData.low_stock = newQuantity <= newThreshold;
-        }
-      }
-
-      const { error } = await supabase
-        .from('inventory_items')
-        .update({
-          ...updateData,
-          last_updated: new Date().toISOString()
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-
+      // Find current item for low_stock calculation
+      const currentItem = inventory.find(item => item.id === id);
+      await updateItem(id, data, currentItem);
       // Refresh inventory to get the latest data
       await refreshInventory();
     } catch (err: any) {
@@ -182,13 +80,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   const deleteInventoryItem = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('inventory_items')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await deleteItem(id);
       // Update local state
       setInventory(inventory.filter(item => item.id !== id));
     } catch (err: any) {
@@ -204,13 +96,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   const deleteMultipleItems = async (ids: string[]) => {
     try {
-      const { error } = await supabase
-        .from('inventory_items')
-        .delete()
-        .in('id', ids);
-
-      if (error) throw error;
-
+      await deleteItems(ids);
       // Update local state
       setInventory(inventory.filter(item => !ids.includes(item.id)));
       
@@ -234,6 +120,35 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     console.log('InventoryProvider mounted, fetching initial data');
     refreshInventory();
   }, []);
+
+  // Set up real-time updates
+  useEffect(() => {
+    const channel = setupRealtimeSubscription(refreshInventory);
+    
+    // Cleanup function
+    return () => {
+      console.log('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Set up low stock real-time updates
+  useEffect(() => {
+    const handleLowStockUpdate = () => {
+      toast({
+        title: "Low Stock Alert",
+        description: "An item with low stock has been updated",
+        variant: "destructive"
+      });
+      refreshInventory();
+    };
+
+    const lowStockChannel = setupLowStockSubscription(handleLowStockUpdate);
+
+    return () => {
+      supabase.removeChannel(lowStockChannel);
+    };
+  }, [toast]);
 
   const value = {
     inventory,
@@ -260,3 +175,6 @@ export function useInventoryContext() {
   }
   return context;
 }
+
+// Export types for convenience
+export type { InventoryItem, InventoryItemUpdateData } from '@/types/inventory';

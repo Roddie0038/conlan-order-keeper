@@ -1,6 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useInventoryContext, InventoryItem } from "@/contexts/InventoryContext";
+import { 
+  useInventoryContext, 
+  InventoryItem, 
+  InventoryItemUpdateData 
+} from "@/contexts/InventoryContext";
 import { supabase } from "@/integrations/supabase/client";
 
 export type SortField = 'product_number' | 'description' | 'quantity' | 'min_threshold' | 'last_updated';
@@ -158,7 +163,7 @@ export function useInventory() {
             description: editedItem.description,
             quantity: editedItem.quantity,
             min_threshold: editedItem.min_threshold,
-          }
+          } as InventoryItemUpdateData
         });
       }
     }
