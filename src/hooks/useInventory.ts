@@ -28,7 +28,8 @@ export function useInventory() {
   const { 
     editMode, 
     editedInventory, 
-    setEditMode, 
+    setEditMode,
+    setEditedInventory,
     handleAddItem, 
     handleSaveChanges, 
     handleEdit,

@@ -169,6 +169,7 @@ export function useInventoryEdit() {
     editMode,
     editedInventory: editedInventory.length ? editedInventory : inventory,
     setEditMode,
+    setEditedInventory,
     handleAddItem,
     handleSaveChanges,
     handleEdit,
