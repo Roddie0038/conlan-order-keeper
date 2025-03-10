@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
+import { decreaseInventoryQuantity } from "@/services/inventoryService";
 import type { OrderSummary } from "./types";
 import { LoadingOverlay } from "./LoadingOverlay";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,10 +42,31 @@ export const OrderSubmissionHandler = ({
         
         console.log(`Submitting order ${i + 1} of ${selectedOrders.length} for store ${order.store} with manager email: ${managersEmail}`);
         
+        // Submit order to Google Sheets
         await submitToGoogleSheets({
           ...order,
           managersEmail: managersEmail
         });
+
+        // Update inventory quantities
+        try {
+          const quantity = parseInt(order.quantity, 10);
+          if (!isNaN(quantity) && order.productNumber) {
+            const result = await decreaseInventoryQuantity(order.productNumber, quantity);
+            console.log('Inventory update result:', result);
+            
+            if (result.status === 'error') {
+              toast({
+                title: "Inventory Warning",
+                description: `${result.message} for ${order.productNumber}`,
+                variant: "destructive"
+              });
+            }
+          }
+        } catch (inventoryError) {
+          console.error("Error updating inventory:", inventoryError);
+          // Continue with order submission even if inventory update fails
+        }
 
         // Store in localStorage
         const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');

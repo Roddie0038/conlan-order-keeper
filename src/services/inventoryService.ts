@@ -73,18 +73,8 @@ export async function updateInventoryItem(
   data: InventoryItemUpdateData,
   currentItem?: InventoryItem
 ) {
-  // Define a specific interface for the update data to avoid excessive type inference
-  interface UpdateDataType {
-    product_number?: string;
-    description?: string;
-    quantity?: number;
-    min_threshold?: number;
-    low_stock?: boolean;
-    last_updated: string;
-  }
-  
-  // Create update data object with explicit type
-  const updateData: UpdateDataType = { 
+  // Use a simple Record type to avoid excessive type recursion
+  const updateData: Record<string, any> = { 
     ...data,
     last_updated: new Date().toISOString() 
   };
@@ -122,6 +112,47 @@ export async function deleteMultipleItems(ids: string[]) {
     .in('id', ids);
 
   if (error) throw error;
+}
+
+// New function to update inventory when order is placed
+export async function decreaseInventoryQuantity(productNumber: string, quantityToDecrease: number) {
+  console.log(`Decreasing inventory for ${productNumber} by ${quantityToDecrease}`);
+  
+  // First, get the current inventory item
+  const { data, error } = await supabase
+    .from('inventory_items')
+    .select('*')
+    .eq('product_number', productNumber)
+    .single();
+  
+  if (error) {
+    console.error('Error finding inventory item:', error);
+    return { status: 'error', message: 'Item not found in inventory' };
+  }
+  
+  const currentQuantity = data.quantity;
+  const newQuantity = Math.max(0, currentQuantity - quantityToDecrease);
+  
+  // Update the inventory with new quantity
+  const { error: updateError } = await supabase
+    .from('inventory_items')
+    .update({ 
+      quantity: newQuantity,
+      low_stock: newQuantity <= (data.min_threshold || 5),
+      last_updated: new Date().toISOString()
+    })
+    .eq('product_number', productNumber);
+  
+  if (updateError) {
+    console.error('Error updating inventory:', updateError);
+    return { status: 'error', message: 'Failed to update inventory' };
+  }
+  
+  return { 
+    status: 'success', 
+    previous: currentQuantity, 
+    current: newQuantity 
+  };
 }
 
 export function setupRealtimeSubscription(onUpdate: () => void) {

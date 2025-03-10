@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { scheduleOptions, crossDockOptions, stores, type FormData, storeManagerEmails } from "./formConfig";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { fetchInventory } from "@/services/inventoryService";
+import { InventoryItem } from "@/types/inventory";
 
 interface OrderFormInputsProps {
   formData: FormData;
@@ -21,13 +23,41 @@ export const OrderFormInputs = ({
     available: boolean;
     quantity: number;
   } | null>(null);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+
+  // Fetch inventory on component mount
+  useEffect(() => {
+    const loadInventory = async () => {
+      try {
+        const items = await fetchInventory();
+        setInventoryItems(items);
+        // Cache for offline access
+        localStorage.setItem('inventory', JSON.stringify(
+          items.map(item => ({
+            productNumber: item.product_number,
+            quantity: item.quantity,
+            lowStock: item.low_stock
+          }))
+        ));
+      } catch (error) {
+        console.error("Error loading inventory:", error);
+        // Try to use cached inventory
+        const cachedInventory = localStorage.getItem('inventory');
+        if (cachedInventory) {
+          setInventoryItems(JSON.parse(cachedInventory));
+        }
+      }
+    };
+    
+    loadInventory();
+  }, []);
 
   // Check inventory when product number changes
   useEffect(() => {
     if (formData.productNumber) {
-      const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
-      const productItem = inventory.find((item: any) => 
-        item.productNumber.toLowerCase() === formData.productNumber.toLowerCase()
+      // First try to find in our fetched inventory
+      const productItem = inventoryItems.find(item => 
+        item.product_number.toLowerCase() === formData.productNumber.toLowerCase()
       );
       
       if (productItem) {
@@ -37,7 +67,7 @@ export const OrderFormInputs = ({
         });
         
         // Show toast if product is low in stock
-        if (productItem.lowStock) {
+        if (productItem.low_stock) {
           toast({
             title: "Low Stock Alert",
             description: `This product (${formData.productNumber}) is low in stock. Only ${productItem.quantity} units available.`,
@@ -45,12 +75,33 @@ export const OrderFormInputs = ({
           });
         }
       } else {
-        setInventoryCheck(null);
+        // Fall back to localStorage cache if not found
+        const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+        const cachedItem = inventory.find((item: any) => 
+          item.productNumber.toLowerCase() === formData.productNumber.toLowerCase()
+        );
+        
+        if (cachedItem) {
+          setInventoryCheck({
+            available: cachedItem.quantity > 0,
+            quantity: cachedItem.quantity
+          });
+          
+          if (cachedItem.lowStock) {
+            toast({
+              title: "Low Stock Alert",
+              description: `This product (${formData.productNumber}) is low in stock. Only ${cachedItem.quantity} units available.`,
+              variant: "destructive"
+            });
+          }
+        } else {
+          setInventoryCheck(null);
+        }
       }
     } else {
       setInventoryCheck(null);
     }
-  }, [formData.productNumber, toast]);
+  }, [formData.productNumber, inventoryItems, toast]);
 
   // Check if requested quantity is available when quantity changes
   useEffect(() => {
