@@ -48,10 +48,11 @@ export const OrderSubmissionHandler = ({
           managersEmail: managersEmail
         });
 
-        // Update inventory quantities
+        // Update inventory quantities with improved error handling
         try {
           const quantity = parseInt(order.quantity, 10);
           if (!isNaN(quantity) && order.productNumber) {
+            console.log(`Decreasing inventory for product: ${order.productNumber}, quantity: ${quantity}`);
             const result = await decreaseInventoryQuantity(order.productNumber, quantity);
             console.log('Inventory update result:', result);
             
@@ -61,10 +62,20 @@ export const OrderSubmissionHandler = ({
                 description: `${result.message} for ${order.productNumber}`,
                 variant: "destructive"
               });
+            } else if (result.status === 'success') {
+              toast({
+                title: "Inventory Updated",
+                description: `Reduced inventory for ${result.productNumber} from ${result.previous} to ${result.current}`,
+              });
             }
           }
         } catch (inventoryError) {
           console.error("Error updating inventory:", inventoryError);
+          toast({
+            title: "Inventory Error",
+            description: `Failed to update inventory for ${order.productNumber}. Please check admin console.`,
+            variant: "destructive"
+          });
           // Continue with order submission even if inventory update fails
         }
 

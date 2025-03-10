@@ -20,10 +20,7 @@ export async function fetchInventory() {
 
   console.log('Fetched inventory data:', data);
 
-  // Map database column names to our component's expected format
   const formattedData = data.map((item: DatabaseInventoryItem) => {
-    // TypeScript treats item as the database schema type, so we need to be careful
-    // about accessing properties that may not exist yet
     const baseItem = {
       product_number: item.product_number,
       description: item.description,
@@ -45,7 +42,6 @@ export async function fetchInventory() {
 }
 
 export async function addInventoryItems(items: Omit<InventoryItem, 'id' | 'last_updated' | 'low_stock'>[]) {
-  // Map each item to check for low stock and format for database
   const itemsToInsert = items.map(item => ({
     product_number: item.product_number,
     description: item.description,
@@ -67,7 +63,6 @@ export async function addInventoryItems(items: Omit<InventoryItem, 'id' | 'last_
   if (error) throw error;
 }
 
-// Define a simple type for update data to avoid type recursion issues
 interface UpdateDataType {
   product_number?: string;
   description?: string;
@@ -82,13 +77,11 @@ export async function updateInventoryItem(
   data: InventoryItemUpdateData,
   currentItem?: InventoryItem
 ) {
-  // Use the simplified type to avoid type recursion issues
   const updateData: UpdateDataType = { 
     ...data,
     last_updated: new Date().toISOString() 
   };
   
-  // If quantity or min_threshold is updated, recalculate low_stock
   if (data.quantity !== undefined || data.min_threshold !== undefined) {
     if (currentItem) {
       const newQuantity = data.quantity ?? currentItem.quantity;
@@ -123,28 +116,37 @@ export async function deleteMultipleItems(ids: string[]) {
   if (error) throw error;
 }
 
-// New function to update inventory when order is placed
 export async function decreaseInventoryQuantity(productNumber: string, quantityToDecrease: number) {
-  console.log(`Decreasing inventory for ${productNumber} by ${quantityToDecrease}`);
+  console.log(`Attempting to decrease inventory for ${productNumber} by ${quantityToDecrease}`);
   
-  // First, get the current inventory item
   const { data, error } = await supabase
     .from('inventory_items')
     .select('*')
-    .eq('product_number', productNumber)
-    .single();
+    .ilike('product_number', productNumber)
+    .limit(1);
   
   if (error) {
     console.error('Error finding inventory item:', error);
-    return { status: 'error', message: 'Item not found in inventory' };
+    return { status: 'error', message: 'Item not found in inventory', error };
   }
   
-  // Ensure all properties we need are available
-  const minThreshold = data.min_threshold !== undefined ? data.min_threshold : 5;
-  const currentQuantity = data.quantity;
+  if (!data || data.length === 0) {
+    console.error(`Product not found in inventory: ${productNumber}`);
+    return { 
+      status: 'error', 
+      message: `Product ${productNumber} not found in inventory` 
+    };
+  }
+  
+  const inventoryItem = data[0];
+  console.log('Found inventory item:', inventoryItem);
+  
+  const minThreshold = inventoryItem.min_threshold !== undefined ? inventoryItem.min_threshold : 5;
+  const currentQuantity = inventoryItem.quantity;
   const newQuantity = Math.max(0, currentQuantity - quantityToDecrease);
   
-  // Update the inventory with new quantity
+  console.log(`Updating inventory: Current quantity: ${currentQuantity}, New quantity: ${newQuantity}`);
+  
   const { error: updateError } = await supabase
     .from('inventory_items')
     .update({ 
@@ -152,24 +154,24 @@ export async function decreaseInventoryQuantity(productNumber: string, quantityT
       low_stock: newQuantity <= minThreshold,
       last_updated: new Date().toISOString()
     })
-    .eq('product_number', productNumber);
+    .eq('id', inventoryItem.id);
   
   if (updateError) {
     console.error('Error updating inventory:', updateError);
-    return { status: 'error', message: 'Failed to update inventory' };
+    return { status: 'error', message: 'Failed to update inventory', error: updateError };
   }
   
   return { 
     status: 'success', 
     previous: currentQuantity, 
-    current: newQuantity 
+    current: newQuantity,
+    productNumber: inventoryItem.product_number
   };
 }
 
 export function setupRealtimeSubscription(onUpdate: () => void) {
   console.log('Setting up real-time updates for inventory items');
   
-  // Subscribe to all changes to inventory_items table
   const channel = supabase.channel('inventory-updates')
     .on(
       'postgres_changes',
