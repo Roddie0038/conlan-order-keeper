@@ -68,22 +68,22 @@ export async function addInventoryItems(items: Omit<InventoryItem, 'id' | 'last_
   if (error) throw error;
 }
 
-// Simple type for update data to avoid deep type instantiation
-interface UpdateDataType {
+// Define a simple type for update data to prevent excessive type recursion
+type UpdateDataType = {
   product_number?: string;
   description?: string;
   quantity?: number;
   min_threshold?: number;
   low_stock?: boolean;
   last_updated: string;
-}
+};
 
 export async function updateInventoryItem(
   id: string, 
   data: InventoryItemUpdateData,
   currentItem?: InventoryItem
 ) {
-  // Use the simplified interface to avoid type recursion issues
+  // Use the simplified type to avoid type recursion issues
   const updateData: UpdateDataType = { 
     ...data,
     last_updated: new Date().toISOString() 
@@ -141,7 +141,7 @@ export async function decreaseInventoryQuantity(productNumber: string, quantityT
   }
   
   // Ensure all properties we need are available
-  const minThreshold = typeof data.min_threshold !== 'undefined' ? data.min_threshold : 5;
+  const minThreshold = data.min_threshold !== undefined ? data.min_threshold : 5;
   const currentQuantity = data.quantity;
   const newQuantity = Math.max(0, currentQuantity - quantityToDecrease);
   
