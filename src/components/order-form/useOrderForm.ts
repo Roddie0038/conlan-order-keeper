@@ -1,0 +1,205 @@
+
+import { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { OrderSummary } from "./types";
+import { initialFormData, type FormData, storeManagerEmails } from "./formConfig";
+import { getCurrentDateTime } from "@/utils/dateTime";
+import { useAutoDraft } from "@/hooks/useAutoDraft";
+
+export const useOrderForm = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionValues, setSessionValues] = useState({
+    yourName: "",
+    scheduleArrival: ""
+  });
+  const [formData, setFormData] = useState<FormData>({
+    ...initialFormData,
+    dateReceived: getCurrentDateTime()
+  });
+
+  // Initialize auto-draft functionality
+  const { clearDraft } = useAutoDraft(formData, setFormData);
+
+  const getManagerEmail = (storeName: string) => {
+    if (storeName === "Admin") return storeManagerEmails["Admin"];
+    const match = storeName.match(/\d+$/);
+    if (!match) return "";
+    return storeManagerEmails[match[0]] || "";
+  };
+
+  useEffect(() => {
+    const storedName = sessionStorage.getItem('orderName');
+    const storedSchedule = sessionStorage.getItem('orderSchedule');
+    if (storedName || storedSchedule) {
+      setFormData(prev => ({
+        ...prev,
+        yourName: storedName || '',
+        scheduleArrival: storedSchedule || ''
+      }));
+      setSessionValues({
+        yourName: storedName || '',
+        scheduleArrival: storedSchedule || ''
+      });
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.yourName) {
+      toast({
+        title: "Missing Name",
+        description: "Please enter your name.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.productNumber) {
+      toast({
+        title: "Missing Product Number",
+        description: "Please enter a product number.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.description) {
+      toast({
+        title: "Missing Description",
+        description: "Please enter a product description.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.quantity) {
+      toast({
+        title: "Missing Quantity",
+        description: "Please enter a quantity.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.scheduleArrival) {
+      toast({
+        title: "Missing Schedule Arrival",
+        description: "Please select an arrival day.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.crossDock) {
+      toast({
+        title: "Missing Cross Dock Selection",
+        description: "Please specify if this is a cross dock order.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (formData.crossDock === "yes" && !formData.crossDockDestination) {
+      toast({
+        title: "Missing Cross Dock Destination",
+        description: "Please select a cross dock destination.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      let crossDockFullName = formData.crossDockDestination;
+      if (formData.crossDock === "yes" && formData.crossDockDestination) {
+        const store = stores.find(s => s.id === formData.crossDockDestination);
+        if (store) {
+          crossDockFullName = `${store.name} (${store.id})`;
+        }
+      }
+      const managersEmail = getManagerEmail(user?.store || '');
+      console.log("Setting managers email:", managersEmail, "for store:", user?.store);
+      const orderData: OrderSummary = {
+        id: crypto.randomUUID(),
+        timestamp: new Date().toLocaleString(),
+        ...formData,
+        store: user?.store || '',
+        crossDockDestination: crossDockFullName,
+        selected: false,
+        managersEmail: managersEmail
+      };
+      setOrderSummaries(prev => [...prev, orderData]);
+      toast({
+        title: "Order Added to Summary",
+        description: "Your order has been added to the summary table below."
+      });
+
+      // Clear the draft after successful submission
+      clearDraft();
+
+      // Reset form but retain session values
+      setFormData({
+        ...initialFormData,
+        dateReceived: getCurrentDateTime(),
+        yourName: sessionValues.yourName,
+        scheduleArrival: sessionValues.scheduleArrival
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add order to summary. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleChange = (field: keyof FormData, value: string) => {
+    if (field === 'dateReceived') return;
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Store name and scheduleArrival in sessionStorage when they change
+    if (field === 'yourName') {
+      sessionStorage.setItem('orderName', value);
+      setSessionValues(prev => ({
+        ...prev,
+        yourName: value
+      }));
+    }
+    if (field === 'scheduleArrival') {
+      sessionStorage.setItem('orderSchedule', value);
+      setSessionValues(prev => ({
+        ...prev,
+        scheduleArrival: value
+      }));
+    }
+  };
+
+  const toggleOrderSelection = (orderId: string) => {
+    setOrderSummaries(prev => prev.map(order => order.id === orderId ? {
+      ...order,
+      selected: !order.selected
+    } : order));
+  };
+
+  return {
+    formData,
+    setFormData,
+    orderSummaries,
+    setOrderSummaries,
+    handleSubmit,
+    handleChange,
+    toggleOrderSelection,
+    isSubmitting,
+    setIsSubmitting,
+  };
+};
+
+import { stores } from "./formConfig";
