@@ -140,7 +140,8 @@ export async function decreaseInventoryQuantity(productNumber: string, quantityT
     return { status: 'error', message: 'Item not found in inventory' };
   }
   
-  // Now we have data with all columns, including min_threshold
+  // Ensure all properties we need are available
+  const minThreshold = data.min_threshold !== undefined ? data.min_threshold : 5;
   const currentQuantity = data.quantity;
   const newQuantity = Math.max(0, currentQuantity - quantityToDecrease);
   
@@ -149,7 +150,7 @@ export async function decreaseInventoryQuantity(productNumber: string, quantityT
     .from('inventory_items')
     .update({ 
       quantity: newQuantity,
-      low_stock: newQuantity <= (data.min_threshold || 5),
+      low_stock: newQuantity <= minThreshold,
       last_updated: new Date().toISOString()
     })
     .eq('product_number', productNumber);
