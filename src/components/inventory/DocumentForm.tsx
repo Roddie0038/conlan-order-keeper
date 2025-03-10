@@ -209,14 +209,14 @@ export function DocumentForm({ onFormSubmitted }: DocumentFormProps) {
           <FormField
             control={form.control}
             name="file"
-            render={({ field: { value, onChange, ...fieldProps } }) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Upload File</FormLabel>
                 <FormControl>
                   <FileUploader
-                    value={value as File}
-                    onChange={onChange}
-                    {...fieldProps}
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
                   />
                 </FormControl>
                 <FormDescription>

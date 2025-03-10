@@ -5,13 +5,18 @@ import { useToast } from "@/hooks/use-toast";
 import { FileUp, FileText } from "lucide-react";
 
 interface FileUploaderProps {
-  selectedFile: File | null;
-  onFileSelected: (file: File) => void;
+  value?: File;
+  onChange: (file: File) => void;
+  onBlur?: () => void;
+  disabled?: boolean;
+  name?: string;
+  ref?: React.Ref<any>;
 }
 
-export function FileUploader({ selectedFile, onFileSelected }: FileUploaderProps) {
+export function FileUploader({ value, onChange, disabled }: FileUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const selectedFile = value;
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -25,7 +30,7 @@ export function FileUploader({ selectedFile, onFileSelected }: FileUploaderProps
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
-      onFileSelected(file);
+      onChange(file);
       
       toast({
         title: "File Selected",
@@ -49,7 +54,7 @@ export function FileUploader({ selectedFile, onFileSelected }: FileUploaderProps
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      onFileSelected(file);
+      onChange(file);
       
       toast({
         title: "File Dropped",
@@ -73,6 +78,7 @@ export function FileUploader({ selectedFile, onFileSelected }: FileUploaderProps
           className="hidden" 
           onChange={handleFileChange}
           accept=".xlsx,.xls,.pdf,.doc,.docx,.csv,.jpg,.jpeg,.png"
+          disabled={disabled}
         />
         {selectedFile ? (
           <>

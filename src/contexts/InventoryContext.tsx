@@ -50,14 +50,16 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       console.log('Fetched inventory data:', data);
 
       // Map database column names to our component's expected format
+      // This is needed because the Supabase database schema has limited columns
+      // compared to what our front-end expects
       const formattedData = data.map(item => ({
-        id: item.id,
+        id: item.id || crypto.randomUUID(), // Generate ID if not in database
         product_number: item.product_number,
         description: item.description,
         quantity: item.quantity,
-        min_threshold: item.min_threshold,
-        last_updated: item.last_updated,
-        low_stock: item.low_stock
+        min_threshold: item.min_threshold || 5, // Default to 5 if not in DB
+        last_updated: item.last_updated || new Date().toISOString(), // Default to now if not in DB
+        low_stock: item.low_stock || (item.quantity <= (item.min_threshold || 5)) // Calculate if not in DB
       }));
 
       setInventory(formattedData);
