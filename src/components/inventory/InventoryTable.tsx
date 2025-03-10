@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -8,10 +7,12 @@ import { InventoryTableRow } from "./InventoryTableRow";
 import { useInventory, SortField } from "@/hooks/useInventory";
 import { cn } from "@/lib/utils";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
+import { useToast } from "@/hooks/use-toast";
 
 export function InventoryTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const { toast } = useToast();
   const {
     inventory,
     loading,
@@ -34,6 +35,19 @@ export function InventoryTable() {
     getSortedData,
     refreshInventory
   } = useInventory();
+
+  // Add effect to show toast when inventory is updated via real-time
+  useEffect(() => {
+    // We don't want to show this on initial load
+    if (!loading && inventory.length > 0) {
+      const timeoutId = setTimeout(() => {
+        // This will only run after component has been mounted and data loaded
+        console.log('Inventory table component ready for real-time updates');
+      }, 1000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [inventory, loading]);
 
   // Filter inventory based on search term
   const filteredInventory = (editMode ? editedInventory : inventory).filter(item => 

@@ -47,32 +47,17 @@ export type Database = {
       }
       inventory_items: {
         Row: {
-          created_at: string | null
           description: string
-          id: string
-          last_updated: string | null
-          low_stock: boolean
-          min_threshold: number
           product_number: string
           quantity: number
         }
         Insert: {
-          created_at?: string | null
           description: string
-          id?: string
-          last_updated?: string | null
-          low_stock?: boolean
-          min_threshold?: number
           product_number: string
           quantity?: number
         }
         Update: {
-          created_at?: string | null
           description?: string
-          id?: string
-          last_updated?: string | null
-          low_stock?: boolean
-          min_threshold?: number
           product_number?: string
           quantity?: number
         }

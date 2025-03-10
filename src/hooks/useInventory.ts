@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useInventoryContext, InventoryItem } from "@/contexts/InventoryContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export type SortField = 'product_number' | 'description' | 'quantity' | 'min_threshold' | 'last_updated';
 export type SortDirection = 'asc' | 'desc';
@@ -23,6 +24,62 @@ export function useInventory() {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const { toast } = useToast();
+
+  // Set up real-time updates
+  useEffect(() => {
+    console.log('Setting up real-time updates for inventory items');
+    
+    // Subscribe to all changes to inventory_items table
+    const channel = supabase.channel('inventory-updates')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'inventory_items' },
+        (payload) => {
+          console.log('Real-time inventory update received:', payload);
+          refreshInventory();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status);
+      });
+
+    // Cleanup function
+    return () => {
+      console.log('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [refreshInventory]);
+
+  // You can also set up a filtered channel for low stock items
+  useEffect(() => {
+    console.log('Setting up filtered real-time updates for low stock items');
+    
+    const lowStockChannel = supabase.channel('low-stock-updates')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'inventory_items',
+          filter: 'low_stock=eq.true' 
+        },
+        (payload) => {
+          console.log('Low stock item updated:', payload);
+          // You could display a special notification for low stock changes
+          toast({
+            title: "Low Stock Alert",
+            description: "An item with low stock has been updated",
+            variant: "destructive"
+          });
+          refreshInventory();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(lowStockChannel);
+    };
+  }, [refreshInventory, toast]);
 
   const handleSort = (field: SortField) => {
     const isAsc = sortField === field && sortDirection === 'asc';
