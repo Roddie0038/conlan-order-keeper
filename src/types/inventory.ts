@@ -38,4 +38,5 @@ export interface InventoryContextType {
   updateInventoryItem: (id: string, data: InventoryItemUpdateData) => Promise<void>;
   deleteInventoryItem: (id: string) => Promise<void>;
   deleteMultipleItems: (ids: string[]) => Promise<void>;
+  isAdmin: boolean; // Add isAdmin to show/hide edit controls
 }

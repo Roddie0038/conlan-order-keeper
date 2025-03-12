@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, Save, Trash2 } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
+import { useInventoryContext } from "@/contexts/InventoryContext";
 
 interface InventoryTableHeaderProps {
   searchTerm: string;
@@ -29,6 +30,8 @@ export function InventoryTableHeader({
   handleDeleteSelected,
   inventory
 }: InventoryTableHeaderProps) {
+  const { isAdmin } = useInventoryContext();
+  
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-2 w-1/3">
@@ -41,7 +44,7 @@ export function InventoryTableHeader({
         />
       </div>
       <div className="flex items-center space-x-2">
-        {selectedItems.length > 0 && (
+        {isAdmin && selectedItems.length > 0 && (
           <Button 
             onClick={handleDeleteSelected} 
             variant="destructive"
@@ -56,21 +59,25 @@ export function InventoryTableHeader({
           filename="inventory" 
           variant="outline"
         />
-        {!editMode ? (
-          <Button onClick={() => setEditMode(true)} variant="outline">Edit</Button>
-        ) : (
+        {isAdmin && (
           <>
-            <Button onClick={cancelEdit} variant="outline">Cancel</Button>
-            <Button onClick={handleSaveChanges} className="bg-blue-600 hover:bg-blue-700">
-              <Save size={18} className="mr-2" />
-              Save Changes
+            {!editMode ? (
+              <Button onClick={() => setEditMode(true)} variant="outline">Edit</Button>
+            ) : (
+              <>
+                <Button onClick={cancelEdit} variant="outline">Cancel</Button>
+                <Button onClick={handleSaveChanges} className="bg-blue-600 hover:bg-blue-700">
+                  <Save size={18} className="mr-2" />
+                  Save Changes
+                </Button>
+              </>
+            )}
+            <Button onClick={handleAddItem} className="bg-green-600 hover:bg-green-700">
+              <Plus size={18} className="mr-2" />
+              Add Item
             </Button>
           </>
         )}
-        <Button onClick={handleAddItem} className="bg-green-600 hover:bg-green-700">
-          <Plus size={18} className="mr-2" />
-          Add Item
-        </Button>
       </div>
     </div>
   );

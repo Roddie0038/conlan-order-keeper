@@ -27,9 +27,9 @@ export const fetchInventory = async (): Promise<InventoryItem[]> => {
       product_number: item.product_number,
       description: item.description,
       quantity: item.quantity,
-      min_threshold: 5, // Default value
+      min_threshold: 0, // Set default min_threshold to 0
       last_updated: new Date().toISOString(),
-      low_stock: item.quantity <= 5 // Default threshold
+      low_stock: item.quantity <= 0 // Update low_stock check to use 0 as the threshold
     })) || [];
   } catch (error: any) {
     console.error("Unexpected error fetching inventory:", error.message);
@@ -103,8 +103,8 @@ export const decreaseInventoryQuantity = async (productNumber: string, amount: n
       last_updated: new Date().toISOString(),
     };
 
-    // Check if quantity is below threshold
-    const threshold = 5; // Default to 5 since min_threshold doesn't exist in the database
+    // Check if quantity is below threshold (now zero)
+    const threshold = 0; // Set threshold to 0
     const isLow = newQuantity <= threshold;
 
     const { error: updateError } = await supabase

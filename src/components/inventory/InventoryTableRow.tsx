@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { InventoryItem } from "@/contexts/InventoryContext";
+import { useInventoryContext } from "@/contexts/InventoryContext";
 
 interface InventoryTableRowProps {
   item: InventoryItem;
@@ -26,6 +27,7 @@ export function InventoryTableRow({
   handleDeleteItem
 }: InventoryTableRowProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { isAdmin } = useInventoryContext();
 
   const handleConfirmDelete = () => {
     handleDeleteItem(item.id);
@@ -35,14 +37,16 @@ export function InventoryTableRow({
   return (
     <TableRow key={item.id} className={item.low_stock ? "bg-red-50" : ""}>
       <TableCell>
-        <Checkbox 
-          checked={selectedItems.includes(item.id)}
-          onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
-          aria-label={`Select item ${item.product_number}`}
-        />
+        {isAdmin && (
+          <Checkbox 
+            checked={selectedItems.includes(item.id)}
+            onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
+            aria-label={`Select item ${item.product_number}`}
+          />
+        )}
       </TableCell>
       <TableCell>
-        {editMode ? (
+        {editMode && isAdmin ? (
           <Input 
             value={item.product_number} 
             onChange={(e) => handleEdit(item.id, "product_number", e.target.value)}
@@ -53,7 +57,7 @@ export function InventoryTableRow({
         )}
       </TableCell>
       <TableCell>
-        {editMode ? (
+        {editMode && isAdmin ? (
           <Input 
             value={item.description} 
             onChange={(e) => handleEdit(item.id, "description", e.target.value)}
@@ -63,7 +67,7 @@ export function InventoryTableRow({
         )}
       </TableCell>
       <TableCell>
-        {editMode ? (
+        {editMode && isAdmin ? (
           <Input 
             type="number"
             value={item.quantity} 
@@ -75,16 +79,8 @@ export function InventoryTableRow({
         )}
       </TableCell>
       <TableCell>
-        {editMode ? (
-          <Input 
-            type="number"
-            value={item.min_threshold} 
-            onChange={(e) => handleEdit(item.id, "min_threshold", parseInt(e.target.value) || 0)}
-            className="max-w-[80px]"
-          />
-        ) : (
-          item.min_threshold
-        )}
+        {/* Min threshold is now always 0 */}
+        0
       </TableCell>
       <TableCell>
         {new Date(item.last_updated).toLocaleString()}
@@ -93,29 +89,33 @@ export function InventoryTableRow({
         <div className="flex items-center">
           <Checkbox 
             checked={item.low_stock} 
-            onCheckedChange={(checked) => editMode && handleEdit(item.id, "low_stock", !!checked)}
-            disabled={!editMode}
+            onCheckedChange={(checked) => editMode && isAdmin && handleEdit(item.id, "low_stock", !!checked)}
+            disabled={!editMode || !isAdmin}
             className={item.low_stock ? "bg-red-500 text-white" : ""}
           />
         </div>
       </TableCell>
       <TableCell>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setShowDeleteDialog(true)}
-          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-        >
-          <Trash2 size={16} />
-        </Button>
-        
-        <DeleteConfirmationDialog
-          isOpen={showDeleteDialog}
-          setIsOpen={setShowDeleteDialog}
-          onConfirm={handleConfirmDelete}
-          itemCount={1}
-          itemName={item.description || item.product_number}
-        />
+        {isAdmin && (
+          <>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowDeleteDialog(true)}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 size={16} />
+            </Button>
+            
+            <DeleteConfirmationDialog
+              isOpen={showDeleteDialog}
+              setIsOpen={setShowDeleteDialog}
+              onConfirm={handleConfirmDelete}
+              itemCount={1}
+              itemName={item.description || item.product_number}
+            />
+          </>
+        )}
       </TableCell>
     </TableRow>
   );

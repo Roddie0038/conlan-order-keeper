@@ -82,7 +82,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-900 text-white p-6">
       <div className="container mx-auto">
-        <header className="flex justify-between items-center mb-12">
+        <header className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-4">
             <img 
               src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" 
@@ -102,8 +102,20 @@ export default function Dashboard() {
           </Button>
         </header>
 
+        {/* Added large logo image above menu items */}
+        <div className="flex justify-center mb-10">
+          <motion.img
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={loaded ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.7 }}
+            src="/lovable-uploads/7fc96df5-7b90-4a30-ab9c-e13b08d62d40.png"
+            alt="Conlan Tire Logo Large"
+            className="w-full max-w-3xl h-auto object-contain"
+          />
+        </div>
+
         <main>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {menuItems.map((item, index) => (
               <motion.div
                 key={item.title}

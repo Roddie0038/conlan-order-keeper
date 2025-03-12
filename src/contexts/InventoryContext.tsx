@@ -2,6 +2,7 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   InventoryItem, 
   InventoryContextType,
@@ -24,6 +25,8 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.isAdmin || false;
 
   const refreshInventory = async () => {
     try {
@@ -45,6 +48,16 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   };
 
   const addInventoryItems = async (items: Omit<InventoryItem, 'id' | 'last_updated' | 'low_stock'>[]) => {
+    // Only allow admins to add items
+    if (!isAdmin) {
+      toast({
+        title: 'Permission Denied',
+        description: 'Only administrators can modify inventory.',
+        variant: 'destructive'
+      });
+      throw new Error('Permission denied');
+    }
+
     try {
       await addItems(items);
       // Refresh inventory to get the latest data
@@ -61,6 +74,16 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   };
 
   const updateInventoryItem = async (id: string, data: InventoryItemUpdateData) => {
+    // Only allow admins to update items
+    if (!isAdmin) {
+      toast({
+        title: 'Permission Denied',
+        description: 'Only administrators can modify inventory.',
+        variant: 'destructive'
+      });
+      throw new Error('Permission denied');
+    }
+
     try {
       // Find current item for low_stock calculation
       const currentItem = inventory.find(item => item.id === id);
@@ -80,6 +103,16 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteInventoryItem = async (id: string) => {
+    // Only allow admins to delete items
+    if (!isAdmin) {
+      toast({
+        title: 'Permission Denied',
+        description: 'Only administrators can modify inventory.',
+        variant: 'destructive'
+      });
+      throw new Error('Permission denied');
+    }
+
     try {
       await deleteItem(id);
       // Update local state
@@ -96,6 +129,16 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteMultipleItems = async (ids: string[]) => {
+    // Only allow admins to delete items
+    if (!isAdmin) {
+      toast({
+        title: 'Permission Denied',
+        description: 'Only administrators can modify inventory.',
+        variant: 'destructive'
+      });
+      throw new Error('Permission denied');
+    }
+
     try {
       await deleteItems(ids);
       // Update local state
@@ -159,7 +202,8 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     addInventoryItems,
     updateInventoryItem,
     deleteInventoryItem,
-    deleteMultipleItems
+    deleteMultipleItems,
+    isAdmin // Add isAdmin to the context
   };
 
   return (
