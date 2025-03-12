@@ -64,7 +64,8 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     try {
       // Find current item for low_stock calculation
       const currentItem = inventory.find(item => item.id === id);
-      await updateItem(id, data, currentItem);
+      // Fix by removing the third argument since updateItem only expects 2 arguments
+      await updateItem(id, data);
       // Refresh inventory to get the latest data
       await refreshInventory();
     } catch (err: any) {

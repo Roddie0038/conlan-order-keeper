@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { InventoryItem } from "@/types/inventory";
@@ -103,7 +104,7 @@ export const decreaseInventoryQuantity = async (productNumber: string, amount: n
     };
 
     // Check if quantity is below threshold
-    const threshold = item.min_threshold || 5; // Default to 5 if not set
+    const threshold = 5; // Default to 5 since min_threshold doesn't exist in the database
     const isLow = newQuantity <= threshold;
 
     const { error: updateError } = await supabase
