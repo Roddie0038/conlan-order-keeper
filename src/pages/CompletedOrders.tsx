@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState, useEffect } from "react";
+
 interface Order {
   id: string;
   timestamp: string;
@@ -16,6 +17,7 @@ interface Order {
   notes: string;
   crossDock: string;
 }
+
 export default function CompletedOrders() {
   const {
     user,
@@ -23,6 +25,7 @@ export default function CompletedOrders() {
   } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
+
   useEffect(() => {
     const savedOrders = localStorage.getItem('completedOrders');
     if (savedOrders) {
@@ -31,10 +34,12 @@ export default function CompletedOrders() {
       setOrders(filteredOrders);
     }
   }, [user?.store, user?.isAdmin]);
+
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
   const handleDelete = (orderId: string) => {
     const savedOrders = localStorage.getItem('completedOrders');
     if (savedOrders) {
@@ -45,6 +50,7 @@ export default function CompletedOrders() {
       setOrders(filteredOrders);
     }
   };
+
   return <div className="min-h-screen" style={{
     backgroundImage: "url('/lovable-uploads/310fc0d8-29ad-4965-98d1-a236b46f73e8.png')",
     backgroundSize: "cover",
@@ -61,7 +67,7 @@ export default function CompletedOrders() {
           </div>
           <div className="flex gap-4">
             
-            <Button variant="outline" onClick={handleLogout} className="border-orange-500 text-black font-bold hover:bg-orange-500 hover:text-white">
+            <Button variant="outline" onClick={handleLogout} className="bg-black border-orange-500 text-white font-bold hover:bg-orange-500 hover:text-white">
               Logout
             </Button>
           </div>

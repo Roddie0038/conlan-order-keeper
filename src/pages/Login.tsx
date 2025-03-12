@@ -5,21 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 const usernames = ["Conlan97", "Fort Worth22", "Grand Prairie27", "Houston28", "San Antonio29", "Oklahoma30", "Little Rock32", "Kansas33", "Laredo35", "Tulsa36", "Austin39"];
+
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const {
-    login
-  } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (login(username, password)) {
-      navigate("/pending-orders");
+      navigate("/dashboard");
     } else {
       toast({
         title: "Error",
@@ -28,6 +27,7 @@ export default function Login() {
       });
     }
   };
+
   return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800 rounded-3xl bg-green-800 hover:bg-green-700">
       <div className="max-w-md w-full space-y-8 p-8 backdrop-blur-sm shadow-2xl border border-white/20 rounded-3xl bg-zinc-700 hover:bg-zinc-600">
         <div className="text-center">

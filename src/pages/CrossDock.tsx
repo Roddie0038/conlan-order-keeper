@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { CrossDockForm } from "@/components/cross-dock/CrossDockForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 export default function CrossDock() {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  
   return <div className="min-h-screen bg-cover bg-center bg-no-repeat relative" style={{
     backgroundImage: "url('/lovable-uploads/f9c6ac53-6ea8-4e88-b2f9-93cd6538896c.png')"
   }}>

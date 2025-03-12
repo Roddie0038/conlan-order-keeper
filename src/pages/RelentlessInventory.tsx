@@ -59,7 +59,7 @@ export default function RelentlessInventory() {
             <Button 
               variant="outline" 
               onClick={handleLogout}
-              className="border-orange-500 text-white font-bold hover:bg-orange-500 hover:text-white"
+              className="bg-black border-orange-500 text-white font-bold hover:bg-orange-500 hover:text-white"
             >
               Logout
             </Button>

@@ -16,7 +16,6 @@ export default function AdminInventory() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("inventory");
 
-  // Redirect if not admin
   useEffect(() => {
     if (!user?.isAdmin) {
       toast({
@@ -60,7 +59,7 @@ export default function AdminInventory() {
             <Button 
               variant="outline" 
               onClick={handleLogout} 
-              className="border-orange-500 text-black font-bold hover:bg-orange-500 hover:text-white"
+              className="bg-black border-orange-500 text-black font-bold hover:bg-orange-500 hover:text-white"
             >
               Logout
             </Button>

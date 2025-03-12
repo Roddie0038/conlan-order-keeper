@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react";
 import { OrderForm } from "@/components/OrderForm";
 import { storeManagerEmails } from "@/components/order-form/formConfig";
+
 interface Order {
   id: string;
   timestamp: string;
@@ -19,6 +20,7 @@ interface Order {
   crossDock: string;
   managerEmail?: string;
 }
+
 export default function PendingOrders() {
   const {
     user,
@@ -26,17 +28,17 @@ export default function PendingOrders() {
   } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
+
   const getManagerEmail = (store: string) => {
     if (store === "Admin") return storeManagerEmails["Admin"];
     const storeId = store.split(' ')[1];
     return storeManagerEmails[storeId] || '';
   };
+
   useEffect(() => {
-    // In a real app, this would fetch from your backend
     const savedOrders = localStorage.getItem('pendingOrders');
     if (savedOrders) {
       const allOrders = JSON.parse(savedOrders);
-      // Filter orders for the current store and ensure manager email is set
       const filteredOrders = allOrders.filter((order: Order) => order.store === user?.store).map((order: Order) => ({
         ...order,
         managerEmail: getManagerEmail(order.store)
@@ -44,12 +46,11 @@ export default function PendingOrders() {
       setOrders(filteredOrders);
     }
   }, [user?.store]);
+
   const handleComplete = (orderId: string) => {
-    // Move order to completed
     const allPendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
     const orderToComplete = allPendingOrders.find((o: Order) => o.id === orderId);
     if (orderToComplete) {
-      // Add to completed orders
       const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
       completedOrders.push({
         ...orderToComplete,
@@ -57,27 +58,26 @@ export default function PendingOrders() {
       });
       localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
 
-      // Remove from pending
       const updatedPendingOrders = allPendingOrders.filter((o: Order) => o.id !== orderId);
       localStorage.setItem('pendingOrders', JSON.stringify(updatedPendingOrders));
 
-      // Update state
       setOrders(updatedPendingOrders.filter((order: Order) => order.store === user?.store).map((order: Order) => ({
         ...order,
         managerEmail: getManagerEmail(order.store)
       })));
     }
   };
+
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
   return <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{
     backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     backgroundBlendMode: 'overlay'
   }}>
-      {/* Fixed position logout button */}
       <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 bg-black mx-0">LOGOUT</Button>
 
       <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm rounded-full">

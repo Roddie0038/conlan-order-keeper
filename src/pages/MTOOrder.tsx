@@ -3,20 +3,24 @@ import { MTOPendingOrders } from "@/components/mto-order/MTOPendingOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+
 const MTOOrder = () => {
   const {
     user,
     logout
   } = useAuth();
   const navigate = useNavigate();
+
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
   if (!user) {
     navigate('/');
     return null;
   }
+
   return <div className="min-h-screen bg-gray-50" style={{
     backgroundImage: "url('/lovable-uploads/1d2dc4a7-eabb-489d-8be6-adb2766a4def.png')",
     backgroundSize: "cover",
@@ -46,4 +50,5 @@ const MTOOrder = () => {
       </footer>
     </div>;
 };
+
 export default MTOOrder;
