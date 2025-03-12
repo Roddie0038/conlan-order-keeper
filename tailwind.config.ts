@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,14 +60,60 @@ export default {
       },
       animation: {
         "spin": "spin 1s linear infinite",
+        "float": "float 3s ease-in-out infinite",
       },
       keyframes: {
         "spin": {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+      },
+      rotate: {
+        'y-12': '12deg',
+        'x-12': '12deg',
+        'y-90': '90deg',
+        'x-90': '90deg',
+      },
+      transformOrigin: {
+        'left': 'left',
+        'top': 'top',
+      },
+      transformStyle: {
+        'preserve-3d': 'preserve-3d',
+      },
+      perspective: {
+        '1000': '1000px',
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function({ addUtilities }) {
+      const newUtilities = {
+        '.rotate-y-12': {
+          transform: 'rotateY(12deg)',
+        },
+        '.rotate-x-12': {
+          transform: 'rotateX(12deg)',
+        },
+        '.rotate-y-90': {
+          transform: 'rotateY(90deg)',
+        },
+        '.rotate-x-90': {
+          transform: 'rotateX(90deg)',
+        },
+        '.perspective-1000': {
+          perspective: '1000px',
+        },
+        '.preserve-3d': {
+          transformStyle: 'preserve-3d',
+        },
+      };
+      addUtilities(newUtilities);
+    }
+  ],
 } satisfies Config;

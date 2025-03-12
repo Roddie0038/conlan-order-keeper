@@ -7,12 +7,14 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Navigation } from "./components/Navigation";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 import PendingOrders from "./pages/PendingOrders";
 import CompletedOrders from "./pages/CompletedOrders";
 import MTOOrder from "./pages/MTOOrder";
 import CrossDock from "./pages/CrossDock";
 import AllPendingOrders from "./pages/AllPendingOrders";
 import AdminInventory from "./pages/AdminInventory";
+import RelentlessInventory from "./pages/RelentlessInventory";
 import { useEffect } from "react";
 import { orderApi } from "./api/orderApi";
 
@@ -25,7 +27,7 @@ const queryClient = new QueryClient({
   },
 });
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children, showNav = true }: { children: React.ReactNode, showNav?: boolean }) {
   const { user } = useAuth();
   
   // Initialize the API when the app starts
@@ -42,7 +44,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   return (
     <>
-      <Navigation />
+      {showNav && <Navigation />}
       {children}
     </>
   );
@@ -58,6 +60,17 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Login />} />
+              
+              {/* Dashboard as landing page after login (no navigation) */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute showNav={false}>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              
               <Route
                 path="/pending-orders"
                 element={
@@ -105,6 +118,20 @@ function App() {
                     <AdminInventory />
                   </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/relentless-inventory"
+                element={
+                  <ProtectedRoute showNav={false}>
+                    <RelentlessInventory />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Redirect to dashboard if logged in */}
+              <Route
+                path="*"
+                element={<Navigate to="/dashboard" replace />}
               />
             </Routes>
           </BrowserRouter>

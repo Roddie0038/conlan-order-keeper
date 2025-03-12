@@ -139,11 +139,11 @@ export async function decreaseInventoryQuantity(productNumber: string, quantityT
     };
   }
   
-  const inventoryItem = data[0];
+  const inventoryItem = data[0] as DatabaseInventoryItem;
   console.log('Found inventory item:', inventoryItem);
   
   // Set default min_threshold if it's undefined
-  const minThreshold = inventoryItem.min_threshold !== undefined ? inventoryItem.min_threshold : 5;
+  const minThreshold = inventoryItem.min_threshold ?? 5;
   const currentQuantity = inventoryItem.quantity;
   const newQuantity = Math.max(0, currentQuantity - quantityToDecrease);
   
