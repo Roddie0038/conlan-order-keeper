@@ -17,7 +17,7 @@ export function Navigation() {
     { href: "/mto-order", label: "MTO Orders" },
     { href: "/completed-orders", label: "Completed Orders" },
     { href: "/cross-dock", label: "Cross Dock Paperwork" },
-    { href: "/relentless-inventory", label: "Relentless Inventory", icon: <Database className="w-4 h-4 mr-2" /> },
+    { href: "/relentless-inventory", label: "Warehouse Inventory", icon: <Database className="w-4 h-4 mr-2" /> },
   ];
 
   // Add admin inventory link for admin users

@@ -20,7 +20,7 @@ export default function RelentlessInventory() {
     
     // Show welcome toast when the page loads
     toast({
-      title: "Relentless Inventory",
+      title: "Warehouse Inventory",
       description: "Check and manage your inventory in real-time",
     });
   }, [user, navigate, toast]);
@@ -37,18 +37,18 @@ export default function RelentlessInventory() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-primary text-primary-foreground py-6 mb-8">
-        <div className="container flex justify-between items-center">
-          <div className="flex items-center gap-4">
+        <div className="container flex justify-center items-center">
+          <div className="flex flex-col items-center gap-4">
             <img 
               src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" 
               alt="Conlan Tire Logo" 
               className="h-16 object-contain"
             />
-            <h1 className="font-extrabold text-3xl md:text-4xl">
-              Relentless Inventory
+            <h1 className="font-extrabold text-3xl md:text-4xl text-center">
+              Warehouse Inventory
             </h1>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 absolute right-6">
             <Button 
               variant="secondary"
               onClick={handleDashboard}

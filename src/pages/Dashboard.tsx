@@ -69,7 +69,7 @@ export default function Dashboard() {
       delay: 0.5
     },
     {
-      title: "RELENTLESS INVENTORY",
+      title: "WAREHOUSE INVENTORY",
       icon: <Database size={32} />,
       path: "/relentless-inventory",
       color: "from-yellow-400 to-amber-600",
