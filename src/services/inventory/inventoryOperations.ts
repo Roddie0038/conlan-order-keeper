@@ -1,7 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { InventoryItem, DatabaseInventoryItem } from "@/types/inventory";
+import { InventoryItem } from "@/types/inventory";
 
 /**
  * Fetches all inventory items from the database
@@ -9,7 +8,7 @@ import { InventoryItem, DatabaseInventoryItem } from "@/types/inventory";
 export const fetchInventory = async (): Promise<InventoryItem[]> => {
   try {
     const { data, error } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .select('*');
 
     if (error) {
@@ -22,7 +21,15 @@ export const fetchInventory = async (): Promise<InventoryItem[]> => {
       return [];
     }
 
-    return data || [];
+    return data.map(item => ({
+      id: item.product_number, // Using product_number as id since it's unique
+      product_number: item.product_number,
+      description: item.description,
+      quantity: item.quantity,
+      min_threshold: 5, // Default value
+      last_updated: new Date().toISOString(),
+      low_stock: item.quantity <= 5 // Default threshold
+    })) || [];
   } catch (error: any) {
     console.error("Unexpected error fetching inventory:", error.message);
     toast({
@@ -40,7 +47,7 @@ export const fetchInventory = async (): Promise<InventoryItem[]> => {
 export const updateInventoryQuantity = async (productNumber: string, newQuantity: number) => {
   try {
     const { data: existingItems, error: fetchError } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .select('*')
       .eq('product_number', productNumber);
 
@@ -50,12 +57,10 @@ export const updateInventoryQuantity = async (productNumber: string, newQuantity
     }
 
     if (existingItems && existingItems.length > 0) {
-      const item = existingItems[0];
-
       const { error: updateError } = await supabase
-        .from('inventory')
-        .update({ quantity: newQuantity, last_updated: new Date().toISOString() })
-        .eq('id', item.id);
+        .from('inventory_items')
+        .update({ quantity: newQuantity })
+        .eq('product_number', productNumber);
 
       if (updateError) {
         console.error('Error updating inventory:', updateError);
@@ -77,7 +82,7 @@ export const updateInventoryQuantity = async (productNumber: string, newQuantity
  */
 export const decreaseInventoryQuantity = async (productNumber: string, amount: number) => {
   const { data: existingItems, error: fetchError } = await supabase
-    .from('inventory')
+    .from('inventory_items')
     .select('*')
     .eq('product_number', productNumber);
 
@@ -102,9 +107,9 @@ export const decreaseInventoryQuantity = async (productNumber: string, amount: n
     const isLow = newQuantity <= threshold;
 
     const { error: updateError } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .update(updatePayload)
-      .eq('id', item.id);
+      .eq('product_number', productNumber);
 
     if (updateError) {
       console.error('Error updating inventory:', updateError);
@@ -137,7 +142,7 @@ export const decreaseInventoryQuantity = async (productNumber: string, amount: n
 export const increaseInventoryQuantity = async (productNumber: string, amount: number) => {
   try {
     const { data: existingItems, error: fetchError } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .select('*')
       .eq('product_number', productNumber);
 
@@ -151,9 +156,9 @@ export const increaseInventoryQuantity = async (productNumber: string, amount: n
       const newQuantity = item.quantity + amount;
 
       const { error: updateError } = await supabase
-        .from('inventory')
+        .from('inventory_items')
         .update({ quantity: newQuantity, last_updated: new Date().toISOString() })
-        .eq('id', item.id);
+        .eq('product_number', productNumber);
 
       if (updateError) {
         console.error('Error updating inventory:', updateError);
@@ -173,16 +178,19 @@ export const increaseInventoryQuantity = async (productNumber: string, amount: n
 /**
  * Creates a new inventory item
  */
-export const createInventoryItem = async (productNumber: string, description: string, quantity: number, minThreshold: number) => {
+export const createInventoryItem = async (
+  productNumber: string, 
+  description: string, 
+  quantity: number, 
+  minThreshold: number
+) => {
   try {
     const { error } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .insert([{
         product_number: productNumber,
         description: description,
-        quantity: quantity,
-        min_threshold: minThreshold,
-        last_updated: new Date().toISOString()
+        quantity: quantity
       }]);
 
     if (error) {
@@ -203,7 +211,7 @@ export const createInventoryItem = async (productNumber: string, description: st
 export const deleteInventoryItem = async (productNumber: string) => {
   try {
     const { error } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .delete()
       .eq('product_number', productNumber);
 

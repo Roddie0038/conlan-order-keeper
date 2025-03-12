@@ -7,16 +7,14 @@ import { InventoryItem, InventoryItemUpdateData } from "@/types/inventory";
  */
 export const addInventoryItems = async (items: Omit<InventoryItem, 'id' | 'last_updated' | 'low_stock'>[]) => {
   try {
-    // Prepare items for insertion with additional required fields
     const itemsToInsert = items.map(item => ({
-      ...item,
-      last_updated: new Date().toISOString(),
-      // Calculate low_stock flag based on quantity and min_threshold
-      low_stock: item.quantity <= item.min_threshold
+      product_number: item.product_number,
+      description: item.description,
+      quantity: item.quantity
     }));
 
     const { data, error } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .insert(itemsToInsert)
       .select();
 
@@ -37,30 +35,19 @@ export const addInventoryItems = async (items: Omit<InventoryItem, 'id' | 'last_
  */
 export const updateInventoryItem = async (
   id: string, 
-  data: InventoryItemUpdateData, 
-  currentItem?: InventoryItem
+  data: InventoryItemUpdateData
 ) => {
   try {
-    // If we have current item and quantity/threshold is being updated,
-    // calculate if it's low stock
-    let updateData = { ...data };
-    
-    if (
-      currentItem && 
-      (data.quantity !== undefined || data.min_threshold !== undefined)
-    ) {
-      const newQuantity = data.quantity ?? currentItem.quantity;
-      const newThreshold = data.min_threshold ?? currentItem.min_threshold;
-      updateData.low_stock = newQuantity <= newThreshold;
-    }
-    
-    // Always update the last_updated timestamp
-    updateData.last_updated = new Date().toISOString();
+    const updateData = {
+      product_number: data.product_number,
+      description: data.description,
+      quantity: data.quantity
+    };
 
     const { data: updatedItem, error } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .update(updateData)
-      .eq('id', id)
+      .eq('product_number', id)
       .select()
       .single();
 
@@ -82,9 +69,9 @@ export const updateInventoryItem = async (
 export const deleteMultipleItems = async (ids: string[]) => {
   try {
     const { error } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .delete()
-      .in('id', ids);
+      .in('product_number', ids);
 
     if (error) {
       console.error('Error deleting multiple inventory items:', error);
