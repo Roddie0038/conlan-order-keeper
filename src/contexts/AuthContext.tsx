@@ -24,7 +24,8 @@ const users = [
   { username: 'Laredo35', password: 'Welcome35', store: 'Laredo 35', isAdmin: false },
   { username: 'Tulsa36', password: 'Welcome36', store: 'Tulsa 36', isAdmin: false },
   { username: 'Austin39', password: 'Welcome39', store: 'Austin 39', isAdmin: false },
-  { username: 'Conlan97', password: '97orders', store: 'Admin', isAdmin: true }
+  { username: 'Conlan97', password: '97orders', store: 'Admin', isAdmin: true },
+  { username: 'Romulus99', password: 'Welcome99', store: 'Romulus 99', isAdmin: false }
 ];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
