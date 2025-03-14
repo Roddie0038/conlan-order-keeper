@@ -70,7 +70,7 @@ export default function RelentlessInventory() {
       </header>
 
       <main className="container pb-12">
-        <Alert variant="warning" className="mb-6 border-yellow-500 bg-yellow-50 text-yellow-800">
+        <Alert variant="destructive" className="mb-6 border-yellow-500 bg-yellow-50 text-yellow-800">
           <Construction className="h-5 w-5 text-yellow-800" />
           <AlertTitle className="text-yellow-800 font-bold">Page Under Construction</AlertTitle>
           <AlertDescription>
