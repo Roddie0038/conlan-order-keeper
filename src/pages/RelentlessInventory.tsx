@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { InventoryProvider } from "@/contexts/InventoryContext";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle, Construction } from "lucide-react";
+import { AlertCircle, Construction, Database } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function RelentlessInventory() {
@@ -38,7 +38,7 @@ export default function RelentlessInventory() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="bg-primary text-primary-foreground py-6 mb-8">
+      <header className="bg-gradient-to-r from-purple-600 to-purple-900 text-primary-foreground py-6 mb-8">
         <div className="container flex justify-center items-center">
           <div className="flex flex-col items-center gap-4">
             <img 
@@ -46,9 +46,12 @@ export default function RelentlessInventory() {
               alt="Conlan Tire Logo" 
               className="h-16 object-contain"
             />
-            <h1 className="font-extrabold text-3xl md:text-4xl text-center">
-              Warehouse Inventory
-            </h1>
+            <div className="flex items-center gap-3">
+              <Database className="h-8 w-8 text-white" />
+              <h1 className="font-extrabold text-3xl md:text-4xl text-center text-white">
+                Warehouse Inventory
+              </h1>
+            </div>
           </div>
           <div className="flex gap-4 absolute right-6">
             <Button 
