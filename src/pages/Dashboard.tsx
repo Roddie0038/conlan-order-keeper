@@ -9,11 +9,44 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useInventoryContext } from "@/contexts/InventoryContext";
+import { InventoryProvider } from "@/contexts/InventoryContext";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [loaded, setLoaded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Wrap component with InventoryProvider to use the inventory context
+  return (
+    <InventoryProvider>
+      <DashboardContent 
+        user={user}
+        logout={logout}
+        navigate={navigate}
+        loaded={loaded}
+        setLoaded={setLoaded}
+      />
+    </InventoryProvider>
+  );
+}
+
+// Separate component to use the inventory context
+function DashboardContent({ 
+  user, 
+  logout, 
+  navigate, 
+  loaded, 
+  setLoaded 
+}: { 
+  user: any; 
+  logout: () => void; 
+  navigate: (path: string) => void; 
+  loaded: boolean; 
+  setLoaded: (loaded: boolean) => void;
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -28,7 +61,7 @@ export default function Dashboard() {
     // Animate elements in after component mounts
     const timer = setTimeout(() => setLoaded(true), 100);
     return () => clearTimeout(timer);
-  }, [user, navigate]);
+  }, [user, navigate, setLoaded]);
 
   const handleLogout = () => {
     logout();
@@ -44,11 +77,10 @@ export default function Dashboard() {
     setIsSearching(true);
     
     // Filter inventory items based on search query
+    // Update to use the correct property names from InventoryItem type
     const results = inventory.filter(item => 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.size?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+      item.product_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase())
     ).slice(0, 5); // Limit to 5 results for compact display
     
     setSearchResults(results);
@@ -162,7 +194,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-3">
                     <Label htmlFor="search" className="text-white mb-2 block">
-                      Search for items by name, description or SKU
+                      Search for items by product number or description
                     </Label>
                     <div className="flex gap-2">
                       <Input
@@ -199,12 +231,10 @@ export default function Dashboard() {
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {searchResults.map((item) => (
                         <div key={item.id} className="p-3 bg-white/20 rounded-lg">
-                          <p className="font-bold text-white">{item.name}</p>
+                          <p className="font-bold text-white">{item.product_number}</p>
                           <div className="grid grid-cols-2 gap-2 text-sm text-gray-200">
-                            <p>SKU: {item.sku || 'N/A'}</p>
-                            <p>Size: {item.size || 'N/A'}</p>
+                            <p>Description: {item.description || 'N/A'}</p>
                             <p>Quantity: {item.quantity || 0}</p>
-                            <p>Location: {item.location || 'N/A'}</p>
                           </div>
                         </div>
                       ))}
