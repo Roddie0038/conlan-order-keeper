@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,13 +10,13 @@ import type { OrderSummary } from "./order-form/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAutoDraft } from "@/hooks/useAutoDraft";
 import { OrderTemplate } from "./order-templates/OrderTemplate";
+import { InventoryProvider } from "@/contexts/InventoryContext";
+import { InventorySearch } from "./order-form/InventorySearch";
+import { InventoryItem } from "@/types/inventory";
+
 export const OrderForm = () => {
-  const {
-    toast
-  } = useToast();
-  const {
-    user
-  } = useAuth();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [orderSummaries, setOrderSummaries] = useState<OrderSummary[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionValues, setSessionValues] = useState({
@@ -30,15 +29,15 @@ export const OrderForm = () => {
   });
 
   // Initialize auto-draft functionality
-  const {
-    clearDraft
-  } = useAutoDraft(formData, setFormData);
+  const { clearDraft } = useAutoDraft(formData, setFormData);
+
   const getManagerEmail = (storeName: string) => {
     if (storeName === "Admin") return storeManagerEmails["Admin"];
     const match = storeName.match(/\d+$/);
     if (!match) return "";
     return storeManagerEmails[match[0]] || "";
   };
+
   useEffect(() => {
     const storedName = sessionStorage.getItem('orderName');
     const storedSchedule = sessionStorage.getItem('orderSchedule');
@@ -54,6 +53,7 @@ export const OrderForm = () => {
       });
     }
   }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -164,6 +164,7 @@ export const OrderForm = () => {
       });
     }
   };
+
   const handleChange = (field: keyof FormData, value: string) => {
     if (field === 'dateReceived') return;
     setFormData(prev => ({
@@ -187,12 +188,14 @@ export const OrderForm = () => {
       }));
     }
   };
+
   const toggleOrderSelection = (orderId: string) => {
     setOrderSummaries(prev => prev.map(order => order.id === orderId ? {
       ...order,
       selected: !order.selected
     } : order));
   };
+
   const handleLoadTemplate = (templateData: FormData) => {
     setFormData({
       ...templateData,
@@ -203,7 +206,22 @@ export const OrderForm = () => {
       description: "The template has been loaded successfully."
     });
   };
-  return <div className="space-y-8">
+
+  const handleSelectInventoryItem = (item: InventoryItem) => {
+    setFormData(prev => ({
+      ...prev,
+      productNumber: item.product_number,
+      description: item.description
+    }));
+
+    toast({
+      title: "Item Selected",
+      description: `${item.product_number} has been added to the form.`
+    });
+  };
+
+  return (
+    <div className="space-y-8">
       <Tabs defaultValue="order-form" className="w-full">
         <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="order-form" className="font-bold text-sm rounded-3xl text-[#101010] bg-yellow-300 hover:bg-yellow-200">
@@ -215,10 +233,16 @@ export const OrderForm = () => {
             <h3 className="mb-4 text-slate-50 text-center font-bold text-2xl">Order Templates</h3>
             <OrderTemplate type="regular" currentData={formData} onLoadTemplate={handleLoadTemplate} />
           </div>
-          <OrderFormInputs formData={formData} onSubmit={handleSubmit} onChange={handleChange} />
+          
+          <InventoryProvider>
+            <InventorySearch onSelectItem={handleSelectInventoryItem} />
+            <OrderFormInputs formData={formData} onSubmit={handleSubmit} onChange={handleChange} />
+          </InventoryProvider>
+          
           <OrderSummaryTable orderSummaries={orderSummaries} onToggleSelection={toggleOrderSelection} />
           <OrderSubmissionHandler orderSummaries={orderSummaries} setOrderSummaries={setOrderSummaries} />
         </TabsContent>
       </Tabs>
-    </div>;
+    </div>
+  );
 };
