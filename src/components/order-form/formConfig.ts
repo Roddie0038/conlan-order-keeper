@@ -1,3 +1,4 @@
+
 export const stores = [
   { id: "22", name: "Fort Worth 22" },
   { id: "27", name: "Grand Prairie 27" },
@@ -12,18 +13,17 @@ export const stores = [
 ];
 
 export const storeManagerEmails: Record<string, string> = {
-  "Admin": "orders@conlantire.com",
-  "22": "fwtorders@conlantire.com",
-  "27": "gporders@conlantire.com",
-  "28": "htxorders@conlantire.com", 
-  "29": "satxorders@conlantire.com",
-  "30": "okorders@conlantire.com",
-  "32": "lrorders@conlantire.com",
-  "33": "kcorders@conlantire.com",
-  "35": "lrdorders@conlantire.com",
-  "36": "tlsorders@conlantire.com",
-  "39": "atxorders@conlantire.com",
-  "99": "bperry@conlantire.com, rjennings@conlantire.com, drsanchez@conlantire.com"
+  "22": "jmartinez@conlantire.com",
+  "27": "tosborn@conlantire.com, crichard@conlantire.com",
+  "28": "jhughes@conlantire.com, eblais@conlantire.com",
+  "29": "rpetty@conlantire.com, pvallejo@conlantire.com",
+  "30": "dbaumgardner@conlantire.com, bhunt@conlantire.com",
+  "32": "jmilliken@conlantire.com",
+  "33": "rjohnson@conlantire.com, rowilson@conlantire.com, lallen@conlantire.com",
+  "35": "lguerra@conlantire.com, hgamez@conlantire.com",
+  "36": "rjohnson@conlantire.com, kbrown@conlantire.com",
+  "39": "borozco@conlantire.com",
+  "Admin": "Roderickdemarais@aol.com, Conlantire97@gmail.com"
 };
 
 export const scheduleOptions = [
