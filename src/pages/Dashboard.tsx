@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,10 +44,8 @@ export default function Dashboard() {
     
     // Filter inventory items based on search query
     const results = inventory.filter(item => 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.size?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+      item.product_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase())
     ).slice(0, 5); // Limit to 5 results for compact display
     
     setSearchResults(results);
@@ -162,7 +159,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-3">
                     <Label htmlFor="search" className="text-white mb-2 block">
-                      Search for items by name, description or SKU
+                      Search for items by product number or description
                     </Label>
                     <div className="flex gap-2">
                       <Input
@@ -199,12 +196,12 @@ export default function Dashboard() {
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {searchResults.map((item) => (
                         <div key={item.id} className="p-3 bg-white/20 rounded-lg">
-                          <p className="font-bold text-white">{item.name}</p>
+                          <p className="font-bold text-white">{item.product_number}</p>
                           <div className="grid grid-cols-2 gap-2 text-sm text-gray-200">
-                            <p>SKU: {item.sku || 'N/A'}</p>
-                            <p>Size: {item.size || 'N/A'}</p>
+                            <p>Description: {item.description || 'N/A'}</p>
                             <p>Quantity: {item.quantity || 0}</p>
-                            <p>Location: {item.location || 'N/A'}</p>
+                            <p>Last Updated: {new Date(item.last_updated).toLocaleDateString() || 'N/A'}</p>
+                            <p>Min Threshold: {item.min_threshold || 'N/A'}</p>
                           </div>
                         </div>
                       ))}
@@ -313,3 +310,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
