@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { InventoryProvider } from "./contexts/InventoryContext";
 import { Navigation } from "./components/Navigation";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -66,7 +67,9 @@ function App() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute showNav={false}>
-                    <Dashboard />
+                    <InventoryProvider>
+                      <Dashboard />
+                    </InventoryProvider>
                   </ProtectedRoute>
                 }
               />
@@ -123,7 +126,9 @@ function App() {
                 path="/relentless-inventory"
                 element={
                   <ProtectedRoute showNav={false}>
-                    <RelentlessInventory />
+                    <InventoryProvider>
+                      <RelentlessInventory />
+                    </InventoryProvider>
                   </ProtectedRoute>
                 }
               />
