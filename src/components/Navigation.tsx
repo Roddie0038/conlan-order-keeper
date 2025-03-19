@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, Database } from "lucide-react";
+import { LayoutDashboard, Database, ClipboardList } from "lucide-react";
 
 export function Navigation() {
   const location = useLocation();
@@ -20,9 +20,12 @@ export function Navigation() {
     { href: "/relentless-inventory", label: "Warehouse Inventory", icon: <Database className="w-4 h-4 mr-2" /> },
   ];
 
-  // Add admin inventory link for admin users
+  // Add admin-specific links
   if (user?.isAdmin) {
-    links.push({ href: "/admin-inventory", label: "Inventory Management" });
+    links.push(
+      { href: "/admin-inventory", label: "Inventory Management" },
+      { href: "/admin-orders", label: "Admin Orders", icon: <ClipboardList className="w-4 h-4 mr-2" /> }
+    );
   }
 
   return (

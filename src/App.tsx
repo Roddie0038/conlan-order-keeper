@@ -16,6 +16,7 @@ import CrossDock from "./pages/CrossDock";
 import AllPendingOrders from "./pages/AllPendingOrders";
 import AdminInventory from "./pages/AdminInventory";
 import RelentlessInventory from "./pages/RelentlessInventory";
+import AdminOrders from "./pages/AdminOrders";
 import { useEffect } from "react";
 import { orderApi } from "./api/orderApi";
 
@@ -28,7 +29,7 @@ const queryClient = new QueryClient({
   },
 });
 
-function ProtectedRoute({ children, showNav = true }: { children: React.ReactNode, showNav?: boolean }) {
+function ProtectedRoute({ children, showNav = true, adminOnly = false }: { children: React.ReactNode, showNav?: boolean, adminOnly?: boolean }) {
   const { user } = useAuth();
   
   // Initialize the API when the app starts
@@ -41,6 +42,11 @@ function ProtectedRoute({ children, showNav = true }: { children: React.ReactNod
   
   if (!user) {
     return <Navigate to="/" replace />;
+  }
+  
+  // Restrict admin-only routes
+  if (adminOnly && !user.isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
   
   return (
@@ -78,7 +84,9 @@ function App() {
                 path="/pending-orders"
                 element={
                   <ProtectedRoute>
-                    <PendingOrders />
+                    <InventoryProvider>
+                      <PendingOrders />
+                    </InventoryProvider>
                   </ProtectedRoute>
                 }
               />
@@ -117,8 +125,18 @@ function App() {
               <Route
                 path="/admin-inventory"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute adminOnly={true}>
                     <AdminInventory />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin-orders"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <InventoryProvider>
+                      <AdminOrders />
+                    </InventoryProvider>
                   </ProtectedRoute>
                 }
               />
