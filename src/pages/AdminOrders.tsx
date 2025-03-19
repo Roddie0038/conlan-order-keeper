@@ -162,7 +162,7 @@ export default function AdminOrders() {
             } else {
               toast({
                 title: "Inventory Update Failed",
-                description: result.error || "Failed to update inventory quantity",
+                description: result.error ? String(result.error) : "Failed to update inventory quantity",
                 variant: "destructive"
               });
             }
