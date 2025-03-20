@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { InventoryProvider } from "@/contexts/InventoryContext";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle, Construction, Database } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Database } from "lucide-react";
 
 export default function RelentlessInventory() {
   const { user, logout } = useAuth();
@@ -73,14 +72,6 @@ export default function RelentlessInventory() {
       </header>
 
       <main className="container pb-12">
-        <Alert variant="destructive" className="mb-6 border-yellow-500 bg-yellow-50 text-yellow-800">
-          <Construction className="h-5 w-5 text-yellow-800" />
-          <AlertTitle className="text-yellow-800 font-bold">Page Under Construction</AlertTitle>
-          <AlertDescription>
-            This inventory page is currently under development. Some features may be limited or unavailable.
-          </AlertDescription>
-        </Alert>
-
         <InventoryProvider>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
