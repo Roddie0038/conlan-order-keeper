@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, Database, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Database, ClipboardList, ShoppingCart } from "lucide-react";
 
 export function Navigation() {
   const location = useLocation();
@@ -12,7 +12,7 @@ export function Navigation() {
 
   const links = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4 mr-2" /> },
-    { href: "/pending-orders", label: "New Order" },
+    { href: "/pending-orders", label: "New Order", icon: <ShoppingCart className="w-4 h-4 mr-2" /> },
     { href: "/all-pending-orders", label: "All Pending Orders" },
     { href: "/mto-order", label: "MTO Orders" },
     { href: "/completed-orders", label: "Completed Orders" },
@@ -24,7 +24,12 @@ export function Navigation() {
   if (user?.isAdmin) {
     links.push(
       { href: "/admin-inventory", label: "Inventory Management" },
-      { href: "/admin-orders", label: "Admin Orders", icon: <ClipboardList className="w-4 h-4 mr-2" /> }
+      { 
+        href: "/admin-orders", 
+        label: "Admin Order Management", 
+        icon: <ClipboardList className="w-4 h-4 mr-2" />,
+        highlight: true
+      }
     );
   }
 
@@ -41,7 +46,9 @@ export function Navigation() {
                   "px-3 py-2 text-sm font-bold text-white rounded-md transition-colors flex items-center whitespace-nowrap",
                   isActive(link.href)
                     ? "bg-[#0ea5e9] text-white dark:bg-blue-600"
-                    : "hover:bg-[#0ea5e9] hover:text-white dark:hover:bg-blue-600"
+                    : link.highlight
+                      ? "bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700"
+                      : "hover:bg-[#0ea5e9] hover:text-white dark:hover:bg-blue-600"
                 )}
               >
                 {link.icon && link.icon}

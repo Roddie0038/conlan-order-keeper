@@ -168,9 +168,16 @@ export default function AdminOrders() {
             }
           }
           
+          // Add completion timestamp
+          const completedOrder = {
+            ...orderToComplete, 
+            completedAt: new Date().toISOString(),
+            completedBy: user?.email || 'admin'
+          };
+          
           // Move to completed orders
           const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-          completedOrders.push({...orderToComplete, completedAt: new Date().toISOString()});
+          completedOrders.push(completedOrder);
           localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
           
           // Remove from pending orders
@@ -184,8 +191,15 @@ export default function AdminOrders() {
         const orderToComplete = allMTOOrders.find((o: MTOOrder) => o.id === orderId);
         
         if (orderToComplete) {
+          // Add completion information
+          const completedOrder = {
+            ...orderToComplete, 
+            completedAt: new Date().toISOString(),
+            completedBy: user?.email || 'admin'
+          };
+          
           const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-          completedOrders.push({...orderToComplete, completedAt: new Date().toISOString()});
+          completedOrders.push(completedOrder);
           localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
           
           const updatedMTOOrders = allMTOOrders.filter((o: MTOOrder) => o.id !== orderId);
@@ -276,6 +290,13 @@ export default function AdminOrders() {
                   </Button>
                 </div>
               </div>
+              <Button 
+                variant="outline" 
+                className="self-end bg-emerald-600 hover:bg-emerald-500 text-white"
+                onClick={() => navigate("/completed-orders")}
+              >
+                View Completed Orders
+              </Button>
             </div>
           </div>
           
