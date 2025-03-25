@@ -5,12 +5,20 @@ import { DarkModeToggle } from "./DarkModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { LayoutDashboard, Database, ClipboardList, ShoppingCart } from "lucide-react";
 
+// Define an interface for the link item to include the highlight property
+interface NavLink {
+  href: string;
+  label: string;
+  icon?: React.ReactNode;
+  highlight?: boolean;
+}
+
 export function Navigation() {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   const { user } = useAuth();
 
-  const links = [
+  const links: NavLink[] = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4 mr-2" /> },
     { href: "/pending-orders", label: "New Order", icon: <ShoppingCart className="w-4 h-4 mr-2" /> },
     { href: "/all-pending-orders", label: "All Pending Orders" },

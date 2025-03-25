@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -54,7 +53,6 @@ export default function AdminOrders() {
   const navigate = useNavigate();
   const { inventory, refreshInventory } = useInventoryContext();
 
-  // Redirect non-admin users
   useEffect(() => {
     if (user && !user.isAdmin) {
       toast({
@@ -66,7 +64,6 @@ export default function AdminOrders() {
     }
   }, [user, navigate, toast]);
 
-  // Load orders from localStorage
   useEffect(() => {
     const loadOrders = () => {
       const savedRegularOrders = localStorage.getItem('pendingOrders');
@@ -83,7 +80,6 @@ export default function AdminOrders() {
     
     loadOrders();
     
-    // Listen for changes to localStorage (from other tabs/windows)
     window.addEventListener('storage', loadOrders);
     
     return () => {
@@ -91,7 +87,6 @@ export default function AdminOrders() {
     };
   }, []);
 
-  // Filter orders based on search term
   const filteredRegularOrders = regularOrders.filter(order => 
     order.productNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -106,7 +101,6 @@ export default function AdminOrders() {
     order.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Sort orders
   const sortOrders = <T extends unknown>(orders: T[], field: keyof T | null): T[] => {
     if (!field) return orders;
     
@@ -125,19 +119,15 @@ export default function AdminOrders() {
   const sortedRegularOrders = sortOrders(filteredRegularOrders, sortField as keyof Order | null);
   const sortedMTOOrders = sortOrders(filteredMTOOrders, sortField as keyof MTOOrder | null);
 
-  // Handle sorting
   const handleSort = (field: string) => {
     if (sortField === field) {
-      // Toggle direction if same field clicked
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      // New field, default to descending (newest first)
       setSortField(field);
       setSortDirection('desc');
     }
   };
 
-  // Complete an order
   const handleComplete = async (orderId: string, type: 'regular' | 'mto') => {
     try {
       if (type === 'regular') {
@@ -145,7 +135,6 @@ export default function AdminOrders() {
         const orderToComplete = allPendingOrders.find((o: Order) => o.id === orderId);
         
         if (orderToComplete) {
-          // Update inventory quantity
           if (orderToComplete.productNumber) {
             const result = await decreaseInventoryQuantity(
               orderToComplete.productNumber, 
@@ -157,7 +146,6 @@ export default function AdminOrders() {
                 title: "Inventory Updated",
                 description: `Decreased ${orderToComplete.productNumber} quantity by ${orderToComplete.quantity}`,
               });
-              // Refresh inventory data
               refreshInventory();
             } else {
               toast({
@@ -168,34 +156,29 @@ export default function AdminOrders() {
             }
           }
           
-          // Add completion timestamp
           const completedOrder = {
             ...orderToComplete, 
             completedAt: new Date().toISOString(),
-            completedBy: user?.email || 'admin'
+            completedBy: user?.username || 'admin'
           };
           
-          // Move to completed orders
           const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
           completedOrders.push(completedOrder);
           localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
           
-          // Remove from pending orders
           const updatedPendingOrders = allPendingOrders.filter((o: Order) => o.id !== orderId);
           localStorage.setItem('pendingOrders', JSON.stringify(updatedPendingOrders));
           setRegularOrders(updatedPendingOrders);
         }
       } else {
-        // Similar process for MTO orders
         const allMTOOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');
         const orderToComplete = allMTOOrders.find((o: MTOOrder) => o.id === orderId);
         
         if (orderToComplete) {
-          // Add completion information
           const completedOrder = {
             ...orderToComplete, 
             completedAt: new Date().toISOString(),
-            completedBy: user?.email || 'admin'
+            completedBy: user?.username || 'admin'
           };
           
           const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
@@ -222,7 +205,6 @@ export default function AdminOrders() {
     }
   };
 
-  // Delete an order
   const handleDelete = (orderId: string, type: 'regular' | 'mto') => {
     if (type === 'regular') {
       const updatedOrders = regularOrders.filter(order => order.id !== orderId);
@@ -496,3 +478,4 @@ export default function AdminOrders() {
     </div>
   );
 }
+
