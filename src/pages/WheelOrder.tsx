@@ -103,16 +103,16 @@ export default function WheelOrder() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 pb-8">
+    <div className="min-h-screen bg-[#E2E8E4] pb-8">
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <Card className="w-full max-w-3xl mx-auto bg-white/5 border border-white/10 shadow-xl">
-          <CardHeader className="bg-[#2F9599] text-white rounded-t-lg">
+        <Card className="w-full max-w-3xl mx-auto bg-white shadow-xl">
+          <CardHeader className="bg-[#2F9599] rounded-t-lg">
             <div className="flex items-center gap-3">
-              <Disc size={28} />
-              <CardTitle className="text-2xl font-bold tracking-tight">WHEEL POWDER COATING ORDER</CardTitle>
+              <Disc size={28} className="text-black" />
+              <CardTitle className="text-2xl font-bold tracking-tight text-black">WHEEL POWDER COATING ORDER</CardTitle>
             </div>
-            <CardDescription className="text-white/80">
+            <CardDescription className="text-black">
               Complete the form below to submit a wheel powder coating order
             </CardDescription>
           </CardHeader>

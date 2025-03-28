@@ -86,12 +86,23 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("Manager's email in submitToGoogleSheets:", data.managersEmail);
   
   // Determine which webhooks to use based on order type
-  const webhooks = 'type' in data && data.type === 'MTO' 
-    ? ["https://hooks.zapier.com/hooks/catch/21741437/2wax8rh/"]  // MTO orders webhook
-    : [
-        "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/", // Original regular orders webhook
-        "https://hooks.zapier.com/hooks/catch/22118763/2lnbpor/"  // New additional webhook
-      ]; 
+  const webhooks = [];
+  
+  if ('type' in data) {
+    if (data.type === 'MTO') {
+      webhooks.push("https://hooks.zapier.com/hooks/catch/21741437/2wax8rh/"); // MTO orders webhook
+    } else if (data.type === 'WHEEL_POWDER_COATING') {
+      webhooks.push("https://hooks.zapier.com/hooks/catch/21741437/2g90225/"); // Wheel powder coating webhook
+    }
+  }
+  
+  if (webhooks.length === 0) {
+    // If no specific type or not matched, use the default webhooks
+    webhooks.push(
+      "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/", // Original regular orders webhook
+      "https://hooks.zapier.com/hooks/catch/22118763/2lnbpor/"  // New additional webhook
+    );
+  }
 
   try {
     // Submit to all webhooks concurrently
