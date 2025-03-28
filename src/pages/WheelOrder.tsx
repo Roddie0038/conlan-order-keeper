@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { Navigation } from "@/components/Navigation";
 import { stores } from "@/components/order-form/formConfig";
-import { Wheel } from "lucide-react";
+import { Disc } from "lucide-react";
 
 export default function WheelOrder() {
   const { user } = useAuth();
@@ -21,7 +21,7 @@ export default function WheelOrder() {
   
   const [formData, setFormData] = useState({
     storeName: user?.store || "",
-    storeId: user?.storeId || "",
+    storeId: user?.store || "", // Changed from storeId to store to match User properties
     dateReceived: new Date().toISOString().split("T")[0],
     qtyWheels: "",
     customerName: "",
@@ -50,12 +50,24 @@ export default function WheelOrder() {
     setIsSubmitting(true);
 
     try {
+      // Create a compatible object for submitToGoogleSheets
+      // Need to add the missing properties required by OrderData or MTOOrderData types
       const submissionData = {
         yourName: user?.username || "Unknown",
         store: formData.storeName,
         storeId: formData.storeId,
         dateReceived: formData.dateReceived,
         type: "WHEEL_POWDER_COATING",
+        
+        // Add required fields for OrderData
+        productNumber: "WHEEL-COATING",
+        description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
+        quantity: formData.qtyWheels,
+        scheduleArrival: formData.dateReceived,
+        notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
+        crossDock: "No",
+        
+        // Additional wheel specific details
         qtyWheels: formData.qtyWheels,
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
@@ -97,7 +109,7 @@ export default function WheelOrder() {
         <Card className="w-full max-w-3xl mx-auto bg-white/5 border border-white/10 shadow-xl">
           <CardHeader className="bg-[#2F9599] text-white rounded-t-lg">
             <div className="flex items-center gap-3">
-              <Wheel size={28} />
+              <Disc size={28} />
               <CardTitle className="text-2xl font-bold tracking-tight">WHEEL POWDER COATING ORDER</CardTitle>
             </div>
             <CardDescription className="text-white/80">

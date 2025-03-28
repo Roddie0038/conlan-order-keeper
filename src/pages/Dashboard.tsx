@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Box, Package, Clock, CheckSquare, Database, Truck, Search, Wheel } from "lucide-react";
+import { Box, Package, Clock, CheckSquare, Database, Truck, Search, Disc } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +24,6 @@ export default function Dashboard() {
       return;
     }
     
-    // Animate elements in after component mounts
     const timer = setTimeout(() => setLoaded(true), 100);
     return () => clearTimeout(timer);
   }, [user, navigate]);
@@ -43,11 +41,10 @@ export default function Dashboard() {
 
     setIsSearching(true);
     
-    // Filter inventory items based on search query
     const results = inventory.filter(item => 
       item.product_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase())
-    ).slice(0, 5); // Limit to 5 results for compact display
+    ).slice(0, 5);
     
     setSearchResults(results);
     setIsSearching(false);
@@ -56,21 +53,21 @@ export default function Dashboard() {
   const menuItems = [
     {
       title: "NEW ORDER",
-      icon: <Box size={36} />, // Increased icon size
+      icon: <Box size={36} />,
       path: "/pending-orders",
       color: "from-orange-500 to-red-500",
       borderColor: "border-yellow-500",
       delay: 0.1,
-      size: "col-span-1" // Standard size
+      size: "col-span-1"
     },
     {
       title: "MTO",
-      icon: <Package size={36} />, // Increased icon size
+      icon: <Package size={36} />,
       path: "/mto-order",
       color: "from-blue-500 to-purple-900",
       borderColor: "border-blue-400",
       delay: 0.2,
-      size: "col-span-1" // Standard size
+      size: "col-span-1"
     },
     {
       title: "PENDING ORDERS",
@@ -79,11 +76,11 @@ export default function Dashboard() {
       color: "from-red-600 to-red-800",
       borderColor: "border-red-400",
       delay: 0.3,
-      size: "col-span-1 sm:col-span-1" // Reduced size
+      size: "col-span-1 sm:col-span-1"
     },
     {
       title: "CROSS DOCK",
-      icon: <Truck size={36} />, // Updated to Truck icon for Cross Dock
+      icon: <Truck size={36} />,
       path: "/cross-dock",
       color: "from-green-500 to-green-700",
       borderColor: "border-green-400",
@@ -97,22 +94,22 @@ export default function Dashboard() {
       color: "from-yellow-500 to-yellow-700",
       borderColor: "border-yellow-400",
       delay: 0.5,
-      size: "col-span-1 sm:col-span-1" // Reduced size
+      size: "col-span-1 sm:col-span-1"
     },
     {
       title: "WHEEL POWDER COATING",
-      icon: <Wheel size={36} />, // Added Wheel icon for the new menu item
+      icon: <Disc size={36} />,
       path: "/wheel-order",
-      color: "from-[#2F9599] to-[#267376]", // Aqua Lake color
+      color: "from-[#2F9599] to-[#267376]",
       borderColor: "border-[#2F9599]",
       delay: 0.55,
       size: "col-span-1"
     },
     {
       title: "WAREHOUSE INVENTORY",
-      icon: <Database size={36} />, // Increased icon size
+      icon: <Database size={36} />,
       path: "/relentless-inventory",
-      color: "from-purple-500 to-purple-700", // Updated color scheme
+      color: "from-purple-500 to-purple-700",
       borderColor: "border-purple-400",
       delay: 0.6,
       highlight: true,
@@ -143,7 +140,6 @@ export default function Dashboard() {
           </Button>
         </header>
 
-        {/* Added large logo image above menu items */}
         <div className="flex justify-center mb-10">
           <motion.img
             initial={{ opacity: 0, scale: 0.9 }}
@@ -155,7 +151,6 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Search Inventory Box */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={loaded ? { opacity: 1, y: 0 } : {}}
@@ -199,7 +194,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Search Results */}
                 {searchResults.length > 0 && (
                   <div className="mt-4 bg-white/10 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-white mb-2">Results</h3>
@@ -250,13 +244,11 @@ export default function Dashboard() {
                   ${item.highlight ? 'ring-2 ring-purple-300 ring-opacity-50 shadow-lg shadow-purple-500/20' : ''}
                 `}
               >
-                {/* 3D Cube */}
                 <div className="group perspective-1000">
                   <div className={`
                     relative preserve-3d transition-transform duration-500 ease-out group-hover:rotate-y-12 group-hover:rotate-x-12
                     ${item.title === "WAREHOUSE INVENTORY" ? "transform-style-3d shadow-[0_20px_50px_rgba(138,43,226,0.4)]" : ""}
                   `}>
-                    {/* Front face */}
                     <div className={`
                       w-full aspect-square flex flex-col items-center justify-center p-6 rounded-lg
                       bg-gradient-to-br ${item.color}
@@ -265,10 +257,8 @@ export default function Dashboard() {
                         "shadow-[8px_8px_0px_0px_rgba(0,0,0,0.3)] group-hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,0.25)]"}
                       transition-all duration-300
                     `}>
-                      {/* Diagonal pattern overlay */}
                       <div className="absolute inset-0 rounded-lg bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.1)_10px,rgba(0,0,0,0.1)_20px)]"></div>
                       
-                      {/* Content */}
                       <div className="relative z-10 flex flex-col items-center">
                         {item.icon}
                         <h2 className={`
@@ -286,23 +276,15 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Enhanced 3D effect for Warehouse Inventory */}
                     {item.title === "WAREHOUSE INVENTORY" && (
                       <>
-                        {/* Right face with stronger 3D effect */}
                         <div className="absolute top-0 right-0 w-8 h-full transform translate-x-full origin-left rotate-y-90 bg-purple-800 rounded-r-lg"></div>
-                        
-                        {/* Bottom face with stronger 3D effect */}
                         <div className="absolute bottom-0 left-0 w-full h-8 transform translate-y-full origin-top rotate-x-90 bg-purple-900 rounded-b-lg"></div>
                       </>
                     )}
-                    {/* Standard 3D effect for other items */}
                     {item.title !== "WAREHOUSE INVENTORY" && (
                       <>
-                        {/* Right face - simulated with shadow/gradient */}
                         <div className="absolute top-0 right-0 w-6 h-full transform translate-x-full origin-left rotate-y-90 bg-black bg-opacity-30"></div>
-                        
-                        {/* Bottom face - simulated with shadow/gradient */}
                         <div className="absolute bottom-0 left-0 w-full h-6 transform translate-y-full origin-top rotate-x-90 bg-black bg-opacity-40"></div>
                       </>
                     )}

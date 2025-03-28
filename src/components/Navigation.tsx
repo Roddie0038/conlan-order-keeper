@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, Database, ClipboardList, ShoppingCart, Wheel } from "lucide-react";
+import { LayoutDashboard, Database, ClipboardList, ShoppingCart, Disc } from "lucide-react";
 
 // Define an interface for the link item to include the highlight property
 interface NavLink {
@@ -25,7 +25,7 @@ export function Navigation() {
     { href: "/mto-order", label: "MTO Orders" },
     { href: "/completed-orders", label: "Completed Orders" },
     { href: "/cross-dock", label: "Cross Dock Paperwork" },
-    { href: "/wheel-order", label: "Wheel Powder Coating", icon: <Wheel className="w-4 h-4 mr-2" /> },
+    { href: "/wheel-order", label: "Wheel Powder Coating", icon: <Disc className="w-4 h-4 mr-2" /> },
     { href: "/relentless-inventory", label: "Warehouse Inventory", icon: <Database className="w-4 h-4 mr-2" /> },
   ];
 
