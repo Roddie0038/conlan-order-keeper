@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Box, Package, Clock, CheckSquare, Database, ArrowRight, Truck, Search } from "lucide-react";
+import { Box, Package, Clock, CheckSquare, Database, Truck, Search, Wheel } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,6 +98,15 @@ export default function Dashboard() {
       borderColor: "border-yellow-400",
       delay: 0.5,
       size: "col-span-1 sm:col-span-1" // Reduced size
+    },
+    {
+      title: "WHEEL POWDER COATING",
+      icon: <Wheel size={36} />, // Added Wheel icon for the new menu item
+      path: "/wheel-order",
+      color: "from-[#2F9599] to-[#267376]", // Aqua Lake color
+      borderColor: "border-[#2F9599]",
+      delay: 0.55,
+      size: "col-span-1"
     },
     {
       title: "WAREHOUSE INVENTORY",

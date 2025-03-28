@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import AllPendingOrders from "./pages/AllPendingOrders";
 import AdminInventory from "./pages/AdminInventory";
 import RelentlessInventory from "./pages/RelentlessInventory";
 import AdminOrders from "./pages/AdminOrders";
+import WheelOrder from "./pages/WheelOrder";
 import { useEffect } from "react";
 import { orderApi } from "./api/orderApi";
 
@@ -32,7 +32,6 @@ const queryClient = new QueryClient({
 function ProtectedRoute({ children, showNav = true, adminOnly = false }: { children: React.ReactNode, showNav?: boolean, adminOnly?: boolean }) {
   const { user } = useAuth();
   
-  // Initialize the API when the app starts
   useEffect(() => {
     if (window) {
       window.orderApi = orderApi;
@@ -44,7 +43,6 @@ function ProtectedRoute({ children, showNav = true, adminOnly = false }: { child
     return <Navigate to="/" replace />;
   }
   
-  // Restrict admin-only routes
   if (adminOnly && !user.isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -68,7 +66,6 @@ function App() {
             <Routes>
               <Route path="/" element={<Login />} />
               
-              {/* Dashboard as landing page after login (no navigation) */}
               <Route
                 path="/dashboard"
                 element={
@@ -123,6 +120,14 @@ function App() {
                 }
               />
               <Route
+                path="/wheel-order"
+                element={
+                  <ProtectedRoute showNav={false}>
+                    <WheelOrder />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/admin-inventory"
                 element={
                   <ProtectedRoute adminOnly={true}>
@@ -151,7 +156,6 @@ function App() {
                 }
               />
               
-              {/* Redirect to dashboard if logged in */}
               <Route
                 path="*"
                 element={<Navigate to="/dashboard" replace />}
