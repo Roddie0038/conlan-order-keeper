@@ -20,6 +20,7 @@ export default function WheelOrder() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
+    yourName: "",
     storeName: user?.store || "",
     storeId: user?.store || "", // Changed from storeId to store to match User properties
     dateReceived: new Date().toISOString().split("T")[0],
@@ -31,6 +32,18 @@ export default function WheelOrder() {
     wheelSize: "",
     wheelColor: "",
   });
+
+  // Define wheel size and color options
+  const wheelSizeOptions = [
+    { value: "8.25x22.5", label: "8.25x22.5" },
+    { value: "24.5x8.25", label: "24.5x8.25" }
+  ];
+
+  const wheelColorOptions = [
+    { value: "WHITE", label: "WHITE" },
+    { value: "BLACK", label: "BLACK" },
+    { value: "GRAY", label: "GRAY" }
+  ];
 
   const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -53,7 +66,7 @@ export default function WheelOrder() {
       // Create a compatible object for submitToGoogleSheets
       // Need to add the missing properties required by OrderData or MTOOrderData types
       const submissionData = {
-        yourName: user?.username || "Unknown",
+        yourName: formData.yourName || user?.username || "Unknown",
         store: formData.storeName,
         storeId: formData.storeId,
         dateReceived: formData.dateReceived,
@@ -120,6 +133,17 @@ export default function WheelOrder() {
           <form onSubmit={handleSubmit}>
             <CardContent className="grid gap-4 p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="yourName">Your Name</Label>
+                  <Input
+                    id="yourName"
+                    value={formData.yourName}
+                    onChange={(e) => handleInputChange("yourName", e.target.value)}
+                    placeholder="Enter your name"
+                    required
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="store">Store Location & Number</Label>
                   <Select
@@ -222,24 +246,42 @@ export default function WheelOrder() {
 
                 <div className="space-y-2">
                   <Label htmlFor="wheelSize">Wheel Size</Label>
-                  <Input
-                    id="wheelSize"
+                  <Select
                     value={formData.wheelSize}
-                    onChange={(e) => handleInputChange("wheelSize", e.target.value)}
-                    placeholder="Example: 8.25x22.5"
+                    onValueChange={(value) => handleInputChange("wheelSize", value)}
                     required
-                  />
+                  >
+                    <SelectTrigger id="wheelSize" className="w-full">
+                      <SelectValue placeholder="Select wheel size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {wheelSizeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="wheelColor">Desired Wheel Color</Label>
-                  <Input
-                    id="wheelColor"
+                  <Select
                     value={formData.wheelColor}
-                    onChange={(e) => handleInputChange("wheelColor", e.target.value)}
-                    placeholder="Enter color"
+                    onValueChange={(value) => handleInputChange("wheelColor", value)}
                     required
-                  />
+                  >
+                    <SelectTrigger id="wheelColor" className="w-full">
+                      <SelectValue placeholder="Select color" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {wheelColorOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
