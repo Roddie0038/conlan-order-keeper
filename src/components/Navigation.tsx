@@ -21,9 +21,8 @@ export function Navigation() {
   const links: NavLink[] = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4 mr-2" /> },
     { href: "/pending-orders", label: "New Order", icon: <ShoppingCart className="w-4 h-4 mr-2" /> },
-    { href: "/all-pending-orders", label: "All Pending Orders" },
+    { href: "/order-management", label: "Order Management", icon: <ClipboardList className="w-4 h-4 mr-2" /> },
     { href: "/mto-order", label: "MTO Orders" },
-    { href: "/completed-orders", label: "Completed Orders" },
     { href: "/cross-dock", label: "Cross Dock Paperwork" },
     { href: "/wheel-order", label: "Wheel Powder Coating", icon: <Disc className="w-4 h-4 mr-2" /> },
     { href: "/relentless-inventory", label: "Warehouse Inventory", icon: <Database className="w-4 h-4 mr-2" /> },

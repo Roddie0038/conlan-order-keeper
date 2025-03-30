@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,14 +10,13 @@ import { Navigation } from "./components/Navigation";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import PendingOrders from "./pages/PendingOrders";
-import CompletedOrders from "./pages/CompletedOrders";
 import MTOOrder from "./pages/MTOOrder";
 import CrossDock from "./pages/CrossDock";
-import AllPendingOrders from "./pages/AllPendingOrders";
 import AdminInventory from "./pages/AdminInventory";
 import RelentlessInventory from "./pages/RelentlessInventory";
 import AdminOrders from "./pages/AdminOrders";
 import WheelOrder from "./pages/WheelOrder";
+import OrderManagement from "./pages/OrderManagement";
 import { useEffect } from "react";
 import { orderApi } from "./api/orderApi";
 
@@ -88,18 +88,10 @@ function App() {
                 }
               />
               <Route
-                path="/all-pending-orders"
+                path="/order-management"
                 element={
                   <ProtectedRoute>
-                    <AllPendingOrders />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/completed-orders"
-                element={
-                  <ProtectedRoute>
-                    <CompletedOrders />
+                    <OrderManagement />
                   </ProtectedRoute>
                 }
               />
