@@ -26,6 +26,14 @@ export const storeManagerEmails: Record<string, string> = {
   "Admin": "Roderickdemarais@aol.com, Conlantire97@gmail.com"
 };
 
+// Export the getManagerEmail function to be used by other components
+export const getManagerEmail = (store: string) => {
+  if (store === "Admin") return storeManagerEmails["Admin"];
+  const match = store.match(/\d+$/);
+  const storeNumber = match ? match[0] : '';
+  return storeManagerEmails[storeNumber] || '';
+};
+
 export const scheduleOptions = [
   "Monday",
   "Tuesday",

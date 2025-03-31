@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { MTOFormData, initialMTOFormData } from "../mto-form-config";
-import { storeManagerEmails } from "@/components/order-form/formConfig";
+import { getManagerEmail } from "@/components/order-form/formConfig";
 
 interface SessionValues {
   name: string;
@@ -16,13 +16,6 @@ export const useMTOForm = () => {
   const [sessionValues, setSessionValues] = useState<SessionValues>({
     name: "",
   });
-
-  const getManagerEmail = (store: string) => {
-    if (store === "Admin") return storeManagerEmails["Admin"];
-    const match = store.match(/\d+$/);
-    const storeNumber = match ? match[0] : '';
-    return storeManagerEmails[storeNumber] || '';
-  };
   
   const [formData, setFormData] = useState<MTOFormData>(() => {
     return {

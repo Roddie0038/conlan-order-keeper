@@ -1,6 +1,6 @@
 
 import { MTOFormData } from "../mto-form-config";
-import { storeManagerEmails } from "@/components/order-form/formConfig";
+import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
 
 interface SubmitMTOOrderProps {
@@ -98,10 +98,7 @@ export const useSubmitMTOOrder = ({
     try {
       const finalTireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       
-      const storeId = formData.store.split(' ')[1];
-      const managersEmail = formData.store === "Admin" 
-        ? storeManagerEmails["Admin"]
-        : storeManagerEmails[storeId] || '';
+      const managersEmail = getManagerEmail(formData.store);
       
       const orderData = {
         id: crypto.randomUUID(),

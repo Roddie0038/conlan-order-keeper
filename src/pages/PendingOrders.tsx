@@ -1,10 +1,11 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState, useEffect } from "react";
 import { OrderForm } from "@/components/OrderForm";
-import { storeManagerEmails } from "@/components/order-form/formConfig";
+import { getManagerEmail } from "@/components/order-form/formConfig";
 
 interface Order {
   id: string;
@@ -28,12 +29,6 @@ export default function PendingOrders() {
   } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
-
-  const getManagerEmail = (store: string) => {
-    if (store === "Admin") return storeManagerEmails["Admin"];
-    const storeId = store.split(' ')[1];
-    return storeManagerEmails[storeId] || '';
-  };
 
   useEffect(() => {
     const savedOrders = localStorage.getItem('pendingOrders');
