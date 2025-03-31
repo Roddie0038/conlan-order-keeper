@@ -1,11 +1,9 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Navigation } from "@/components/Navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search, ArrowDownUp } from "lucide-react";
@@ -72,7 +70,7 @@ export default function OrderManagement() {
   const [completedSortDirection, setCompletedSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Load orders from localStorage
-  useState(() => {
+  useEffect(() => {
     const loadOrders = () => {
       // Load pending orders
       const savedPendingOrders = localStorage.getItem('pendingOrders');
@@ -343,7 +341,6 @@ export default function OrderManagement() {
               <ExportButton 
                 data={[...pendingOrders, ...mtoOrders, ...completedOrders]} 
                 filename="all-orders" 
-                variant="outline"
               />
             </div>
           </div>
