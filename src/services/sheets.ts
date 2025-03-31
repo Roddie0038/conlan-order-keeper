@@ -1,4 +1,3 @@
-
 interface BaseOrderData {
   timestamp: string;
   store: string;
@@ -92,7 +91,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     if (data.type === 'MTO') {
       webhooks.push("https://hooks.zapier.com/hooks/catch/21741437/2wax8rh/"); // MTO orders webhook
     } else if (data.type === 'WHEEL_POWDER_COATING') {
-      webhooks.push("https://hooks.zapier.com/hooks/catch/21741437/2g90225/"); // Wheel powder coating webhook
+      webhooks.push("https://hooks.zapier.com/hooks/catch/21741437/2c1zjty/"); // Updated wheel powder coating webhook
     }
   }
   
