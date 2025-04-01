@@ -6,6 +6,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { QuickInventorySearch } from "@/components/dashboard/QuickInventorySearch";
 import { DashboardMenu } from "@/components/dashboard/DashboardMenu";
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
+import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -26,7 +27,9 @@ export default function Dashboard() {
       <div className="container mx-auto">
         <DashboardHeader />
 
-        <div className="flex justify-center mb-10"></div>
+        <div className="flex justify-center mb-10">
+          <DashboardBanner />
+        </div>
 
         <QuickInventorySearch loaded={loaded} />
 
