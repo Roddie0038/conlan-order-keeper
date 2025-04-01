@@ -12,6 +12,7 @@ export interface MenuItemProps {
   delay: number;
   size: string;
   highlight?: boolean;
+  backgroundImage?: string;
 }
 
 export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolean }) {
@@ -50,8 +51,17 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
                   : "shadow-[8px_8px_0px_0px_rgba(0,0,0,0.3)] group-hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,0.25)]"
               }
               transition-all duration-300
+              relative overflow-hidden
             `}
           >
+            {/* Background AI Image */}
+            {item.backgroundImage && (
+              <div 
+                className="absolute inset-0 z-0 bg-cover bg-center opacity-70 mix-blend-overlay"
+                style={{ backgroundImage: `url(${item.backgroundImage})` }}
+              />
+            )}
+            
             <div className="absolute inset-0 rounded-lg bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.1)_10px,rgba(0,0,0,0.1)_20px)]"></div>
             
             <div className="relative z-10 flex flex-col items-center">
@@ -64,6 +74,7 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
                   ${item.title === "CROSS DOCK" ? "text-2xl" : ""}
                   ${item.title === "WAREHOUSE INVENTORY" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
                   ${item.title === "ORDER MANAGEMENT" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
+                  text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]
                 `}
               >
                 {item.title}
