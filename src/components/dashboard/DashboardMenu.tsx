@@ -1,4 +1,3 @@
-
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 
@@ -16,7 +15,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       borderColor: "border-yellow-500",
       delay: 0.1,
       size: "col-span-1",
-      backgroundImage: "/lovable-uploads/7fc96df5-7b90-4a30-ab9c-e13b08d62d40.png"
+      backgroundImage: "/lovable-uploads/ccf8c0b0-c0d6-410a-9dc4-e76c7f073cc9.png"
     },
     {
       title: "MTO",
