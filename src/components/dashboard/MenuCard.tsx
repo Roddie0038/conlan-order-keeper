@@ -34,6 +34,7 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
           className={`
             relative preserve-3d transition-transform duration-500 ease-out group-hover:rotate-y-12 group-hover:rotate-x-12
             ${item.title === "WAREHOUSE INVENTORY" ? "transform-style-3d shadow-[0_20px_50px_rgba(138,43,226,0.4)]" : ""}
+            ${item.title === "ORDER MANAGEMENT" ? "transform-style-3d shadow-[0_20px_50px_rgba(220,38,38,0.4)]" : ""}
           `}
         >
           <div
@@ -44,6 +45,8 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
               ${
                 item.title === "WAREHOUSE INVENTORY"
                   ? "border-4 border-purple-400 shadow-[0_10px_30px_rgba(138,43,226,0.3)]"
+                  : item.title === "ORDER MANAGEMENT"
+                  ? "border-4 border-yellow-400 shadow-[0_10px_30px_rgba(220,38,38,0.3)]"
                   : "shadow-[8px_8px_0px_0px_rgba(0,0,0,0.3)] group-hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,0.25)]"
               }
               transition-all duration-300
@@ -60,6 +63,7 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
                   ${item.title === "PENDING ORDERS" || item.title === "COMPLETED ORDERS" ? "text-lg" : ""}
                   ${item.title === "CROSS DOCK" ? "text-2xl" : ""}
                   ${item.title === "WAREHOUSE INVENTORY" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
+                  ${item.title === "ORDER MANAGEMENT" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
                 `}
               >
                 {item.title}
@@ -76,7 +80,13 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
               <div className="absolute bottom-0 left-0 w-full h-8 transform translate-y-full origin-top rotate-x-90 bg-purple-900 rounded-b-lg"></div>
             </>
           )}
-          {item.title !== "WAREHOUSE INVENTORY" && (
+          {item.title === "ORDER MANAGEMENT" && (
+            <>
+              <div className="absolute top-0 right-0 w-8 h-full transform translate-x-full origin-left rotate-y-90 bg-red-800 rounded-r-lg"></div>
+              <div className="absolute bottom-0 left-0 w-full h-8 transform translate-y-full origin-top rotate-x-90 bg-red-900 rounded-b-lg"></div>
+            </>
+          )}
+          {item.title !== "WAREHOUSE INVENTORY" && item.title !== "ORDER MANAGEMENT" && (
             <>
               <div className="absolute top-0 right-0 w-6 h-full transform translate-x-full origin-left rotate-y-90 bg-black bg-opacity-30"></div>
               <div className="absolute bottom-0 left-0 w-full h-6 transform translate-y-full origin-top rotate-x-90 bg-black bg-opacity-40"></div>
