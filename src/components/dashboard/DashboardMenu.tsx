@@ -26,7 +26,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       borderColor: "border-blue-400",
       delay: 0.2,
       size: "col-span-1",
-      backgroundImage: "/lovable-uploads/b6f875b5-dba1-457d-b748-3b6e0578f676.png"
+      backgroundImage: "/lovable-uploads/9323845a-ce1e-4487-bfb4-a5abab06965f.png"
     },
     {
       title: "ORDER MANAGEMENT",

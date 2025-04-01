@@ -57,7 +57,10 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
             {/* Background AI Image */}
             {item.backgroundImage && (
               <div 
-                className="absolute inset-0 z-0 bg-cover bg-center opacity-70 mix-blend-overlay"
+                className={`
+                  absolute inset-0 z-0 bg-cover bg-center 
+                  ${item.title === "MTO" ? "opacity-90 mix-blend-normal" : "opacity-70 mix-blend-overlay"}
+                `}
                 style={{ backgroundImage: `url(${item.backgroundImage})` }}
               />
             )}
