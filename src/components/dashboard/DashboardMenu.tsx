@@ -1,5 +1,5 @@
 
-import { Box, Package, Clock, CheckSquare, Database, Truck, Disc } from "lucide-react";
+import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 
 interface DashboardMenuProps {
@@ -27,13 +27,14 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1"
     },
     {
-      title: "PENDING ORDERS",
-      icon: <Clock size={32} />,
-      path: "/all-pending-orders",
-      color: "from-red-600 to-red-800",
-      borderColor: "border-red-400",
+      title: "ORDER MANAGEMENT",
+      icon: <ClipboardList size={36} />,
+      path: "/order-management",
+      color: "from-red-600 to-yellow-500",
+      borderColor: "border-yellow-400",
       delay: 0.3,
-      size: "col-span-1 sm:col-span-1"
+      size: "col-span-1",
+      highlight: true
     },
     {
       title: "CROSS DOCK",
@@ -45,21 +46,12 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1"
     },
     {
-      title: "COMPLETED ORDERS",
-      icon: <CheckSquare size={32} />,
-      path: "/completed-orders",
-      color: "from-yellow-500 to-yellow-700",
-      borderColor: "border-yellow-400",
-      delay: 0.5,
-      size: "col-span-1 sm:col-span-1"
-    },
-    {
       title: "WHEEL POWDER COATING",
       icon: <Disc size={36} />,
       path: "/wheel-order",
       color: "from-[#2F9599] to-[#267376]",
       borderColor: "border-[#2F9599]",
-      delay: 0.55,
+      delay: 0.5,
       size: "col-span-1"
     },
     {
