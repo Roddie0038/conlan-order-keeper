@@ -59,7 +59,7 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
               <div 
                 className={`
                   absolute inset-0 z-0 bg-cover bg-center 
-                  ${item.title === "MTO" ? "opacity-90 mix-blend-normal" : "opacity-70 mix-blend-overlay"}
+                  ${item.title === "MTO" ? "opacity-80 mix-blend-multiply" : "opacity-70 mix-blend-overlay"}
                 `}
                 style={{ backgroundImage: `url(${item.backgroundImage})` }}
               />
@@ -77,7 +77,10 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
                   ${item.title === "CROSS DOCK" ? "text-2xl" : ""}
                   ${item.title === "WAREHOUSE INVENTORY" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
                   ${item.title === "ORDER MANAGEMENT" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
-                  text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]
+                  text-white 
+                  ${item.title === "MTO" ? 
+                    "drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-extrabold text-blue-50" : 
+                    "drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"}
                 `}
               >
                 {item.title}
@@ -111,3 +114,4 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
     </motion.div>
   );
 }
+
