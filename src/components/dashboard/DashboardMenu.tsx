@@ -10,13 +10,15 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
   const menuItems: MenuItemProps[] = [
     {
       title: "NEW ORDER",
-      icon: <Box size={36} className="text-white drop-shadow-sm" />,
+      icon: null,
       path: "/pending-orders",
-      color: "from-orange-500 to-red-500",
+      color: "",
       borderColor: "border-yellow-500",
       delay: 0.1,
       size: "col-span-1",
-      backgroundImage: "/lovable-uploads/ccf8c0b0-c0d6-410a-9dc4-e76c7f073cc9.png"
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/b866e767-c11e-42b3-8973-1e01be98c454.png"
     },
     {
       title: "MTO",
