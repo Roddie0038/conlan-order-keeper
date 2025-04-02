@@ -71,14 +71,16 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     },
     {
       title: "WAREHOUSE INVENTORY",
-      icon: <Database size={36} className="text-white drop-shadow-sm" />,
+      icon: null,
       path: "/relentless-inventory",
-      color: "from-purple-500 to-purple-700",
+      color: "",
       borderColor: "border-purple-400",
       delay: 0.6,
       highlight: true,
       size: "col-span-1",
-      backgroundImage: "/lovable-uploads/be43b300-3ff2-43c1-b522-e326db67e4e1.png"
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/63f10867-6aa8-46cf-8d8c-d086edacbb2f.png"
     }
   ];
 
