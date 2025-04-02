@@ -1,4 +1,3 @@
-
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 
@@ -34,14 +33,16 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     },
     {
       title: "ORDER MANAGEMENT",
-      icon: <ClipboardList size={36} className="text-white drop-shadow-sm" />,
+      icon: null,
       path: "/order-management",
-      color: "from-red-600 to-yellow-500",
+      color: "",
       borderColor: "border-yellow-400",
       delay: 0.3,
       size: "col-span-1",
       highlight: true,
-      backgroundImage: "/lovable-uploads/8e895365-a10c-4b41-9eb1-dcafc41e688a.png"
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/7f6dce61-94af-46e1-9797-99bc1808efa9.png"
     },
     {
       title: "CROSS DOCK",
@@ -57,12 +58,12 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       title: "WHEEL REFURB ORDER",
       icon: null,
       path: "/wheel-order",
-      color: "", // Removed gradient background color
+      color: "",
       borderColor: "border-[#2F9599]",
       delay: 0.5,
       size: "col-span-1",
       hideTitle: true,
-      fullSizeImage: true, // New property to indicate full size image
+      fullSizeImage: true,
       backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
     },
     {
