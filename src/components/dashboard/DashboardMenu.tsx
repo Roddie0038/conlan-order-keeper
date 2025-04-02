@@ -22,13 +22,15 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     },
     {
       title: "MTO",
-      icon: <Package size={36} className="text-white drop-shadow-sm" />,
+      icon: null,
       path: "/mto-order",
-      color: "from-blue-500 to-purple-900",
+      color: "",
       borderColor: "border-blue-400",
       delay: 0.2,
       size: "col-span-1",
-      backgroundImage: "/lovable-uploads/9323845a-ce1e-4487-bfb4-a5abab06965f.png"
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/2d66f9b9-bc58-4d2f-bab0-d1141b72e69d.png"
     },
     {
       title: "ORDER MANAGEMENT",
