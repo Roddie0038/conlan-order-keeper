@@ -1,3 +1,4 @@
+
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 
@@ -36,7 +37,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       delay: 0.3,
       size: "col-span-1",
       highlight: true,
-      backgroundImage: "/lovable-uploads/310fc0d8-29ad-4965-98d1-a236b46f73e8.png"
+      backgroundImage: "/lovable-uploads/8e895365-a10c-4b41-9eb1-dcafc41e688a.png"
     },
     {
       title: "CROSS DOCK",

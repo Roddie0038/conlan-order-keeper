@@ -59,7 +59,9 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
               <div 
                 className={`
                   absolute inset-0 z-0 bg-cover bg-center 
-                  ${item.title === "MTO" ? "opacity-80 mix-blend-multiply" : "opacity-70 mix-blend-overlay"}
+                  ${item.title === "MTO" ? "opacity-80 mix-blend-multiply" : ""}
+                  ${item.title === "NEW ORDER" ? "opacity-70 mix-blend-overlay" : ""}
+                  ${item.title === "ORDER MANAGEMENT" ? "opacity-90 mix-blend-hard-light" : "opacity-70 mix-blend-overlay"}
                 `}
                 style={{ backgroundImage: `url(${item.backgroundImage})` }}
               />
@@ -76,7 +78,7 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
                   ${item.title === "PENDING ORDERS" || item.title === "COMPLETED ORDERS" ? "text-lg" : ""}
                   ${item.title === "CROSS DOCK" ? "text-2xl" : ""}
                   ${item.title === "WAREHOUSE INVENTORY" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
-                  ${item.title === "ORDER MANAGEMENT" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
+                  ${item.title === "ORDER MANAGEMENT" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)] font-extrabold" : ""}
                   text-white 
                   ${item.title === "MTO" ? 
                     "drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-extrabold text-blue-50" : 
@@ -114,4 +116,3 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
     </motion.div>
   );
 }
-
