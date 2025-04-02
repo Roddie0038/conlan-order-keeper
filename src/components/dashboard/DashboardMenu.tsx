@@ -51,13 +51,14 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     },
     {
       title: "WHEEL REFURB ORDER",
-      icon: null, // Removed the icon
+      icon: null,
       path: "/wheel-order",
-      color: "from-[#2F9599] to-[#267376]",
+      color: "", // Removed gradient background color
       borderColor: "border-[#2F9599]",
       delay: 0.5,
       size: "col-span-1",
-      hideTitle: true, // Add this flag to hide the title
+      hideTitle: true,
+      fullSizeImage: true, // New property to indicate full size image
       backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
     },
     {

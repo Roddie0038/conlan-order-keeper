@@ -13,7 +13,8 @@ export interface MenuItemProps {
   size: string;
   highlight?: boolean;
   backgroundImage?: string;
-  hideTitle?: boolean; // New property to hide title
+  hideTitle?: boolean;
+  fullSizeImage?: boolean; // New property to show full size image
 }
 
 export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolean }) {
@@ -42,7 +43,7 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
           <div
             className={`
               w-full aspect-square flex flex-col items-center justify-center p-6 rounded-lg
-              bg-gradient-to-br ${item.color}
+              ${item.color ? `bg-gradient-to-br ${item.color}` : ''}
               border-2 ${item.borderColor}
               ${
                 item.title === "WAREHOUSE INVENTORY"
@@ -60,15 +61,20 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
               <div 
                 className={`
                   absolute inset-0 z-0 bg-cover bg-center 
-                  ${item.title === "MTO" ? "opacity-80 mix-blend-multiply" : ""}
-                  ${item.title === "NEW ORDER" ? "opacity-70 mix-blend-overlay" : ""}
-                  ${item.title === "ORDER MANAGEMENT" ? "opacity-90 mix-blend-hard-light" : "opacity-70 mix-blend-overlay"}
+                  ${item.fullSizeImage ? "opacity-100" : ""}
+                  ${!item.fullSizeImage && item.title === "MTO" ? "opacity-80 mix-blend-multiply" : ""}
+                  ${!item.fullSizeImage && item.title === "NEW ORDER" ? "opacity-70 mix-blend-overlay" : ""}
+                  ${!item.fullSizeImage && item.title === "ORDER MANAGEMENT" ? "opacity-90 mix-blend-hard-light" : ""}
+                  ${!item.fullSizeImage && !["MTO", "NEW ORDER", "ORDER MANAGEMENT", "WHEEL REFURB ORDER"].includes(item.title) ? "opacity-70 mix-blend-overlay" : ""}
                 `}
                 style={{ backgroundImage: `url(${item.backgroundImage})` }}
               />
             )}
             
-            <div className="absolute inset-0 rounded-lg bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.1)_10px,rgba(0,0,0,0.1)_20px)]"></div>
+            {/* Only add the overlay pattern if it's not a full size image */}
+            {!item.fullSizeImage && (
+              <div className="absolute inset-0 rounded-lg bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.1)_10px,rgba(0,0,0,0.1)_20px)]"></div>
+            )}
             
             <div className="relative z-10 flex flex-col items-center justify-center h-full">
               {/* Only show icon if it exists and title is not hidden */}
