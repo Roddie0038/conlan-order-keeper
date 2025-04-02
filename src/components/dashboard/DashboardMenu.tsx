@@ -50,14 +50,15 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       backgroundImage: "/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png"
     },
     {
-      title: "WHEEL POWDER COATING",
-      icon: <Disc size={36} className="text-white drop-shadow-sm" />,
+      title: "WHEEL REFURB ORDER",
+      icon: null, // Removed the icon
       path: "/wheel-order",
       color: "from-[#2F9599] to-[#267376]",
       borderColor: "border-[#2F9599]",
       delay: 0.5,
       size: "col-span-1",
-      backgroundImage: "/lovable-uploads/1d2dc4a7-eabb-489d-8be6-adb2766a4def.png"
+      hideTitle: true, // Add this flag to hide the title
+      backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
     },
     {
       title: "WAREHOUSE INVENTORY",

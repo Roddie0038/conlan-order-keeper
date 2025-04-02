@@ -13,6 +13,7 @@ export interface MenuItemProps {
   size: string;
   highlight?: boolean;
   backgroundImage?: string;
+  hideTitle?: boolean; // New property to hide title
 }
 
 export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolean }) {
@@ -69,24 +70,30 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
             
             <div className="absolute inset-0 rounded-lg bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.1)_10px,rgba(0,0,0,0.1)_20px)]"></div>
             
-            <div className="relative z-10 flex flex-col items-center">
-              {item.icon}
-              <h2
-                className={`
-                  mt-3 font-bold text-center
-                  ${item.title === "NEW ORDER" || item.title === "MTO" ? "text-2xl" : ""}
-                  ${item.title === "PENDING ORDERS" || item.title === "COMPLETED ORDERS" ? "text-lg" : ""}
-                  ${item.title === "CROSS DOCK" ? "text-2xl" : ""}
-                  ${item.title === "WAREHOUSE INVENTORY" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
-                  ${item.title === "ORDER MANAGEMENT" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)] font-extrabold" : ""}
-                  text-white 
-                  ${item.title === "MTO" ? 
-                    "drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-extrabold text-blue-50" : 
-                    "drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"}
-                `}
-              >
-                {item.title}
-              </h2>
+            <div className="relative z-10 flex flex-col items-center justify-center h-full">
+              {/* Only show icon if it exists and title is not hidden */}
+              {!item.hideTitle && item.icon && item.icon}
+              
+              {/* Only show title if not hidden */}
+              {!item.hideTitle && (
+                <h2
+                  className={`
+                    mt-3 font-bold text-center
+                    ${item.title === "NEW ORDER" || item.title === "MTO" ? "text-2xl" : ""}
+                    ${item.title === "PENDING ORDERS" || item.title === "COMPLETED ORDERS" ? "text-lg" : ""}
+                    ${item.title === "CROSS DOCK" ? "text-2xl" : ""}
+                    ${item.title === "WAREHOUSE INVENTORY" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]" : ""}
+                    ${item.title === "ORDER MANAGEMENT" ? "text-2xl drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)] font-extrabold" : ""}
+                    text-white 
+                    ${item.title === "MTO" ? 
+                      "drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-extrabold text-blue-50" : 
+                      "drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"}
+                  `}
+                >
+                  {item.title}
+                </h2>
+              )}
+              
               <span className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white font-semibold">
                 Click to Open &rarr;
               </span>
