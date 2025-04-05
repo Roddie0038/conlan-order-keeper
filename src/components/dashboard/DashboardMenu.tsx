@@ -30,7 +30,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/2d66f9b9-bc58-4d2f-bab0-d1141b72e69d.png"
+      backgroundImage: "/lovable-uploads/2a2af5fe-894f-4d64-b91b-1ad72497dead.png"
     },
     {
       title: "ORDER MANAGEMENT",
