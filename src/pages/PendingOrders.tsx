@@ -75,18 +75,8 @@ export default function PendingOrders() {
   }}>
       <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 bg-black mx-0">LOGOUT</Button>
 
-      <header 
-        className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm rounded-full overflow-hidden relative"
-        style={{
-          position: "relative",
-          backgroundImage: 'url("/lovable-uploads/af270b98-529f-4d1a-8665-3e1fff9ff658.png")',
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)"
-        }}
-      >
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"></div>
-        <div className="container flex justify-between items-center relative z-10">
+      <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm rounded-full">
+        <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain rounded-full" />
             <h1 className="mx-[240px] font-extrabold my-[4px] py-[4px] text-4xl text-justify px-[29px]">New Order Form - {user?.store}</h1>
