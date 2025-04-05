@@ -1,3 +1,4 @@
+
 import { MTOOrderForm } from "@/components/mto-order/MTOOrderForm";
 import { MTOPendingOrders } from "@/components/mto-order/MTOPendingOrders";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,7 +34,9 @@ const MTOOrder = () => {
 
       <header className="bg-primary text-primary-foreground py-6 mb-8 rounded-full">
         <div className="container flex flex-col items-center gap-4 rounded-full">
-          <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-24 object-contain" />
+          <div className="h-32 w-32 flex items-center justify-center">
+            <img src="/lovable-uploads/9936c75b-4159-4c84-88ee-829bdaaadb09.png" alt="MTO Logo" className="h-full w-full object-contain" />
+          </div>
           <h1 className="font-bold text-center text-white text-4xl">MTO Order Form - {user.store}</h1>
         </div>
       </header>
