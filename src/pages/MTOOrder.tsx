@@ -32,8 +32,8 @@ const MTOOrder = () => {
         LOGOUT
       </Button>
 
-      <header className="bg-primary text-primary-foreground py-6 mb-8 rounded-full">
-        <div className="container flex flex-col items-center gap-4 rounded-full">
+      <header className="bg-primary text-primary-foreground py-6 mb-8 rounded-lg shadow-md">
+        <div className="container flex flex-col items-center gap-4">
           <div className="h-32 w-32 flex items-center justify-center">
             <img src="/lovable-uploads/9936c75b-4159-4c84-88ee-829bdaaadb09.png" alt="MTO Logo" className="h-full w-full object-contain" />
           </div>
@@ -41,11 +41,13 @@ const MTOOrder = () => {
         </div>
       </header>
       
-      <main className="container pb-8 py-px">
-        <div className="p-6 rounded-lg shadow-lg py-[25px] bg-transparent">
+      <main className="container pb-8 py-px max-w-4xl mx-auto">
+        <div className="rounded-lg shadow-lg py-[25px] bg-transparent">
           <MTOOrderForm />
         </div>
-        <MTOPendingOrders />
+        <div className="mt-8">
+          <MTOPendingOrders />
+        </div>
       </main>
       
       <footer className="mt-16 py-6 text-center text-gray-600 bg-white/90">

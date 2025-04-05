@@ -1,5 +1,8 @@
+
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
 interface FormFieldProps {
   label: string;
   type?: string;
@@ -14,6 +17,7 @@ interface FormFieldProps {
   }>;
   disabled?: boolean;
 }
+
 export const FormField = ({
   label,
   type = "text",
@@ -25,22 +29,48 @@ export const FormField = ({
   disabled = false
 }: FormFieldProps) => {
   if (options) {
-    return <div>
-        <label className="block text-sm font-medium mb-1 bg-amber-500 px-[155px] rounded-2xl">{label}</label>
-        <Select value={value} onValueChange={value => onChange(value)} disabled={disabled}>
-          <SelectTrigger>
+    return (
+      <div className="space-y-2">
+        <Label className="block text-sm font-medium text-gray-700">
+          {label} {required && <span className="text-red-500">*</span>}
+        </Label>
+        <Select 
+          value={value} 
+          onValueChange={value => onChange(value)} 
+          disabled={disabled}
+        >
+          <SelectTrigger className="w-full border border-gray-300 rounded-md h-10 bg-white">
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
-          <SelectContent>
-            {options.map(option => <SelectItem key={option.id || option.value} value={option.id || option.value || ""}>
+          <SelectContent className="bg-white">
+            {options.map(option => (
+              <SelectItem 
+                key={option.id || option.value} 
+                value={option.id || option.value || ""}
+              >
                 {option.name || option.value}
-              </SelectItem>)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-      </div>;
+      </div>
+    );
   }
-  return <div>
-      <label className="block text-sm font-medium mb-1 mx-0 px-[160px] bg-amber-500 rounded-3xl">{label}</label>
-      <Input type={type} required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} className="w-full bg-zinc-50 rounded-lg" />
-    </div>;
+  
+  return (
+    <div className="space-y-2">
+      <Label className="block text-sm font-medium text-gray-700">
+        {label} {required && <span className="text-red-500">*</span>}
+      </Label>
+      <Input 
+        type={type} 
+        required={required} 
+        value={value} 
+        onChange={e => onChange(e.target.value)} 
+        placeholder={placeholder} 
+        disabled={disabled} 
+        className="w-full border border-gray-300 rounded-md h-10 bg-white disabled:bg-gray-100"
+      />
+    </div>
+  );
 };
