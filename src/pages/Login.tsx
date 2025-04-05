@@ -7,7 +7,14 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const usernames = ["Conlan97", "Fort Worth22", "Grand Prairie27", "Houston28", "San Antonio29", "Oklahoma30", "Little Rock32", "Kansas33", "Laredo35", "Tulsa36", "Austin39", "Romulus99"];
+const usernames = [
+  "Conlan97", "Fort Worth22", "Grand Prairie27", "Houston28", "San Antonio29", 
+  "Oklahoma30", "Little Rock32", "Kansas33", "Laredo35", "Tulsa36", "Austin39",
+  "Miami 3", "Pompano Beach7", "Fort Myers9", "Jacksonville2", "Ocala5", 
+  "Tallahassee15", "Mulberry99", "Orlando4", "Tampa6", "Vero Beach21", 
+  "Sarasota23", "Romulus098", "Toledo8", "Detroit11", "Grand Rapids13", 
+  "Cleveland18", "Chicago41"
+];
 
 export default function Login() {
   const [username, setUsername] = useState("");

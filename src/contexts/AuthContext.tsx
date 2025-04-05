@@ -25,7 +25,25 @@ const users = [
   { username: 'Tulsa36', password: 'Welcome36', store: 'Tulsa 36', isAdmin: false },
   { username: 'Austin39', password: 'Welcome39', store: 'Austin 39', isAdmin: false },
   { username: 'Conlan97', password: '97orders', store: 'Admin', isAdmin: true },
-  { username: 'Romulus99', password: 'Welcome99', store: 'Romulus 99', isAdmin: false }
+  
+  // New stores added
+  { username: 'Miami 3', password: 'Welcome3', store: 'Miami 3', isAdmin: false },
+  { username: 'Pompano Beach7', password: 'Welcome7', store: 'Pompano Beach 7', isAdmin: false },
+  { username: 'Fort Myers9', password: 'Welcome9', store: 'Fort Myers 9', isAdmin: false },
+  { username: 'Jacksonville2', password: 'Welcome2', store: 'Jacksonville 2', isAdmin: false },
+  { username: 'Ocala5', password: 'Welcome5', store: 'Ocala 5', isAdmin: false },
+  { username: 'Tallahassee15', password: 'Welcome15', store: 'Tallahassee 15', isAdmin: false },
+  { username: 'Mulberry99', password: 'Welcome99', store: 'Mulberry 99', isAdmin: false },
+  { username: 'Orlando4', password: 'Welcome4', store: 'Orlando 4', isAdmin: false },
+  { username: 'Tampa6', password: 'Welcome3', store: 'Tampa 6', isAdmin: false },
+  { username: 'Vero Beach21', password: 'Welcome21', store: 'Vero Beach 21', isAdmin: false },
+  { username: 'Sarasota23', password: 'Welcome23', store: 'Sarasota 23', isAdmin: false },
+  { username: 'Romulus098', password: 'Welcome98', store: 'Romulus 098', isAdmin: false },
+  { username: 'Toledo8', password: 'Welcome8', store: 'Toledo 8', isAdmin: false },
+  { username: 'Detroit11', password: 'Welcome11', store: 'Detroit 11', isAdmin: false },
+  { username: 'Grand Rapids13', password: 'Welcome13', store: 'Grand Rapids 13', isAdmin: false },
+  { username: 'Cleveland18', password: 'Welcome18', store: 'Cleveland 18', isAdmin: false },
+  { username: 'Chicago41', password: 'Welcome41', store: 'Chicago 41', isAdmin: false },
 ];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
