@@ -1,12 +1,11 @@
-
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useState, useEffect } from "react";
 import { OrderForm } from "@/components/OrderForm";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { Calendar, PackageOpen, FileText, Hash, Mail, CheckCircle } from "lucide-react";
+import { LogoutButton } from "@/components/LogoutButton";
 
 interface Order {
   id: string;
@@ -24,11 +23,7 @@ interface Order {
 }
 
 export default function PendingOrders() {
-  const {
-    user,
-    logout
-  } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   
   useEffect(() => {
@@ -62,17 +57,12 @@ export default function PendingOrders() {
     }
   };
   
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-  
   return <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{
     backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     backgroundBlendMode: 'overlay'
   }}>
-      <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 bg-black mx-0">LOGOUT</Button>
+      <LogoutButton />
 
       <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm rounded-full">
         <div className="container flex justify-between items-center">

@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { InventoryProvider } from "./contexts/InventoryContext";
 import { Navigation } from "./components/Navigation";
+import { LogoutButton } from "./components/LogoutButton";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import PendingOrders from "./pages/PendingOrders";
@@ -50,6 +51,7 @@ function ProtectedRoute({ children, showNav = true, adminOnly = false }: { child
   return (
     <>
       {showNav && <Navigation />}
+      <LogoutButton />
       {children}
     </>
   );
