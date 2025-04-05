@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { stores, getManagerEmail } from "@/components/order-form/formConfig";
-import { Disc } from "lucide-react";
+import { Disc, Truck, User, Calendar, ShoppingCart, Palette, Gauge, CircleUser } from "lucide-react";
 import { WheelFormInputs } from "./WheelFormInputs";
 import { WheelFormData } from "./types";
 
@@ -177,19 +177,21 @@ export function WheelOrderForm() {
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto bg-white shadow-xl">
-      <CardHeader className="bg-[#2F9599] rounded-t-lg">
+    <Card className="w-full max-w-3xl mx-auto bg-white shadow-xl transition-all duration-300 hover:shadow-2xl">
+      <CardHeader className="bg-gradient-to-r from-blue-700 to-blue-900 rounded-t-lg">
         <div className="flex items-center gap-3">
-          <Disc size={28} className="text-black" />
-          <CardTitle className="text-2xl font-bold tracking-tight text-black">WHEEL POWDER COATING ORDER</CardTitle>
+          <div className="bg-white p-1.5 rounded-full">
+            <Disc size={28} className="text-blue-700" />
+          </div>
+          <CardTitle className="text-2xl font-bold tracking-tight text-white">WHEEL POWDER COATING ORDER</CardTitle>
         </div>
-        <CardDescription className="text-black">
+        <CardDescription className="text-blue-100 font-medium">
           Complete the form below to submit a wheel powder coating order
         </CardDescription>
       </CardHeader>
       
       <form onSubmit={handleSubmit}>
-        <CardContent className="p-6">
+        <CardContent className="p-8">
           <WheelFormInputs 
             formData={formData}
             managerEmail={managerEmail}
@@ -199,19 +201,19 @@ export function WheelOrderForm() {
           />
         </CardContent>
         
-        <CardFooter className="flex justify-end gap-4 pb-6 px-6">
+        <CardFooter className="flex justify-end gap-4 pb-6 px-6 border-t border-gray-100 pt-6">
           <Button 
             type="button" 
             variant="outline" 
             onClick={() => navigate('/dashboard')}
-            className="border-red-300 text-red-300 hover:bg-red-300/20"
+            className="border-red-300 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-400 transition-all duration-200"
           >
             Cancel
           </Button>
           <Button 
             type="submit" 
             disabled={isSubmitting}
-            className="bg-[#2F9599] hover:bg-[#267376] transition-colors"
+            className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-medium transition-all duration-200 hover:shadow-md"
           >
             {isSubmitting ? "Submitting..." : "Submit Order"}
           </Button>

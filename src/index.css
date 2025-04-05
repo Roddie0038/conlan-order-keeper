@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,4 +99,25 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Add hover effect for inputs and selects */
+  input:hover, select:hover {
+    @apply border-gray-400 transition-all duration-200;
+  }
+  
+  /* Add focus effect for inputs and selects */
+  input:focus, select:focus {
+    @apply border-blue-500 ring-2 ring-blue-200 outline-none transition-all duration-200;
+  }
 }
+
+/* Add some transitions for button elements */
+button {
+  @apply transition-all duration-200;
+}
+
+/* Add subtle hover animation for cards */
+.card-hover-effect {
+  @apply transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px];
+}
+
