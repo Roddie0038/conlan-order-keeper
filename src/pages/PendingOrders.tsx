@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react";
 import { OrderForm } from "@/components/OrderForm";
 import { getManagerEmail } from "@/components/order-form/formConfig";
+import { Calendar, PackageOpen, FileText, Hash, Mail, CheckCircle } from "lucide-react";
+
 interface Order {
   id: string;
   timestamp: string;
@@ -20,6 +22,7 @@ interface Order {
   crossDock: string;
   managerEmail?: string;
 }
+
 export default function PendingOrders() {
   const {
     user,
@@ -27,6 +30,7 @@ export default function PendingOrders() {
   } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
+  
   useEffect(() => {
     const savedOrders = localStorage.getItem('pendingOrders');
     if (savedOrders) {
@@ -38,6 +42,7 @@ export default function PendingOrders() {
       setOrders(filteredOrders);
     }
   }, [user?.store]);
+  
   const handleComplete = (orderId: string) => {
     const allPendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
     const orderToComplete = allPendingOrders.find((o: Order) => o.id === orderId);
@@ -56,10 +61,12 @@ export default function PendingOrders() {
       })));
     }
   };
+  
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+  
   return <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{
     backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -73,42 +80,100 @@ export default function PendingOrders() {
             <img alt="Conlan Tire Logo" className="h-16 object-contain rounded-full" src="/lovable-uploads/1691138e-da6c-4910-8901-00cd0ab21fa8.png" />
             <h1 className="mx-[240px] font-extrabold my-[4px] py-[4px] text-4xl text-justify px-[29px]">New Order Form - {user?.store}</h1>
           </div>
-          
         </div>
       </header>
 
       <main className="container space-y-8">
         <OrderForm />
         
-        <div className="backdrop-blur-sm p-6 shadow rounded-3xl bg-black/60">
-          <h2 className="font-semibold mb-4 text-slate-50 px-[240px] text-center text-2xl">Current Pending Orders</h2>
-          <Table>
-            <TableHeader className="bg-red-500">
-              <TableRow className="bg-red-200 rounded-full">
-                <TableHead className="rounded-full bg-emerald-400">Date</TableHead>
-                <TableHead className="bg-emerald-400 rounded-full">Product</TableHead>
-                <TableHead className="bg-emerald-400 rounded-3xl px-0">Description</TableHead>
-                <TableHead className="bg-emerald-400 rounded-full">Quantity</TableHead>
-                <TableHead className="bg-emerald-400 rounded-full">Manager Email</TableHead>
-                <TableHead className="rounded-full bg-emerald-400">
-              </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map(order => <TableRow key={order.id}>
-                  <TableCell>{new Date(order.dateReceived).toLocaleDateString()}</TableCell>
-                  <TableCell>{order.productNumber}</TableCell>
-                  <TableCell>{order.description}</TableCell>
-                  <TableCell>{order.quantity}</TableCell>
-                  <TableCell>{order.managerEmail}</TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm" onClick={() => handleComplete(order.id)}>
-                      Mark Complete
-                    </Button>
-                  </TableCell>
-                </TableRow>)}
-            </TableBody>
-          </Table>
+        <div className="backdrop-blur-sm p-8 shadow-xl rounded-2xl bg-slate-800/90 border border-slate-700">
+          <h2 className="font-bold mb-6 text-slate-50 text-center text-2xl flex items-center justify-center gap-2">
+            <PackageOpen className="h-6 w-6 text-blue-400" />
+            Current Pending Orders
+          </h2>
+          
+          <div className="overflow-hidden rounded-xl border border-slate-700 shadow-md">
+            <Table className="w-full">
+              <TableHeader className="bg-slate-700">
+                <TableRow>
+                  <TableHead className="text-slate-200 py-3 font-semibold">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4 text-blue-400" />
+                      <span>Date</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-slate-200 py-3 font-semibold">
+                    <div className="flex items-center gap-1.5">
+                      <PackageOpen className="h-4 w-4 text-blue-400" />
+                      <span>Product</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-slate-200 py-3 font-semibold">
+                    <div className="flex items-center gap-1.5">
+                      <FileText className="h-4 w-4 text-blue-400" />
+                      <span>Description</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-slate-200 py-3 font-semibold">
+                    <div className="flex items-center gap-1.5">
+                      <Hash className="h-4 w-4 text-blue-400" />
+                      <span>Quantity</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-slate-200 py-3 font-semibold">
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="h-4 w-4 text-blue-400" />
+                      <span>Manager Email</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-right text-slate-200 py-3 font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-700">
+                {orders.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-slate-400">
+                      No pending orders found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  orders.map((order, index) => (
+                    <TableRow 
+                      key={order.id}
+                      className={`hover:bg-slate-700/50 transition-colors ${index % 2 === 0 ? 'bg-slate-800/70' : 'bg-slate-800/40'}`}
+                    >
+                      <TableCell className="py-3 text-slate-200">
+                        {new Date(order.dateReceived).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="py-3 text-slate-200">
+                        {order.productNumber}
+                      </TableCell>
+                      <TableCell className="py-3 text-slate-200 max-w-[200px] truncate">
+                        {order.description}
+                      </TableCell>
+                      <TableCell className="py-3 text-slate-200">
+                        {order.quantity}
+                      </TableCell>
+                      <TableCell className="py-3 text-slate-200">
+                        {order.managerEmail || 'N/A'}
+                      </TableCell>
+                      <TableCell className="py-3 text-right">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleComplete(order.id)}
+                          className="bg-green-600/20 text-green-400 border-green-700 hover:bg-green-500/30 hover:text-green-300 transition-all flex items-center gap-1"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          Complete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </main>
     </div>;
