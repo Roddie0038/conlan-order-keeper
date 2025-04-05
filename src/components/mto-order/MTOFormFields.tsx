@@ -10,20 +10,23 @@ interface MTOFormFieldsProps {
   formData: MTOFormData;
   onChange: (field: string, value: string | string[]) => void;
   isAdmin?: boolean;
+  section?: "store" | "product" | "order" | "all";
 }
 
 export const MTOFormFields = ({
   formData,
   onChange,
-  isAdmin = false
+  isAdmin = false,
+  section = "all"
 }: MTOFormFieldsProps) => {
   const handleCasingGradeChange = (grade: string, checked: boolean) => {
     const updatedGrades = checked ? [...formData.casingGrade, grade] : formData.casingGrade.filter(g => g !== grade);
     onChange("casingGrade", updatedGrades);
   };
   
-  return (
-    <div className="space-y-6">
+  // Store Information Fields
+  const renderStoreFields = () => (
+    <div className="space-y-4">
       {isAdmin ? (
         <FormField 
           label="Store" 
@@ -66,7 +69,12 @@ export const MTOFormFields = ({
         disabled={true} 
         placeholder="Manager's email will be automatically set" 
       />
-
+    </div>
+  );
+  
+  // Product Details Fields
+  const renderProductFields = () => (
+    <div className="space-y-4">
       <FormField 
         label="Product Number" 
         value={formData.productNumber} 
@@ -74,22 +82,24 @@ export const MTOFormFields = ({
         placeholder="Enter product number" 
         required 
       />
-
+      
       <div className="space-y-3">
-        <Label className="block text-sm font-medium text-gray-700">Casing Grade <span className="text-red-500">*</span></Label>
-        <Card className="p-4 border border-gray-200 rounded-md bg-gray-50">
+        <Label className="text-sm font-medium text-gray-700">Casing Grade <span className="text-red-500">*</span></Label>
+        <Card className="p-4 border border-gray-200 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {casingGrades.map(grade => (
-              <div key={grade.value} className="flex items-center space-x-3">
-                <Checkbox 
-                  id={grade.value} 
-                  checked={formData.casingGrade.includes(grade.value)} 
-                  onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)} 
-                  className="h-5 w-5 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500" 
-                />
+              <div key={grade.value} className="flex items-center space-x-3 group">
+                <div className="relative">
+                  <Checkbox 
+                    id={grade.value} 
+                    checked={formData.casingGrade.includes(grade.value)} 
+                    onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)} 
+                    className="h-5 w-5 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 transition-all" 
+                  />
+                </div>
                 <Label 
                   htmlFor={grade.value} 
-                  className="text-sm text-gray-700 font-normal"
+                  className="text-sm text-gray-700 font-normal group-hover:text-blue-600 transition-colors cursor-pointer"
                 >
                   {grade.name}
                 </Label>
@@ -98,7 +108,12 @@ export const MTOFormFields = ({
           </div>
         </Card>
       </div>
-
+    </div>
+  );
+  
+  // Order Specification Fields
+  const renderOrderFields = () => (
+    <div className="space-y-4">
       <FormField 
         label="Tire Size" 
         value={formData.tireSize} 
@@ -141,6 +156,20 @@ export const MTOFormFields = ({
         onChange={value => onChange("notes", value)} 
         placeholder="Enter any additional notes" 
       />
+    </div>
+  );
+  
+  // Render appropriate sections based on the prop
+  if (section === "store") return renderStoreFields();
+  if (section === "product") return renderProductFields();
+  if (section === "order") return renderOrderFields();
+  
+  // Render all sections if no specific section is specified
+  return (
+    <div className="space-y-6">
+      {renderStoreFields()}
+      {renderProductFields()}
+      {renderOrderFields()}
     </div>
   );
 };

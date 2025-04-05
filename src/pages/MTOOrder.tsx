@@ -4,6 +4,7 @@ import { MTOPendingOrders } from "@/components/mto-order/MTOPendingOrders";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
 const MTOOrder = () => {
   const {
@@ -22,22 +23,28 @@ const MTOOrder = () => {
     return null;
   }
 
-  return <div className="min-h-screen bg-gray-50" style={{
-    backgroundImage: "url('/lovable-uploads/1d2dc4a7-eabb-489d-8be6-adb2766a4def.png')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat"
-  }}>
-      <Button variant="outline" onClick={handleLogout} className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 my-0 bg-black mx-0">
+  return (
+    <div className="min-h-screen bg-gray-50" style={{
+      backgroundImage: "url('/lovable-uploads/1d2dc4a7-eabb-489d-8be6-adb2766a4def.png')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat"
+    }}>
+      <Button 
+        variant="outline" 
+        onClick={handleLogout} 
+        className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 bg-black hover:bg-black/80 transition-colors flex items-center gap-2"
+      >
+        <LogOut size={18} />
         LOGOUT
       </Button>
 
-      <header className="bg-primary text-primary-foreground py-6 mb-8 rounded-lg shadow-md">
+      <header className="bg-gradient-to-r from-blue-700 to-blue-900 text-primary-foreground py-6 mb-8 rounded-lg shadow-lg">
         <div className="container flex flex-col items-center gap-4">
-          <div className="h-32 w-32 flex items-center justify-center">
+          <div className="h-32 w-32 flex items-center justify-center animate-float">
             <img src="/lovable-uploads/9936c75b-4159-4c84-88ee-829bdaaadb09.png" alt="MTO Logo" className="h-full w-full object-contain" />
           </div>
-          <h1 className="font-bold text-center text-white text-4xl">MTO Order Form - {user.store}</h1>
+          <h1 className="font-bold text-center text-white text-4xl">{user.store} - MTO Order Form</h1>
         </div>
       </header>
       
@@ -50,10 +57,11 @@ const MTOOrder = () => {
         </div>
       </main>
       
-      <footer className="mt-16 py-6 text-center text-gray-600 bg-white/90">
+      <footer className="mt-16 py-6 text-center text-gray-600 bg-white/90 border-t border-gray-200">
         <p>© {new Date().getFullYear()} Conlan Tire. All rights reserved.</p>
       </footer>
-    </div>;
+    </div>
+  );
 };
 
 export default MTOOrder;
