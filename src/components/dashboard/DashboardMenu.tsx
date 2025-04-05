@@ -67,7 +67,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
+      backgroundImage: "/lovable-uploads/4f5861d2-62e8-4c91-bc6b-bcfcec6fb670.png" // Updated to use new wheel image
     },
     {
       title: "WAREHOUSE INVENTORY",
