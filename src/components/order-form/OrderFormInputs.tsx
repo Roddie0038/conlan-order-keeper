@@ -1,3 +1,4 @@
+
 import { FormField } from "./FormField";
 import { Button } from "@/components/ui/button";
 import { scheduleOptions, crossDockOptions, stores, type FormData, storeManagerEmails } from "./formConfig";
@@ -5,19 +6,20 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchInventory } from "@/services/inventoryService";
 import { InventoryItem } from "@/types/inventory";
+import { Info, Package, Calendar, Truck } from "lucide-react";
+
 interface OrderFormInputsProps {
   formData: FormData;
   onSubmit: (e: React.FormEvent) => void;
   onChange: (field: keyof FormData, value: string) => void;
 }
+
 export const OrderFormInputs = ({
   formData,
   onSubmit,
   onChange
 }: OrderFormInputsProps) => {
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const [inventoryCheck, setInventoryCheck] = useState<{
     available: boolean;
     quantity: number;
@@ -102,42 +104,159 @@ export const OrderFormInputs = ({
       });
     }
   }, [formData.quantity, inventoryCheck, toast]);
-  return <form onSubmit={onSubmit} className="space-y-6 max-w-2xl mx-auto p-6 shadow rounded-md px-[100px] bg-transparent">
-      <div className="space-y-4">
-        <FormField label="Your Name" required value={formData.yourName} onChange={value => onChange("yourName", value)} placeholder="Enter your name" />
 
-        <FormField label="Date Received" type="datetime-local" required value={formData.dateReceived} onChange={value => onChange("dateReceived", value)} disabled={true} />
+  return (
+    <form onSubmit={onSubmit} className="max-w-2xl mx-auto backdrop-blur-md bg-black/60 p-8 rounded-xl shadow-xl border border-gray-800 transition-all">
+      <div className="space-y-6">
+        {/* Contact Information Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4 border-l-4 border-blue-500 pl-3">
+            <Info className="h-5 w-5 text-blue-400" />
+            <h3 className="text-lg font-medium text-white">Contact Information</h3>
+          </div>
 
-        <FormField label="Manager's Email" type="email" value={formData.managersEmail || ''} onChange={() => {}} // No-op since it's read-only
-      disabled={true} placeholder="Manager's email will be automatically set" />
+          <div className="pl-4 space-y-4">
+            <FormField 
+              label="Your Name" 
+              required 
+              value={formData.yourName} 
+              onChange={value => onChange("yourName", value)} 
+              placeholder="Enter your name" 
+            />
 
-        <div className="bg-zinc-50">
-          <FormField label="Product Number" required value={formData.productNumber} onChange={value => onChange("productNumber", value)} placeholder="Enter product number" />
-          {inventoryCheck !== null && <div className="bg-rose-600 rounded-lg px-[120px]">
-              {inventoryCheck.available ? `In stock: ${inventoryCheck.quantity} units available` : 'Out of stock'}
-            </div>}
+            <FormField 
+              label="Date Received" 
+              type="datetime-local" 
+              required 
+              value={formData.dateReceived} 
+              onChange={value => onChange("dateReceived", value)} 
+              disabled={true} 
+            />
+
+            <FormField 
+              label="Manager's Email" 
+              type="email" 
+              value={formData.managersEmail || ''} 
+              onChange={() => {}} 
+              disabled={true} 
+              placeholder="Manager's email will be automatically set" 
+            />
+          </div>
         </div>
 
-        <FormField label="Description" required value={formData.description} onChange={value => onChange("description", value)} placeholder="Enter product description" />
+        {/* Product Details Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4 border-l-4 border-green-500 pl-3">
+            <Package className="h-5 w-5 text-green-400" />
+            <h3 className="text-lg font-medium text-white">Product Details</h3>
+          </div>
 
-        <FormField label="Quantity" type="number" required value={formData.quantity} onChange={value => onChange("quantity", value)} placeholder="Enter quantity" />
+          <div className="pl-4 space-y-4">
+            <div className="bg-zinc-800/50 p-4 rounded-lg">
+              <FormField 
+                label="Product Number" 
+                required 
+                value={formData.productNumber} 
+                onChange={value => onChange("productNumber", value)} 
+                placeholder="Enter product number" 
+              />
+              
+              {inventoryCheck !== null && (
+                <div className={`mt-2 rounded-lg p-2 text-sm ${inventoryCheck.available ? 'bg-green-900/40 text-green-400' : 'bg-rose-900/40 text-rose-400'}`}>
+                  {inventoryCheck.available 
+                    ? `✓ In stock: ${inventoryCheck.quantity} units available` 
+                    : '✕ Out of stock'}
+                </div>
+              )}
+            </div>
 
-        <FormField label="Schedule Arrival" required value={formData.scheduleArrival} onChange={value => onChange("scheduleArrival", value)} options={scheduleOptions} placeholder="Select arrival day" />
+            <FormField 
+              label="Description" 
+              required 
+              value={formData.description} 
+              onChange={value => onChange("description", value)} 
+              placeholder="Enter product description" 
+            />
 
-        <FormField label="Notes" value={formData.notes} onChange={value => onChange("notes", value)} placeholder="Enter any additional notes" />
+            <FormField 
+              label="Quantity" 
+              type="number" 
+              required 
+              value={formData.quantity} 
+              onChange={value => onChange("quantity", value)} 
+              placeholder="Enter quantity" 
+            />
+          </div>
+        </div>
 
-        <FormField label="Cross Dock" required value={formData.crossDock} onChange={value => onChange("crossDock", value)} options={crossDockOptions} placeholder="Select yes/no" />
+        {/* Logistics Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4 border-l-4 border-orange-500 pl-3">
+            <Calendar className="h-5 w-5 text-orange-400" />
+            <h3 className="text-lg font-medium text-white">Schedule & Notes</h3>
+          </div>
 
-        {formData.crossDock === "yes" && <FormField label="Cross Dock Destination" value={formData.crossDockDestination || ""} onChange={value => {
-        onChange("crossDockDestination", value);
-        // Set manager email based on selected store ID
-        const managersEmail = storeManagerEmails[value] || '';
-        onChange("managersEmail", managersEmail);
-      }} options={stores} placeholder="Select destination" required />}
+          <div className="pl-4 space-y-4">
+            <FormField 
+              label="Schedule Arrival" 
+              required 
+              value={formData.scheduleArrival} 
+              onChange={value => onChange("scheduleArrival", value)} 
+              options={scheduleOptions} 
+              placeholder="Select arrival day" 
+            />
+
+            <FormField 
+              label="Notes" 
+              value={formData.notes} 
+              onChange={value => onChange("notes", value)} 
+              placeholder="Enter any additional notes" 
+            />
+          </div>
+        </div>
+
+        {/* Cross Dock Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4 border-l-4 border-purple-500 pl-3">
+            <Truck className="h-5 w-5 text-purple-400" />
+            <h3 className="text-lg font-medium text-white">Cross Dock Options</h3>
+          </div>
+
+          <div className="pl-4 space-y-4">
+            <FormField 
+              label="Cross Dock" 
+              required 
+              value={formData.crossDock} 
+              onChange={value => onChange("crossDock", value)} 
+              options={crossDockOptions} 
+              placeholder="Select yes/no" 
+            />
+
+            {formData.crossDock === "yes" && (
+              <FormField 
+                label="Cross Dock Destination" 
+                value={formData.crossDockDestination || ""} 
+                onChange={value => {
+                  onChange("crossDockDestination", value);
+                  // Set manager email based on selected store ID
+                  const managersEmail = storeManagerEmails[value] || '';
+                  onChange("managersEmail", managersEmail);
+                }} 
+                options={stores} 
+                placeholder="Select destination" 
+                required 
+              />
+            )}
+          </div>
+        </div>
       </div>
 
-      <Button type="submit" className="w-full text-slate-50 rounded-3xl bg-rose-600 hover:bg-rose-500" disabled={inventoryCheck !== null && !inventoryCheck.available}>
+      <Button 
+        type="submit" 
+        className="w-full text-slate-50 rounded-3xl bg-rose-600 hover:bg-rose-500 mt-8 transition-all hover:scale-[1.01] py-6 text-lg font-semibold shadow-lg" 
+        disabled={inventoryCheck !== null && !inventoryCheck.available}>
         ADD TO ORDER
       </Button>
-    </form>;
+    </form>
+  );
 };

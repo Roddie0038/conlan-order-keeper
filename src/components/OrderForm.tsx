@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAutoDraft } from "@/hooks/useAutoDraft";
 import { OrderTemplate } from "./order-templates/OrderTemplate";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { InventoryLookup } from "./inventory/InventoryLookup";
 
@@ -226,20 +227,21 @@ export const OrderForm = () => {
     <div className="space-y-8">
       <Tabs defaultValue="order-form" className="w-full">
         <TabsList className="grid w-full grid-cols-1">
-          <TabsTrigger value="order-form" className="font-bold text-sm rounded-3xl text-[#101010] bg-yellow-300 hover:bg-yellow-200">
-            For any orders exceeding 50 retread tires, please submit an MTO order to guarantee we can fulfill the complete request. If you're ordering more than 50 new tires, you can place the order here.
+          <TabsTrigger value="order-form" className="font-medium text-sm rounded-xl bg-amber-300/90 hover:bg-amber-300 text-black p-4 flex items-center gap-2 shadow-lg">
+            <AlertTriangle className="h-5 w-5 text-amber-700" />
+            <span>For any orders exceeding 50 retread tires, please submit an MTO order to guarantee we can fulfill the complete request. If you're ordering more than 50 new tires, you can place the order here.</span>
           </TabsTrigger>
         </TabsList>
         <TabsContent value="order-form" className="bg-transparent">
-          <div className="mb-6">
-            <h3 className="mb-4 text-slate-50 text-center font-bold text-2xl">Order Templates</h3>
+          <div className="mb-6 bg-black/40 backdrop-blur-sm p-6 rounded-xl border border-gray-800 transition-all shadow-lg">
+            <h3 className="mb-4 text-white text-center font-bold text-2xl">Order Templates</h3>
             <OrderTemplate type="regular" currentData={formData} onLoadTemplate={handleLoadTemplate} />
           </div>
 
           <div className="mb-6 flex justify-end">
             <Dialog open={isLookupOpen} onOpenChange={setIsLookupOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-500">
+                <Button className="bg-blue-600 hover:bg-blue-500 transition-colors shadow-md rounded-lg">
                   <Search className="w-4 h-4 mr-2" />
                   Inventory Lookup
                 </Button>
@@ -251,8 +253,11 @@ export const OrderForm = () => {
           </div>
           
           <OrderFormInputs formData={formData} onSubmit={handleSubmit} onChange={handleChange} />
-          <OrderSummaryTable orderSummaries={orderSummaries} onToggleSelection={toggleOrderSelection} />
-          <OrderSubmissionHandler orderSummaries={orderSummaries} setOrderSummaries={setOrderSummaries} />
+          
+          <div className="mt-10">
+            <OrderSummaryTable orderSummaries={orderSummaries} onToggleSelection={toggleOrderSelection} />
+            <OrderSubmissionHandler orderSummaries={orderSummaries} setOrderSummaries={setOrderSummaries} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

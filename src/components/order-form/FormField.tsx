@@ -30,24 +30,24 @@ export const FormField = ({
 }: FormFieldProps) => {
   if (options) {
     return (
-      <div className="space-y-2 group">
-        <Label className="block text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
-          {label} {required && <span className="text-red-500">*</span>}
+      <div className="space-y-2 group transition-all duration-200">
+        <Label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
+          {label} {required && <span className="text-red-400">*</span>}
         </Label>
         <Select 
           value={value} 
           onValueChange={value => onChange(value)} 
           disabled={disabled}
         >
-          <SelectTrigger className="w-full border border-gray-300 rounded-md h-10 bg-white hover:border-blue-400 focus:border-blue-500 transition-colors shadow-sm">
+          <SelectTrigger className="w-full border border-gray-600 rounded-md h-10 bg-black/40 hover:border-blue-400 focus:border-blue-500 transition-colors shadow-sm backdrop-blur-sm text-white">
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
-          <SelectContent className="bg-white border border-gray-200 shadow-md rounded-md">
+          <SelectContent className="bg-gray-900/95 border border-gray-800 shadow-md rounded-md backdrop-blur-sm">
             {options.map(option => (
               <SelectItem 
                 key={option.id || option.value} 
                 value={option.id || option.value || ""}
-                className="hover:bg-blue-50 cursor-pointer"
+                className="hover:bg-gray-800 cursor-pointer text-gray-200"
               >
                 {option.name || option.value}
               </SelectItem>
@@ -59,9 +59,9 @@ export const FormField = ({
   }
   
   return (
-    <div className="space-y-2 group">
-      <Label className="block text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
-        {label} {required && <span className="text-red-500">*</span>}
+    <div className="space-y-2 group transition-all duration-200">
+      <Label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
+        {label} {required && <span className="text-red-400">*</span>}
       </Label>
       <Input 
         type={type} 
@@ -70,9 +70,9 @@ export const FormField = ({
         onChange={e => onChange(e.target.value)} 
         placeholder={placeholder} 
         disabled={disabled} 
-        className="w-full border border-gray-300 rounded-md h-10 bg-white disabled:bg-gray-100 
+        className="w-full border border-gray-600 rounded-md h-10 bg-black/40 disabled:bg-gray-700/40 
                  hover:border-blue-400 focus-visible:border-blue-500 focus-visible:ring-blue-400
-                 transition-all duration-200 shadow-sm"
+                 transition-all duration-200 shadow-sm backdrop-blur-sm text-white"
       />
     </div>
   );

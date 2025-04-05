@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -79,7 +80,7 @@ export default function PendingOrders() {
       <main className="container space-y-8">
         <OrderForm />
         
-        <div className="backdrop-blur-sm p-6 shadow rounded-3xl bg-transparent">
+        <div className="backdrop-blur-sm p-6 shadow rounded-3xl bg-black/60">
           <h2 className="font-semibold mb-4 text-slate-50 px-[240px] text-center text-2xl">Current Pending Orders</h2>
           <Table>
             <TableHeader className="bg-red-500">
