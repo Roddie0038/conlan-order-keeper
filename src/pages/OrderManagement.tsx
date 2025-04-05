@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -71,10 +70,8 @@ export default function OrderManagement() {
   const [completedSortField, setCompletedSortField] = useState<string>("completedAt");
   const [completedSortDirection, setCompletedSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  // Load orders from localStorage
   useEffect(() => {
     const loadOrders = () => {
-      // Load pending orders
       const savedPendingOrders = localStorage.getItem('pendingOrders');
       const savedMtoOrders = localStorage.getItem('mtoOrders');
       const savedCompletedOrders = localStorage.getItem('completedOrders');
@@ -86,7 +83,6 @@ export default function OrderManagement() {
         setMtoOrders(JSON.parse(savedMtoOrders));
       }
       if (savedCompletedOrders) {
-        // If user is admin, show all orders; otherwise filter by store
         const allCompletedOrders = JSON.parse(savedCompletedOrders);
         const filteredOrders = user?.isAdmin 
           ? allCompletedOrders 
@@ -100,7 +96,6 @@ export default function OrderManagement() {
     return () => window.removeEventListener('storage', loadOrders);
   }, [user?.store, user?.isAdmin]);
 
-  // Handle pending order completion
   const handleComplete = (orderId: string, type: 'regular' | 'mto') => {
     if (!user?.isAdmin) {
       toast({
@@ -151,7 +146,6 @@ export default function OrderManagement() {
     });
   };
 
-  // Handle pending order deletion
   const handleDeletePending = (orderId: string, type: 'regular' | 'mto') => {
     if (!user?.isAdmin) {
       toast({
@@ -178,7 +172,6 @@ export default function OrderManagement() {
     });
   };
 
-  // Handle completed order deletion
   const handleDeleteCompleted = (orderId: string) => {
     if (!user?.isAdmin) {
       toast({
@@ -193,7 +186,6 @@ export default function OrderManagement() {
     const updatedOrders = allCompletedOrders.filter((order: CompletedOrder) => order.id !== orderId);
     localStorage.setItem('completedOrders', JSON.stringify(updatedOrders));
     
-    // Update displayed orders
     const filteredOrders = user?.isAdmin 
       ? updatedOrders 
       : updatedOrders.filter((order: CompletedOrder) => order.store === user?.store);
@@ -205,7 +197,6 @@ export default function OrderManagement() {
     });
   };
 
-  // Filter pending orders based on search term
   const filteredPendingOrders = pendingOrders.filter(order => 
     (order.productNumber?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
     (order.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
@@ -218,7 +209,6 @@ export default function OrderManagement() {
     (order.store?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
   );
 
-  // Filter completed orders based on search term
   const filteredCompletedOrders = completedOrders.filter(order => 
     (order.productNumber?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
     (order.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
@@ -227,7 +217,6 @@ export default function OrderManagement() {
     (order.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
   );
 
-  // Sort pending orders
   const sortedPendingOrders = [...filteredPendingOrders].sort((a, b) => {
     let valueA = a[sortField as keyof Order];
     let valueB = b[sortField as keyof Order];
@@ -260,7 +249,6 @@ export default function OrderManagement() {
     }
   });
 
-  // Sort completed orders
   const sortedCompletedOrders = [...filteredCompletedOrders].sort((a, b) => {
     let valueA = a[completedSortField as keyof CompletedOrder];
     let valueB = b[completedSortField as keyof CompletedOrder];
@@ -293,7 +281,6 @@ export default function OrderManagement() {
     }
   });
 
-  // Handle sorting for pending orders
   const handlePendingSort = (field: string) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -303,7 +290,6 @@ export default function OrderManagement() {
     }
   };
 
-  // Handle sorting for completed orders
   const handleCompletedSort = (field: string) => {
     if (completedSortField === field) {
       setCompletedSortDirection(completedSortDirection === 'asc' ? 'desc' : 'asc');

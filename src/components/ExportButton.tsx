@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { exportAllOrderData, exportToCSV, prepareOrderDataForExport } from "@/utils/exportUtils";
+import { ReactNode } from "react";
 
 interface ExportButtonProps {
   data?: any[];
@@ -11,6 +12,7 @@ interface ExportButtonProps {
   size?: "default" | "sm" | "lg" | "icon";
   exportAll?: boolean;
   className?: string;
+  children?: ReactNode;
 }
 
 export const ExportButton = ({
@@ -19,7 +21,8 @@ export const ExportButton = ({
   variant = "outline",
   size = "sm",
   exportAll = false,
-  className = ""
+  className = "",
+  children
 }: ExportButtonProps) => {
   const { toast } = useToast();
 
@@ -72,8 +75,12 @@ export const ExportButton = ({
       onClick={handleExport}
       className={`flex items-center gap-2 ${className}`}
     >
-      <Download size={16} />
-      Export CSV
+      {children || (
+        <>
+          <Download size={16} />
+          Export CSV
+        </>
+      )}
     </Button>
   );
 };
