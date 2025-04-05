@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react";
 import { OrderForm } from "@/components/OrderForm";
 import { getManagerEmail } from "@/components/order-form/formConfig";
-
 interface Order {
   id: string;
   timestamp: string;
@@ -21,7 +19,6 @@ interface Order {
   crossDock: string;
   managerEmail?: string;
 }
-
 export default function PendingOrders() {
   const {
     user,
@@ -29,7 +26,6 @@ export default function PendingOrders() {
   } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
-
   useEffect(() => {
     const savedOrders = localStorage.getItem('pendingOrders');
     if (savedOrders) {
@@ -41,7 +37,6 @@ export default function PendingOrders() {
       setOrders(filteredOrders);
     }
   }, [user?.store]);
-
   const handleComplete = (orderId: string) => {
     const allPendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
     const orderToComplete = allPendingOrders.find((o: Order) => o.id === orderId);
@@ -52,22 +47,18 @@ export default function PendingOrders() {
         managerEmail: getManagerEmail(orderToComplete.store)
       });
       localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
-
       const updatedPendingOrders = allPendingOrders.filter((o: Order) => o.id !== orderId);
       localStorage.setItem('pendingOrders', JSON.stringify(updatedPendingOrders));
-
       setOrders(updatedPendingOrders.filter((order: Order) => order.store === user?.store).map((order: Order) => ({
         ...order,
         managerEmail: getManagerEmail(order.store)
       })));
     }
   };
-
   const handleLogout = () => {
     logout();
     navigate('/');
   };
-
   return <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{
     backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -78,7 +69,7 @@ export default function PendingOrders() {
       <header className="bg-primary/90 text-primary-foreground py-6 mb-8 backdrop-blur-sm rounded-full">
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain rounded-full" />
+            <img alt="Conlan Tire Logo" className="h-16 object-contain rounded-full" src="/lovable-uploads/1691138e-da6c-4910-8901-00cd0ab21fa8.png" />
             <h1 className="mx-[240px] font-extrabold my-[4px] py-[4px] text-4xl text-justify px-[29px]">New Order Form - {user?.store}</h1>
           </div>
           
