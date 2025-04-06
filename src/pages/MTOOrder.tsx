@@ -5,27 +5,39 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
+
 const MTOOrder = () => {
   const {
     user,
     logout
   } = useAuth();
   const navigate = useNavigate();
+
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
   if (!user) {
     navigate('/');
     return null;
   }
-  return <div className="min-h-screen bg-gray-50" style={{
-    backgroundImage: "url('/lovable-uploads/1d2dc4a7-eabb-489d-8be6-adb2766a4def.png')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat"
-  }}>
-      
+
+  return (
+    <div className="min-h-screen bg-gray-50" style={{
+      backgroundImage: "url('/lovable-uploads/1d2dc4a7-eabb-489d-8be6-adb2766a4def.png')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat"
+    }}>
+      <Button 
+        variant="outline" 
+        onClick={handleLogout} 
+        className="fixed top-4 right-4 z-50 border-[#F97316] border-2 font-bold rounded-3xl py-[22px] px-[52px] text-zinc-50 bg-black hover:bg-black/80 transition-colors flex items-center gap-2"
+      >
+        <LogOut size={18} />
+        LOGOUT
+      </Button>
 
       <header className="bg-gradient-to-r from-blue-700 to-blue-900 text-primary-foreground py-6 mb-8 rounded-lg shadow-lg">
         <div className="container flex flex-col items-center gap-4">
@@ -36,7 +48,7 @@ const MTOOrder = () => {
         </div>
       </header>
       
-      <main className="container pb-8 py-px max-w-4xl mx-auto text-black">
+      <main className="container pb-8 py-px max-w-4xl mx-auto">
         <div className="rounded-lg shadow-lg py-[25px] bg-transparent">
           <MTOOrderForm />
         </div>
@@ -45,9 +57,11 @@ const MTOOrder = () => {
         </div>
       </main>
       
-      <footer className="mt-16 py-6 text-center text-black bg-white/90 border-t border-gray-200">
+      <footer className="mt-16 py-6 text-center text-gray-600 bg-white/90 border-t border-gray-200">
         <p>© {new Date().getFullYear()} Conlan Tire. All rights reserved.</p>
       </footer>
-    </div>;
+    </div>
+  );
 };
+
 export default MTOOrder;
