@@ -26,12 +26,8 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-const Tooltip = React.forwardRef<
-  React.ElementRef<typeof TooltipRoot>,
-  React.ComponentPropsWithoutRef<typeof TooltipRoot>
->(({ ...props }, ref) => (
-  <TooltipRoot ref={ref} {...props} />
-))
+// Using TooltipRoot directly since it doesn't need ref forwarding
+const Tooltip = TooltipRoot;
 Tooltip.displayName = "Tooltip"
 
 export { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent }

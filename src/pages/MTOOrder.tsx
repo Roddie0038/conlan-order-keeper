@@ -24,7 +24,7 @@ const MTOOrder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{
+    <div className="min-h-screen bg-gray-50 text-black" style={{
       backgroundImage: "url('/lovable-uploads/1d2dc4a7-eabb-489d-8be6-adb2766a4def.png')",
       backgroundSize: "cover",
       backgroundPosition: "center",
