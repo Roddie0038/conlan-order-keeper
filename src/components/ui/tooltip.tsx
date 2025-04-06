@@ -26,30 +26,12 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-// Fix the Tooltip component to avoid requiring content as a separate prop
-const Tooltip = ({
-  children,
-  content,
-  className,
-  contentClassName,
-}: {
-  children: React.ReactNode
-  content?: React.ReactNode  // Make content optional to fix the error
-  className?: string
-  contentClassName?: string
-}) => (
-  <TooltipProvider>
-    <TooltipRoot>
-      <TooltipTrigger asChild className={className}>
-        {children}
-      </TooltipTrigger>
-      {content && ( // Only render TooltipContent if content is provided
-        <TooltipContent className={contentClassName}>
-          {content}
-        </TooltipContent>
-      )}
-    </TooltipRoot>
-  </TooltipProvider>
-)
+const Tooltip = React.forwardRef<
+  React.ElementRef<typeof TooltipRoot>,
+  React.ComponentPropsWithoutRef<typeof TooltipRoot>
+>(({ ...props }, ref) => (
+  <TooltipRoot ref={ref} {...props} />
+))
+Tooltip.displayName = "Tooltip"
 
-export { Tooltip, TooltipProvider, TooltipRoot, TooltipTrigger, TooltipContent }
+export { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent }

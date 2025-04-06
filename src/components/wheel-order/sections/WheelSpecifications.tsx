@@ -81,7 +81,7 @@ export function WheelSpecifications({ formData, onInputChange }: WheelSpecificat
         <div className="space-y-2 group">
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <TooltipTrigger>
                 <Label htmlFor="handHoles" className="flex items-center text-gray-700 group-hover:text-blue-600 transition-colors cursor-help">
                   <CircleDot size={16} className="mr-1.5 text-gray-400 group-hover:text-blue-500" />
                   Number of Hand Holes
