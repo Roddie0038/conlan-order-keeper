@@ -31,10 +31,10 @@ export default function Dashboard() {
           <DashboardBanner />
         </div>
 
-        <QuickInventorySearch loaded={loaded} />
+        <QuickInventorySearch />
 
         <main>
-          <DashboardMenu loaded={loaded} />
+          <DashboardMenu />
         </main>
 
         <DashboardFooter />
