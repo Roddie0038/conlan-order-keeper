@@ -7,7 +7,7 @@ export default function WheelOrder() {
     <div 
       className="min-h-screen pb-8"
       style={{
-        backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/lovable-uploads/36bc55bd-d864-4b79-aece-28d9225de639.png')",
+        backgroundImage: "url('/lovable-uploads/b6656b47-28a5-43d9-a97c-3a6ec454a631.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
