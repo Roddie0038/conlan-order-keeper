@@ -26,6 +26,7 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
+// Fix the Tooltip component to avoid requiring content as a separate prop
 const Tooltip = ({
   children,
   content,
@@ -33,7 +34,7 @@ const Tooltip = ({
   contentClassName,
 }: {
   children: React.ReactNode
-  content: React.ReactNode
+  content?: React.ReactNode  // Make content optional to fix the error
   className?: string
   contentClassName?: string
 }) => (
@@ -42,9 +43,11 @@ const Tooltip = ({
       <TooltipTrigger asChild className={className}>
         {children}
       </TooltipTrigger>
-      <TooltipContent className={contentClassName}>
-        {content}
-      </TooltipContent>
+      {content && ( // Only render TooltipContent if content is provided
+        <TooltipContent className={contentClassName}>
+          {content}
+        </TooltipContent>
+      )}
     </TooltipRoot>
   </TooltipProvider>
 )
