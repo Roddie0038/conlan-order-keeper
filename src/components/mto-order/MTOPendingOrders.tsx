@@ -60,7 +60,7 @@ export const MTOPendingOrders = () => {
     <div className="mt-8 bg-white shadow-md rounded-lg border border-slate-200">
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-slate-800 font-bold text-2xl flex items-center">
+          <h2 className="text-black font-bold text-2xl flex items-center">
             Pending MTO Orders
           </h2>
           
@@ -76,44 +76,44 @@ export const MTOPendingOrders = () => {
           <Table>
             <TableHeader className="bg-cyan-50">
               <TableRow>
-                <TableHead className="font-semibold text-slate-700 text-center py-3">
+                <TableHead className="font-semibold text-black text-center py-3">
                   <span className="flex items-center justify-center gap-1.5">
                     <Calendar className="h-4 w-4 text-cyan-600" />
                     <span>Date</span>
                   </span>
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700 text-center py-3">
+                <TableHead className="font-semibold text-black text-center py-3">
                   <span className="flex items-center justify-center gap-1.5">
                     <Package className="h-4 w-4 text-cyan-600" />
                     <span>Store</span>
                   </span>
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700 text-center py-3">
+                <TableHead className="font-semibold text-black text-center py-3">
                   <span className="flex items-center justify-center gap-1.5">
                     <Package className="h-4 w-4 text-cyan-600" />
                     <span>Product</span>
                   </span>
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700 text-center py-3">
+                <TableHead className="font-semibold text-black text-center py-3">
                   <span className="flex items-center justify-center gap-1.5">
                     <Ruler className="h-4 w-4 text-cyan-600" />
                     <span>Size</span>
                   </span>
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700 text-center py-3">
+                <TableHead className="font-semibold text-black text-center py-3">
                   <span className="flex items-center justify-center gap-1.5">
                     <Hash className="h-4 w-4 text-cyan-600" />
                     <span>Quantity</span>
                   </span>
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700 text-center py-3">
+                <TableHead className="font-semibold text-black text-center py-3">
                   <span className="flex items-center justify-center gap-1.5">
                     <Clock className="h-4 w-4 text-cyan-600" />
                     <span>Arrival</span>
                   </span>
                 </TableHead>
                 {user?.isAdmin && (
-                  <TableHead className="font-semibold text-slate-700 text-center py-3">
+                  <TableHead className="font-semibold text-black text-center py-3">
                     Actions
                   </TableHead>
                 )}
@@ -124,7 +124,7 @@ export const MTOPendingOrders = () => {
                 <TableRow>
                   <TableCell 
                     colSpan={user?.isAdmin ? 7 : 6} 
-                    className="text-center py-8 text-slate-500 italic"
+                    className="text-center py-8 text-black italic"
                   >
                     No pending orders found
                   </TableCell>
@@ -137,12 +137,12 @@ export const MTOPendingOrders = () => {
                       index % 2 === 0 ? 'bg-slate-50' : 'bg-white'
                     }`}
                   >
-                    <TableCell className="text-center text-slate-700">{order.timestamp}</TableCell>
-                    <TableCell className="text-center text-slate-700">{order.store}</TableCell>
-                    <TableCell className="text-center text-slate-700">{order.productNumber}</TableCell>
-                    <TableCell className="text-center text-slate-700">{order.tireSize}</TableCell>
-                    <TableCell className="text-center text-slate-700">{order.quantity}</TableCell>
-                    <TableCell className="text-center text-slate-700">{order.scheduleArrival}</TableCell>
+                    <TableCell className="text-center text-black">{order.timestamp}</TableCell>
+                    <TableCell className="text-center text-black">{order.store}</TableCell>
+                    <TableCell className="text-center text-black">{order.productNumber}</TableCell>
+                    <TableCell className="text-center text-black">{order.tireSize}</TableCell>
+                    <TableCell className="text-center text-black">{order.quantity}</TableCell>
+                    <TableCell className="text-center text-black">{order.scheduleArrival}</TableCell>
                     {user?.isAdmin && (
                       <TableCell className="text-center">
                         <Button 

@@ -1,3 +1,4 @@
+
 import { MTOOrderForm } from "@/components/mto-order/MTOOrderForm";
 import { MTOPendingOrders } from "@/components/mto-order/MTOPendingOrders";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,7 +36,7 @@ const MTOOrder = () => {
         </div>
       </header>
       
-      <main className="container pb-8 py-px max-w-4xl mx-auto">
+      <main className="container pb-8 py-px max-w-4xl mx-auto text-black">
         <div className="rounded-lg shadow-lg py-[25px] bg-transparent">
           <MTOOrderForm />
         </div>
@@ -44,7 +45,7 @@ const MTOOrder = () => {
         </div>
       </main>
       
-      <footer className="mt-16 py-6 text-center text-gray-600 bg-white/90 border-t border-gray-200">
+      <footer className="mt-16 py-6 text-center text-black bg-white/90 border-t border-gray-200">
         <p>© {new Date().getFullYear()} Conlan Tire. All rights reserved.</p>
       </footer>
     </div>;
