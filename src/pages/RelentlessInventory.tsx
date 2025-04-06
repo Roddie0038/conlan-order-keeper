@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,44 +6,39 @@ import { InventoryProvider } from "@/contexts/InventoryContext";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "lucide-react";
-
 export default function RelentlessInventory() {
-  const { user, logout } = useAuth();
+  const {
+    user,
+    logout
+  } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     if (!user) {
       navigate('/');
       return;
     }
-    
+
     // Show welcome toast when the page loads
     toast({
       title: "Warehouse Inventory",
-      description: "Check and manage your inventory in real-time",
+      description: "Check and manage your inventory in real-time"
     });
   }, [user, navigate, toast]);
-
   const handleLogout = () => {
     logout();
     navigate('/');
   };
-
   const handleDashboard = () => {
     navigate('/dashboard');
   };
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+  return <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-gradient-to-r from-purple-600 to-purple-900 text-primary-foreground py-6 mb-8">
         <div className="container flex justify-center items-center">
           <div className="flex flex-col items-center gap-4">
-            <img 
-              src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" 
-              alt="Conlan Tire Logo" 
-              className="h-16 object-contain"
-            />
+            <img src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" alt="Conlan Tire Logo" className="h-16 object-contain" />
             <div className="flex items-center gap-3">
               <Database className="h-8 w-8 text-white" />
               <h1 className="font-extrabold text-3xl md:text-4xl text-center text-white">
@@ -53,20 +47,10 @@ export default function RelentlessInventory() {
             </div>
           </div>
           <div className="flex gap-4 absolute right-6">
-            <Button 
-              variant="secondary"
-              onClick={handleDashboard}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
+            <Button variant="secondary" onClick={handleDashboard} className="bg-blue-600 hover:bg-blue-700 text-white">
               Dashboard
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-              className="bg-black border-orange-500 text-white font-bold hover:bg-orange-500 hover:text-white"
-            >
-              Logout
-            </Button>
+            
           </div>
         </div>
       </header>
@@ -82,11 +66,7 @@ export default function RelentlessInventory() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button 
-                  onClick={handleDashboard}
-                  variant="outline" 
-                  className="text-sm"
-                >
+                <Button onClick={handleDashboard} variant="outline" className="text-sm">
                   Return to Dashboard
                 </Button>
               </div>
@@ -102,6 +82,5 @@ export default function RelentlessInventory() {
           <p>© {new Date().getFullYear()} Conlan Tire. All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 }
