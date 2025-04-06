@@ -8,6 +8,9 @@ export default function WheelOrder() {
       className="min-h-screen pb-8 bg-cover bg-center bg-no-repeat"
       style={{
         backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/lovable-uploads/e6ed9451-42d9-4550-9f6e-7c75315be247.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat"
       }}
     >
       <Navigation />
