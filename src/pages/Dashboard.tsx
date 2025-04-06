@@ -31,7 +31,7 @@ export default function Dashboard() {
           <DashboardBanner />
         </div>
 
-        <QuickInventorySearch />
+        <QuickInventorySearch loaded={loaded} />
 
         <main>
           <DashboardMenu />
