@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { stores, getManagerEmail } from "@/components/order-form/formConfig";
-import { Truck, User, Calendar, ShoppingCart, Palette, Gauge, CircleUser } from "lucide-react";
+import { Disc, Truck, User, Calendar, ShoppingCart, Palette, Gauge, CircleUser } from "lucide-react";
 import { WheelFormInputs } from "./WheelFormInputs";
 import { WheelFormData } from "./types";
 
@@ -21,7 +21,7 @@ export function WheelOrderForm() {
   const [formData, setFormData] = useState<WheelFormData>({
     yourName: "",
     storeName: user?.store || "",
-    storeId: "", 
+    storeId: "", // We'll set this based on user.store
     dateReceived: new Date().toISOString().split("T")[0],
     qtyWheels: "",
     customerName: "",
@@ -32,11 +32,14 @@ export function WheelOrderForm() {
     wheelColor: "",
   });
 
+  // Initialize store ID and manager email when user info is available
   useEffect(() => {
     if (user?.store) {
+      // Extract store ID from user.store (e.g., "Fort Worth 22" -> "22")
       const storeIdMatch = user.store.match(/\d+$/);
       const storeId = storeIdMatch ? storeIdMatch[0] : "";
       
+      // Find the store in the stores array
       const storeObj = stores.find(s => s.id === storeId);
       
       if (storeObj) {
@@ -47,6 +50,7 @@ export function WheelOrderForm() {
         }));
       }
 
+      // Set manager email
       const email = getManagerEmail(user.store);
       setManagerEmail(email);
     }
@@ -57,6 +61,7 @@ export function WheelOrderForm() {
   };
 
   const handleStoreChange = (value: string) => {
+    // Only admin users can change the store
     if (!user?.isAdmin) return;
 
     const selectedStore = stores.find(store => store.id === value);
@@ -67,6 +72,7 @@ export function WheelOrderForm() {
         storeName: selectedStore.name
       }));
       
+      // Update manager email when store changes
       const email = getManagerEmail(selectedStore.name);
       setManagerEmail(email);
     }
@@ -76,6 +82,7 @@ export function WheelOrderForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Validate required fields
     if (!formData.yourName) {
       toast({
         title: "Missing Name",
@@ -107,6 +114,7 @@ export function WheelOrderForm() {
     }
 
     try {
+      // Create a compatible object for submitToGoogleSheets
       const submissionData = {
         yourName: formData.yourName,
         store: formData.storeName,
@@ -114,6 +122,7 @@ export function WheelOrderForm() {
         dateReceived: formData.dateReceived,
         type: "WHEEL_POWDER_COATING",
         
+        // Add required fields for OrderData
         productNumber: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
         quantity: formData.qtyWheels,
@@ -122,6 +131,7 @@ export function WheelOrderForm() {
         crossDock: "No",
         managersEmail: managerEmail,
         
+        // Additional wheel specific details
         qtyWheels: formData.qtyWheels,
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
@@ -134,9 +144,11 @@ export function WheelOrderForm() {
 
       console.log("Submitting wheel order with manager email:", managerEmail);
 
+      // Submit the form data
       const result = await submitToGoogleSheets(submissionData);
       
       if (result.status === 'success' || result.status === 'partial_success') {
+        // Store in localStorage
         const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
         existingOrders.push({
           ...submissionData,
@@ -166,23 +178,16 @@ export function WheelOrderForm() {
 
   return (
     <Card className="w-full max-w-3xl mx-auto bg-white shadow-xl transition-all duration-300 hover:shadow-2xl">
-      <CardHeader className="p-0 overflow-hidden rounded-t-lg">
-        <div 
-          className="relative p-6 text-white"
-          style={{
-            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.6)), url('/lovable-uploads/9016d384-d388-4e10-98bc-386878e11d27.png')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            minHeight: '160px'
-          }}
-        >
-          <CardTitle className="text-2xl font-bold tracking-tight text-white z-10 relative">
-            WHEEL POWDER COATING ORDER
-          </CardTitle>
-          <CardDescription className="text-blue-100 font-medium mt-2 z-10 relative">
-            Complete the form below to submit a wheel powder coating order
-          </CardDescription>
+      <CardHeader className="bg-gradient-to-r from-blue-700 to-blue-900 rounded-t-lg">
+        <div className="flex items-center gap-3">
+          <div className="bg-white p-1.5 rounded-full">
+            <Disc size={28} className="text-blue-700" />
+          </div>
+          <CardTitle className="text-2xl font-bold tracking-tight text-white">WHEEL POWDER COATING ORDER</CardTitle>
         </div>
+        <CardDescription className="text-blue-100 font-medium">
+          Complete the form below to submit a wheel powder coating order
+        </CardDescription>
       </CardHeader>
       
       <form onSubmit={handleSubmit}>
