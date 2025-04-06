@@ -1,94 +1,103 @@
 
-import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
-import { MenuCard, MenuItemProps } from "./MenuCard";
+import { MenuCard } from "./MenuCard";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  ShoppingCart,
+  ClipboardCheck,
+  Truck,
+  Package,
+  ShieldCheck,
+  FileText,
+  CheckCircle,
+  Boxes,
+  Send
+} from "lucide-react";
 
-interface DashboardMenuProps {
-  loaded: boolean;
-}
-
-export function DashboardMenu({ loaded }: DashboardMenuProps) {
-  const menuItems: MenuItemProps[] = [
-    {
-      title: "NEW ORDER",
-      icon: null,
-      path: "/pending-orders",
-      color: "",
-      borderColor: "border-yellow-500",
-      delay: 0.1,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/b866e767-c11e-42b3-8973-1e01be98c454.png"
-    },
-    {
-      title: "MTO",
-      icon: null,
-      path: "/mto-order",
-      color: "",
-      borderColor: "border-blue-400",
-      delay: 0.2,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/2a2af5fe-894f-4d64-b91b-1ad72497dead.png"
-    },
-    {
-      title: "ORDER MANAGEMENT",
-      icon: null,
-      path: "/order-management",
-      color: "",
-      borderColor: "border-yellow-400",
-      delay: 0.3,
-      size: "col-span-1",
-      highlight: true,
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/7f6dce61-94af-46e1-9797-99bc1808efa9.png"
-    },
-    {
-      title: "CROSS DOCK",
-      icon: null,
-      path: "/cross-dock",
-      color: "",
-      borderColor: "border-green-400",
-      delay: 0.4,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/db2f8f18-8be6-4adf-b9f6-465833b10dd9.png"
-    },
-    {
-      title: "WHEEL REFURB ORDER",
-      icon: null,
-      path: "/wheel-order",
-      color: "",
-      borderColor: "border-[#2F9599]",
-      delay: 0.5,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
-    },
-    {
-      title: "WAREHOUSE INVENTORY",
-      icon: null,
-      path: "/relentless-inventory",
-      color: "",
-      borderColor: "border-purple-400",
-      delay: 0.6,
-      highlight: true,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/63f10867-6aa8-46cf-8d8c-d086edacbb2f.png"
-    }
-  ];
-
+export const DashboardMenu = () => {
+  const { user } = useAuth();
+  
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {menuItems.map((item) => (
-        <MenuCard key={item.title} item={item} loaded={loaded} />
-      ))}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+      <MenuCard
+        title="New Order"
+        description="Place a new order for products"
+        icon={<ShoppingCart className="h-8 w-8 text-blue-500" />}
+        linkTo="/"
+      />
+      
+      <MenuCard
+        title="MTO Order"
+        description="Place a made-to-order tire request"
+        icon={<FileText className="h-8 w-8 text-green-500" />}
+        linkTo="/mto-order"
+      />
+      
+      <MenuCard
+        title="Wheel Powder Coating"
+        description="Order wheel powder coating services"
+        icon={<CheckCircle className="h-8 w-8 text-purple-500" />}
+        linkTo="/wheel-order"
+      />
+      
+      <MenuCard
+        title="Pending Orders"
+        description="View your store's pending orders"
+        icon={<ClipboardCheck className="h-8 w-8 text-amber-500" />}
+        linkTo="/pending-orders"
+      />
+      
+      <MenuCard
+        title="Completed Orders"
+        description="View your store's completed orders"
+        icon={<CheckCircle className="h-8 w-8 text-emerald-500" />}
+        linkTo="/completed-orders"
+      />
+      
+      <MenuCard
+        title="Cross Dock"
+        description="Create cross dock paperwork"
+        icon={<Truck className="h-8 w-8 text-indigo-500" />}
+        linkTo="/cross-dock"
+      />
+      
+      {user?.isAdmin && (
+        <>
+          <MenuCard
+            title="All Pending Orders"
+            description="View all stores' pending orders"
+            icon={<ClipboardCheck className="h-8 w-8 text-rose-500" />}
+            linkTo="/all-pending-orders"
+          />
+          
+          <MenuCard
+            title="Relentless Inventory"
+            description="View inventory levels for all stores"
+            icon={<Package className="h-8 w-8 text-cyan-500" />}
+            linkTo="/relentless-inventory"
+          />
+          
+          <MenuCard
+            title="Admin: Inventory"
+            description="Manage inventory items and levels"
+            icon={<Boxes className="h-8 w-8 text-slate-500" />}
+            linkTo="/admin/inventory"
+          />
+          
+          <MenuCard
+            title="Admin: Orders"
+            description="Manage all orders across stores"
+            icon={<ShieldCheck className="h-8 w-8 text-violet-500" />}
+            linkTo="/admin/orders"
+          />
+          
+          <MenuCard
+            title="Test Webhooks"
+            description="Send test webhooks for integration testing"
+            icon={<Send className="h-8 w-8 text-blue-500" />}
+            linkTo="/test-webhooks"
+          />
+        </>
+      )}
     </div>
   );
-}
+};
