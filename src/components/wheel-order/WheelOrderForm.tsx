@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ export function WheelOrderForm() {
   const [formData, setFormData] = useState<WheelFormData>({
     yourName: "",
     storeName: user?.store || "",
-    storeId: "", // We'll set this based on user.store
+    storeId: "", 
     dateReceived: new Date().toISOString().split("T")[0],
     qtyWheels: "",
     customerName: "",
@@ -165,20 +166,23 @@ export function WheelOrderForm() {
 
   return (
     <Card className="w-full max-w-3xl mx-auto bg-white shadow-xl transition-all duration-300 hover:shadow-2xl">
-      <CardHeader className="bg-gradient-to-r from-blue-700 to-blue-900 rounded-t-lg">
-        <div className="flex items-center gap-3">
-          <div className="bg-white p-1.5 rounded-full w-12 h-12 flex items-center justify-center overflow-hidden">
-            <img 
-              src="/lovable-uploads/401a6556-5156-4c0e-8c25-d4c9ba9b7b96.png" 
-              alt="Conlan Tire Wheel" 
-              className="w-full h-auto object-contain"
-            />
-          </div>
-          <CardTitle className="text-2xl font-bold tracking-tight text-white">WHEEL POWDER COATING ORDER</CardTitle>
+      <CardHeader className="p-0 overflow-hidden rounded-t-lg">
+        <div 
+          className="relative p-6 text-white"
+          style={{
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.6)), url('/lovable-uploads/9016d384-d388-4e10-98bc-386878e11d27.png')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            minHeight: '160px'
+          }}
+        >
+          <CardTitle className="text-2xl font-bold tracking-tight text-white z-10 relative">
+            WHEEL POWDER COATING ORDER
+          </CardTitle>
+          <CardDescription className="text-blue-100 font-medium mt-2 z-10 relative">
+            Complete the form below to submit a wheel powder coating order
+          </CardDescription>
         </div>
-        <CardDescription className="text-blue-100 font-medium">
-          Complete the form below to submit a wheel powder coating order
-        </CardDescription>
       </CardHeader>
       
       <form onSubmit={handleSubmit}>
