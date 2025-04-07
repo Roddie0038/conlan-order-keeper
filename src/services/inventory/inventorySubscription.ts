@@ -1,21 +1,56 @@
 
-// This file has been modified to remove WebSocket usage due to security issues
-// All real-time subscriptions have been replaced with polling
+import { supabase } from "@/integrations/supabase/client";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 /**
- * Stubbed function - previously set up real-time subscriptions
- * Now maintains compatibility with existing imports
+ * Sets up a realtime subscription for inventory changes
  */
-export const setupRealtimeSubscription = (callback: () => Promise<void>) => {
-  console.warn('Real-time subscriptions have been replaced with polling');
-  return null;
+export const setupRealtimeSubscription = (callback: () => Promise<void>): RealtimeChannel => {
+  console.log('Setting up realtime subscription for inventory');
+  
+  const channel = supabase.channel('inventory-changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'inventory',
+      },
+      (payload) => {
+        console.log('Received realtime update:', payload);
+        callback();
+      }
+    )
+    .subscribe((status) => {
+      console.log('Realtime subscription status:', status);
+    });
+
+  return channel;
 };
 
 /**
- * Stubbed function - previously set up filtered subscriptions
- * Now maintains compatibility with existing imports
+ * Sets up a filtered subscription for low stock inventory items
  */
-export const setupLowStockSubscription = (callback: () => void) => {
-  console.warn('Real-time subscriptions have been replaced with polling');
-  return null;
+export const setupLowStockSubscription = (callback: () => void): RealtimeChannel => {
+  console.log('Setting up filtered subscription for low stock items');
+  
+  const channel = supabase.channel('low-stock-changes')
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'inventory',
+        filter: 'low_stock=eq.true',
+      },
+      (payload) => {
+        console.log('Low stock item updated:', payload);
+        callback();
+      }
+    )
+    .subscribe((status) => {
+      console.log('Low stock subscription status:', status);
+    });
+
+  return channel;
 };

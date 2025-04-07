@@ -15,7 +15,7 @@ export function useInventory() {
     deleteMultipleItems
   } = useInventoryContext();
   
-  // Set up polling subscriptions (replaces real-time)
+  // Set up realtime subscriptions
   useInventorySubscription(refreshInventory);
 
   // Sort functionality

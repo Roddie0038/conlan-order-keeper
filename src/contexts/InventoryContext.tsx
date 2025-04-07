@@ -13,7 +13,9 @@ import {
   addInventoryItems as addItems,
   updateInventoryItem as updateItem,
   deleteInventoryItem as deleteItem,
-  deleteMultipleItems as deleteItems
+  deleteMultipleItems as deleteItems,
+  setupRealtimeSubscription,
+  setupLowStockSubscription
 } from '@/services/inventoryService';
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -85,6 +87,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     try {
       // Find current item for low_stock calculation
       const currentItem = inventory.find(item => item.id === id);
+      // Fix by removing the third argument since updateItem only expects 2 arguments
       await updateItem(id, data);
       // Refresh inventory to get the latest data
       await refreshInventory();
@@ -162,23 +165,34 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     refreshInventory();
   }, []);
 
-  // Set up inventory polling instead of real-time WebSocket
+  // Set up real-time updates
   useEffect(() => {
-    const pollInterval = 30000; // 30 seconds
-    console.log(`Setting up inventory polling every ${pollInterval/1000} seconds`);
+    const channel = setupRealtimeSubscription(refreshInventory);
     
-    // Poll for updates
-    const intervalId = setInterval(() => {
-      console.log('Polling for inventory updates');
-      refreshInventory();
-    }, pollInterval);
-    
-    // Clean up on unmount
+    // Cleanup function
     return () => {
-      console.log('Cleaning up inventory polling');
-      clearInterval(intervalId);
+      console.log('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
     };
   }, []);
+
+  // Set up low stock real-time updates
+  useEffect(() => {
+    const handleLowStockUpdate = () => {
+      toast({
+        title: "Low Stock Alert",
+        description: "An item with low stock has been updated",
+        variant: "destructive"
+      });
+      refreshInventory();
+    };
+
+    const lowStockChannel = setupLowStockSubscription(handleLowStockUpdate);
+
+    return () => {
+      supabase.removeChannel(lowStockChannel);
+    };
+  }, [toast]);
 
   const value = {
     inventory,
