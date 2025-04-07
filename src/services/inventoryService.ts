@@ -10,10 +10,6 @@ import {
   deleteInventoryItem 
 } from "./inventory/inventoryOperations";
 import { 
-  setupRealtimeSubscription,
-  setupLowStockSubscription 
-} from "./inventory/inventorySubscription";
-import { 
   addInventoryItems,
   updateInventoryItem,
   deleteMultipleItems 
@@ -27,8 +23,6 @@ export {
   increaseInventoryQuantity,
   createInventoryItem,
   deleteInventoryItem,
-  setupRealtimeSubscription,
-  setupLowStockSubscription,
   addInventoryItems,
   updateInventoryItem,
   deleteMultipleItems
