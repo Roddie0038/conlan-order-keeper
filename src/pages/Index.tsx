@@ -1,3 +1,4 @@
+
 import { OrderForm } from "@/components/OrderForm";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -10,15 +11,18 @@ const Index = () => {
       <header className="bg-primary text-primary-foreground py-6 mb-8">
         <div className="container flex flex-col items-center gap-4">
           <img 
-            src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" 
+            src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.webp" 
             alt="Conlan Tire Logo" 
             className="h-24 object-contain"
+            width="300"
+            height="96"
           />
           <h1 className="text-3xl font-bold text-center">Conlan Tire GP Orders</h1>
           <div className="flex gap-4">
             <Button 
               variant="secondary"
               onClick={() => navigate("/mto-order")}
+              aria-label="Place MTO Order"
             >
               Place MTO Order
             </Button>

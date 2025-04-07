@@ -8,9 +8,11 @@ export function DashboardHeader() {
     <header className="flex justify-between items-center mb-8">
       <div className="flex items-center space-x-4">
         <img 
-          src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png" 
+          src="/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.webp" 
           alt="Conlan Tire Logo" 
           className="h-16 object-contain" 
+          width="200"
+          height="64"
         />
         <h1 className="text-3xl md:text-4xl font-bold">
           Welcome to Conlan Tire, {user?.store}
