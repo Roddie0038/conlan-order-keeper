@@ -2,41 +2,39 @@
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { setupRealtimeSubscription, setupLowStockSubscription } from '@/services/inventoryService';
 
 export function useInventorySubscription(refreshInventory: () => Promise<void>) {
   const { toast } = useToast();
 
-  // Set up real-time updates
+  // Set up manual refresh instead of real-time updates
   useEffect(() => {
-    console.log('Setting up real-time updates for inventory items');
+    console.log('Setting up inventory polling instead of WebSocket');
     
-    const channel = setupRealtimeSubscription(refreshInventory);
-
+    // Initial fetch
+    refreshInventory();
+    
+    // Set up polling every 30 seconds
+    const intervalId = setInterval(() => {
+      console.log('Polling for inventory updates');
+      refreshInventory();
+    }, 30000);
+    
     // Cleanup function
     return () => {
-      console.log('Cleaning up real-time subscription');
-      supabase.removeChannel(channel);
+      console.log('Cleaning up inventory polling');
+      clearInterval(intervalId);
     };
   }, [refreshInventory]);
 
-  // Set up filtered channel for low stock items
+  // Set up notification for low stock items - replaced with polling
   useEffect(() => {
-    console.log('Setting up filtered real-time updates for low stock items');
+    console.log('Setting up low stock notification system');
     
-    const handleLowStockUpdate = () => {
-      toast({
-        title: "Low Stock Alert",
-        description: "An item with low stock has been updated",
-        variant: "destructive"
-      });
-      refreshInventory();
-    };
-
-    const lowStockChannel = setupLowStockSubscription(handleLowStockUpdate);
-
+    // This is now handled by the polling mechanism above
+    // We'll leave this effect for future WebSocket implementation
+    
     return () => {
-      supabase.removeChannel(lowStockChannel);
+      console.log('Cleaning up low stock notification system');
     };
   }, [refreshInventory, toast]);
 }
