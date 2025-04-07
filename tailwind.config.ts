@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,8 @@ export default {
       animation: {
         "spin": "spin 1s linear infinite",
         "float": "float 3s ease-in-out infinite",
+        "spin-slow": "spin 15s linear infinite",
+        "spin-slow-reverse": "spin 20s linear infinite reverse",
       },
       keyframes: {
         "spin": {

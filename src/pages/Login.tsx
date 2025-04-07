@@ -5,7 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { HelpCircle, Loader2 } from "lucide-react";
 
 const usernames = [
   "Conlan97", "Fort Worth22", "Grand Prairie27", "Houston28", "San Antonio29", 
@@ -19,40 +21,85 @@ const usernames = [
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(username, password)) {
-      navigate("/dashboard");
-    } else {
+    setIsLoading(true);
+    
+    try {
+      if (login(username, password)) {
+        toast({
+          title: "Login successful",
+          description: "Welcome back to Conlan Tire Order Tracking!",
+          className: "bg-green-50 border-green-200",
+        });
+        navigate("/dashboard");
+      } else {
+        toast({
+          title: "Login failed",
+          description: "Invalid username or password. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Invalid username or password",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800 rounded-3xl bg-green-800 hover:bg-green-700">
-      <div className="max-w-md w-full space-y-8 p-8 backdrop-blur-sm shadow-2xl border border-white/20 rounded-3xl bg-zinc-700 hover:bg-zinc-600">
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800 relative overflow-hidden">
+      {/* Background animated elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="wheel-animation absolute top-[10%] left-[15%] w-40 h-40 rounded-full border-4 border-blue-400/20 opacity-30 animate-spin-slow"></div>
+        <div className="wheel-animation absolute bottom-[20%] right-[10%] w-28 h-28 rounded-full border-4 border-blue-300/30 opacity-20 animate-spin-slow-reverse"></div>
+        <div className="tire-track absolute top-[30%] right-[5%] w-64 h-8 bg-blue-400/10 rounded-full transform -rotate-45"></div>
+        <div className="tire-track absolute bottom-[15%] left-[5%] w-64 h-8 bg-blue-400/10 rounded-full transform rotate-45"></div>
+      </div>
+      
+      <div className="max-w-md w-full space-y-8 p-8 backdrop-blur-sm shadow-2xl border border-white/20 rounded-3xl bg-zinc-700/80 hover:bg-zinc-600/80 transition-all duration-300 z-10">
         <div className="text-center">
-          <img src="/lovable-uploads/b6f875b5-dba1-457d-b748-3b6e0578f676.png" alt="Conlan Tire Logo" className="mx-auto h-24 object-contain drop-shadow-lg rounded-2xl" />
-          <h2 className="mt-6 text-3xl font-bold text-zinc-200">Sign In</h2>
+          <div className="relative mx-auto h-24 w-auto mb-2 transition-all duration-300 hover:scale-105">
+            <img src="/lovable-uploads/b6f875b5-dba1-457d-b748-3b6e0578f676.png" alt="Conlan Tire Logo" className="h-full object-contain drop-shadow-lg rounded-2xl animate-float" />
+          </div>
+          <h1 className="mt-4 text-3xl font-bold text-zinc-100">Order Tracking System</h1>
+          <p className="mt-2 text-zinc-300">Manage inventory and orders with ease</p>
         </div>
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Select Store
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-200">
+                  Select Store
+                </label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-auto p-0">
+                        <HelpCircle className="h-4 w-4 text-gray-300" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-slate-800 text-white">
+                      <p>Select your store from the dropdown</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Select value={username} onValueChange={value => setUsername(value)}>
-                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white focus:ring-offset-blue-500">
                   <SelectValue placeholder="Select your store" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[300px]">
                   {usernames.map(name => <SelectItem key={name} value={name}>
                       {name}
                     </SelectItem>)}
@@ -60,16 +107,57 @@ export default function Login() {
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Password
-              </label>
-              <Input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="bg-white/10 border-white/20 text-white placeholder:text-gray-400" />
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-200">
+                  Password
+                </label>
+                <button 
+                  type="button"
+                  onClick={() => toast({ 
+                    title: "Password Reset", 
+                    description: "Please contact your administrator to reset your password." 
+                  })}
+                  className="text-xs text-blue-300 hover:text-blue-200 transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+              <Input 
+                type="password" 
+                placeholder="Enter your password" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                required 
+                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:ring-blue-500" 
+              />
             </div>
           </div>
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-            Sign in
+          
+          <Button 
+            type="submit" 
+            className="relative w-full bg-blue-600 hover:bg-blue-700 text-white py-3 overflow-hidden group"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </div>
+            ) : (
+              <>
+                <span className="relative z-10">Sign in</span>
+                <span className="absolute bottom-0 left-0 w-0 h-1 bg-blue-400 group-hover:w-full transition-all duration-300"></span>
+              </>
+            )}
           </Button>
         </form>
+        
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-300">
+            © {new Date().getFullYear()} Conlan Tire. All rights reserved.
+          </p>
+        </div>
       </div>
-    </div>;
+    </div>
+  );
 }
