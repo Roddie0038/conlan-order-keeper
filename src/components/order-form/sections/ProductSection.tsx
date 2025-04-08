@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Package, FileText, Hash } from "lucide-react";
 
 interface ProductSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -18,15 +19,27 @@ interface ProductSectionProps {
 export function ProductSection({ form }: ProductSectionProps) {
   return (
     <>
+      <div className="flex items-center space-x-2 mb-6 border-l-4 border-green-500 pl-3">
+        <Package className="h-5 w-5 text-green-500" />
+        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Product Details</h3>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
           control={form.control}
           name="productNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Product Number*</FormLabel>
+              <FormLabel className="flex items-center">
+                <Hash className="h-4 w-4 mr-1 text-gray-400" />
+                Product Number*
+              </FormLabel>
               <FormControl>
-                <Input placeholder="Enter product number" {...field} />
+                <Input 
+                  placeholder="Enter product number" 
+                  {...field} 
+                  className="transition-all border-gray-300 focus:border-green-300 focus:ring-1 focus:ring-green-200" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -34,17 +47,20 @@ export function ProductSection({ form }: ProductSectionProps) {
         />
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description*</FormLabel>
+              <FormLabel className="flex items-center">
+                <FileText className="h-4 w-4 mr-1 text-gray-400" />
+                Description*
+              </FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Enter product description" 
-                  className="resize-none"
+                  className="resize-none min-h-[100px] transition-all border-gray-300 focus:border-green-300 focus:ring-1 focus:ring-green-200"
                   {...field} 
                 />
               </FormControl>
@@ -58,11 +74,15 @@ export function ProductSection({ form }: ProductSectionProps) {
           name="quantity"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Quantity*</FormLabel>
+              <FormLabel className="flex items-center">
+                <Hash className="h-4 w-4 mr-1 text-gray-400" />
+                Quantity*
+              </FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Enter quantity" 
                   {...field} 
+                  className="transition-all border-gray-300 focus:border-green-300 focus:ring-1 focus:ring-green-200" 
                 />
               </FormControl>
               <FormMessage />
