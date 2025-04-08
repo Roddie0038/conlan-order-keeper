@@ -114,16 +114,20 @@ export const CrossDockForm = () => {
     ));
   };
   
-  // Print handler - properly typed as async function
+  // Print handler - proper typing with Promise<void> return type
   const onPrintClick = async (): Promise<void> => {
+    // We need to ensure this returns a Promise
     if (printRef.current) {
-      await Promise.resolve(handlePrint());
+      // Using Promise.resolve to ensure we return a Promise
+      return Promise.resolve(handlePrint());
     } else {
       toast({
         variant: "destructive",
         title: "Print Error",
         description: "Could not generate PDF. Please try again."
       });
+      // Return a resolved promise to maintain Promise<void> return type
+      return Promise.resolve();
     }
   };
 
