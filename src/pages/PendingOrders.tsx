@@ -4,7 +4,7 @@ import { usePlant } from "@/contexts/PlantContext";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { OrderForm } from "@/components/OrderForm";
+import { OrderForm } from "@/components/order-form/OrderForm";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { Calendar, PackageOpen, FileText, Hash, Mail, CheckCircle, Building } from "lucide-react";
 import { LogoutButton } from "@/components/LogoutButton";
