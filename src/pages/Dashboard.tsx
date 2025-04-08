@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { QuickInventorySearch } from "@/components/dashboard/QuickInventorySearch";
 import { DashboardMenu } from "@/components/dashboard/DashboardMenu";
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
@@ -30,8 +29,6 @@ export default function Dashboard() {
         <div className="flex justify-center mb-10">
           <DashboardBanner />
         </div>
-
-        <QuickInventorySearch loaded={loaded} />
 
         <main>
           <DashboardMenu loaded={loaded} />

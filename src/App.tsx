@@ -15,7 +15,6 @@ import PendingOrders from "./pages/PendingOrders";
 import MTOOrder from "./pages/MTOOrder";
 import CrossDock from "./pages/CrossDock";
 import AdminInventory from "./pages/AdminInventory";
-import RelentlessInventory from "./pages/RelentlessInventory";
 import AdminOrders from "./pages/AdminOrders";
 import WheelOrder from "./pages/WheelOrder";
 import OrderManagement from "./pages/OrderManagement";
@@ -137,16 +136,6 @@ function App() {
                     <ProtectedRoute adminOnly={true}>
                       <InventoryProvider>
                         <AdminOrders />
-                      </InventoryProvider>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/relentless-inventory"
-                  element={
-                    <ProtectedRoute showNav={false}>
-                      <InventoryProvider>
-                        <RelentlessInventory />
                       </InventoryProvider>
                     </ProtectedRoute>
                   }

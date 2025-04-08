@@ -68,19 +68,6 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       hideTitle: true,
       fullSizeImage: true,
       backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
-    },
-    {
-      title: "WAREHOUSE INVENTORY",
-      icon: null,
-      path: "/relentless-inventory",
-      color: "",
-      borderColor: "border-purple-400",
-      delay: 0.6,
-      highlight: true,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/63f10867-6aa8-46cf-8d8c-d086edacbb2f.png"
     }
   ];
 
