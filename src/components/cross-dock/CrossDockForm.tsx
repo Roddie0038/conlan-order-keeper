@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { stores } from "@/components/order-form/formConfig";
-import { Printer, Plus, FileEdit, FileCog } from "lucide-react";
+import { Printer, Plus, Building } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { useToast } from "@/components/ui/use-toast";
 import { usePlant } from "@/contexts/PlantContext";
@@ -33,10 +33,10 @@ export const CrossDockForm = () => {
   }]);
   
   const { toast } = useToast();
-  const { currentPlant } = usePlant();
+  const { selectedPlant } = usePlant();
   const printRef = useRef<HTMLDivElement>(null);
   
-  // Handle printing
+  // Handle printing - needed to fix Promise<void> issue
   const handlePrint = useReactToPrint({
     pageStyle: `
       @page { 
@@ -114,10 +114,10 @@ export const CrossDockForm = () => {
     ));
   };
   
-  // Print handler
-  const onPrintClick = () => {
+  // Print handler - Making it async to fix the Promise<void> error
+  const onPrintClick = async () => {
     if (printRef.current) {
-      handlePrint();
+      await Promise.resolve(handlePrint());
     } else {
       toast({
         variant: "destructive",
@@ -131,10 +131,10 @@ export const CrossDockForm = () => {
     <Card className="bg-white shadow-xl rounded-2xl overflow-hidden max-w-4xl mx-auto">
       <div className="print-header print-section" ref={printRef}>
         {/* Form Header with Plant name if available */}
-        {currentPlant && (
+        {selectedPlant && (
           <div className="bg-slate-100 p-2 text-center print-hide">
             <span className="text-sm font-medium text-slate-700">
-              Currently working with: <span className="font-bold">{currentPlant.name}</span>
+              Currently working with: <span className="font-bold">{selectedPlant}</span>
             </span>
           </div>
         )}

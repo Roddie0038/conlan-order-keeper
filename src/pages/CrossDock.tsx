@@ -1,13 +1,13 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { FileText, Edit, FileDigit } from "lucide-react";
+import { FileText, Edit, FileDigit, Building } from "lucide-react";
 import { CrossDockForm } from "@/components/cross-dock/CrossDockForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePlant } from "@/contexts/PlantContext";
 
 export default function CrossDock() {
   const { user } = useAuth();
-  const { currentPlant } = usePlant();
+  const { selectedPlant } = usePlant();
   
   return (
     <div className="min-h-screen bg-cover bg-center bg-no-repeat relative" style={{
@@ -19,10 +19,10 @@ export default function CrossDock() {
       <main className="container py-8 relative z-10">
         <div className="max-w-4xl mx-auto rounded-xl shadow-2xl overflow-hidden bg-white">
           {/* Header with plant name if available */}
-          {currentPlant && (
+          {selectedPlant && (
             <div className="bg-blue-600 px-6 py-3 text-white">
               <p className="text-center font-medium">
-                Working with: <span className="font-bold">{currentPlant.name}</span>
+                Working with: <span className="font-bold">{selectedPlant}</span>
               </p>
             </div>
           )}
