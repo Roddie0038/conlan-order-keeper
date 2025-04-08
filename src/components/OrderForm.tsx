@@ -93,8 +93,16 @@ export function OrderForm() {
       // Submit to Google Sheets
       const result = await submitToGoogleSheets({
         ...values,
-        timestamp: new Date().toISOString(),
+        yourName: values.yourName,  // Explicitly include required fields
+        store: values.store,
         dateReceived: values.dateReceived.toISOString(),
+        productNumber: values.productNumber,
+        description: values.description,
+        quantity: values.quantity,
+        scheduleArrival: values.scheduleArrival,
+        notes: values.notes || "",
+        crossDock: values.crossDock,
+        timestamp: new Date().toISOString(),
         managersEmail,
         plant: selectedPlant,
       });

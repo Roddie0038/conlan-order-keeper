@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlant } from "@/contexts/PlantContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { stores, getManagerEmail } from "@/components/order-form/formConfig";
@@ -9,6 +10,7 @@ import { WheelFormData } from "../types";
 
 export function useWheelOrderForm() {
   const { user } = useAuth();
+  const { selectedPlant } = usePlant();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,6 +128,7 @@ export function useWheelOrderForm() {
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
         crossDock: "No",
         managersEmail: managerEmail,
+        plant: selectedPlant, // Include the plant
         
         // Additional wheel specific details
         qtyWheels: formData.qtyWheels,

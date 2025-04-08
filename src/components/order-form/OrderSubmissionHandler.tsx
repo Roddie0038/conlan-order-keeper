@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -6,6 +5,7 @@ import { decreaseInventoryQuantity } from "@/services/inventoryService";
 import type { OrderSummary } from "./types";
 import { LoadingOverlay } from "./LoadingOverlay";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlant } from "@/contexts/PlantContext";
 import { storeManagerEmails } from "./formConfig";
 
 interface OrderSubmissionHandlerProps {
@@ -20,9 +20,9 @@ export const OrderSubmissionHandler = ({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
+  const { selectedPlant } = usePlant();
 
   const getManagerEmail = (store: string) => {
-    // Extract store number from store name (e.g., "Fort Worth 22" -> "22")
     const storeNumber = store.split(' ').pop();
     if (!storeNumber) return '';
     return storeManagerEmails[storeNumber] || '';
@@ -35,20 +35,18 @@ export const OrderSubmissionHandler = ({
     const selectedOrders = orderSummaries.filter(order => order.selected);
     
     try {
-      // Submit orders one by one with a 1-minute delay between each
       for (let i = 0; i < selectedOrders.length; i++) {
         const order = selectedOrders[i];
         const managersEmail = getManagerEmail(order.store);
         
         console.log(`Submitting order ${i + 1} of ${selectedOrders.length} for store ${order.store} with manager email: ${managersEmail}`);
         
-        // Submit order to Google Sheets
         await submitToGoogleSheets({
           ...order,
-          managersEmail: managersEmail
+          managersEmail: managersEmail,
+          plant: selectedPlant
         });
 
-        // Update inventory quantities with improved error handling
         try {
           const quantity = parseInt(order.quantity, 10);
           if (!isNaN(quantity) && order.productNumber) {
@@ -76,26 +74,23 @@ export const OrderSubmissionHandler = ({
             description: `Failed to update inventory for ${order.productNumber}. Please check admin console.`,
             variant: "destructive"
           });
-          // Continue with order submission even if inventory update fails
         }
 
-        // Store in localStorage
         const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
         existingOrders.push({
           ...order,
-          managersEmail: managersEmail
+          managersEmail: managersEmail,
+          plant: selectedPlant
         });
         localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
 
-        // Show toast for each successful submission
         toast({
           title: `Order ${i + 1} Submitted`,
           description: `Successfully submitted order ${i + 1} of ${selectedOrders.length}.`
         });
 
-        // Wait for 1 minute before submitting the next order (except for the last one)
         if (i < selectedOrders.length - 1) {
-          await delay(60000); // 60000ms = 1 minute
+          await delay(60000);
         }
       }
 

@@ -2,6 +2,7 @@
 import { MTOFormData } from "../mto-form-config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
+import { usePlant } from "@/contexts/PlantContext";
 
 interface SubmitMTOOrderProps {
   formData: MTOFormData;
@@ -16,6 +17,8 @@ export const useSubmitMTOOrder = ({
   resetForm,
   toast 
 }: SubmitMTOOrderProps) => {
+  const { selectedPlant } = usePlant();
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -107,6 +110,7 @@ export const useSubmitMTOOrder = ({
         type: 'MTO' as const,
         managersEmail,
         triggered_from: window.location.origin,
+        plant: selectedPlant, // Include the plant from context
       };
 
       const result = await submitToGoogleSheets(orderData);
