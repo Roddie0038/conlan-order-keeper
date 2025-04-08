@@ -45,7 +45,8 @@ export const CrossDockForm = () => {
 
   return (
     <Card className="bg-white shadow-xl rounded-2xl overflow-hidden max-w-4xl mx-auto">
-      <div className="print-header print-section" ref={printRef}>
+      {/* Make sure the entire content to be printed is wrapped with the ref */}
+      <div ref={printRef}>
         <CrossDockHeader />
         
         <CardContent className="p-6">
