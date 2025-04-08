@@ -36,7 +36,7 @@ export const CrossDockForm = () => {
   const { selectedPlant } = usePlant();
   const printRef = useRef<HTMLDivElement>(null);
   
-  // Handle printing - needed to fix Promise<void> issue
+  // Handle printing - properly typed for async operation
   const handlePrint = useReactToPrint({
     pageStyle: `
       @page { 
@@ -114,8 +114,8 @@ export const CrossDockForm = () => {
     ));
   };
   
-  // Print handler - Making it async to fix the Promise<void> error
-  const onPrintClick = async () => {
+  // Print handler - properly typed as async function
+  const onPrintClick = async (): Promise<void> => {
     if (printRef.current) {
       await Promise.resolve(handlePrint());
     } else {
