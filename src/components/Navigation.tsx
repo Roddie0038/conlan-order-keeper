@@ -3,7 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, Database, ClipboardList, ShoppingCart, Disc } from "lucide-react";
+import { usePlant } from "@/contexts/PlantContext";
+import { LayoutDashboard, Database, ClipboardList, ShoppingCart, Disc, Building } from "lucide-react";
 
 // Define an interface for the link item to include the highlight property
 interface NavLink {
@@ -17,6 +18,7 @@ export function Navigation() {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   const { user } = useAuth();
+  const { selectedPlant } = usePlant();
 
   const links: NavLink[] = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4 mr-2" /> },
@@ -63,7 +65,11 @@ export function Navigation() {
               </Link>
             ))}
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-2 py-1 px-3 bg-blue-800 text-white rounded-full border border-blue-500">
+              <Building className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-bold text-amber-400">{selectedPlant}</span>
+            </div>
             <DarkModeToggle />
           </div>
         </div>
