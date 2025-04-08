@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlant } from "@/contexts/PlantContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HelpCircle, Loader2 } from "lucide-react";
+import { HelpCircle, Loader2, Building } from "lucide-react";
 
 const usernames = [
   "Conlan97", "Fort Worth22", "Grand Prairie27", "Houston28", "San Antonio29", 
@@ -15,7 +16,13 @@ const usernames = [
   "Miami 3", "Pompano Beach7", "Fort Myers9", "Jacksonville2", "Ocala5", 
   "Tallahassee15", "Mulberry99", "Orlando4", "Tampa6", "Vero Beach21", 
   "Sarasota23", "Romulus098", "Toledo8", "Detroit11", "Grand Rapids13", 
-  "Cleveland18", "Chicago41"
+  "Cleveland18", "Chicago41", "Grand Prairie 97", "Romulus 98", "Mulberry 99"
+];
+
+const plants = [
+  { value: "Grand Prairie 97", label: "Grand Prairie 97" },
+  { value: "Romulus 098", label: "Romulus 098" },
+  { value: "Mulberry 99", label: "Mulberry 99" }
 ];
 
 export default function Login() {
@@ -23,6 +30,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const { selectedPlant, setSelectedPlant } = usePlant();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -31,10 +39,10 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      if (login(username, password)) {
+      if (login(username, password, selectedPlant)) {
         toast({
           title: "Login successful",
-          description: "Welcome back to Conlan Tire Order Tracking!",
+          description: `Welcome back to ${selectedPlant} Order Tracking!`,
           className: "bg-green-50 border-green-200",
         });
         navigate("/dashboard");
@@ -77,6 +85,40 @@ export default function Login() {
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-200">
+                  Select Plant
+                </label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-auto p-0">
+                        <HelpCircle className="h-4 w-4 text-gray-300" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-slate-800 text-white">
+                      <p>Select the plant you're working with</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Select value={selectedPlant} onValueChange={value => setSelectedPlant(value as any)}>
+                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white focus:ring-offset-blue-500">
+                  <div className="flex items-center gap-2">
+                    <Building size={16} />
+                    <SelectValue placeholder="Select plant" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {plants.map(plant => (
+                    <SelectItem key={plant.value} value={plant.value}>
+                      {plant.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-gray-200">

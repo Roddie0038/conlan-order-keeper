@@ -5,11 +5,12 @@ interface User {
   username: string;
   store: string;
   isAdmin: boolean;
+  plant?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => boolean;
+  login: (username: string, password: string, plant: string) => boolean;
   logout: () => void;
 }
 
@@ -44,6 +45,11 @@ const users = [
   { username: 'Grand Rapids13', password: 'Welcome13', store: 'Grand Rapids 13', isAdmin: false },
   { username: 'Cleveland18', password: 'Welcome18', store: 'Cleveland 18', isAdmin: false },
   { username: 'Chicago41', password: 'Welcome41', store: 'Chicago 41', isAdmin: false },
+  
+  // Plant admin accounts
+  { username: 'Grand Prairie 97', password: 'Conlan97', store: 'Admin', isAdmin: true },
+  { username: 'Romulus 98', password: 'Conlan98', store: 'Admin', isAdmin: true },
+  { username: 'Mulberry 99', password: 'Conlan99', store: 'Admin', isAdmin: true },
 ];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,13 +68,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
-  const login = (username: string, password: string) => {
+  const login = (username: string, password: string, plant: string) => {
     const userMatch = users.find(u => u.username === username && u.password === password);
     if (userMatch) {
       setUser({ 
         username: userMatch.username, 
         store: userMatch.store, 
-        isAdmin: userMatch.isAdmin 
+        isAdmin: userMatch.isAdmin,
+        plant: plant
       });
       return true;
     }

@@ -1,7 +1,11 @@
+
+import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
+
 interface BaseOrderData {
   timestamp: string;
   store: string;
   managersEmail?: string;
+  plant: string;
 }
 
 export interface OrderData extends BaseOrderData {
@@ -84,44 +88,38 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("Submitting to webhooks:", data);
   console.log("Manager's email in submitToGoogleSheets:", data.managersEmail);
   
-  // Determine which webhooks to use based on order type
-  const webhooks = [];
+  // Ensure a plant is specified, default to Grand Prairie 97 if not
+  const plant = data.plant || "Grand Prairie 97";
+  console.log("Selected plant for webhook submission:", plant);
+  
+  // Get the relevant webhooks based on the plant
+  let url = '';
   
   if ('type' in data) {
     if (data.type === 'MTO') {
-      webhooks.push("https://hooks.zapier.com/hooks/catch/21741437/2wax8rh/"); // MTO orders webhook
+      url = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].mtoOrders;
     } else if (data.type === 'WHEEL_POWDER_COATING') {
-      webhooks.push("https://hooks.zapier.com/hooks/catch/21741437/2c1zjty/"); // Updated wheel powder coating webhook
+      url = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].wheelOrders;
     }
+  } else {
+    // Default to transfer requests webhook
+    url = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;
   }
   
-  if (webhooks.length === 0) {
-    // If no specific type or not matched, use the default webhooks
-    webhooks.push(
-      "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/", // Original regular orders webhook
-      "https://hooks.zapier.com/hooks/catch/22118763/2lnbpor/"  // New additional webhook
-    );
-  }
-
   try {
-    // Submit to all webhooks concurrently
-    const results = await Promise.all(
-      webhooks.map(webhook => submitToWebhook(webhook, data))
-    );
-
-    // Check if all webhooks were successful
-    const allSuccessful = results.every(result => result === true);
+    // Submit to the selected webhook
+    const result = await submitToWebhook(url, data);
     
-    if (allSuccessful) {
-      console.log("All webhooks triggered successfully");
+    if (result) {
+      console.log("Webhook triggered successfully");
       return { status: 'success' };
     } else {
-      console.log("Some webhooks failed to trigger");
-      return { status: 'partial_success' };
+      console.log("Webhook failed to trigger");
+      return { status: 'error' };
     }
 
   } catch (error) {
-    console.error("Error submitting to webhooks:", error);
+    console.error("Error submitting to webhook:", error);
     return { status: 'error' };
   }
 };

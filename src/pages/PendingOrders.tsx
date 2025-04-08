@@ -1,10 +1,12 @@
+
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlant } from "@/contexts/PlantContext";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { OrderForm } from "@/components/OrderForm";
 import { getManagerEmail } from "@/components/order-form/formConfig";
-import { Calendar, PackageOpen, FileText, Hash, Mail, CheckCircle } from "lucide-react";
+import { Calendar, PackageOpen, FileText, Hash, Mail, CheckCircle, Building } from "lucide-react";
 import { LogoutButton } from "@/components/LogoutButton";
 
 interface Order {
@@ -20,23 +22,31 @@ interface Order {
   notes: string;
   crossDock: string;
   managerEmail?: string;
+  plant?: string;
 }
 
 export default function PendingOrders() {
   const { user } = useAuth();
+  const { selectedPlant } = usePlant();
   const [orders, setOrders] = useState<Order[]>([]);
   
   useEffect(() => {
     const savedOrders = localStorage.getItem('pendingOrders');
     if (savedOrders) {
       const allOrders = JSON.parse(savedOrders);
-      const filteredOrders = allOrders.filter((order: Order) => order.store === user?.store).map((order: Order) => ({
-        ...order,
-        managerEmail: getManagerEmail(order.store)
-      }));
+      // Filter by both store and plant
+      const filteredOrders = allOrders
+        .filter((order: Order) => 
+          order.store === user?.store && 
+          (!order.plant || order.plant === selectedPlant)
+        )
+        .map((order: Order) => ({
+          ...order,
+          managerEmail: getManagerEmail(order.store)
+        }));
       setOrders(filteredOrders);
     }
-  }, [user?.store]);
+  }, [user?.store, selectedPlant]);
   
   const handleComplete = (orderId: string) => {
     const allPendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
@@ -45,15 +55,24 @@ export default function PendingOrders() {
       const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
       completedOrders.push({
         ...orderToComplete,
-        managerEmail: getManagerEmail(orderToComplete.store)
+        managerEmail: getManagerEmail(orderToComplete.store),
+        plant: selectedPlant
       });
       localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
       const updatedPendingOrders = allPendingOrders.filter((o: Order) => o.id !== orderId);
       localStorage.setItem('pendingOrders', JSON.stringify(updatedPendingOrders));
-      setOrders(updatedPendingOrders.filter((order: Order) => order.store === user?.store).map((order: Order) => ({
-        ...order,
-        managerEmail: getManagerEmail(order.store)
-      })));
+      
+      // Update local state
+      setOrders(updatedPendingOrders
+        .filter((order: Order) => 
+          order.store === user?.store && 
+          (!order.plant || order.plant === selectedPlant)
+        )
+        .map((order: Order) => ({
+          ...order,
+          managerEmail: getManagerEmail(order.store)
+        }))
+      );
     }
   };
   
@@ -68,7 +87,13 @@ export default function PendingOrders() {
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img alt="Conlan Tire Logo" className="h-16 object-contain rounded-full" src="/lovable-uploads/1691138e-da6c-4910-8901-00cd0ab21fa8.png" />
-            <h1 className="mx-[240px] font-extrabold my-[4px] py-[4px] text-4xl text-justify px-[29px]">New Order Form - {user?.store}</h1>
+            <div>
+              <h1 className="font-extrabold text-4xl text-justify px-[29px]">New Order Form - {user?.store}</h1>
+              <div className="flex items-center text-gray-200 px-[29px] mt-1">
+                <Building className="h-4 w-4 mr-1" />
+                <span className="text-sm font-medium">{selectedPlant}</span>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -112,6 +137,12 @@ export default function PendingOrders() {
                   </TableHead>
                   <TableHead className="text-slate-200 py-3 font-semibold">
                     <div className="flex items-center gap-1.5">
+                      <Building className="h-4 w-4 text-blue-400" />
+                      <span>Plant</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-slate-200 py-3 font-semibold">
+                    <div className="flex items-center gap-1.5">
                       <Mail className="h-4 w-4 text-blue-400" />
                       <span>Manager Email</span>
                     </div>
@@ -122,7 +153,7 @@ export default function PendingOrders() {
               <TableBody className="divide-y divide-slate-700">
                 {orders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-slate-400">
+                    <TableCell colSpan={7} className="text-center py-8 text-slate-400">
                       No pending orders found
                     </TableCell>
                   </TableRow>
@@ -143,6 +174,9 @@ export default function PendingOrders() {
                       </TableCell>
                       <TableCell className="py-3 text-slate-200">
                         {order.quantity}
+                      </TableCell>
+                      <TableCell className="py-3 text-slate-200">
+                        {order.plant || selectedPlant}
                       </TableCell>
                       <TableCell className="py-3 text-slate-200">
                         {order.managerEmail || 'N/A'}

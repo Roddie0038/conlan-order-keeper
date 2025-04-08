@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { PlantProvider } from "./contexts/PlantContext";
 import { InventoryProvider } from "./contexts/InventoryContext";
 import { Navigation } from "./components/Navigation";
 import { LogoutButton } from "./components/LogoutButton";
@@ -60,104 +61,106 @@ function ProtectedRoute({ children, showNav = true, adminOnly = false }: { child
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Login />} />
-              
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute showNav={false}>
-                    <InventoryProvider>
-                      <Dashboard />
-                    </InventoryProvider>
-                  </ProtectedRoute>
-                }
-              />
-              
-              <Route
-                path="/pending-orders"
-                element={
-                  <ProtectedRoute>
-                    <InventoryProvider>
-                      <PendingOrders />
-                    </InventoryProvider>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/order-management"
-                element={
-                  <ProtectedRoute>
-                    <OrderManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/mto-order"
-                element={
-                  <ProtectedRoute>
-                    <MTOOrder />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/cross-dock"
-                element={
-                  <ProtectedRoute>
-                    <CrossDock />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/wheel-order"
-                element={
-                  <ProtectedRoute showNav={false}>
-                    <WheelOrder />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin-inventory"
-                element={
-                  <ProtectedRoute adminOnly={true}>
-                    <AdminInventory />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin-orders"
-                element={
-                  <ProtectedRoute adminOnly={true}>
-                    <InventoryProvider>
-                      <AdminOrders />
-                    </InventoryProvider>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/relentless-inventory"
-                element={
-                  <ProtectedRoute showNav={false}>
-                    <InventoryProvider>
-                      <RelentlessInventory />
-                    </InventoryProvider>
-                  </ProtectedRoute>
-                }
-              />
-              
-              <Route
-                path="*"
-                element={<Navigate to="/dashboard" replace />}
-              />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+      <PlantProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Login />} />
+                
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute showNav={false}>
+                      <InventoryProvider>
+                        <Dashboard />
+                      </InventoryProvider>
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route
+                  path="/pending-orders"
+                  element={
+                    <ProtectedRoute>
+                      <InventoryProvider>
+                        <PendingOrders />
+                      </InventoryProvider>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/order-management"
+                  element={
+                    <ProtectedRoute>
+                      <OrderManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/mto-order"
+                  element={
+                    <ProtectedRoute>
+                      <MTOOrder />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/cross-dock"
+                  element={
+                    <ProtectedRoute>
+                      <CrossDock />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/wheel-order"
+                  element={
+                    <ProtectedRoute showNav={false}>
+                      <WheelOrder />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin-inventory"
+                  element={
+                    <ProtectedRoute adminOnly={true}>
+                      <AdminInventory />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin-orders"
+                  element={
+                    <ProtectedRoute adminOnly={true}>
+                      <InventoryProvider>
+                        <AdminOrders />
+                      </InventoryProvider>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/relentless-inventory"
+                  element={
+                    <ProtectedRoute showNav={false}>
+                      <InventoryProvider>
+                        <RelentlessInventory />
+                      </InventoryProvider>
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route
+                  path="*"
+                  element={<Navigate to="/dashboard" replace />}
+                />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </PlantProvider>
     </QueryClientProvider>
   );
 }
