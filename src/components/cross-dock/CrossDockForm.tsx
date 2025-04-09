@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { CrossDockHeader } from "./components/CrossDockHeader";
 import { FormDetails } from "./components/FormDetails";
 import { ProductTable, ProductRow } from "./components/ProductTable";
-import { motion } from "framer-motion";
 
 export const CrossDockForm = () => {
   // State management
@@ -49,7 +48,7 @@ export const CrossDockForm = () => {
 
   // Handle printing using react-to-print hook
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef, // Use contentRef instead of content
     documentTitle: 'Cross_Dock_Form',
     pageStyle: `
       @page { 
@@ -86,7 +85,7 @@ export const CrossDockForm = () => {
         }
       }
     `,
-    onBeforePrint: async () => {
+    onBeforeGetContent: async () => {
       console.log("Preparing to print Cross Dock form...");
       setIsPrinting(true);
     },
