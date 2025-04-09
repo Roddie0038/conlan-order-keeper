@@ -86,7 +86,7 @@ export const CrossDockForm = () => {
         }
       }
     `,
-    onBeforePrint: () => {
+    onBeforePrint: async () => {
       console.log("Preparing to print Cross Dock form...");
       setIsPrinting(true);
     },
@@ -98,8 +98,8 @@ export const CrossDockForm = () => {
         description: "PDF generated successfully!"
       });
     },
-    onPrintError: (error: Error) => {
-      console.error('Print failed:', error);
+    onPrintError: (errorLocation, error) => {
+      console.error(`Print failed at ${errorLocation}:`, error);
       setIsPrinting(false);
       toast({
         variant: "destructive",
@@ -109,7 +109,7 @@ export const CrossDockForm = () => {
     },
   });
 
-  const onPrintClick = () => {
+  const onPrintClick = async () => {
     if (!printRef.current) {
       console.log("Print reference is not available", printRef.current);
       toast({
