@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { usePlant } from "@/contexts/PlantContext";
 import { Building } from "lucide-react";
+import { WarehouseNotification } from "@/components/WarehouseNotification";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const Index = () => {
       </header>
       
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <WarehouseNotification />
         <OrderForm />
       </main>
       
