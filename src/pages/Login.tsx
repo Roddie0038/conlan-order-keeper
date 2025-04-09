@@ -1,14 +1,14 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HelpCircle, Loader2, Building } from "lucide-react";
+import { HelpCircle, Loader2, Building, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const usernames = [
   "Conlan97", "Fort Worth22", "Grand Prairie27", "Houston28", "San Antonio29", 
@@ -83,6 +83,13 @@ export default function Login() {
           <p className="mt-2 text-zinc-300">Manage inventory and orders with ease</p>
         </div>
         
+        <Alert className="border-amber-600 bg-amber-50/20 text-amber-100">
+          <AlertTriangle className="h-4 w-4 text-amber-400 mr-2" />
+          <AlertDescription className="text-sm">
+            Please note: The login screen has been updated. Users must now select the correct warehouse before placing orders. Make sure to review your selection to ensure accurate processing.
+          </AlertDescription>
+        </Alert>
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -119,6 +126,7 @@ export default function Login() {
                 </SelectContent>
               </Select>
             </div>
+            
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-gray-200">
@@ -148,6 +156,7 @@ export default function Login() {
                 </SelectContent>
               </Select>
             </div>
+            
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-gray-200">
