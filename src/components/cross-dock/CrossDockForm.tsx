@@ -48,7 +48,7 @@ export const CrossDockForm = () => {
 
   // Handle printing using react-to-print hook
   const handlePrint = useReactToPrint({
-    contentRef: printRef, // Use contentRef instead of content
+    content: () => printRef.current,
     documentTitle: 'Cross_Dock_Form',
     pageStyle: `
       @page { 
@@ -85,7 +85,7 @@ export const CrossDockForm = () => {
         }
       }
     `,
-    onBeforeGetContent: async () => {
+    onBeforePrint: () => {
       console.log("Preparing to print Cross Dock form...");
       setIsPrinting(true);
     },
