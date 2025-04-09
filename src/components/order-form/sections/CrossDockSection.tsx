@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { crossDockOptions, stores } from "@/components/order-form/formConfig";
-import { Truck, MapPin } from "lucide-react";
+import { Truck, MapPin, Building } from "lucide-react";
 
 interface CrossDockSectionProps {
   form: UseFormReturn<OrderFormValues>;
