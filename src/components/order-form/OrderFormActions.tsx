@@ -5,19 +5,22 @@ import { Plus } from "lucide-react";
 interface OrderFormActionsProps {
   isSubmitting: boolean;
   selectedPlant: string;
+  onAddClick?: () => void; // New prop to handle the add to order action
 }
 
 export function OrderFormActions({ 
   isSubmitting,
-  selectedPlant
+  selectedPlant,
+  onAddClick
 }: OrderFormActionsProps) {
   return (
     <div className="mt-8 flex flex-col space-y-4">
       <Button 
-        type="submit" 
+        type="button" // Changed from 'submit' to 'button' to avoid form submission
         className="w-full py-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white 
                  font-semibold text-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.01] flex items-center justify-center"
         disabled={isSubmitting}
+        onClick={onAddClick} // Use the new onAddClick prop
       >
         <span className="flex items-center gap-2">
           <Plus className="h-5 w-5" /> Add To Order

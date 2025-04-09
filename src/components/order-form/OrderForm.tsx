@@ -73,6 +73,11 @@ export function OrderForm() {
     );
   };
 
+  // This function will be called when the "Add To Order" button is clicked
+  const handleAddToOrder = () => {
+    form.handleSubmit(onSubmit)();
+  };
+
   return (
     <OrderFormWrapper>
       <OrderFormHeader />
@@ -102,6 +107,7 @@ export function OrderForm() {
       <OrderFormActions 
         isSubmitting={isSubmitting}
         selectedPlant={selectedPlant}
+        onAddClick={handleAddToOrder} // Connect button click to form submission
       />
     </OrderFormWrapper>
   );
