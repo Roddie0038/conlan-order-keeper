@@ -15,9 +15,10 @@ export const OrderSummaryTable = ({
 }: OrderSummaryTableProps) => {
   if (orderSummaries.length === 0) return null;
   
-  return <div className="max-w-3xl mx-auto p-4 rounded-lg shadow-lg border border-gray-200 bg-sky-500 hover:bg-sky-400 px-0 py-[16px]">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-4xl mx-[240px] text-inherit font-extrabold">Order Summary</h2>
+  return (
+    <div className="max-w-full mx-auto bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Order Summary</h2>
         <ExportButton 
           data={orderSummaries} 
           filename="pending-orders" 
@@ -29,34 +30,36 @@ export const OrderSummaryTable = ({
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">Select</TableHead>
-              <TableHead className="px-0">Order ID</TableHead>
-              <TableHead>Store</TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Qty</TableHead>
               <TableHead>Schedule</TableHead>
-              <TableHead>Manager Email</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Cross Dock</TableHead>
+              <TableHead>Cross Dock Destination</TableHead>
+              <TableHead>Notes</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orderSummaries.map(order => <TableRow key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
-                <TableCell className="mx-0 px-[30px] rounded-3xl bg-teal-400 hover:bg-teal-300">
-                  <Checkbox checked={order.selected} onCheckedChange={() => onToggleSelection(order.id)} className="text-gray-950 bg-rose-600 hover:bg-rose-500" />
+            {orderSummaries.map(order => (
+              <TableRow key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <TableCell>
+                  <Checkbox 
+                    checked={order.selected} 
+                    onCheckedChange={() => onToggleSelection(order.id)} 
+                  />
                 </TableCell>
-                <TableCell className="max-w-[150px] truncate rounded-3xl bg-teal-400 hover:bg-teal-300">{order.id}</TableCell>
-                <TableCell className="rounded-3xl px-[25px] py-[10px] my-0 mx-0 bg-teal-400 hover:bg-teal-300">{order.store}</TableCell>
-                <TableCell className="px-0 py-0 mx-[240px] bg-teal-400 hover:bg-teal-300 rounded-full">{order.productNumber}</TableCell>
-                <TableCell className="max-w-xs truncate bg-teal-400 hover:bg-teal-300 rounded-full">{order.description}</TableCell>
-                <TableCell className="bg-teal-400 hover:bg-teal-300 rounded-full">{order.quantity}</TableCell>
-                <TableCell className="bg-teal-400 hover:bg-teal-300 my-0 rounded-full">{order.scheduleArrival}</TableCell>
-                <TableCell className="max-w-xs truncate whitespace-normal break-words bg-yellow-300 hover:bg-yellow-200 rounded-3xl">
-                  {order.managersEmail || 'No email set'}
-                </TableCell>
-                <TableCell className="bg-teal-400 hover:bg-teal-300 rounded-full">Pending</TableCell>
-              </TableRow>)}
+                <TableCell className="font-medium">{order.productNumber}</TableCell>
+                <TableCell className="max-w-xs truncate">{order.description}</TableCell>
+                <TableCell>{order.quantity}</TableCell>
+                <TableCell>{order.scheduleArrival}</TableCell>
+                <TableCell>{order.crossDock}</TableCell>
+                <TableCell>{order.crossDockDestination || '-'}</TableCell>
+                <TableCell className="max-w-xs truncate">{order.notes || '-'}</TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
-    </div>;
+    </div>
+  );
 };

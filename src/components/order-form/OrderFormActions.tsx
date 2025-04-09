@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Check } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface OrderFormActionsProps {
   isSubmitting: boolean;
@@ -19,15 +19,9 @@ export function OrderFormActions({
                  font-semibold text-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.01] flex items-center justify-center"
         disabled={isSubmitting}
       >
-        {isSubmitting ? (
-          <span className="flex items-center gap-2">
-            Processing... 
-          </span>
-        ) : (
-          <span className="flex items-center gap-2">
-            Submit Order <ArrowRight className="ml-1 h-5 w-5" />
-          </span>
-        )}
+        <span className="flex items-center gap-2">
+          <Plus className="h-5 w-5" /> Add To Order
+        </span>
       </Button>
       
       <div className="text-center text-sm text-gray-500 dark:text-gray-400">
