@@ -60,7 +60,14 @@ export function useWheelOrderForm() {
 
   const handleStoreChange = (value: string) => {
     // Only admin users can change the store
-    if (!user?.isAdmin) return;
+    if (!user?.isAdmin) {
+      toast({
+        title: "Unauthorized",
+        description: "You can only submit orders for your own store.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const selectedStore = stores.find(store => store.id === value);
     if (selectedStore) {
@@ -101,6 +108,17 @@ export function useWheelOrderForm() {
       return;
     }
 
+    // Non-admin users can only submit for their own store
+    if (!user?.isAdmin && formData.storeName !== user?.store) {
+      toast({
+        title: "Unauthorized",
+        description: "You can only submit orders for your own store.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     if (!formData.qtyWheels) {
       toast({
         title: "Missing Quantity",
@@ -128,6 +146,7 @@ export function useWheelOrderForm() {
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
         crossDock: "No",
         managersEmail: managerEmail,
+        managerEmail: managerEmail, // Add both formats to ensure compatibility
         plant: selectedPlant, // Include the plant
         
         // Additional wheel specific details

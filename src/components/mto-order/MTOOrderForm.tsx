@@ -6,8 +6,10 @@ import { useSubmitMTOOrder } from "./hooks/useSubmitMTOOrder";
 import { OrderTemplate } from "../order-templates/OrderTemplate";
 import { Card } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const MTOOrderForm = () => {
+  const { user } = useAuth();
   const {
     formData,
     isSubmitting,
@@ -19,6 +21,13 @@ export const MTOOrderForm = () => {
     setFormData
   } = useMTOForm();
   
+  // Ensure the store is set to the logged-in user's store
+  React.useEffect(() => {
+    if (user && user.store && !isAdmin) {
+      setFormData(prev => ({ ...prev, store: user.store }));
+    }
+  }, [user, isAdmin, setFormData]);
+  
   const handleSubmit = useSubmitMTOOrder({
     formData,
     setIsSubmitting,
@@ -27,8 +36,10 @@ export const MTOOrderForm = () => {
   });
   
   const handleLoadTemplate = (templateData: any) => {
+    // When loading a template, ensure the store is still the user's store
     setFormData({
       ...templateData,
+      store: isAdmin ? templateData.store : user?.store || "",
       timestamp: new Date().toLocaleString() // Always use current timestamp
     });
     toast({

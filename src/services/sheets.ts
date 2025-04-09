@@ -5,6 +5,7 @@ interface BaseOrderData {
   timestamp: string;
   store: string;
   managersEmail?: string;
+  managerEmail?: string; // Add both formats to ensure compatibility
   plant: string;
 }
 
@@ -54,17 +55,19 @@ const submitToWebhook = async (url: string, data: any) => {
     // Format the date before sending
     const formattedData = {
       ...data,
-      dateReceived: formatDate(data.dateReceived),
+      dateReceived: data.dateReceived ? formatDate(data.dateReceived) : formatDate(new Date().toISOString()),
       timestamp: formatDate(new Date().toISOString()),
       orderId: crypto.randomUUID(),
       triggered_from: window.location.origin,
       // Ensure manager's email is included with the consistent property name
       managersEmail: data.managerEmail || data.managersEmail,
+      managerEmail: data.managerEmail || data.managersEmail,
       // Join multiple casing grades into a comma-separated string if it's an array
       casingGrade: Array.isArray(data.casingGrade) ? data.casingGrade.join(', ') : data.casingGrade
     };
 
     console.log("Sending formatted data to webhook:", formattedData);
+    console.log("Using webhook URL:", url);
 
     const response = await fetch(url, {
       method: "POST",
@@ -86,7 +89,7 @@ const submitToWebhook = async (url: string, data: any) => {
 
 export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("Submitting to webhooks:", data);
-  console.log("Manager's email in submitToGoogleSheets:", data.managersEmail);
+  console.log("Manager's email in submitToGoogleSheets:", data.managersEmail || data.managerEmail);
   
   // Ensure a plant is specified, default to Grand Prairie 97 if not
   const plant = data.plant || "Grand Prairie 97";

@@ -3,6 +3,7 @@ import { MTOFormData } from "../mto-form-config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { usePlant } from "@/contexts/PlantContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SubmitMTOOrderProps {
   formData: MTOFormData;
@@ -18,6 +19,7 @@ export const useSubmitMTOOrder = ({
   toast 
 }: SubmitMTOOrderProps) => {
   const { selectedPlant } = usePlant();
+  const { user } = useAuth();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +29,16 @@ export const useSubmitMTOOrder = ({
       toast({
         title: "Missing Store",
         description: "Please select a store.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // If user is not admin, they can only submit orders for their store
+    if (!user?.isAdmin && formData.store !== user?.store) {
+      toast({
+        title: "Unauthorized",
+        description: "You can only submit orders for your own store.",
         variant: "destructive",
       });
       return;
@@ -101,7 +113,9 @@ export const useSubmitMTOOrder = ({
     try {
       const finalTireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       
+      // Get the manager's email for the selected store
       const managersEmail = getManagerEmail(formData.store);
+      console.log("Manager email for store:", formData.store, "is:", managersEmail);
       
       const orderData = {
         id: crypto.randomUUID(),
@@ -109,10 +123,14 @@ export const useSubmitMTOOrder = ({
         tireSize: finalTireSize,
         type: 'MTO' as const,
         managersEmail,
+        managerEmail: managersEmail, // Adding both formats to ensure compatibility
         triggered_from: window.location.origin,
         plant: selectedPlant, // Include the plant from context
+        store: formData.store, // Ensure store is included
+        timestamp: new Date().toISOString()
       };
 
+      console.log("Sending order data to webhook:", orderData);
       const result = await submitToGoogleSheets(orderData);
       
       if (result.status === 'success' || result.status === 'partial_success') {
