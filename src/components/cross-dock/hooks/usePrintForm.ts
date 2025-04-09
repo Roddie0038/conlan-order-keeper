@@ -65,7 +65,7 @@ export const usePrintForm = () => {
     content: () => printRef.current
   });
 
-  // Fixed: Explicitly returning a Promise<void> from onPrintClick
+  // Fixed: Ensuring onPrintClick returns a Promise<void> in all code paths
   const onPrintClick = (): Promise<void> => {
     if (!printRef.current) {
       toast({
@@ -76,7 +76,7 @@ export const usePrintForm = () => {
       return Promise.resolve();
     }
     
-    // Call handlePrint and return a resolved promise
+    // Call handlePrint and explicitly return a promise
     return new Promise<void>((resolve) => {
       handlePrint();
       resolve();
