@@ -12,17 +12,35 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { stores } from "@/components/order-form/formConfig";
+import { stores, getManagerEmail } from "@/components/order-form/formConfig";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, User, Building, Calendar as CalendarIcon2 } from "lucide-react";
+import { CalendarIcon, User, Building, Calendar as CalendarIcon2, Mail } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
 }
 
 export function ContactSection({ form }: ContactSectionProps) {
+  const { user } = useAuth();
+  
+  // Set the store to the user's store on component mount for non-admin users
+  useEffect(() => {
+    if (user && user.store && !user.isAdmin) {
+      // Set store
+      form.setValue("store", user.store);
+      
+      // Set manager email
+      const managerEmail = getManagerEmail(user.store);
+      if (managerEmail) {
+        form.setValue("managersEmail", managerEmail);
+      }
+    }
+  }, [user, form]);
+  
   return (
     <>
       <div className="flex items-center space-x-2 mb-6 border-l-4 border-blue-500 pl-3">
@@ -58,9 +76,15 @@ export function ContactSection({ form }: ContactSectionProps) {
                 Store*
               </FormLabel>
               <Select 
-                onValueChange={field.onChange} 
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  // Update manager email when store changes
+                  const managerEmail = getManagerEmail(value);
+                  form.setValue("managersEmail", managerEmail || "");
+                }} 
                 defaultValue={field.value}
                 value={field.value}
+                disabled={!user?.isAdmin}
               >
                 <FormControl>
                   <SelectTrigger className="transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200">
@@ -75,6 +99,28 @@ export function ContactSection({ form }: ContactSectionProps) {
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="managersEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center">
+                <Mail className="h-4 w-4 mr-1 text-gray-400" />
+                Manager's Email
+              </FormLabel>
+              <FormControl>
+                <Input 
+                  disabled={true} 
+                  placeholder="Manager's email will be automatically set" 
+                  {...field} 
+                  className="bg-gray-100 transition-all border-gray-300" 
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

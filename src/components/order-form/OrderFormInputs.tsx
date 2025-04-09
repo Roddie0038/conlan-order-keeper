@@ -6,7 +6,8 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchInventory } from "@/services/inventoryService";
 import { InventoryItem } from "@/types/inventory";
-import { Info, Package, Calendar, Truck } from "lucide-react";
+import { Info, Package, Calendar, Truck, Building, Mail } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface OrderFormInputsProps {
   formData: FormData;
@@ -20,11 +21,33 @@ export const OrderFormInputs = ({
   onChange
 }: OrderFormInputsProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [inventoryCheck, setInventoryCheck] = useState<{
     available: boolean;
     quantity: number;
   } | null>(null);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+
+  // Set the store to the user's store on component mount for non-admin users
+  useEffect(() => {
+    if (user && user.store && !user.isAdmin && formData.store !== user.store) {
+      onChange("store", user.store);
+      
+      // Set manager email when store changes
+      const managersEmail = getManagerEmail(user.store);
+      if (managersEmail && formData.managersEmail !== managersEmail) {
+        onChange("managersEmail", managersEmail);
+      }
+    }
+  }, [user, formData.store]);
+
+  // Helper function to get manager email
+  const getManagerEmail = (store: string) => {
+    if (store === "Admin") return storeManagerEmails["Admin"];
+    const match = store.match(/\d+$/);
+    const storeNumber = match ? match[0] : '';
+    return storeManagerEmails[storeNumber] || '';
+  };
 
   // Fetch inventory on component mount
   useEffect(() => {
@@ -124,6 +147,42 @@ export const OrderFormInputs = ({
               placeholder="Enter your name" 
             />
 
+            <div className="space-y-2 group transition-all duration-200">
+              <label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
+                <Building className="h-4 w-4 text-gray-400" />
+                Store {<span className="text-red-400">*</span>}
+              </label>
+              <FormField 
+                label="" 
+                required 
+                value={formData.store} 
+                onChange={value => {
+                  onChange("store", value);
+                  
+                  // Set manager email when store changes
+                  const managersEmail = getManagerEmail(value);
+                  onChange("managersEmail", managersEmail);
+                }} 
+                options={stores} 
+                disabled={!user?.isAdmin}
+              />
+            </div>
+
+            <div className="space-y-2 group transition-all duration-200">
+              <label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
+                <Mail className="h-4 w-4 text-gray-400" />
+                Manager's Email
+              </label>
+              <FormField 
+                label="" 
+                type="email" 
+                value={formData.managersEmail || ''} 
+                onChange={() => {}} 
+                disabled={true} 
+                placeholder="Manager's email will be automatically set" 
+              />
+            </div>
+
             <FormField 
               label="Date Received" 
               type="datetime-local" 
@@ -131,15 +190,6 @@ export const OrderFormInputs = ({
               value={formData.dateReceived} 
               onChange={value => onChange("dateReceived", value)} 
               disabled={true} 
-            />
-
-            <FormField 
-              label="Manager's Email" 
-              type="email" 
-              value={formData.managersEmail || ''} 
-              onChange={() => {}} 
-              disabled={true} 
-              placeholder="Manager's email will be automatically set" 
             />
           </div>
         </div>

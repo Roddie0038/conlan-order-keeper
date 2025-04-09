@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { OrderFormWrapper } from "./OrderFormWrapper";
@@ -14,12 +14,16 @@ import { formSchema } from "./order-form-schema";
 import { OrderSummaryTable } from "./OrderSummaryTable";
 import { OrderSubmissionHandler } from "./OrderSubmissionHandler";
 import { toast } from "@/hooks/use-toast";
+import { getManagerEmail } from "./formConfig";
 
 export function OrderForm() {
   const { user } = useAuth();
   const { selectedPlant } = usePlant();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSummaries, setOrderSummaries] = useState<any[]>([]);
+
+  // Get manager email for the user's store
+  const managerEmail = user?.store ? getManagerEmail(user.store) : "";
 
   const defaultValues = {
     yourName: "",
@@ -32,12 +36,22 @@ export function OrderForm() {
     notes: "",
     crossDock: "",
     crossDockDestination: "",
+    managersEmail: managerEmail,
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
+
+  // Update store and manager email when user changes
+  useEffect(() => {
+    if (user?.store && !user?.isAdmin) {
+      form.setValue("store", user.store);
+      const managerEmail = getManagerEmail(user.store);
+      form.setValue("managersEmail", managerEmail || "");
+    }
+  }, [user, form]);
 
   const { handleSubmit, formState, reset } = form;
   const showCrossDockDestination = form.watch("crossDock") === "yes";
@@ -60,8 +74,19 @@ export function OrderForm() {
       description: "The item has been added to your order. You can add more items or submit the order.",
     });
     
-    // Reset form for next item
-    reset(defaultValues);
+    // Reset form for next item, but preserve store and manager email for non-admin users
+    if (user?.isAdmin) {
+      reset(defaultValues);
+    } else {
+      const storeValue = form.getValues("store");
+      const managerEmailValue = form.getValues("managersEmail");
+      
+      reset({
+        ...defaultValues,
+        store: storeValue,
+        managersEmail: managerEmailValue
+      });
+    }
   };
 
   // Handler to toggle selection for individual orders
