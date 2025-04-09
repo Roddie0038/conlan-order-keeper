@@ -11,6 +11,8 @@ export const PrintButton = ({ onPrintClick }: PrintButtonProps) => {
   const [isPrinting, setIsPrinting] = useState(false);
 
   const handlePrintClick = async () => {
+    if (isPrinting) return;
+    
     setIsPrinting(true);
     
     try {

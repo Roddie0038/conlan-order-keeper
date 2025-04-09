@@ -27,10 +27,11 @@ export const usePrintForm = () => {
     
     try {
       // Call the PDF generation utility with the current content
-      return await generateCrossDockPDF({
+      await generateCrossDockPDF({
         content: printRef.current,
         documentTitle: 'Cross_Dock_Form'
       });
+      return Promise.resolve();
     } catch (error) {
       console.error("Error in print handler:", error);
       return Promise.reject(error);
