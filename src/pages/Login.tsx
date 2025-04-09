@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HelpCircle, Loader2, Building, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { HelpCircle, Loader2, Building } from "lucide-react";
 
 const usernames = [
   "Conlan97", "Fort Worth22", "Grand Prairie27", "Houston28", "San Antonio29", 
@@ -66,6 +66,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800 relative overflow-hidden">
+      {/* Background animated elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="wheel-animation absolute top-[10%] left-[15%] w-40 h-40 rounded-full border-4 border-blue-400/20 opacity-30 animate-spin-slow"></div>
         <div className="wheel-animation absolute bottom-[20%] right-[10%] w-28 h-28 rounded-full border-4 border-blue-300/30 opacity-20 animate-spin-slow-reverse"></div>
@@ -81,15 +82,6 @@ export default function Login() {
           <h1 className="mt-4 text-3xl font-bold text-zinc-100">Order Tracking System</h1>
           <p className="mt-2 text-zinc-300">Manage inventory and orders with ease</p>
         </div>
-        
-        <Alert variant="default" className="bg-yellow-600/30 border border-yellow-500/50 text-yellow-100">
-          <AlertCircle className="h-5 w-5 text-yellow-200" />
-          <AlertTitle className="text-yellow-100 font-medium">Important Notice</AlertTitle>
-          <AlertDescription className="text-yellow-100/90 text-sm">
-            Please note: The login screen has been updated. Users must now select the correct warehouse before placing orders. 
-            Make sure to review your selection to ensure accurate processing.
-          </AlertDescription>
-        </Alert>
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">

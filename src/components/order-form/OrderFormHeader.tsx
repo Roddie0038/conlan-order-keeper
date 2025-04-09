@@ -1,9 +1,9 @@
 
 export function OrderFormHeader() {
   return (
-    <div className="border-b border-gray-200 pb-5 mb-6">
-      <h2 className="text-3xl font-bold text-gray-900 dark:text-white">New Order Form</h2>
-      <p className="mt-2 text-gray-600 dark:text-gray-400">Please fill out all required fields</p>
+    <div>
+      <h2 className="text-2xl font-bold mb-2">New Order Form</h2>
+      <p className="text-gray-600 mb-4">Please fill out all required fields</p>
     </div>
   );
 }
