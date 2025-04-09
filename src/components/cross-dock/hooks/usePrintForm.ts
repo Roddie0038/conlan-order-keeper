@@ -65,8 +65,8 @@ export const usePrintForm = () => {
     content: () => printRef.current
   });
 
-  // Print handler - explicitly returning a Promise<void>
-  const onPrintClick = async (): Promise<void> => {
+  // Fixed: Explicitly returning a Promise<void> from onPrintClick
+  const onPrintClick = (): Promise<void> => {
     if (!printRef.current) {
       toast({
         variant: "destructive",
@@ -76,7 +76,7 @@ export const usePrintForm = () => {
       return Promise.resolve();
     }
     
-    // Using a proper promise to wrap handlePrint()
+    // Call handlePrint and return a resolved promise
     return new Promise<void>((resolve) => {
       handlePrint();
       resolve();
