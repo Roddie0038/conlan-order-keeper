@@ -24,8 +24,8 @@ export const generateCrossDockPDF = async (options: PrintOptions): Promise<void>
   }
 
   try {
-    // Dynamically import react-to-print to avoid SSR issues
-    const { useReactToPrint } = await import("react-to-print");
+    // Import the correct function from react-to-print
+    const reactToPrintModule = await import("react-to-print");
     
     // Define print styles
     const pageStyle = `
@@ -65,16 +65,14 @@ export const generateCrossDockPDF = async (options: PrintOptions): Promise<void>
     `;
 
     return new Promise<void>((resolve, reject) => {
-      // Since we can't use hooks outside of components,
-      // we'll use the direct print function from the library
-      const printMethod = require('react-to-print');
-      
-      if (!printMethod || !printMethod.default) {
+      // Use the correct import from react-to-print
+      if (!reactToPrintModule || !reactToPrintModule.default) {
         reject(new Error("Print library not available"));
         return;
       }
       
-      const printFn = printMethod.default({
+      // Use the properly imported function
+      const printFn = reactToPrintModule.default({
         content: () => content,
         documentTitle,
         pageStyle,

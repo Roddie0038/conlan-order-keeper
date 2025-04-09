@@ -14,6 +14,7 @@ export const PrintButton = ({ onPrintClick }: PrintButtonProps) => {
     if (isPrinting) return;
     
     setIsPrinting(true);
+    console.log("Print button clicked, initiating PDF generation...");
     
     try {
       await onPrintClick();

@@ -17,6 +17,7 @@ export const usePrintForm = () => {
    */
   const onPrintClick = async (): Promise<void> => {
     if (!printRef.current) {
+      console.log("Print reference is not available", printRef.current);
       toast({
         variant: "destructive",
         title: "Print Error",
@@ -24,6 +25,8 @@ export const usePrintForm = () => {
       });
       return Promise.reject(new Error("Print reference is not available"));
     }
+    
+    console.log("Attempting to print with reference:", printRef.current);
     
     try {
       // Call the PDF generation utility with the current content
