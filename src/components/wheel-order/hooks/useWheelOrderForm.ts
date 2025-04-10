@@ -136,7 +136,7 @@ export function useWheelOrderForm() {
         store: formData.storeName,
         storeId: formData.storeId,
         dateReceived: formData.dateReceived,
-        type: "WHEEL_POWDER_COATING",
+        type: "WHEEL_POWDER_COATING" as const, // Explicitly type as OrderType
         
         // Add required fields for OrderData
         productNumber: "WHEEL-COATING",

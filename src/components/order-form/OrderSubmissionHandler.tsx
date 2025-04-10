@@ -44,6 +44,7 @@ export const OrderSubmissionHandler = ({
           managersEmail,
           plant: selectedPlant,
           timestamp: new Date().toISOString(),
+          type: order.type || "TRANSFER", // Ensure type is set to a valid OrderType
         });
 
         // Store in localStorage for persistence
@@ -51,7 +52,8 @@ export const OrderSubmissionHandler = ({
         existingOrders.push({
           ...order,
           managersEmail,
-          plant: selectedPlant
+          plant: selectedPlant,
+          type: order.type || "TRANSFER" // Ensure type is properly set for localStorage too
         });
         localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
       }

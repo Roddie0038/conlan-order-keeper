@@ -33,6 +33,7 @@ export function useOrderFormSubmit({
         timestamp: new Date().toISOString(),
         managersEmail,
         plant: selectedPlant,
+        type: "TRANSFER" // Set explicit type for TypeScript
       };
       
       pendingOrders.push(newOrder);
@@ -53,6 +54,7 @@ export function useOrderFormSubmit({
         timestamp: new Date().toISOString(),
         managersEmail,
         plant: selectedPlant,
+        type: "TRANSFER" // Set explicit type for OrderType
       });
       
       if (result.status === "success") {
