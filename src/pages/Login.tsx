@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -76,7 +77,7 @@ export default function Login() {
       
       <div className="max-w-md w-full space-y-8 p-8 backdrop-blur-sm shadow-2xl border border-white/20 rounded-3xl bg-zinc-700/80 hover:bg-zinc-600/80 transition-all duration-300 z-10">
         <div className="text-center">
-          <div className="relative mx-auto h-24 w-auto mb-2 transition-all duration-300 hover:scale-105">
+          <div className="flex justify-center items-center h-24 w-full mb-2 transition-all duration-300 hover:scale-105">
             <img src="/lovable-uploads/b6f875b5-dba1-457d-b748-3b6e0578f676.png" alt="Conlan Tire Logo" className="h-full object-contain drop-shadow-lg rounded-2xl animate-float" />
           </div>
           <h1 className="mt-4 text-3xl font-bold text-zinc-100">Order Tracking System</h1>
