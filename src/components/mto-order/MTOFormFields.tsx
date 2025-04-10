@@ -5,6 +5,7 @@ import { casingGrades, tireSizes, scheduleOptions, MTOFormData } from "./mto-for
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface MTOFormFieldsProps {
   formData: MTOFormData;
@@ -27,6 +28,11 @@ export const MTOFormFields = ({
   // Store Information Fields
   const renderStoreFields = () => (
     <div className="space-y-4">
+      <div className="mb-5">
+        <h4 className="text-gray-800 text-base font-medium mb-2">Store Information</h4>
+        <Separator className="bg-gray-300" />
+      </div>
+      
       {isAdmin ? (
         <FormField 
           label="Store" 
@@ -75,6 +81,11 @@ export const MTOFormFields = ({
   // Product Details Fields
   const renderProductFields = () => (
     <div className="space-y-4">
+      <div className="mb-5">
+        <h4 className="text-gray-800 text-base font-medium mb-2">Product Information</h4>
+        <Separator className="bg-gray-300" />
+      </div>
+      
       <FormField 
         label="Product Number" 
         value={formData.productNumber} 
@@ -114,6 +125,11 @@ export const MTOFormFields = ({
   // Order Specification Fields
   const renderOrderFields = () => (
     <div className="space-y-4">
+      <div className="mb-5">
+        <h4 className="text-gray-800 text-base font-medium mb-2">Order Specifications</h4>
+        <Separator className="bg-gray-300" />
+      </div>
+      
       <FormField 
         label="Tire Size" 
         value={formData.tireSize} 
