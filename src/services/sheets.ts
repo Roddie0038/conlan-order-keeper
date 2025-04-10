@@ -1,7 +1,11 @@
-
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 
+// Define order type union
+type OrderType = "MTO" | "WHEEL_POWDER_COATING" | "TRANSFER";
+
+// Base interface with common properties
 interface BaseOrderData {
+  type: OrderType;
   timestamp: string;
   store: string;
   managersEmail?: string;
@@ -24,13 +28,12 @@ export interface OrderData extends BaseOrderData {
 export interface MTOOrderData extends BaseOrderData {
   name: string;
   productNumber: string;
-  casingGrade: string[];  // Updated to string array
+  casingGrade: string[];  // String array for casing grades
   tireSize: string;
   tireTreadNeeded: string;
   quantity: string;
   scheduleArrival: string;
   notes: string;
-  type: 'MTO';
 }
 
 // Webhook URLs for Google Apps Script
@@ -58,7 +61,6 @@ const formatDate = (dateString: string): string => {
   }
 };
 
-// Function to submit to the existing plant-specific webhooks
 const submitToWebhook = async (url: string, data: any) => {
   try {
     // Format the date before sending
@@ -96,7 +98,6 @@ const submitToWebhook = async (url: string, data: any) => {
   }
 };
 
-// Function to submit to the new Orders Google Sheet webhook
 const submitToOrdersWebhook = async (data: any) => {
   try {
     // Map the data to the format expected by the Orders webhook
@@ -133,7 +134,6 @@ const submitToOrdersWebhook = async (data: any) => {
   }
 };
 
-// Function to submit to the new Wheel Orders Google Sheet webhook
 const submitToWheelOrdersWebhook = async (data: any) => {
   try {
     // Extract the store number from the store name (e.g., "Fort Worth 22" -> "22")
@@ -176,7 +176,6 @@ const submitToWheelOrdersWebhook = async (data: any) => {
   }
 };
 
-// Function to submit to the new MTO Orders Google Sheet webhook
 const submitToMTOOrdersWebhook = async (data: any) => {
   try {
     // Format casing grade - convert array to string if needed
@@ -238,7 +237,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     const results = [];
     
     // Determine which type of order it is and submit to appropriate webhooks
-    if ('type' in data && data.type === 'MTO') {
+    if (data.type === 'MTO') {
       // Send to the plant-specific MTO webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].mtoOrders;
       const plantWebhookResult = await submitToWebhook(plantUrl, data);
@@ -248,7 +247,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       const mtoOrdersResult = await submitToMTOOrdersWebhook(data);
       results.push(mtoOrdersResult);
     } 
-    else if ('qtyWheels' in data || ('type' in data && data.type === 'WHEEL_POWDER_COATING')) {
+    else if (data.type === 'WHEEL_POWDER_COATING') {
       // Send to the plant-specific Wheel Orders webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].wheelOrders;
       const plantWebhookResult = await submitToWebhook(plantUrl, data);
@@ -259,6 +258,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       results.push(wheelOrdersResult);
     }
     else {
+      // Default to TRANSFER type for regular orders
       // Send to the plant-specific webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;
       const plantWebhookResult = await submitToWebhook(plantUrl, data);

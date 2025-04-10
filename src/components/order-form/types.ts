@@ -7,4 +7,5 @@ export interface OrderSummary extends FormData {
   store: string;
   selected?: boolean;
   managersEmail?: string;
+  type?: "MTO" | "WHEEL_POWDER_COATING" | "TRANSFER";
 }

@@ -1,4 +1,3 @@
-
 import { MTOFormData } from "../mto-form-config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -121,7 +120,7 @@ export const useSubmitMTOOrder = ({
         id: crypto.randomUUID(),
         ...formData,
         tireSize: finalTireSize,
-        type: 'MTO' as const,
+        type: 'MTO' as const, // Explicitly set the type as MTO
         managersEmail,
         managerEmail: managersEmail, // Adding both formats to ensure compatibility
         triggered_from: window.location.origin,
