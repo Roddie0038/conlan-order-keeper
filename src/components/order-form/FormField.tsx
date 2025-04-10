@@ -31,7 +31,7 @@ export const FormField = ({
   if (options) {
     return (
       <div className="space-y-2 group transition-all duration-200">
-        <Label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
+        <Label className="block text-sm font-medium text-black group-hover:text-gray-900 transition-colors flex items-center gap-2">
           {label} {required && <span className="text-red-400">*</span>}
         </Label>
         <Select 
@@ -60,7 +60,7 @@ export const FormField = ({
   
   return (
     <div className="space-y-2 group transition-all duration-200">
-      <Label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
+      <Label className="block text-sm font-medium text-black group-hover:text-gray-900 transition-colors flex items-center gap-2">
         {label} {required && <span className="text-red-400">*</span>}
       </Label>
       <Input 
