@@ -1,4 +1,3 @@
-
 import { FormField } from "../order-form/FormField";
 import { stores } from "../order-form/formConfig";
 import { casingGrades, tireSizes, scheduleOptions, MTOFormData } from "./mto-form-config";
@@ -29,7 +28,7 @@ export const MTOFormFields = ({
   const renderStoreFields = () => (
     <div className="space-y-4">
       <div className="mb-5">
-        <h4 className="text-gray-800 text-base font-medium mb-2">Store Information</h4>
+        <h4 className="text-black text-base font-medium mb-2">Store Information</h4>
         <Separator className="bg-gray-300" />
       </div>
       
@@ -82,7 +81,7 @@ export const MTOFormFields = ({
   const renderProductFields = () => (
     <div className="space-y-4">
       <div className="mb-5">
-        <h4 className="text-gray-800 text-base font-medium mb-2">Product Information</h4>
+        <h4 className="text-black text-base font-medium mb-2">Product Information</h4>
         <Separator className="bg-gray-300" />
       </div>
       
@@ -126,7 +125,7 @@ export const MTOFormFields = ({
   const renderOrderFields = () => (
     <div className="space-y-4">
       <div className="mb-5">
-        <h4 className="text-gray-800 text-base font-medium mb-2">Order Specifications</h4>
+        <h4 className="text-black text-base font-medium mb-2">Order Specifications</h4>
         <Separator className="bg-gray-300" />
       </div>
       

@@ -71,7 +71,7 @@ export const MTOOrderForm = () => {
         <div className="space-y-6">
           <div className="flex items-center space-x-2 border-l-4 border-blue-500 pl-3 py-1">
             <CheckCircle className="text-blue-500 h-5 w-5" />
-            <h3 className="text-lg font-medium text-gray-700">Store Information</h3>
+            <h3 className="text-lg font-medium text-black">Store Information</h3>
           </div>
           
           <div className="pl-5">
@@ -88,7 +88,7 @@ export const MTOOrderForm = () => {
         <div className="space-y-6">
           <div className="flex items-center space-x-2 border-l-4 border-green-500 pl-3 py-1">
             <CheckCircle className="text-green-500 h-5 w-5" />
-            <h3 className="text-lg font-medium text-gray-700">Product Details</h3>
+            <h3 className="text-lg font-medium text-black">Product Details</h3>
           </div>
           
           <div className="pl-5">
@@ -105,7 +105,7 @@ export const MTOOrderForm = () => {
         <div className="space-y-6">
           <div className="flex items-center space-x-2 border-l-4 border-orange-500 pl-3 py-1">
             <CheckCircle className="text-orange-500 h-5 w-5" />
-            <h3 className="text-lg font-medium text-gray-700">Order Specifications</h3>
+            <h3 className="text-lg font-medium text-black">Order Specifications</h3>
           </div>
           
           <div className="pl-5">
