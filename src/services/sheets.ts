@@ -252,7 +252,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       const mtoOrdersResult = await submitToMTOOrdersWebhook(data);
       results.push(mtoOrdersResult);
     } 
-    else if (data.type === 'WHEEL_POWDER_COATING' || 'qtyWheels' in data) {
+    else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data)) {
       // Ensure type is set to WHEEL_POWDER_COATING
       data.type = 'WHEEL_POWDER_COATING';
       
