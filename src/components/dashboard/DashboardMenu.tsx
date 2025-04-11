@@ -1,4 +1,3 @@
-
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 
@@ -30,7 +29,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/caf3c241-d9b3-4006-8e67-b991bcdc65ef.png"
+      backgroundImage: "/lovable-uploads/9f69d8f3-d46e-4cb7-9aa4-c71919921d67.png"
     },
     {
       title: "ORDER MANAGEMENT",
