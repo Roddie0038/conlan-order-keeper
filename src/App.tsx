@@ -18,7 +18,6 @@ import AdminInventory from "./pages/AdminInventory";
 import AdminOrders from "./pages/AdminOrders";
 import WheelOrder from "./pages/WheelOrder";
 import OrderManagement from "./pages/OrderManagement";
-import AdminOrdersView from "./pages/AdminOrdersView";
 import { useEffect } from "react";
 import { orderApi } from "./api/orderApi";
 
@@ -138,16 +137,6 @@ function App() {
                       <InventoryProvider>
                         <AdminOrders />
                       </InventoryProvider>
-                    </ProtectedRoute>
-                  }
-                />
-                
-                {/* Add the new admin-only recent orders view page */}
-                <Route
-                  path="/admin-recent-orders"
-                  element={
-                    <ProtectedRoute adminOnly={true}>
-                      <AdminOrdersView />
                     </ProtectedRoute>
                   }
                 />
