@@ -29,6 +29,8 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     
     // Determine which type of order it is and submit to appropriate webhooks
     if (data.type === 'MTO') {
+      console.log("🔍 ROUTING - Processing MTO order");
+      
       // Send to the plant-specific MTO webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].mtoOrders;
       console.log("Using plant-specific MTO webhook URL:", plantUrl);
@@ -40,8 +42,10 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       const mtoOrdersResult = await submitToMTOOrdersWebhook(data);
       results.push(mtoOrdersResult);
     } 
-    else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data)) {
-      // Ensure type is set to WHEEL_POWDER_COATING
+    else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
+      console.log("🔍 ROUTING - Processing WHEEL order");
+      
+      // Always ensure type is set to WHEEL_POWDER_COATING for consistency
       data.type = 'WHEEL_POWDER_COATING';
       
       // Send to the plant-specific Wheel Orders webhook
@@ -52,10 +56,16 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       
       // Send to the Wheel Orders webhook
       console.log("Sending to Wheel Orders Google Sheet webhook");
+      console.log("WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS);
       const wheelOrdersResult = await submitToWheelOrdersWebhook(data);
       results.push(wheelOrdersResult);
+      
+      // Explicitly log that we're NOT sending to MTO webhook for wheel orders
+      console.log("✅ NOT sending wheel order to MTO webhook - correct routing");
     }
     else {
+      console.log("🔍 ROUTING - Processing regular TRANSFER order");
+      
       // Default to TRANSFER type for regular orders
       // Send to the plant-specific webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;

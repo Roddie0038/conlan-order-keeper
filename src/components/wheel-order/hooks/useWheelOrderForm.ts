@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { stores, getManagerEmail } from "@/components/order-form/formConfig";
 import { WheelFormData } from "../types";
+import { WEBHOOK_URLS } from "@/services/webhook/config";
 
 export function useWheelOrderForm() {
   const { user } = useAuth();
@@ -121,12 +123,15 @@ export function useWheelOrderForm() {
     }
 
     try {
+      console.log("🔍 WHEEL FORM - Preparing wheel order submission");
+      console.log("🔍 WHEEL FORM - Target webhook URL will be:", WEBHOOK_URLS.WHEEL_ORDERS);
+      
       const submissionData = {
         yourName: formData.yourName,
         store: formData.storeName,
         storeId: formData.storeId,
         dateReceived: formData.dateReceived,
-        type: "WHEEL_POWDER_COATING" as const,
+        type: "WHEEL_POWDER_COATING" as const,  // Explicitly set the type
         productNumber: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
         quantity: formData.qtyWheels,
@@ -136,7 +141,7 @@ export function useWheelOrderForm() {
         managersEmail: managerEmail,
         managerEmail: managerEmail,
         plant: selectedPlant,
-        qtyWheels: formData.qtyWheels,
+        qtyWheels: formData.qtyWheels,  // This explicitly identifies it as a wheel order
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
         wheelType: formData.wheelType,
@@ -146,8 +151,9 @@ export function useWheelOrderForm() {
         timestamp: new Date().toISOString(),
       };
 
-      console.log("Submitting wheel order with manager email:", managerEmail);
-      console.log("Wheel order type set to:", submissionData.type);
+      console.log("🔍 WHEEL FORM - Submitting wheel order with manager email:", managerEmail);
+      console.log("🔍 WHEEL FORM - Wheel order type set to:", submissionData.type);
+      console.log("🔍 WHEEL FORM - Full wheel submission data:", JSON.stringify(submissionData, null, 2));
 
       const result = await submitToGoogleSheets(submissionData);
       
