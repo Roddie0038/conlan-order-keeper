@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
-import { LayoutDashboard, Database, ClipboardList, ShoppingCart, Disc, Building } from "lucide-react";
+import { LayoutDashboard, Database, ClipboardList, ShoppingCart, Disc, Building, Clock } from "lucide-react";
 
 // Define an interface for the link item to include the highlight property
 interface NavLink {
@@ -37,6 +37,12 @@ export function Navigation() {
         href: "/admin-orders", 
         label: "Admin Order Management", 
         icon: <ClipboardList className="w-4 h-4 mr-2" />,
+        highlight: true
+      },
+      {
+        href: "/admin-recent-orders",
+        label: "Recent Orders",
+        icon: <Clock className="w-4 h-4 mr-2" />,
         highlight: true
       }
     );
