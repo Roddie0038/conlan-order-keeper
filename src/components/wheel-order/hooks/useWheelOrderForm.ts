@@ -124,7 +124,10 @@ export function useWheelOrderForm() {
 
     try {
       console.log("🔍 WHEEL FORM - Preparing wheel order submission");
+      console.log("🔍 WHEEL FORM - Verifying webhook URL from config:");
       console.log("🔍 WHEEL FORM - Target webhook URL will be:", WEBHOOK_URLS.WHEEL_ORDERS);
+      console.log("🔍 WHEEL FORM - Expected URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
+      console.log("🔍 WHEEL FORM - URLs match?", WEBHOOK_URLS.WHEEL_ORDERS === "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
       
       const submissionData = {
         yourName: formData.yourName,
@@ -153,6 +156,13 @@ export function useWheelOrderForm() {
 
       console.log("🔍 WHEEL FORM - Submitting wheel order with manager email:", managerEmail);
       console.log("🔍 WHEEL FORM - Wheel order type set to:", submissionData.type);
+      console.log("🔍 WHEEL FORM - Explicitly checking for wheel order properties:", {
+        hasType: submissionData.type === "WHEEL_POWDER_COATING",
+        hasQtyWheels: Boolean(submissionData.qtyWheels),
+        hasWheelColor: Boolean(submissionData.wheelColor),
+        hasWheelSize: Boolean(submissionData.wheelSize),
+        hasWheelType: Boolean(submissionData.wheelType)
+      });
       console.log("🔍 WHEEL FORM - Full wheel submission data:", JSON.stringify(submissionData, null, 2));
 
       const result = await submitToGoogleSheets(submissionData);
@@ -174,7 +184,7 @@ export function useWheelOrderForm() {
         throw new Error("Failed to submit order");
       }
     } catch (error) {
-      console.error("Error submitting wheel order:", error);
+      console.error("❌ WHEEL FORM - Error submitting wheel order:", error);
       toast({
         title: "Error",
         description: "There was a problem submitting your order. Please try again.",
@@ -195,3 +205,4 @@ export function useWheelOrderForm() {
     handleSubmit
   };
 }
+

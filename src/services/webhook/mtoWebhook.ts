@@ -5,6 +5,21 @@ import { formatDate } from './utils';
 
 export const submitToMTOOrdersWebhook = async (data: any) => {
   try {
+    console.log("🔍 MTO WEBHOOK - Starting MTO webhook submission");
+    console.log("🔍 MTO WEBHOOK - Verification - Data type:", data.type);
+    console.log("🔍 MTO WEBHOOK - Verification - Is this wheel order?", {
+      isWheelType: data.type === 'WHEEL_POWDER_COATING',
+      hasQtyWheels: 'qtyWheels' in data && Boolean(data.qtyWheels),
+      hasWheelProperties: Boolean(data.wheelColor || data.wheelSize || data.wheelType)
+    });
+    
+    // If this is a wheel order that somehow got routed here, log a warning
+    if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
+      console.error("⚠️ MTO WEBHOOK - WARNING: Wheel order incorrectly routed to MTO webhook!");
+      console.error("⚠️ MTO WEBHOOK - This should never happen. Please check routing logic.");
+      return false;
+    }
+    
     // Format casing grade - convert array to string if needed
     const casingGrade = Array.isArray(data.casingGrade) 
       ? data.casingGrade.join(', ') 
@@ -31,8 +46,8 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       email: data.managersEmail || data.managerEmail || ""
     };
 
-    console.log("Sending mapped data to MTO Orders webhook:", mappedData);
-    console.log("Using MTO Orders webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
+    console.log("🔍 MTO WEBHOOK - Sending mapped data to MTO Orders webhook:", mappedData);
+    console.log("🔍 MTO WEBHOOK - Using MTO Orders webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
 
     const response = await fetch(WEBHOOK_URLS.MTO_ORDERS, {
       method: "POST",
@@ -43,10 +58,11 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       body: JSON.stringify(mappedData),
     });
 
-    console.log("Successfully triggered MTO Orders webhook");
+    console.log("✅ MTO WEBHOOK - Successfully triggered MTO Orders webhook");
     return true;
   } catch (error) {
-    console.error("Error triggering MTO Orders webhook:", error);
+    console.error("❌ MTO WEBHOOK - Error triggering MTO Orders webhook:", error);
     return false;
   }
 };
+

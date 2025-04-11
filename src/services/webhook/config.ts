@@ -1,4 +1,3 @@
-
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 
 // Webhook URLs for Google Apps Script
@@ -10,6 +9,14 @@ export const WEBHOOK_URLS = {
   // MTO Orders (MTO'S Tab)
   MTO_ORDERS: "https://script.google.com/macros/s/AKfycbySpbQtyGFnhR1pvMq53HwBAUXGI-TS5j7wcaCq0m9zotDyvV-IzGXJJCU3nOrUc5z-wQ/exec"
 };
+
+// Log webhook URLs on initial load for verification
+console.log("🔍 CONFIG - Webhook URLs configuration loaded:");
+console.log("🔍 CONFIG - ORDERS URL:", WEBHOOK_URLS.ORDERS);
+console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
+console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
+console.log("🔍 CONFIG - Expected WHEEL_ORDERS URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
+console.log("🔍 CONFIG - URLs match?", WEBHOOK_URLS.WHEEL_ORDERS === "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
 
 export type Plant = keyof typeof PLANT_WEBHOOKS;
 
