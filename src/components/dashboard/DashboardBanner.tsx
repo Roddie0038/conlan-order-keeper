@@ -9,6 +9,8 @@ export function DashboardBanner() {
   const getBannerImage = () => {
     if (selectedPlant === "Romulus 098") {
       return "/lovable-uploads/80253a3f-2864-4be4-a0f1-1c7bdb20b826.png";
+    } else if (selectedPlant === "Mulberry 99") {
+      return "/lovable-uploads/24736eac-5076-4f51-ad76-b6615849fe69.png";
     }
     // Default image for other plants
     return "/lovable-uploads/96697586-f8cf-4aa5-8415-fee779a6cd7b.png";
