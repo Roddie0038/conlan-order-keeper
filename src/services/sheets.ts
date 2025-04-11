@@ -1,3 +1,4 @@
+
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 
 // Define order type union
@@ -247,13 +248,16 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       const mtoOrdersResult = await submitToMTOOrdersWebhook(data);
       results.push(mtoOrdersResult);
     } 
-    else if (data.type === 'WHEEL_POWDER_COATING') {
+    else if (data.type === 'WHEEL_POWDER_COATING' || 'qtyWheels' in data) {
+      // Ensure type is set to WHEEL_POWDER_COATING
+      data.type = 'WHEEL_POWDER_COATING';
+      
       // Send to the plant-specific Wheel Orders webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].wheelOrders;
       const plantWebhookResult = await submitToWebhook(plantUrl, data);
       results.push(plantWebhookResult);
       
-      // Send to the new Wheel Orders webhook
+      // Send to the new Wheel Orders webhook (fix: was incorrectly sending to MTO webhook)
       const wheelOrdersResult = await submitToWheelOrdersWebhook(data);
       results.push(wheelOrdersResult);
     }
