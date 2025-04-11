@@ -1,3 +1,4 @@
+
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 
 // Define order type union
@@ -227,6 +228,8 @@ const submitToMTOOrdersWebhook = async (data: any) => {
 export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("Submitting to webhooks:", data);
   console.log("Manager's email in submitToGoogleSheets:", data.managersEmail || data.managerEmail);
+  console.log("Order type:", data.type);
+  console.log("Has qtyWheels property:", 'qtyWheels' in data);
   
   // Ensure a plant is specified, default to Grand Prairie 97 if not
   const plant = data.plant || "Grand Prairie 97";
@@ -240,10 +243,12 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     if (data.type === 'MTO') {
       // Send to the plant-specific MTO webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].mtoOrders;
+      console.log("Using plant-specific MTO webhook URL:", plantUrl);
       const plantWebhookResult = await submitToWebhook(plantUrl, data);
       results.push(plantWebhookResult);
       
       // Send to the new MTO Orders webhook
+      console.log("Sending to MTO Orders Google Sheet webhook");
       const mtoOrdersResult = await submitToMTOOrdersWebhook(data);
       results.push(mtoOrdersResult);
     } 
@@ -253,10 +258,12 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       
       // Send to the plant-specific Wheel Orders webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].wheelOrders;
+      console.log("Using plant-specific Wheel webhook URL:", plantUrl);
       const plantWebhookResult = await submitToWebhook(plantUrl, data);
       results.push(plantWebhookResult);
       
-      // Send to the new Wheel Orders webhook (fix: was incorrectly sending to MTO webhook)
+      // Send to the Wheel Orders webhook
+      console.log("Sending to Wheel Orders Google Sheet webhook");
       const wheelOrdersResult = await submitToWheelOrdersWebhook(data);
       results.push(wheelOrdersResult);
     }
@@ -264,10 +271,12 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       // Default to TRANSFER type for regular orders
       // Send to the plant-specific webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;
+      console.log("Using plant-specific Transfer webhook URL:", plantUrl);
       const plantWebhookResult = await submitToWebhook(plantUrl, data);
       results.push(plantWebhookResult);
       
       // Send to the new Orders webhook
+      console.log("Sending to Orders Google Sheet webhook");
       const ordersResult = await submitToOrdersWebhook(data);
       results.push(ordersResult);
     }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,14 +29,11 @@ export function useWheelOrderForm() {
     wheelColor: "",
   });
 
-  // Initialize store ID and manager email when user info is available
   useEffect(() => {
     if (user?.store) {
-      // Extract store ID from user.store (e.g., "Fort Worth 22" -> "22")
       const storeIdMatch = user.store.match(/\d+$/);
       const storeId = storeIdMatch ? storeIdMatch[0] : "";
       
-      // Find the store in the stores array
       const storeObj = stores.find(s => s.id === storeId);
       
       if (storeObj) {
@@ -48,7 +44,6 @@ export function useWheelOrderForm() {
         }));
       }
 
-      // Set manager email
       const email = getManagerEmail(user.store);
       setManagerEmail(email);
     }
@@ -59,7 +54,6 @@ export function useWheelOrderForm() {
   };
 
   const handleStoreChange = (value: string) => {
-    // Only admin users can change the store
     if (!user?.isAdmin) {
       toast({
         title: "Unauthorized",
@@ -77,7 +71,6 @@ export function useWheelOrderForm() {
         storeName: selectedStore.name
       }));
       
-      // Update manager email when store changes
       const email = getManagerEmail(selectedStore.name);
       setManagerEmail(email);
     }
@@ -87,7 +80,6 @@ export function useWheelOrderForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validate required fields
     if (!formData.yourName) {
       toast({
         title: "Missing Name",
@@ -108,7 +100,6 @@ export function useWheelOrderForm() {
       return;
     }
 
-    // Non-admin users can only submit for their own store
     if (!user?.isAdmin && formData.storeName !== user?.store) {
       toast({
         title: "Unauthorized",
@@ -130,15 +121,12 @@ export function useWheelOrderForm() {
     }
 
     try {
-      // Create a compatible object for submitToGoogleSheets
       const submissionData = {
         yourName: formData.yourName,
         store: formData.storeName,
         storeId: formData.storeId,
         dateReceived: formData.dateReceived,
-        type: "WHEEL_POWDER_COATING" as const, // Explicitly type as OrderType
-        
-        // Add required fields for OrderData
+        type: "WHEEL_POWDER_COATING" as const,
         productNumber: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
         quantity: formData.qtyWheels,
@@ -146,10 +134,8 @@ export function useWheelOrderForm() {
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
         crossDock: "No",
         managersEmail: managerEmail,
-        managerEmail: managerEmail, // Add both formats to ensure compatibility
-        plant: selectedPlant, // Include the plant
-        
-        // Additional wheel specific details
+        managerEmail: managerEmail,
+        plant: selectedPlant,
         qtyWheels: formData.qtyWheels,
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
@@ -161,12 +147,11 @@ export function useWheelOrderForm() {
       };
 
       console.log("Submitting wheel order with manager email:", managerEmail);
+      console.log("Wheel order type set to:", submissionData.type);
 
-      // Submit the form data
       const result = await submitToGoogleSheets(submissionData);
       
       if (result.status === 'success' || result.status === 'partial_success') {
-        // Store in localStorage
         const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
         existingOrders.push({
           ...submissionData,
