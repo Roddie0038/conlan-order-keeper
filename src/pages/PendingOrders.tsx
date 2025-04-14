@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { useState, useEffect } from "react";
@@ -10,6 +9,7 @@ import {
   PendingOrdersTable, 
   PendingOrdersLayout 
 } from "@/components/pending-orders";
+import { RecentOrders } from "@/components/orders/RecentOrders";
 
 interface Order {
   id: string;
@@ -36,7 +36,6 @@ export default function PendingOrders() {
     const savedOrders = localStorage.getItem('pendingOrders');
     if (savedOrders) {
       const allOrders = JSON.parse(savedOrders);
-      // Filter by both store and plant
       const filteredOrders = allOrders
         .filter((order: Order) => 
           order.store === user?.store && 
@@ -64,7 +63,6 @@ export default function PendingOrders() {
       const updatedPendingOrders = allPendingOrders.filter((o: Order) => o.id !== orderId);
       localStorage.setItem('pendingOrders', JSON.stringify(updatedPendingOrders));
       
-      // Update local state
       setOrders(updatedPendingOrders
         .filter((order: Order) => 
           order.store === user?.store && 
@@ -84,6 +82,7 @@ export default function PendingOrders() {
       <PendingOrdersHeader />
 
       <main className="container space-y-8">
+        <RecentOrders />
         <OrderForm />
         <PendingOrdersTable orders={orders} onComplete={handleComplete} />
       </main>
