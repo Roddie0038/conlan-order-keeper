@@ -28,6 +28,7 @@ export function useWheelOrderForm() {
     handHoles: "",
     wheelSize: "",
     wheelColor: "",
+    scheduleArrival: "",
   });
 
   useEffect(() => {

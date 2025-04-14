@@ -11,4 +11,5 @@ export interface WheelFormData {
   handHoles: string;
   wheelSize: string;
   wheelColor: string;
+  scheduleArrival?: string;  // Added optional scheduleArrival field
 }
