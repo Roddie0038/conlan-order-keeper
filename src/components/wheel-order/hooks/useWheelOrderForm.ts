@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -134,17 +133,17 @@ export function useWheelOrderForm() {
         store: formData.storeName,
         storeId: formData.storeId,
         dateReceived: formData.dateReceived,
-        type: "WHEEL_POWDER_COATING" as const,  // Explicitly set the type
+        type: "WHEEL_POWDER_COATING" as const,
         productNumber: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
         quantity: formData.qtyWheels,
-        scheduleArrival: formData.dateReceived,
+        scheduleArrival: formData.scheduleArrival || formData.dateReceived,
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
         crossDock: "No",
         managersEmail: managerEmail,
         managerEmail: managerEmail,
         plant: selectedPlant,
-        qtyWheels: formData.qtyWheels,  // This explicitly identifies it as a wheel order
+        qtyWheels: formData.qtyWheels,
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
         wheelType: formData.wheelType,
@@ -154,16 +153,8 @@ export function useWheelOrderForm() {
         timestamp: new Date().toISOString(),
       };
 
-      console.log("🔍 WHEEL FORM - Submitting wheel order with manager email:", managerEmail);
-      console.log("🔍 WHEEL FORM - Wheel order type set to:", submissionData.type);
-      console.log("🔍 WHEEL FORM - Explicitly checking for wheel order properties:", {
-        hasType: submissionData.type === "WHEEL_POWDER_COATING",
-        hasQtyWheels: Boolean(submissionData.qtyWheels),
-        hasWheelColor: Boolean(submissionData.wheelColor),
-        hasWheelSize: Boolean(submissionData.wheelSize),
-        hasWheelType: Boolean(submissionData.wheelType)
-      });
-      console.log("🔍 WHEEL FORM - Full wheel submission data:", JSON.stringify(submissionData, null, 2));
+      console.log("🔍 WHEEL FORM - Submitting raw schedule arrival:", submissionData.scheduleArrival);
+      console.log("🔍 WHEEL FORM - Full submission data:", JSON.stringify(submissionData, null, 2));
 
       const result = await submitToGoogleSheets(submissionData);
       
@@ -205,4 +196,3 @@ export function useWheelOrderForm() {
     handleSubmit
   };
 }
-
