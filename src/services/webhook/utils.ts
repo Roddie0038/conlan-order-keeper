@@ -27,6 +27,7 @@ export const formatDate = (dateString: string): string => {
 export const prepareWebhookData = (data: any) => {
   return {
     ...data,
+    // Only format dateReceived, leave scheduleArrival as is
     dateReceived: data.dateReceived ? formatDate(data.dateReceived) : formatDate(new Date().toISOString()),
     timestamp: new Date().toISOString(),
     orderId: crypto.randomUUID(),
@@ -35,7 +36,9 @@ export const prepareWebhookData = (data: any) => {
     managersEmail: data.managerEmail || data.managersEmail,
     managerEmail: data.managerEmail || data.managersEmail,
     // Join multiple casing grades into a comma-separated string if it's an array
-    casingGrade: Array.isArray(data.casingGrade) ? data.casingGrade.join(', ') : data.casingGrade
+    casingGrade: Array.isArray(data.casingGrade) ? data.casingGrade.join(', ') : data.casingGrade,
+    // Pass scheduleArrival through without formatting
+    scheduleArrival: data.scheduleArrival || data.dateReceived
   };
 };
 

@@ -1,4 +1,3 @@
-
 export const casingGrades = [
   { value: "A Casing", name: "A Casing" },
   { value: "B Casing", name: "B Casing" },
@@ -22,31 +21,30 @@ export const scheduleOptions = [
 ].map(value => ({ value }));
 
 export interface MTOFormData {
-  store: string;
-  timestamp: string;
   name: string;
-  managerEmail: string;
+  store: string;
   productNumber: string;
-  casingGrade: string[];  // Changed to string array for multiple selections
+  casingGrade: string[];
   tireSize: string;
-  customTireSize: string;
+  customTireSize?: string;
   tireTreadNeeded: string;
   quantity: string;
-  scheduleArrival: string; // Kept but now optional (not required)
+  scheduleArrival: string;
   notes: string;
+  managerEmail: string;
+  timestamp?: string;
 }
 
 export const initialMTOFormData: MTOFormData = {
-  store: "",
-  timestamp: new Date().toLocaleString(),
   name: "",
-  managerEmail: "",
+  store: "",
   productNumber: "",
-  casingGrade: [],  // Initialize as empty array
+  casingGrade: [],
   tireSize: "",
   customTireSize: "",
   tireTreadNeeded: "",
   quantity: "",
   scheduleArrival: "",
   notes: "",
+  managerEmail: "",
 };
