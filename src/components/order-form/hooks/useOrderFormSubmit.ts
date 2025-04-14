@@ -44,7 +44,7 @@ export function useOrderFormSubmit({
         ...values,
         yourName: values.yourName,  // Explicitly include required fields
         store: values.store,
-        dateReceived: values.dateReceived.toISOString(),
+        dateReceived: values.dateReceived,  // Use string value directly, don't call toISOString()
         productNumber: values.productNumber,
         description: values.description,
         quantity: values.quantity,

@@ -15,6 +15,7 @@ import { OrderSummaryTable } from "./OrderSummaryTable";
 import { OrderSubmissionHandler } from "./OrderSubmissionHandler";
 import { toast } from "@/hooks/use-toast";
 import { getManagerEmail } from "./formConfig";
+import { getCurrentDateTime } from "@/utils/dateTime";
 
 export function OrderForm() {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ export function OrderForm() {
   const defaultValues = {
     yourName: "",
     store: user?.store || "",
-    dateReceived: new Date(),
+    dateReceived: getCurrentDateTime(), // Use string format instead of Date
     productNumber: "",
     description: "",
     quantity: "",
