@@ -23,6 +23,7 @@ export function useOrderFormSubmit({
     
     // Get the manager's email for the selected store
     const managersEmail = getManagerEmail(values.store);
+    console.log("Schedule arrival in form submit:", values.scheduleArrival);
     
     try {
       // Add order to localStorage
@@ -44,11 +45,11 @@ export function useOrderFormSubmit({
         ...values,
         yourName: values.yourName,  // Explicitly include required fields
         store: values.store,
-        dateReceived: values.dateReceived,  // Use string value directly, don't call toISOString()
+        dateReceived: values.dateReceived,  // Use string value directly
         productNumber: values.productNumber,
         description: values.description,
         quantity: values.quantity,
-        scheduleArrival: values.scheduleArrival,
+        scheduleArrival: values.scheduleArrival,  // Send the weekday name directly
         notes: values.notes || "",
         crossDock: values.crossDock,
         timestamp: new Date().toISOString(),

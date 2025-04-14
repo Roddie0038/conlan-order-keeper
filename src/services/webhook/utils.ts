@@ -25,9 +25,12 @@ export const formatDate = (dateString: string): string => {
  * Prepares common data for webhook submission
  */
 export const prepareWebhookData = (data: any) => {
+  // Check if scheduleArrival is a weekday name and preserve it
+  const isWeekdayName = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Will Call Pick Up)$/i.test(data.scheduleArrival);
+  
   return {
     ...data,
-    // Only format dateReceived, leave scheduleArrival as is
+    // Only format dateReceived, leave scheduleArrival as is if it's a weekday name
     dateReceived: data.dateReceived ? formatDate(data.dateReceived) : formatDate(new Date().toISOString()),
     timestamp: new Date().toISOString(),
     orderId: crypto.randomUUID(),
@@ -37,8 +40,8 @@ export const prepareWebhookData = (data: any) => {
     managerEmail: data.managerEmail || data.managersEmail,
     // Join multiple casing grades into a comma-separated string if it's an array
     casingGrade: Array.isArray(data.casingGrade) ? data.casingGrade.join(', ') : data.casingGrade,
-    // Pass scheduleArrival through without formatting
-    scheduleArrival: data.scheduleArrival || data.dateReceived
+    // Preserve weekday names for scheduleArrival
+    scheduleArrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival || data.dateReceived)
   };
 };
 
@@ -52,6 +55,7 @@ export const submitToWebhook = async (url: string, data: any) => {
 
     console.log("Sending formatted data to plant webhook:", formattedData);
     console.log("Using plant webhook URL:", url);
+    console.log("Schedule Arrival value being sent:", formattedData.scheduleArrival);
 
     const response = await fetch(url, {
       method: "POST",

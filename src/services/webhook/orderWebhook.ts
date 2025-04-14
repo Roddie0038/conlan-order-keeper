@@ -5,6 +5,9 @@ import { formatDate } from './utils';
 
 export const submitToOrdersWebhook = async (data: any) => {
   try {
+    // Check if scheduleArrival is a weekday name
+    const isWeekdayName = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Will Call Pick Up)$/i.test(data.scheduleArrival);
+    
     // Map the data to the format expected by the Orders webhook
     const mappedData = {
       name: data.yourName || data.name || "",
@@ -12,7 +15,8 @@ export const submitToOrdersWebhook = async (data: any) => {
       product_number: data.productNumber || "",
       description: data.description || "",
       quantity: data.quantity || 0,
-      schedule_arrival: data.scheduleArrival ? formatDate(data.scheduleArrival) : "",
+      // Preserve weekday name for schedule_arrival
+      schedule_arrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival ? formatDate(data.scheduleArrival) : ""),
       notes: data.notes || "",
       cross_dock: data.crossDock?.toLowerCase() === "yes" ? "Yes" : "No",
       cross_dock_dest: data.crossDockDestination || "",
@@ -21,6 +25,7 @@ export const submitToOrdersWebhook = async (data: any) => {
 
     console.log("Sending mapped data to Orders webhook:", mappedData);
     console.log("Using Orders webhook URL:", WEBHOOK_URLS.ORDERS);
+    console.log("Schedule arrival value being sent:", mappedData.schedule_arrival);
 
     const response = await fetch(WEBHOOK_URLS.ORDERS, {
       method: "POST",
