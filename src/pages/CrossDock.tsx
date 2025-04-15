@@ -8,7 +8,7 @@ export default function CrossDock() {
   const { user } = useAuth();
   
   return <div className="min-h-screen bg-cover bg-center bg-no-repeat relative" style={{
-    backgroundImage: "url('/lovable-uploads/f9c6ac53-6ea8-4e88-b2f9-93cd6538896c.png')"
+    backgroundImage: "url('/lovable-uploads/abaef75c-d3a3-4118-a05a-a8b07ba50b43.png')"
   }}>
       {/* Overlay to ensure content readability */}
       <div className="absolute inset-0 bg-black/50" />
