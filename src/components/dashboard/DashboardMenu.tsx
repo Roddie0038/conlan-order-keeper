@@ -54,7 +54,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/db2f8f18-8be6-4adf-b9f6-465833b10dd9.png"
+      backgroundImage: "/lovable-uploads/6520145f-ac05-4342-936f-43dfb608a788.png"
     },
     {
       title: "WHEEL REFURB ORDER",
