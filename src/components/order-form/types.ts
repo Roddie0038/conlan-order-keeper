@@ -8,4 +8,10 @@ export interface OrderSummary extends FormData {
   selected?: boolean;
   managersEmail?: string;
   type?: "MTO" | "WHEEL_POWDER_COATING" | "TRANSFER";
+  // Add the cross dock fields
+  transferWorkOrderNumber?: string;
+  trailerNumber?: string;
+  eta?: string;
+  crossDockFile?: string;
+  crossDockConfirmation?: boolean;
 }

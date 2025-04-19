@@ -8,25 +8,27 @@ import { FileInput, Printer, Calendar, Check } from "lucide-react";
 
 interface CrossDockDetailFormProps {
   formData: FormData;
-  onChange: (field: keyof FormData, value: string) => void;
+  onChange: (field: keyof FormData, value: any) => void;
 }
 
 export const CrossDockDetailForm = ({ formData, onChange }: CrossDockDetailFormProps) => {
   const [file, setFile] = useState<File | null>(null);
-  const [confirmPaperwork, setConfirmPaperwork] = useState(false);
+  const [confirmPaperwork, setConfirmPaperwork] = useState(
+    formData.crossDockConfirmation || false
+  );
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       // Update the form data with the file name
-      onChange("crossDockFile" as keyof FormData, e.target.files[0].name);
+      onChange("crossDockFile", e.target.files[0].name);
     }
   };
   
   const handleConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setConfirmPaperwork(e.target.checked);
     // Update the form data with the confirmation status
-    onChange("crossDockConfirmation" as keyof FormData, e.target.checked ? "yes" : "no");
+    onChange("crossDockConfirmation", e.target.checked);
   };
   
   const handlePrintForm = () => {
@@ -48,7 +50,7 @@ export const CrossDockDetailForm = ({ formData, onChange }: CrossDockDetailFormP
           <Input
             id="transferWorkOrderNumber"
             value={formData.transferWorkOrderNumber || ""}
-            onChange={e => onChange("transferWorkOrderNumber" as keyof FormData, e.target.value)}
+            onChange={e => onChange("transferWorkOrderNumber", e.target.value)}
             placeholder="Enter work order number"
             className="w-full border border-gray-600 rounded-md h-10 bg-black/40 hover:border-blue-400 focus:border-blue-500 transition-colors shadow-sm backdrop-blur-sm text-white"
             required
@@ -62,7 +64,7 @@ export const CrossDockDetailForm = ({ formData, onChange }: CrossDockDetailFormP
           <Input
             id="trailerNumber"
             value={formData.trailerNumber || ""}
-            onChange={e => onChange("trailerNumber" as keyof FormData, e.target.value)}
+            onChange={e => onChange("trailerNumber", e.target.value)}
             placeholder="Enter trailer number (optional)"
             className="w-full border border-gray-600 rounded-md h-10 bg-black/40 hover:border-blue-400 focus:border-blue-500 transition-colors shadow-sm backdrop-blur-sm text-white"
           />
@@ -77,7 +79,7 @@ export const CrossDockDetailForm = ({ formData, onChange }: CrossDockDetailFormP
               id="eta"
               type="date"
               value={formData.eta || ""}
-              onChange={e => onChange("eta" as keyof FormData, e.target.value)}
+              onChange={e => onChange("eta", e.target.value)}
               className="w-full border border-gray-600 rounded-md h-10 bg-black/40 hover:border-blue-400 focus:border-blue-500 transition-colors shadow-sm backdrop-blur-sm text-white pl-10"
               required
             />

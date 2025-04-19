@@ -60,6 +60,12 @@ export type FormData = {
   crossDock: string;
   crossDockDestination?: string;
   managersEmail?: string;
+  // Add new cross dock fields
+  transferWorkOrderNumber?: string;
+  trailerNumber?: string;
+  eta?: string;
+  crossDockFile?: string;
+  crossDockConfirmation?: boolean;
 };
 
 export const initialFormData: FormData = {
@@ -74,5 +80,9 @@ export const initialFormData: FormData = {
   crossDock: "",
   crossDockDestination: "",
   managersEmail: "",
+  transferWorkOrderNumber: "",
+  trailerNumber: "",
+  eta: "",
+  crossDockFile: "",
+  crossDockConfirmation: false
 };
-
