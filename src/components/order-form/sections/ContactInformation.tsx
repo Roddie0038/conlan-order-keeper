@@ -1,3 +1,4 @@
+
 import { FormData, getManagerEmail } from "../formConfig";
 import { FormField } from "../FormField";
 import { Info, User, Building, Mail, Calendar } from "lucide-react";
@@ -13,8 +14,8 @@ export const ContactInformation = ({ formData, onChange }: ContactInformationPro
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user?.yourName) {
-      onChange("yourName", user.yourName);
+    if (user?.username) {
+      onChange("yourName", user.username);
     }
   }, [user, onChange]);
 
