@@ -13,6 +13,21 @@ export const formSchema = z.object({
   crossDock: z.string(),
   crossDockDestination: z.string().optional(),
   managersEmail: z.string(),
+  // New Cross Dock Details fields
+  transferWorkOrderNumber: z.string().optional(),
+  trailerNumber: z.string().optional(),
+  eta: z.string().optional(),
+  crossDockFile: z.string().optional(),
+  crossDockConfirmation: z.boolean().optional()
+}).refine((data) => {
+  // If crossDock is "yes", require the transferWorkOrderNumber, eta, and crossDockConfirmation
+  if (data.crossDock === "yes") {
+    return !!data.transferWorkOrderNumber && !!data.eta && !!data.crossDockConfirmation;
+  }
+  return true;
+}, {
+  message: "Required cross dock fields are missing",
+  path: ["crossDockConfirmation"]
 });
 
 export type OrderFormValues = z.infer<typeof formSchema>;

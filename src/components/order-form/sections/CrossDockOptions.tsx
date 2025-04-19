@@ -3,6 +3,7 @@ import { FormData } from "../formConfig";
 import { FormField } from "../FormField";
 import { Truck, Building } from "lucide-react";
 import { crossDockOptions, stores } from "../formConfig";
+import { CrossDockDetailForm } from "../components/CrossDockDetailForm";
 
 interface CrossDockOptionsProps {
   formData: FormData;
@@ -28,14 +29,22 @@ export const CrossDockOptions = ({ formData, onChange }: CrossDockOptionsProps) 
         />
 
         {formData.crossDock === "yes" && (
-          <FormField 
-            label="Cross Dock Destination" 
-            value={formData.crossDockDestination || ""} 
-            onChange={value => onChange("crossDockDestination", value)} 
-            options={stores} 
-            placeholder="Select destination" 
-            required 
-          />
+          <>
+            <FormField 
+              label="Cross Dock Destination" 
+              value={formData.crossDockDestination || ""} 
+              onChange={value => onChange("crossDockDestination", value)} 
+              options={stores} 
+              placeholder="Select destination" 
+              required 
+            />
+            
+            {/* Render the Cross Dock detail form for additional required fields */}
+            <CrossDockDetailForm 
+              formData={formData} 
+              onChange={onChange} 
+            />
+          </>
         )}
 
         <div className="mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">

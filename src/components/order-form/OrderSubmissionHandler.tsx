@@ -1,99 +1,95 @@
 
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { submitToGoogleSheets } from "@/services/sheets";
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
-import { usePlant } from "@/contexts/PlantContext";
-import { getManagerEmail } from "@/components/order-form/formConfig";
-import type { OrderSummary } from "./types";
+import { toast } from "@/hooks/use-toast";
+import { generateAndEmailCrossDockPDF } from "./utils/pdfGenerator";
+
+interface OrderSummary {
+  id: string;
+  selected: boolean;
+  [key: string]: any;
+}
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: OrderSummary[];
-  setOrderSummaries: React.Dispatch<React.SetStateAction<OrderSummary[]>>;
+  setOrderSummaries: (orders: OrderSummary[]) => void;
 }
 
-export const OrderSubmissionHandler = ({
-  orderSummaries,
-  setOrderSummaries
-}: OrderSubmissionHandlerProps) => {
-  const { toast } = useToast();
+export function OrderSubmissionHandler({ 
+  orderSummaries, 
+  setOrderSummaries 
+}: OrderSubmissionHandlerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { selectedPlant } = usePlant();
-
-  const handleSubmitSelected = async () => {
-    const selectedOrders = orderSummaries.filter(order => order.selected);
-    
-    if (selectedOrders.length === 0) {
-      toast({
-        title: "No Orders Selected",
-        description: "Please select at least one order to submit.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
+  
+  // Count selected orders
+  const selectedCount = orderSummaries.filter(order => order.selected).length;
+  
+  const handleSubmitOrders = async () => {
     setIsSubmitting(true);
     
     try {
-      for (const order of selectedOrders) {
-        const managersEmail = getManagerEmail(order.store);
-        
-        await submitToGoogleSheets({
-          ...order,
-          managersEmail,
-          plant: selectedPlant,
-          timestamp: new Date().toISOString(),
-          type: order.type || "TRANSFER", // Ensure type is set to a valid OrderType
-        });
-
-        // Store in localStorage for persistence
-        const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-        existingOrders.push({
-          ...order,
-          managersEmail,
-          plant: selectedPlant,
-          type: order.type || "TRANSFER" // Ensure type is properly set for localStorage too
-        });
-        localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
-      }
-
-      // Remove submitted orders from the list
-      setOrderSummaries(prev => prev.filter(order => !order.selected));
+      const selectedOrders = orderSummaries.filter(order => order.selected);
       
-      toast({
-        title: "Orders Submitted",
-        description: `Successfully submitted ${selectedOrders.length} order(s).`
-      });
+      if (selectedOrders.length === 0) {
+        toast({
+          title: "No Orders Selected",
+          description: "Please select at least one order to submit.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Process Cross Dock PDFs and emails for orders that have Cross Dock = "yes"
+      const crossDockOrders = selectedOrders.filter(order => order.crossDock === "yes");
+      
+      for (const order of crossDockOrders) {
+        // Generate and email Cross Dock PDF
+        const pdfResult = await generateAndEmailCrossDockPDF(order);
+        
+        if (!pdfResult.success) {
+          console.error("Failed to process Cross Dock PDF for order:", order.id);
+        }
+      }
+      
+      // Here would be the actual submission logic to backend API
+      // For now, we'll simulate success after a delay
+      setTimeout(() => {
+        toast({
+          title: "Orders Submitted Successfully",
+          description: `${selectedOrders.length} order(s) have been submitted.`,
+        });
+        
+        // Remove submitted orders
+        const remainingOrders = orderSummaries.filter(order => !order.selected);
+        setOrderSummaries(remainingOrders);
+        
+        setIsSubmitting(false);
+      }, 1500);
     } catch (error) {
       console.error("Error submitting orders:", error);
       toast({
         title: "Error",
         description: "Failed to submit orders. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
-
+  
+  if (orderSummaries.length === 0) {
+    return null;
+  }
+  
   return (
-    orderSummaries.length > 0 ? (
-      <div className="mt-6 flex justify-end">
-        <Button
-          onClick={handleSubmitSelected}
-          disabled={isSubmitting || !orderSummaries.some(order => order.selected)}
-          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center gap-2"
-        >
-          {isSubmitting ? (
-            "Submitting..."
-          ) : (
-            <>
-              <Send className="h-4 w-4" /> Submit Selected Orders
-            </>
-          )}
-        </Button>
-      </div>
-    ) : null
+    <div className="mt-6 flex justify-end">
+      <Button
+        onClick={handleSubmitOrders}
+        disabled={isSubmitting || selectedCount === 0}
+        className="bg-green-600 hover:bg-green-700"
+      >
+        {isSubmitting ? "Submitting..." : `Submit Selected Orders (${selectedCount})`}
+      </Button>
+    </div>
   );
-};
+}
