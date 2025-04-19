@@ -6,7 +6,7 @@ export const LoginHeader = () => {
     <div className="text-center">
       <div className="flex justify-center items-center h-24 w-full mb-2 transition-all duration-300 hover:scale-105">
         <img 
-          src="/lovable-uploads/5bd68296-89cc-4d93-9172-e4c48d8e8932.png" 
+          src="/lovable-uploads/5ebace85-f26a-450c-8569-ebcd8a210c1d.png" 
           alt="Conlan Tire Logo" 
           className="h-full object-contain drop-shadow-lg rounded-2xl animate-float" 
         />
