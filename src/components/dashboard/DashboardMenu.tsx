@@ -67,6 +67,18 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       hideTitle: true,
       fullSizeImage: true,
       backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
+    },
+    {
+      title: "TRANSFER REQUEST",
+      icon: null,
+      path: "/pending-orders",
+      color: "",
+      borderColor: "border-blue-400",
+      delay: 0.6,
+      size: "col-span-1",
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/d75d31c3-4116-4ff9-8955-0739ba4bd0de.png"
     }
   ];
 
