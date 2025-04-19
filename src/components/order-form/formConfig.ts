@@ -36,10 +36,10 @@ export const getManagerEmail = (store: string) => {
 
 export const scheduleOptions = [
   "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
+  "Tuesday", 
+  "Wednesday", 
+  "Thursday", 
+  "Friday", 
   "Will Call Pick Up",
 ].map(value => ({ value }));
 
@@ -75,3 +75,4 @@ export const initialFormData: FormData = {
   crossDockDestination: "",
   managersEmail: "",
 };
+
