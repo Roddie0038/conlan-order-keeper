@@ -14,8 +14,12 @@ export const ContactInformation = ({ formData, onChange }: ContactInformationPro
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user?.username) {
-      onChange("yourName", user.username);
+    if (user && user.store && !user.isAdmin) {
+      onChange("store", user.store);
+      const managerEmail = getManagerEmail(user.store);
+      if (managerEmail) {
+        onChange("managersEmail", managerEmail);
+      }
     }
   }, [user, onChange]);
 
@@ -39,16 +43,31 @@ export const ContactInformation = ({ formData, onChange }: ContactInformationPro
           label="Store" 
           required 
           value={formData.store} 
-          onChange={value => onChange("store", value)} 
-          placeholder="Enter store number" 
+          onChange={value => {
+            onChange("store", value);
+            const managerEmail = getManagerEmail(value);
+            onChange("managersEmail", managerEmail);
+          }} 
+          options={[]} 
+          disabled={!user?.isAdmin}
+        />
+
+        <FormField 
+          label="Manager's Email" 
+          type="email" 
+          value={formData.managersEmail || ''} 
+          onChange={() => {}} 
+          disabled={true} 
+          placeholder="Manager's email will be automatically set" 
         />
 
         <FormField 
           label="Date Received" 
-          type="date" 
+          type="datetime-local" 
           required 
           value={formData.dateReceived} 
           onChange={value => onChange("dateReceived", value)} 
+          disabled={true} 
         />
       </div>
     </div>
