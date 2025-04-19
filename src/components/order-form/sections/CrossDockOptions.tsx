@@ -1,5 +1,5 @@
 
-import { FormData } from "../types";
+import { FormData } from "../formConfig";
 import { FormField } from "../FormField";
 import { Truck, Building } from "lucide-react";
 import { crossDockOptions, stores } from "../formConfig";

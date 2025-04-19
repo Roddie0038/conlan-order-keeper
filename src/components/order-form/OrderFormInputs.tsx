@@ -1,5 +1,5 @@
 
-import { FormData } from "./types";
+import { FormData } from "./formConfig";
 import { FormField } from "./FormField";
 import { ContactInformation } from "./sections/ContactInformation";
 import { ProductDetails } from "./sections/ProductDetails";

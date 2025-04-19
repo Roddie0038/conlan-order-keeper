@@ -1,10 +1,9 @@
 
-import { FormData } from "../types";
+import { FormData, getManagerEmail } from "../formConfig";
 import { FormField } from "../FormField";
 import { Info, User, Building, Mail, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
-import { getManagerEmail } from "../formConfig";
 
 interface ContactInformationProps {
   formData: FormData;
