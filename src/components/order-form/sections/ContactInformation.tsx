@@ -1,4 +1,3 @@
-
 import { FormData, getManagerEmail } from "../formConfig";
 import { FormField } from "../FormField";
 import { Info, User, Building, Mail, Calendar } from "lucide-react";
@@ -14,12 +13,8 @@ export const ContactInformation = ({ formData, onChange }: ContactInformationPro
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user && user.store && !user.isAdmin) {
-      onChange("store", user.store);
-      const managerEmail = getManagerEmail(user.store);
-      if (managerEmail) {
-        onChange("managersEmail", managerEmail);
-      }
+    if (user?.yourName) {
+      onChange("yourName", user.yourName);
     }
   }, [user, onChange]);
 
@@ -43,31 +38,16 @@ export const ContactInformation = ({ formData, onChange }: ContactInformationPro
           label="Store" 
           required 
           value={formData.store} 
-          onChange={value => {
-            onChange("store", value);
-            const managerEmail = getManagerEmail(value);
-            onChange("managersEmail", managerEmail);
-          }} 
-          options={[]} 
-          disabled={!user?.isAdmin}
-        />
-
-        <FormField 
-          label="Manager's Email" 
-          type="email" 
-          value={formData.managersEmail || ''} 
-          onChange={() => {}} 
-          disabled={true} 
-          placeholder="Manager's email will be automatically set" 
+          onChange={value => onChange("store", value)} 
+          placeholder="Enter store number" 
         />
 
         <FormField 
           label="Date Received" 
-          type="datetime-local" 
+          type="date" 
           required 
           value={formData.dateReceived} 
           onChange={value => onChange("dateReceived", value)} 
-          disabled={true} 
         />
       </div>
     </div>
