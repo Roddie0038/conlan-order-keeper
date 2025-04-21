@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, ArrowDownUp, CheckCircle, Trash2, FileText, Calendar } from "lucide-react";
+import { Search, FileText, Calendar } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FilteredOrdersList } from "@/components/orders/FilteredOrdersList";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+
+import { PendingOrdersTable } from "@/components/order-management/PendingOrdersTable";
+import { MTOOrdersTable } from "@/components/order-management/MTOOrdersTable";
+import { CompletedOrdersTable } from "@/components/order-management/CompletedOrdersTable";
+import { TulsaOrdersTab } from "@/components/order-management/TulsaOrdersTab";
 
 interface Order {
   id: string;
@@ -65,7 +68,6 @@ export default function OrderManagement() {
   const [completedOrders, setCompletedOrders] = useState<CompletedOrder[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
-  
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<string>("timestamp");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -241,11 +243,8 @@ export default function OrderManagement() {
         } else {
           return dateB.getTime() - dateA.getTime();
         }
-      } catch (e) {
-        // Fall back to string comparison
-      }
+      } catch (e) {}
     }
-    
     if (sortDirection === 'asc') {
       return strA.localeCompare(strB);
     } else {
@@ -273,11 +272,8 @@ export default function OrderManagement() {
         } else {
           return dateB.getTime() - dateA.getTime();
         }
-      } catch (e) {
-        // Fall back to string comparison
-      }
+      } catch (e) {}
     }
-    
     if (completedSortDirection === 'asc') {
       return strA.localeCompare(strB);
     } else {
@@ -370,268 +366,41 @@ export default function OrderManagement() {
                   </TabsList>
                   
                   <TabsContent value="regular">
-                    <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                      <Table>
-                        <TableHeader className="bg-slate-200">
-                          <TableRow>
-                            <TableHead 
-                              className="font-semibold text-slate-700 cursor-pointer hover:bg-slate-300 transition-colors"
-                              onClick={() => handlePendingSort('dateReceived')}
-                            >
-                              <div className="flex items-center">
-                                Date <ArrowDownUp className="ml-1 h-3 w-3" />
-                              </div>
-                            </TableHead>
-                            <TableHead 
-                              className="font-semibold text-slate-700 cursor-pointer hover:bg-slate-300 transition-colors"
-                              onClick={() => handlePendingSort('store')}
-                            >
-                              <div className="flex items-center">
-                                Store <ArrowDownUp className="ml-1 h-3 w-3" />
-                              </div>
-                            </TableHead>
-                            <TableHead 
-                              className="font-semibold text-slate-700 cursor-pointer hover:bg-slate-300 transition-colors"
-                              onClick={() => handlePendingSort('productNumber')}
-                            >
-                              <div className="flex items-center">
-                                Product <ArrowDownUp className="ml-1 h-3 w-3" />
-                              </div>
-                            </TableHead>
-                            <TableHead className="font-semibold text-slate-700">Description</TableHead>
-                            <TableHead 
-                              className="font-semibold text-slate-700 cursor-pointer hover:bg-slate-300 transition-colors"
-                              onClick={() => handlePendingSort('quantity')}
-                            >
-                              <div className="flex items-center">
-                                Quantity <ArrowDownUp className="ml-1 h-3 w-3" />
-                              </div>
-                            </TableHead>
-                            <TableHead className="font-semibold text-slate-700">Schedule</TableHead>
-                            {user?.isAdmin && <TableHead className="font-semibold text-slate-700">Actions</TableHead>}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {sortedPendingOrders.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={user?.isAdmin ? 7 : 6} className="text-center py-8 text-slate-500">
-                                No pending orders found
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            sortedPendingOrders.map((order, index) => (
-                              <TableRow key={order.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                <TableCell>{new Date(order.dateReceived).toLocaleDateString()}</TableCell>
-                                <TableCell>{order.store}</TableCell>
-                                <TableCell>{order.productNumber}</TableCell>
-                                <TableCell>{order.description}</TableCell>
-                                <TableCell>{order.quantity}</TableCell>
-                                <TableCell>{order.scheduleArrival}</TableCell>
-                                {user?.isAdmin && (
-                                  <TableCell>
-                                    <div className="flex gap-2">
-                                      <Button 
-                                        variant="default" 
-                                        size="sm" 
-                                        onClick={() => handleComplete(order.id, 'regular')}
-                                        className="bg-green-600 hover:bg-green-700 flex items-center gap-1"
-                                      >
-                                        <CheckCircle className="w-3 h-3" />
-                                        Complete
-                                      </Button>
-                                      <Button 
-                                        variant="destructive" 
-                                        size="sm" 
-                                        onClick={() => handleDeletePending(order.id, 'regular')}
-                                        className="flex items-center gap-1"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                        Delete
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                )}
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    <PendingOrdersTable 
+                      orders={sortedPendingOrders}
+                      isAdmin={!!user?.isAdmin}
+                      onComplete={handleComplete}
+                      onDelete={handleDeletePending}
+                      sortField={sortField}
+                      sortDirection={sortDirection}
+                      handlePendingSort={handlePendingSort}
+                    />
                   </TabsContent>
                   
                   <TabsContent value="mto">
-                    <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                      <Table>
-                        <TableHeader className="bg-slate-200">
-                          <TableRow>
-                            <TableHead className="font-semibold text-slate-700">Date</TableHead>
-                            <TableHead className="font-semibold text-slate-700">Store</TableHead>
-                            <TableHead className="font-semibold text-slate-700">Product</TableHead>
-                            <TableHead className="font-semibold text-slate-700">Size</TableHead>
-                            <TableHead className="font-semibold text-slate-700">Tread</TableHead>
-                            <TableHead className="font-semibold text-slate-700">Quantity</TableHead>
-                            <TableHead className="font-semibold text-slate-700">Schedule</TableHead>
-                            {user?.isAdmin && <TableHead className="font-semibold text-slate-700">Actions</TableHead>}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredMtoOrders.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={user?.isAdmin ? 8 : 7} className="text-center py-8 text-slate-500">
-                                No MTO orders found
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            filteredMtoOrders.map((order, index) => (
-                              <TableRow key={order.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                <TableCell>{order.timestamp}</TableCell>
-                                <TableCell>{order.store}</TableCell>
-                                <TableCell>{order.productNumber}</TableCell>
-                                <TableCell>{order.tireSize}</TableCell>
-                                <TableCell>{order.tireTreadNeeded}</TableCell>
-                                <TableCell>{order.quantity}</TableCell>
-                                <TableCell>{order.scheduleArrival}</TableCell>
-                                {user?.isAdmin && (
-                                  <TableCell>
-                                    <div className="flex gap-2">
-                                      <Button 
-                                        variant="default" 
-                                        size="sm" 
-                                        onClick={() => handleComplete(order.id, 'mto')}
-                                        className="bg-green-600 hover:bg-green-700 flex items-center gap-1"
-                                      >
-                                        <CheckCircle className="w-3 h-3" />
-                                        Complete
-                                      </Button>
-                                      <Button 
-                                        variant="destructive" 
-                                        size="sm" 
-                                        onClick={() => handleDeletePending(order.id, 'mto')}
-                                        className="flex items-center gap-1"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                        Delete
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                )}
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    <MTOOrdersTable 
+                      orders={filteredMtoOrders}
+                      isAdmin={!!user?.isAdmin}
+                      onComplete={handleComplete}
+                      onDelete={handleDeletePending}
+                    />
                   </TabsContent>
                 </Tabs>
               </TabsContent>
 
               <TabsContent value="completed">
-                <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                  <Table>
-                    <TableHeader className="bg-slate-200">
-                      <TableRow>
-                        <TableHead 
-                          className="font-semibold text-slate-700 cursor-pointer hover:bg-slate-300 transition-colors"
-                          onClick={() => handleCompletedSort('completedAt')}
-                        >
-                          <div className="flex items-center">
-                            Date Completed <ArrowDownUp className="ml-1 h-3 w-3" />
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="font-semibold text-slate-700 cursor-pointer hover:bg-slate-300 transition-colors"
-                          onClick={() => handleCompletedSort('store')}
-                        >
-                          <div className="flex items-center">
-                            Store <ArrowDownUp className="ml-1 h-3 w-3" />
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="font-semibold text-slate-700 cursor-pointer hover:bg-slate-300 transition-colors"
-                          onClick={() => handleCompletedSort('productNumber')}
-                        >
-                          <div className="flex items-center">
-                            Product <ArrowDownUp className="ml-1 h-3 w-3" />
-                          </div>
-                        </TableHead>
-                        <TableHead className="font-semibold text-slate-700">
-                          Description
-                        </TableHead>
-                        <TableHead 
-                          className="font-semibold text-slate-700 cursor-pointer hover:bg-slate-300 transition-colors"
-                          onClick={() => handleCompletedSort('quantity')}
-                        >
-                          <div className="flex items-center">
-                            Quantity <ArrowDownUp className="ml-1 h-3 w-3" />
-                          </div>
-                        </TableHead>
-                        {user?.isAdmin && (
-                          <TableHead className="font-semibold text-slate-700">
-                            Order Type
-                          </TableHead>
-                        )}
-                        {user?.isAdmin && (
-                          <TableHead className="font-semibold text-slate-700">
-                            Completed By
-                          </TableHead>
-                        )}
-                        {user?.isAdmin && (
-                          <TableHead className="text-right font-semibold text-slate-700">
-                            Actions
-                          </TableHead>
-                        )}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sortedCompletedOrders.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={user?.isAdmin ? 8 : 5} className="text-center py-8 text-slate-500">
-                            No completed orders found
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        sortedCompletedOrders.map((order, index) => (
-                          <TableRow key={order.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                            <TableCell>{new Date(order.completedAt).toLocaleString()}</TableCell>
-                            <TableCell>{order.store}</TableCell>
-                            <TableCell>{order.productNumber}</TableCell>
-                            <TableCell>{order.description || order.tireSize}</TableCell>
-                            <TableCell>{order.quantity}</TableCell>
-                            {user?.isAdmin && (
-                              <TableCell>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.tireTreadNeeded ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-                                  {order.tireTreadNeeded ? 'MTO Order' : 'Regular Order'}
-                                </span>
-                              </TableCell>
-                            )}
-                            {user?.isAdmin && (
-                              <TableCell>
-                                {order.completedBy || 'Admin'}
-                              </TableCell>
-                            )}
-                            {user?.isAdmin && (
-                              <TableCell className="text-right">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => handleDeleteCompleted(order.id)} 
-                                  className="bg-red-100 text-red-800 hover:bg-red-200 hover:text-red-900 border-red-200 font-medium"
-                                >
-                                  <Trash2 className="w-3 h-3 mr-1" />
-                                  Delete
-                                </Button>
-                              </TableCell>
-                            )}
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                <CompletedOrdersTable 
+                  orders={sortedCompletedOrders}
+                  isAdmin={!!user?.isAdmin}
+                  onDelete={handleDeleteCompleted}
+                  sortField={completedSortField}
+                  sortDirection={completedSortDirection}
+                  handleSort={handleCompletedSort}
+                />
               </TabsContent>
               
               <TabsContent value="tulsa-orders">
-                <FilteredOrdersList 
+                <TulsaOrdersTab 
                   targetDate={targetDate}
                   targetStore={targetStore}
                   className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
