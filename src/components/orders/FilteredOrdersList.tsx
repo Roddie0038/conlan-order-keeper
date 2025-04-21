@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "lucide-react";
 
 interface Order {
   id: string;
@@ -32,14 +33,25 @@ export function FilteredOrdersList({
     // Load all orders from localStorage
     const loadOrders = () => {
       // Load from all order types
-      const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-      const mtoOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');
-      const wheelOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
+      const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]').map((order: any) => ({
+        ...order,
+        type: "TRANSFER"
+      }));
+      
+      const mtoOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]').map((order: any) => ({
+        ...order,
+        type: "MTO"
+      }));
+      
+      const wheelOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]').map((order: any) => ({
+        ...order,
+        type: "WHEEL_POWDER_COATING"
+      }));
       
       // Combine and filter orders
       const allOrders = [...pendingOrders, ...mtoOrders, ...wheelOrders]
         .filter(order => {
-          const orderDate = format(new Date(order.timestamp), 'yyyy-MM-dd');
+          const orderDate = format(new Date(order.timestamp || order.dateReceived), 'yyyy-MM-dd');
           return orderDate === targetDate && order.store === targetStore;
         });
       
@@ -49,49 +61,61 @@ export function FilteredOrdersList({
     loadOrders();
   }, [targetDate, targetStore]);
 
+  const formattedDate = format(new Date(targetDate), 'MMMM do, yyyy');
+
   if (orders.length === 0) {
     return (
-      <div className={`text-center p-8 bg-slate-50 rounded-lg ${className}`}>
-        <p className="text-slate-600">No orders found for {targetStore} on {format(new Date(targetDate), 'MMMM do, yyyy')}</p>
-      </div>
+      <Card className={className}>
+        <CardContent className="pt-6 flex flex-col items-center justify-center p-10">
+          <Calendar className="w-12 h-12 text-slate-400 mb-4" />
+          <p className="text-slate-600 text-center">No orders found for {targetStore} on {formattedDate}</p>
+          <p className="text-slate-500 text-sm mt-2 text-center">Try checking a different date or store.</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <Card className={className}>
-      <CardContent className="p-4 space-y-4">
-        <h2 className="text-2xl font-bold">
-          Orders from {targetStore} - {format(new Date(targetDate), 'MMMM do, yyyy')}
-        </h2>
-        
-        <div className="border rounded-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xl flex items-center">
+          <Calendar className="w-5 h-5 mr-2 text-blue-600" />
+          Orders from {targetStore}
+        </CardTitle>
+        <CardDescription>{formattedDate}</CardDescription>
+      </CardHeader>
+      
+      <CardContent className="p-0">
+        <div className="border rounded-lg overflow-hidden">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-slate-100">
               <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Product Number</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Quantity</TableHead>
+                <TableHead className="font-semibold text-slate-700">Time</TableHead>
+                <TableHead className="font-semibold text-slate-700">Type</TableHead>
+                <TableHead className="font-semibold text-slate-700">Product Number</TableHead>
+                <TableHead className="font-semibold text-slate-700">Description</TableHead>
+                <TableHead className="font-semibold text-slate-700">Quantity</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
+              {orders.map((order, index) => (
+                <TableRow key={order.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                   <TableCell>
-                    {format(new Date(order.timestamp), 'h:mm a')}
+                    {format(new Date(order.timestamp || order.dateReceived), 'h:mm a')}
                   </TableCell>
                   <TableCell>
                     <Badge className={
-                      order.type === "MTO" ? "bg-blue-500" :
-                      order.type === "WHEEL_POWDER_COATING" ? "bg-purple-500" :
-                      "bg-green-500"
+                      order.type === "MTO" ? "bg-blue-100 text-blue-800" :
+                      order.type === "WHEEL_POWDER_COATING" ? "bg-purple-100 text-purple-800" :
+                      "bg-green-100 text-green-800"
                     }>
-                      {order.type}
+                      {order.type === "MTO" ? "MTO" : 
+                       order.type === "WHEEL_POWDER_COATING" ? "Wheel" : 
+                       "Transfer"}
                     </Badge>
                   </TableCell>
                   <TableCell>{order.productNumber}</TableCell>
-                  <TableCell>{order.description}</TableCell>
+                  <TableCell>{order.description || order.tireSize || order.tireTreadNeeded || ""}</TableCell>
                   <TableCell>{order.quantity}</TableCell>
                 </TableRow>
               ))}

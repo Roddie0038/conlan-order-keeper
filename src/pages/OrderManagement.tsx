@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, ArrowDownUp, CheckCircle, Trash2, FileText } from "lucide-react";
+import { Search, ArrowDownUp, CheckCircle, Trash2, FileText, Calendar } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FilteredOrdersList } from "@/components/orders/FilteredOrdersList";
+import { format } from "date-fns";
 
 interface Order {
   id: string;
@@ -69,6 +71,8 @@ export default function OrderManagement() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [completedSortField, setCompletedSortField] = useState<string>("completedAt");
   const [completedSortDirection, setCompletedSortDirection] = useState<'asc' | 'desc'>('desc');
+  const targetDate = "2025-04-18";
+  const targetStore = "Tulsa 36";
 
   useEffect(() => {
     const loadOrders = () => {
@@ -341,12 +345,16 @@ export default function OrderManagement() {
             </div>
             
             <Tabs defaultValue="pending" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-100 p-1 rounded-lg">
+              <TabsList className="grid w-full grid-cols-3 mb-6 bg-slate-100 p-1 rounded-lg">
                 <TabsTrigger value="pending" className="text-base py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                   Pending Orders
                 </TabsTrigger>
                 <TabsTrigger value="completed" className="text-base py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                   Completed Orders
+                </TabsTrigger>
+                <TabsTrigger value="tulsa-orders" className="text-base py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Tulsa 36 (April 18)
                 </TabsTrigger>
               </TabsList>
 
@@ -620,6 +628,14 @@ export default function OrderManagement() {
                     </TableBody>
                   </Table>
                 </div>
+              </TabsContent>
+              
+              <TabsContent value="tulsa-orders">
+                <FilteredOrdersList 
+                  targetDate={targetDate}
+                  targetStore={targetStore}
+                  className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                />
               </TabsContent>
             </Tabs>
           </CardContent>

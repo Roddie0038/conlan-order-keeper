@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -68,6 +67,17 @@ function App() {
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Login />} />
+                
+                <Route
+                  path="/index"
+                  element={
+                    <ProtectedRoute>
+                      <InventoryProvider>
+                        <Index />
+                      </InventoryProvider>
+                    </ProtectedRoute>
+                  }
+                />
                 
                 <Route
                   path="/dashboard"
