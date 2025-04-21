@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Loader2, CheckCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { testWebhook } from "@/services/webhook/utils";
+import { submitToWebhook } from "@/services/webhook/utils";
 import { WEBHOOK_URLS } from "@/services/webhook/config";
 
 export const WebhookTester = () => {
@@ -19,14 +19,24 @@ export const WebhookTester = () => {
     setTestResults(null);
     
     try {
-      const result = await testWebhook(url);
-      console.log(`Webhook test result for ${label}:`, result);
-      setTestResults({ url, label, ...result });
+      const testData = {
+        test: true,
+        timestamp: new Date().toISOString(),
+        message: `Test request from Lovable webhook system for ${label}`
+      };
+      
+      const result = await submitToWebhook(url, testData);
+      
+      setTestResults({ 
+        url, 
+        label, 
+        success: result 
+      });
       
       toast({
-        title: result.success ? "Webhook Test Successful" : "Webhook Test Failed",
-        description: `The ${label} webhook test ${result.success ? "was successful" : "failed"}`,
-        variant: result.success ? "default" : "destructive",
+        title: result ? "Webhook Test Successful" : "Webhook Test Failed",
+        description: `The ${label} webhook test ${result ? "was successful" : "failed"}`,
+        variant: result ? "default" : "destructive",
       });
     } catch (error) {
       console.error(`Error testing ${label} webhook:`, error);
@@ -65,22 +75,6 @@ export const WebhookTester = () => {
             >
               Test Orders Webhook
             </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={() => runTest(WEBHOOK_URLS.WHEEL_ORDERS, "Wheel Orders")}
-              disabled={isLoading}
-            >
-              Test Wheel Orders Webhook
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={() => runTest(WEBHOOK_URLS.MTO_ORDERS, "MTO Orders")}
-              disabled={isLoading}
-            >
-              Test MTO Orders Webhook
-            </Button>
           </div>
         </div>
         
@@ -104,48 +98,12 @@ export const WebhookTester = () => {
             </Button>
           </div>
         </div>
-        
-        {isLoading && (
-          <div className="p-4 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-            <p className="mt-2 text-sm text-muted-foreground">Testing webhook connectivity...</p>
-          </div>
-        )}
-        
-        {testResults && (
-          <div className="mt-4 border rounded-md p-4 bg-muted/20">
-            <div className="flex items-center mb-2">
-              {testResults.success ? (
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-              ) : (
-                <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
-              )}
-              <h3 className="font-medium">{testResults.label} Webhook Test Result</h3>
-            </div>
-            
-            <div className="space-y-2 mt-2 text-sm">
-              <div><span className="font-medium">URL:</span> {testResults.url}</div>
-              <div><span className="font-medium">Status:</span> {testResults.status || "Unknown"}</div>
-              {testResults.response && (
-                <div>
-                  <span className="font-medium">Response:</span> {testResults.response}
-                </div>
-              )}
-              {testResults.error && (
-                <div className="text-red-500">
-                  <span className="font-medium">Error:</span> {testResults.error}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </CardContent>
       
-      <CardFooter className="flex justify-between border-t p-4 text-xs text-muted-foreground">
-        <div>
-          This tool tests webhook connectivity by sending a simple test payload.
-        </div>
+      <CardFooter className="border-t p-4 text-xs text-muted-foreground">
+        This tool tests webhook connectivity by sending a simple test payload.
       </CardFooter>
     </Card>
   );
 };
+
