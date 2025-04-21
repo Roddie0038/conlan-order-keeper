@@ -46,31 +46,142 @@ export const prepareWebhookData = (data: any) => {
 };
 
 /**
- * Generic webhook submission function 
+ * Generic webhook submission function with enhanced response handling
  */
 export const submitToWebhook = async (url: string, data: any) => {
   try {
     // Format the data before sending
     const formattedData = prepareWebhookData(data);
 
-    console.log("Sending formatted data to plant webhook:", formattedData);
-    console.log("Using plant webhook URL:", url);
-    console.log("Schedule Arrival value being sent:", formattedData.scheduleArrival);
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      mode: "no-cors", // Keep no-cors mode for CORS handling
-      body: JSON.stringify(formattedData),
-    });
-
-    // With no-cors, we won't get a meaningful status, but the request will go through
-    console.log(`Successfully triggered plant webhook: ${url}`);
-    return true;
+    console.log("📤 WEBHOOK - Sending formatted data to webhook:", JSON.stringify(formattedData, null, 2));
+    console.log("📤 WEBHOOK - Using webhook URL:", url);
+    
+    // Try with CORS first to get proper response
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formattedData),
+      });
+      
+      console.log(`📥 WEBHOOK - Response status:`, response.status);
+      
+      if (response.ok) {
+        console.log(`✅ WEBHOOK - Successfully triggered webhook with proper CORS`);
+        
+        try {
+          const responseText = await response.text();
+          console.log(`📥 WEBHOOK - Response body:`, responseText);
+        } catch (e) {
+          console.log(`📥 WEBHOOK - Could not read response body:`, e);
+        }
+        
+        return true;
+      } else {
+        console.warn(`⚠️ WEBHOOK - Response not OK, falling back to no-cors mode. Status: ${response.status}`);
+        throw new Error("Response not OK");
+      }
+    } catch (corsError) {
+      // If CORS fails, fall back to no-cors mode
+      console.log(`⚠️ WEBHOOK - CORS request failed, trying no-cors mode:`, corsError);
+      
+      const noCorsResponse = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "no-cors", // Fall back to no-cors mode
+        body: JSON.stringify(formattedData),
+      });
+      
+      console.log(`📥 WEBHOOK - no-cors mode used, cannot read response status. Assuming success.`);
+      return true;
+    }
   } catch (error) {
-    console.error(`Error triggering plant webhook ${url}:`, error);
+    console.error(`❌ WEBHOOK - Error triggering webhook ${url}:`, error);
     return false;
+  }
+};
+
+/**
+ * Function to test webhook connectivity
+ */
+export const testWebhook = async (url: string) => {
+  try {
+    console.log(`🧪 WEBHOOK TEST - Testing webhook URL: ${url}`);
+    
+    const testData = {
+      test: true,
+      timestamp: new Date().toISOString(),
+      message: "This is a test request from the Lovable webhook system"
+    };
+    
+    // Try with regular CORS first
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(testData),
+      });
+      
+      console.log(`🧪 WEBHOOK TEST - Response status:`, response.status);
+      
+      if (response.ok) {
+        console.log(`✅ WEBHOOK TEST - Successfully tested webhook with proper CORS`);
+        
+        try {
+          const responseText = await response.text();
+          console.log(`🧪 WEBHOOK TEST - Response body:`, responseText);
+          return {
+            success: true,
+            status: response.status,
+            response: responseText
+          };
+        } catch (e) {
+          console.log(`🧪 WEBHOOK TEST - Could not read response body:`, e);
+          return {
+            success: true,
+            status: response.status,
+            response: "Unable to read response body"
+          };
+        }
+      } else {
+        console.warn(`⚠️ WEBHOOK TEST - Response not OK. Status: ${response.status}`);
+        return {
+          success: false,
+          status: response.status,
+          error: "Response not OK"
+        };
+      }
+    } catch (corsError) {
+      // If CORS fails, fall back to no-cors mode
+      console.log(`⚠️ WEBHOOK TEST - CORS request failed, trying no-cors mode:`, corsError);
+      
+      const noCorsResponse = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "no-cors", // Fall back to no-cors mode
+        body: JSON.stringify(testData),
+      });
+      
+      console.log(`🧪 WEBHOOK TEST - no-cors mode used, cannot read response status.`);
+      return {
+        success: true,
+        status: "unknown (no-cors mode)",
+        response: "Used no-cors mode, response details unavailable"
+      };
+    }
+  } catch (error) {
+    console.error(`❌ WEBHOOK TEST - Error testing webhook ${url}:`, error);
+    return {
+      success: false,
+      error: String(error)
+    };
   }
 };

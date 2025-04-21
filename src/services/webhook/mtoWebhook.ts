@@ -46,23 +46,13 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       email: data.managersEmail || data.managerEmail || ""
     };
 
-    console.log("🔍 MTO WEBHOOK - Sending mapped data to MTO Orders webhook:", mappedData);
-    console.log("🔍 MTO WEBHOOK - Using MTO Orders webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
+    console.log("📤 MTO WEBHOOK - Sending mapped data:", JSON.stringify(mappedData, null, 2));
+    console.log("📤 MTO WEBHOOK - Using MTO Orders webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
 
-    const response = await fetch(WEBHOOK_URLS.MTO_ORDERS, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      mode: "no-cors", // Use no-cors to avoid CORS issues
-      body: JSON.stringify(mappedData),
-    });
-
-    console.log("✅ MTO WEBHOOK - Successfully triggered MTO Orders webhook");
-    return true;
+    // Send the MTO order data to the webhook
+    return await submitToWebhook(WEBHOOK_URLS.MTO_ORDERS, mappedData);
   } catch (error) {
     console.error("❌ MTO WEBHOOK - Error triggering MTO Orders webhook:", error);
     return false;
   }
 };
-

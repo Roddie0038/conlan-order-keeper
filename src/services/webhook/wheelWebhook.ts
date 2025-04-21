@@ -30,8 +30,8 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
     };
 
     // Log exactly what we're sending and to which URL
-    console.log("🔍 WHEEL ORDER WEBHOOK - Sending mapped data:", JSON.stringify(mappedData, null, 2));
-    console.log("🔍 WHEEL ORDER WEBHOOK - Using Wheel Orders webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
+    console.log("📤 WHEEL ORDER WEBHOOK - Sending mapped data:", JSON.stringify(mappedData, null, 2));
+    console.log("📤 WHEEL ORDER WEBHOOK - Using Wheel Orders webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
     
     // Verify it's a wheel order by checking the required wheel-specific fields
     if (!data.wheelColor || !data.wheelSize || !data.wheelType) {
@@ -43,28 +43,12 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
     }
 
     // Confirm the type is set correctly
-    console.log("🔍 WHEEL ORDER WEBHOOK - Order type:", data.type);
+    console.log("📤 WHEEL ORDER WEBHOOK - Order type:", data.type);
     
-    // Log the exact URL being used for final verification
-    console.log("🔍 WHEEL ORDER WEBHOOK - Final webhook URL check:", WEBHOOK_URLS.WHEEL_ORDERS);
-    console.log("🔍 WHEEL ORDER WEBHOOK - Expected correct URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
-    console.log("🔍 WHEEL ORDER WEBHOOK - Do URLs match?", 
-                WEBHOOK_URLS.WHEEL_ORDERS === "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
-    
-    const response = await fetch(WEBHOOK_URLS.WHEEL_ORDERS, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      mode: "no-cors", // Use no-cors to avoid CORS issues
-      body: JSON.stringify(mappedData),
-    });
-
-    console.log("✅ Successfully triggered Wheel Orders webhook");
-    return true;
+    // Send the wheel order data to the webhook
+    return await submitToWebhook(WEBHOOK_URLS.WHEEL_ORDERS, mappedData);
   } catch (error) {
-    console.error("❌ Error triggering Wheel Orders webhook:", error);
+    console.error("❌ WHEEL ORDER WEBHOOK - Error triggering Wheel Orders webhook:", error);
     return false;
   }
 };
-

@@ -23,23 +23,13 @@ export const submitToOrdersWebhook = async (data: any) => {
       email: data.managersEmail || data.managerEmail || ""
     };
 
-    console.log("Sending mapped data to Orders webhook:", mappedData);
-    console.log("Using Orders webhook URL:", WEBHOOK_URLS.ORDERS);
-    console.log("Schedule arrival value being sent:", mappedData.schedule_arrival);
+    console.log("📤 ORDERS WEBHOOK - Sending mapped data:", JSON.stringify(mappedData, null, 2));
+    console.log("📤 ORDERS WEBHOOK - Using Orders webhook URL:", WEBHOOK_URLS.ORDERS);
+    console.log("📤 ORDERS WEBHOOK - Schedule arrival value being sent:", mappedData.schedule_arrival);
 
-    const response = await fetch(WEBHOOK_URLS.ORDERS, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      mode: "no-cors", // Use no-cors to avoid CORS issues
-      body: JSON.stringify(mappedData),
-    });
-
-    console.log("Successfully triggered Orders webhook");
-    return true;
+    return await submitToWebhook(WEBHOOK_URLS.ORDERS, mappedData);
   } catch (error) {
-    console.error("Error triggering Orders webhook:", error);
+    console.error("❌ ORDERS WEBHOOK - Error triggering Orders webhook:", error);
     return false;
   }
 };
