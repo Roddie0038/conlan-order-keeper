@@ -68,6 +68,18 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       hideTitle: true,
       fullSizeImage: true,
       backgroundImage: "/lovable-uploads/413e1d1e-7082-484b-a7e3-49f465b30f28.png"
+    },
+    {
+      title: "TRANSFER REQUEST",
+      icon: null,
+      path: "/transfer-request",  // You might need to create this route
+      color: "",
+      borderColor: "border-cyan-400",
+      delay: 0.6,
+      size: "col-span-1",
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/77caa36a-d07e-488e-8dbd-4d0c2ca52112.png"
     }
   ];
 
@@ -79,3 +91,4 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     </div>
   );
 }
+
