@@ -10,6 +10,11 @@ export const WEBHOOK_URLS = {
   MTO_ORDERS: "https://script.google.com/macros/s/AKfycbySpbQtyGFnhR1pvMq53HwBAUXGI-TS5j7wcaCq0m9zotDyvV-IzGXJJCU3nOrUc5z-wQ/exec"
 };
 
+// Additional webhook endpoints
+export const ADDITIONAL_WEBHOOKS = {
+  GP97_ORDERS: "https://eot9y6n22fro4la.m.pipedream.net"
+};
+
 // Log webhook URLs on initial load for verification
 console.log("🔍 CONFIG - Webhook URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS URL:", WEBHOOK_URLS.ORDERS);

@@ -1,4 +1,3 @@
-
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { submitToWebhook } from './webhook/utils';
 import { submitToOrdersWebhook } from './webhook/orderWebhook';
@@ -8,7 +7,8 @@ import {
   OrderType, 
   OrderData, 
   MTOOrderData,
-  WEBHOOK_URLS
+  WEBHOOK_URLS,
+  ADDITIONAL_WEBHOOKS
 } from './webhook/config';
 
 export type { OrderType, OrderData, MTOOrderData };
@@ -17,17 +17,25 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("🔍 SHEETS - Submitting to webhooks:", data);
   console.log("🔍 SHEETS - Manager's email in submitToGoogleSheets:", data.managersEmail || data.managerEmail);
   console.log("🔍 SHEETS - Order type:", data.type);
-  console.log("🔍 SHEETS - Has qtyWheels property:", 'qtyWheels' in data);
-  console.log("🔍 SHEETS - WHEEL_ORDERS URL from config:", WEBHOOK_URLS.WHEEL_ORDERS);
-  console.log("🔍 SHEETS - Expected WHEEL_ORDERS URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
   
-  // Ensure a plant is specified, default to Grand Prairie 97 if not
   const plant = data.plant || "Grand Prairie 97";
   console.log("🔍 SHEETS - Selected plant for webhook submission:", plant);
   
   try {
-    // Create an array to hold our promise results
     const results = [];
+    
+    // If the plant is Grand Prairie 97, send to the additional webhook
+    if (plant === "Grand Prairie 97") {
+      console.log("🔍 ROUTING - Sending to GP97 additional webhook");
+      const gp97Result = await fetch(ADDITIONAL_WEBHOOKS.GP97_ORDERS, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      results.push(gp97Result.ok);
+    }
     
     // Determine which type of order it is and submit to appropriate webhooks
     if (data.type === 'MTO') {
@@ -107,4 +115,3 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     return { status: 'error' };
   }
 };
-
