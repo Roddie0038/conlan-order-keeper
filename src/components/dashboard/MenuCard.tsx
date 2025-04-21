@@ -60,17 +60,14 @@ export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolea
             {item.backgroundImage && (
               <div 
                 className={`
-                  absolute inset-0 z-0 bg-cover bg-center bg-no-repeat
+                  absolute inset-0 z-0 bg-cover bg-center 
                   ${item.fullSizeImage ? "opacity-100" : ""}
                   ${!item.fullSizeImage && item.title === "MTO" ? "opacity-80 mix-blend-multiply" : ""}
                   ${!item.fullSizeImage && item.title === "NEW ORDER" ? "opacity-70 mix-blend-overlay" : ""}
                   ${!item.fullSizeImage && item.title === "ORDER MANAGEMENT" ? "opacity-90 mix-blend-hard-light" : ""}
                   ${!item.fullSizeImage && !["MTO", "NEW ORDER", "ORDER MANAGEMENT", "WHEEL REFURB ORDER"].includes(item.title) ? "opacity-70 mix-blend-overlay" : ""}
                 `}
-                style={{ 
-                  backgroundImage: `url(${item.backgroundImage})`,
-                  backgroundSize: 'contain'
-                }}
+                style={{ backgroundImage: `url(${item.backgroundImage})` }}
               />
             )}
             

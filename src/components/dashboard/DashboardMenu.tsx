@@ -17,7 +17,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/02d4bee6-069d-49b8-9aed-96647d676c8c.png"
+      backgroundImage: "/lovable-uploads/b866e767-c11e-42b3-8973-1e01be98c454.png"
     },
     {
       title: "MTO",
@@ -54,7 +54,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/6520145f-ac05-4342-936f-43dfb608a788.png"
+      backgroundImage: "/lovable-uploads/eb247f69-fc1e-42f8-b819-56ed7bdd9aed.png"
     },
     {
       title: "WHEEL REFURB ORDER",

@@ -1,3 +1,4 @@
+
 export const stores = [
   { id: "22", name: "Fort Worth 22" },
   { id: "27", name: "Grand Prairie 27" },
@@ -25,6 +26,7 @@ export const storeManagerEmails: Record<string, string> = {
   "Admin": "Roderickdemarais@aol.com, Conlantire97@gmail.com"
 };
 
+// Export the getManagerEmail function to be used by other components
 export const getManagerEmail = (store: string) => {
   if (store === "Admin") return storeManagerEmails["Admin"];
   const match = store.match(/\d+$/);
@@ -34,10 +36,10 @@ export const getManagerEmail = (store: string) => {
 
 export const scheduleOptions = [
   "Monday",
-  "Tuesday", 
-  "Wednesday", 
-  "Thursday", 
-  "Friday", 
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
   "Will Call Pick Up",
 ].map(value => ({ value }));
 
@@ -46,7 +48,7 @@ export const crossDockOptions = [
   { value: "no", name: "No" },
 ];
 
-export interface FormData {
+export type FormData = {
   yourName: string;
   store: string;
   dateReceived: string;
@@ -56,14 +58,9 @@ export interface FormData {
   scheduleArrival: string;
   notes: string;
   crossDock: string;
-  crossDockDestination: string;
-  managersEmail: string;
-  transferWorkOrderNumber?: string;
-  trailerNumber?: string;
-  eta?: string;
-  crossDockFile?: string;
-  crossDockConfirmation?: boolean;
-}
+  crossDockDestination?: string;
+  managersEmail?: string;
+};
 
 export const initialFormData: FormData = {
   yourName: "",
@@ -77,9 +74,4 @@ export const initialFormData: FormData = {
   crossDock: "",
   crossDockDestination: "",
   managersEmail: "",
-  transferWorkOrderNumber: "",
-  trailerNumber: "",
-  eta: "",
-  crossDockFile: "",
-  crossDockConfirmation: false
 };

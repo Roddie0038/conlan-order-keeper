@@ -1,11 +1,12 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { LayoutDashboard, Database, ClipboardList, ShoppingCart, Disc, Building } from "lucide-react";
-import { Webhook } from "lucide-react";
 
+// Define an interface for the link item to include the highlight property
 interface NavLink {
   href: string;
   label: string;
@@ -28,6 +29,7 @@ export function Navigation() {
     { href: "/wheel-order", label: "Wheel Powder Coating", icon: <Disc className="w-4 h-4 mr-2" /> },
   ];
 
+  // Add admin-specific links
   if (user?.isAdmin) {
     links.push(
       { href: "/admin-inventory", label: "Inventory Management" },
@@ -36,11 +38,6 @@ export function Navigation() {
         label: "Admin Order Management", 
         icon: <ClipboardList className="w-4 h-4 mr-2" />,
         highlight: true
-      },
-      {
-        href: "/webhook-testing",
-        label: "Webhook Testing",
-        icon: <Webhook className="w-4 h-4 mr-2" />
       }
     );
   }

@@ -1,10 +1,13 @@
 
-import { FormData } from "./formConfig";
 import { FormField } from "./FormField";
-import { ContactInformation } from "./sections/ContactInformation";
-import { ProductDetails } from "./sections/ProductDetails";
-import { SchedulingNotes } from "./sections/SchedulingNotes";
-import { CrossDockOptions } from "./sections/CrossDockOptions";
+import { Button } from "@/components/ui/button";
+import { scheduleOptions, crossDockOptions, stores, type FormData, storeManagerEmails } from "./formConfig";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { fetchInventory } from "@/services/inventoryService";
+import { InventoryItem } from "@/types/inventory";
+import { Info, Package, Calendar, Truck, Building, Mail } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface OrderFormInputsProps {
   formData: FormData;
@@ -17,36 +20,293 @@ export const OrderFormInputs = ({
   onSubmit,
   onChange
 }: OrderFormInputsProps) => {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [inventoryCheck, setInventoryCheck] = useState<{
+    available: boolean;
+    quantity: number;
+  } | null>(null);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+
+  // Set the store to the user's store on component mount for non-admin users
+  useEffect(() => {
+    if (user && user.store && !user.isAdmin && formData.store !== user.store) {
+      onChange("store", user.store);
+      
+      // Set manager email when store changes
+      const managersEmail = getManagerEmail(user.store);
+      if (managersEmail && formData.managersEmail !== managersEmail) {
+        onChange("managersEmail", managersEmail);
+      }
+    }
+  }, [user, formData.store]);
+
+  // Helper function to get manager email
+  const getManagerEmail = (store: string) => {
+    if (store === "Admin") return storeManagerEmails["Admin"];
+    const match = store.match(/\d+$/);
+    const storeNumber = match ? match[0] : '';
+    return storeManagerEmails[storeNumber] || '';
+  };
+
+  // Fetch inventory on component mount
+  useEffect(() => {
+    const loadInventory = async () => {
+      try {
+        const items = await fetchInventory();
+        setInventoryItems(items);
+        // Cache for offline access
+        localStorage.setItem('inventory', JSON.stringify(items.map(item => ({
+          productNumber: item.product_number,
+          quantity: item.quantity,
+          lowStock: item.low_stock
+        }))));
+      } catch (error) {
+        console.error("Error loading inventory:", error);
+        // Try to use cached inventory
+        const cachedInventory = localStorage.getItem('inventory');
+        if (cachedInventory) {
+          setInventoryItems(JSON.parse(cachedInventory));
+        }
+      }
+    };
+    loadInventory();
+  }, []);
+
+  // Check inventory when product number changes
+  useEffect(() => {
+    if (formData.productNumber) {
+      // First try to find in our fetched inventory
+      const productItem = inventoryItems.find(item => item.product_number.toLowerCase() === formData.productNumber.toLowerCase());
+      if (productItem) {
+        setInventoryCheck({
+          available: productItem.quantity > 0,
+          quantity: productItem.quantity
+        });
+
+        // Show toast if product is low in stock
+        if (productItem.low_stock) {
+          toast({
+            title: "Low Stock Alert",
+            description: `This product (${formData.productNumber}) is low in stock. Only ${productItem.quantity} units available.`,
+            variant: "destructive"
+          });
+        }
+      } else {
+        // Fall back to localStorage cache if not found
+        const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+        const cachedItem = inventory.find((item: any) => item.productNumber.toLowerCase() === formData.productNumber.toLowerCase());
+        if (cachedItem) {
+          setInventoryCheck({
+            available: cachedItem.quantity > 0,
+            quantity: cachedItem.quantity
+          });
+          if (cachedItem.lowStock) {
+            toast({
+              title: "Low Stock Alert",
+              description: `This product (${formData.productNumber}) is low in stock. Only ${cachedItem.quantity} units available.`,
+              variant: "destructive"
+            });
+          }
+        } else {
+          setInventoryCheck(null);
+        }
+      }
+    } else {
+      setInventoryCheck(null);
+    }
+  }, [formData.productNumber, inventoryItems, toast]);
+
+  // Check if requested quantity is available when quantity changes
+  useEffect(() => {
+    if (inventoryCheck && formData.quantity && Number(formData.quantity) > inventoryCheck.quantity) {
+      toast({
+        title: "Insufficient Stock",
+        description: `You're requesting ${formData.quantity} units, but only ${inventoryCheck.quantity} are available.`,
+        variant: "destructive"
+      });
+    }
+  }, [formData.quantity, inventoryCheck, toast]);
+
   return (
     <form onSubmit={onSubmit} className="max-w-2xl mx-auto backdrop-blur-md bg-black/60 p-8 rounded-xl shadow-xl border border-gray-800 transition-all">
       <div className="space-y-6">
-        <ContactInformation 
-          formData={formData} 
-          onChange={onChange} 
-        />
-        
-        <ProductDetails 
-          formData={formData} 
-          onChange={onChange} 
-        />
-        
-        <SchedulingNotes 
-          formData={formData} 
-          onChange={onChange} 
-        />
-        
-        <CrossDockOptions 
-          formData={formData} 
-          onChange={onChange} 
-        />
+        {/* Contact Information Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4 border-l-4 border-blue-500 pl-3">
+            <Info className="h-5 w-5 text-blue-400" />
+            <h3 className="text-lg font-medium text-white">Contact Information</h3>
+          </div>
+
+          <div className="pl-4 space-y-4">
+            <FormField 
+              label="Your Name" 
+              required 
+              value={formData.yourName} 
+              onChange={value => onChange("yourName", value)} 
+              placeholder="Enter your name" 
+            />
+
+            <div className="space-y-2 group transition-all duration-200">
+              <label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
+                <Building className="h-4 w-4 text-gray-400" />
+                Store {<span className="text-red-400">*</span>}
+              </label>
+              <FormField 
+                label="" 
+                required 
+                value={formData.store} 
+                onChange={value => {
+                  onChange("store", value);
+                  
+                  // Set manager email when store changes
+                  const managersEmail = getManagerEmail(value);
+                  onChange("managersEmail", managersEmail);
+                }} 
+                options={stores} 
+                disabled={!user?.isAdmin}
+              />
+            </div>
+
+            <div className="space-y-2 group transition-all duration-200">
+              <label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
+                <Mail className="h-4 w-4 text-gray-400" />
+                Manager's Email
+              </label>
+              <FormField 
+                label="" 
+                type="email" 
+                value={formData.managersEmail || ''} 
+                onChange={() => {}} 
+                disabled={true} 
+                placeholder="Manager's email will be automatically set" 
+              />
+            </div>
+
+            <FormField 
+              label="Date Received" 
+              type="datetime-local" 
+              required 
+              value={formData.dateReceived} 
+              onChange={value => onChange("dateReceived", value)} 
+              disabled={true} 
+            />
+          </div>
+        </div>
+
+        {/* Product Details Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4 border-l-4 border-green-500 pl-3">
+            <Package className="h-5 w-5 text-green-400" />
+            <h3 className="text-lg font-medium text-white">Product Details</h3>
+          </div>
+
+          <div className="pl-4 space-y-4">
+            <div className="bg-zinc-800/50 p-4 rounded-lg">
+              <FormField 
+                label="Product Number" 
+                required 
+                value={formData.productNumber} 
+                onChange={value => onChange("productNumber", value)} 
+                placeholder="Enter product number" 
+              />
+              
+              {inventoryCheck !== null && (
+                <div className={`mt-2 rounded-lg p-2 text-sm ${inventoryCheck.available ? 'bg-green-900/40 text-green-400' : 'bg-rose-900/40 text-rose-400'}`}>
+                  {inventoryCheck.available 
+                    ? `✓ In stock: ${inventoryCheck.quantity} units available` 
+                    : '✕ Out of stock'}
+                </div>
+              )}
+            </div>
+
+            <FormField 
+              label="Description" 
+              required 
+              value={formData.description} 
+              onChange={value => onChange("description", value)} 
+              placeholder="Enter product description" 
+            />
+
+            <FormField 
+              label="Quantity" 
+              type="number" 
+              required 
+              value={formData.quantity} 
+              onChange={value => onChange("quantity", value)} 
+              placeholder="Enter quantity" 
+            />
+          </div>
+        </div>
+
+        {/* Logistics Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4 border-l-4 border-orange-500 pl-3">
+            <Calendar className="h-5 w-5 text-orange-400" />
+            <h3 className="text-lg font-medium text-white">Schedule & Notes</h3>
+          </div>
+
+          <div className="pl-4 space-y-4">
+            <FormField 
+              label="Schedule Arrival" 
+              required 
+              value={formData.scheduleArrival} 
+              onChange={value => onChange("scheduleArrival", value)} 
+              options={scheduleOptions} 
+              placeholder="Select arrival day" 
+            />
+
+            <FormField 
+              label="Notes" 
+              value={formData.notes} 
+              onChange={value => onChange("notes", value)} 
+              placeholder="Enter any additional notes" 
+            />
+          </div>
+        </div>
+
+        {/* Cross Dock Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4 border-l-4 border-purple-500 pl-3">
+            <Truck className="h-5 w-5 text-purple-400" />
+            <h3 className="text-lg font-medium text-white">Cross Dock Options</h3>
+          </div>
+
+          <div className="pl-4 space-y-4">
+            <FormField 
+              label="Cross Dock" 
+              required 
+              value={formData.crossDock} 
+              onChange={value => onChange("crossDock", value)} 
+              options={crossDockOptions} 
+              placeholder="Select yes/no" 
+            />
+
+            {formData.crossDock === "yes" && (
+              <FormField 
+                label="Cross Dock Destination" 
+                value={formData.crossDockDestination || ""} 
+                onChange={value => {
+                  onChange("crossDockDestination", value);
+                  // Set manager email based on selected store ID
+                  const managersEmail = storeManagerEmails[value] || '';
+                  onChange("managersEmail", managersEmail);
+                }} 
+                options={stores} 
+                placeholder="Select destination" 
+                required 
+              />
+            )}
+          </div>
+        </div>
       </div>
 
-      <button 
+      <Button 
         type="submit" 
-        className="w-full text-slate-50 rounded-3xl bg-rose-600 hover:bg-rose-500 mt-8 transition-all hover:scale-[1.01] py-6 text-lg font-semibold shadow-lg"
-      >
+        className="w-full text-slate-50 rounded-3xl bg-rose-600 hover:bg-rose-500 mt-8 transition-all hover:scale-[1.01] py-6 text-lg font-semibold shadow-lg" 
+        disabled={inventoryCheck !== null && !inventoryCheck.available}>
         ADD TO ORDER
-      </button>
+      </Button>
     </form>
   );
 };

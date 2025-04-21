@@ -1,112 +1,99 @@
 
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { submitToGoogleSheets } from "@/services/sheets";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
-import { generateAndEmailCrossDockPDF } from "./utils/pdfGenerator";
-import { OrderFormValues } from "./order-form-schema";
-import { OrderSummary } from "./types";
+import { Send } from "lucide-react";
+import { usePlant } from "@/contexts/PlantContext";
+import { getManagerEmail } from "@/components/order-form/formConfig";
+import type { OrderSummary } from "./types";
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: OrderSummary[];
-  setOrderSummaries: (orders: OrderSummary[]) => void;
+  setOrderSummaries: React.Dispatch<React.SetStateAction<OrderSummary[]>>;
 }
 
-export function OrderSubmissionHandler({ 
-  orderSummaries, 
-  setOrderSummaries 
-}: OrderSubmissionHandlerProps) {
+export const OrderSubmissionHandler = ({
+  orderSummaries,
+  setOrderSummaries
+}: OrderSubmissionHandlerProps) => {
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Count selected orders
-  const selectedCount = orderSummaries.filter(order => order.selected).length;
-  
-  const handleSubmitOrders = async () => {
+  const { selectedPlant } = usePlant();
+
+  const handleSubmitSelected = async () => {
+    const selectedOrders = orderSummaries.filter(order => order.selected);
+    
+    if (selectedOrders.length === 0) {
+      toast({
+        title: "No Orders Selected",
+        description: "Please select at least one order to submit.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      const selectedOrders = orderSummaries.filter(order => order.selected);
-      
-      if (selectedOrders.length === 0) {
-        toast({
-          title: "No Orders Selected",
-          description: "Please select at least one order to submit.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Process Cross Dock PDFs and emails for orders that have Cross Dock = "yes"
-      const crossDockOrders = selectedOrders.filter(order => order.crossDock === "yes");
-      
-      for (const order of crossDockOrders) {
-        try {
-          // Generate and email Cross Dock PDF
-          const pdfResult = await generateAndEmailCrossDockPDF({
-            yourName: order.yourName || "",
-            store: order.store || "",
-            dateReceived: order.dateReceived || "",
-            productNumber: order.productNumber || "",
-            description: order.description || "",
-            quantity: order.quantity || "",
-            scheduleArrival: order.scheduleArrival || "",
-            notes: order.notes || "",
-            crossDock: order.crossDock || "",
-            crossDockDestination: order.crossDockDestination || "",
-            managersEmail: order.managersEmail || "",
-            transferWorkOrderNumber: order.transferWorkOrderNumber || "",
-            trailerNumber: order.trailerNumber || "",
-            eta: order.eta || "",
-            crossDockFile: order.crossDockFile || "",
-            crossDockConfirmation: order.crossDockConfirmation || false
-          });
-          
-          if (!pdfResult.success) {
-            console.error("Failed to process Cross Dock PDF for order:", order.id);
-          }
-        } catch (pdfError) {
-          console.error("Error processing PDF for order:", order.id, pdfError);
-        }
-      }
-      
-      // Here would be the actual submission logic to backend API
-      // For now, we'll simulate success after a delay
-      setTimeout(() => {
-        toast({
-          title: "Orders Submitted Successfully",
-          description: `${selectedOrders.length} order(s) have been submitted.`,
-        });
+      for (const order of selectedOrders) {
+        const managersEmail = getManagerEmail(order.store);
         
-        // Remove submitted orders
-        const remainingOrders = orderSummaries.filter(order => !order.selected);
-        setOrderSummaries(remainingOrders);
-        
-        setIsSubmitting(false);
-      }, 1500);
+        await submitToGoogleSheets({
+          ...order,
+          managersEmail,
+          plant: selectedPlant,
+          timestamp: new Date().toISOString(),
+          type: order.type || "TRANSFER", // Ensure type is set to a valid OrderType
+        });
+
+        // Store in localStorage for persistence
+        const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
+        existingOrders.push({
+          ...order,
+          managersEmail,
+          plant: selectedPlant,
+          type: order.type || "TRANSFER" // Ensure type is properly set for localStorage too
+        });
+        localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
+      }
+
+      // Remove submitted orders from the list
+      setOrderSummaries(prev => prev.filter(order => !order.selected));
+      
+      toast({
+        title: "Orders Submitted",
+        description: `Successfully submitted ${selectedOrders.length} order(s).`
+      });
     } catch (error) {
       console.error("Error submitting orders:", error);
       toast({
         title: "Error",
         description: "Failed to submit orders. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
+    } finally {
       setIsSubmitting(false);
     }
   };
-  
-  if (orderSummaries.length === 0) {
-    return null;
-  }
-  
+
   return (
-    <div className="mt-6 flex justify-end">
-      <Button
-        onClick={handleSubmitOrders}
-        disabled={isSubmitting || selectedCount === 0}
-        className="bg-green-600 hover:bg-green-700"
-      >
-        {isSubmitting ? "Submitting..." : `Submit Selected Orders (${selectedCount})`}
-      </Button>
-    </div>
+    orderSummaries.length > 0 ? (
+      <div className="mt-6 flex justify-end">
+        <Button
+          onClick={handleSubmitSelected}
+          disabled={isSubmitting || !orderSummaries.some(order => order.selected)}
+          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center gap-2"
+        >
+          {isSubmitting ? (
+            "Submitting..."
+          ) : (
+            <>
+              <Send className="h-4 w-4" /> Submit Selected Orders
+            </>
+          )}
+        </Button>
+      </div>
+    ) : null
   );
-}
+};

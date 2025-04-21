@@ -29,7 +29,7 @@ export function OrderForm() {
   const defaultValues = {
     yourName: "",
     store: user?.store || "",
-    dateReceived: getCurrentDateTime(),
+    dateReceived: getCurrentDateTime(), // Use string format instead of Date
     productNumber: "",
     description: "",
     quantity: "",
@@ -38,12 +38,6 @@ export function OrderForm() {
     crossDock: "",
     crossDockDestination: "",
     managersEmail: managerEmail,
-    // Default values for the new fields
-    transferWorkOrderNumber: "",
-    trailerNumber: "",
-    eta: "",
-    crossDockFile: "",
-    crossDockConfirmation: false
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -63,60 +57,7 @@ export function OrderForm() {
   const { handleSubmit, formState, reset } = form;
   const showCrossDockDestination = form.watch("crossDock") === "yes";
   
-  // Watch for crossDock changes to reset related fields if needed
-  const crossDock = form.watch("crossDock");
-  
-  useEffect(() => {
-    if (crossDock !== "yes") {
-      // Reset cross dock detail fields if cross dock is not "yes"
-      form.setValue("transferWorkOrderNumber", "");
-      form.setValue("trailerNumber", "");
-      form.setValue("eta", "");
-      form.setValue("crossDockFile", "");
-      form.setValue("crossDockConfirmation", false);
-    }
-  }, [crossDock, form]);
-  
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Validate Cross Dock details if Cross Dock is "yes"
-    if (values.crossDock === "yes") {
-      if (!values.crossDockDestination) {
-        toast({
-          title: "Missing Information",
-          description: "Please select a Cross Dock Destination.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!values.transferWorkOrderNumber) {
-        toast({
-          title: "Missing Information",
-          description: "Please enter a Transfer Work Order Number.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!values.eta) {
-        toast({
-          title: "Missing Information",
-          description: "Please select an Estimated Arrival Date (ETA).",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!values.crossDockConfirmation) {
-        toast({
-          title: "Confirmation Required",
-          description: "Please confirm that paperwork is printed and attached.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-    
     // Add current form values to the order summaries
     const newOrder = {
       ...values,

@@ -1,3 +1,4 @@
+
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { submitToWebhook } from './webhook/utils';
 import { submitToOrdersWebhook } from './webhook/orderWebhook';
@@ -77,41 +78,19 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     else {
       console.log("🔍 ROUTING - Processing regular TRANSFER order");
       
-      // If Grand Prairie, send to both Zapier and Orders webhooks
-      if (plant === "Grand Prairie 97") {
-        // 1. Send to the special Zapier webhook
-        const zapierUrl = "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/";
-        console.log("🔍 ROUTING - Also sending order to GP Zapier webhook:", zapierUrl);
-        const zapierResult = await submitToWebhook(zapierUrl, data);
-        results.push(zapierResult);
-
-        // 2. Send to Orders (Google Sheets) webhook as normal
-        const ordersResult = await submitToOrdersWebhook(data);
-        results.push(ordersResult);
-
-        // 3. Still send to the plant's transferRequests as normal for backward compatibility if you want:
-        const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;
-        if (plantUrl && plantUrl !== zapierUrl) {
-          console.log("🔍 ROUTING - Sending to plant-specific GP Transfer webhook:", plantUrl);
-          const plantResult = await submitToWebhook(plantUrl, data);
-          results.push(plantResult);
-        }
-
-        console.log("🔍 ROUTING - Grand Prairie order processed completely to both endpoints");
-      } else {
-        // Default to TRANSFER type for other plants: plant transfer AND Orders webhook
-        const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;
-        console.log("🔍 ROUTING - Using plant-specific Transfer webhook URL:", plantUrl);
-        const plantWebhookResult = await submitToWebhook(plantUrl, data);
-        results.push(plantWebhookResult);
-
-        // Send to the new Orders webhook
-        console.log("🔍 ROUTING - Sending to Orders Google Sheet webhook");
-        const ordersResult = await submitToOrdersWebhook(data);
-        results.push(ordersResult);
-
-        console.log("🔍 ROUTING - Transfer order processed completely for non-GP plant");
-      }
+      // Default to TRANSFER type for regular orders
+      // Send to the plant-specific webhook
+      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;
+      console.log("🔍 ROUTING - Using plant-specific Transfer webhook URL:", plantUrl);
+      const plantWebhookResult = await submitToWebhook(plantUrl, data);
+      results.push(plantWebhookResult);
+      
+      // Send to the new Orders webhook
+      console.log("🔍 ROUTING - Sending to Orders Google Sheet webhook");
+      const ordersResult = await submitToOrdersWebhook(data);
+      results.push(ordersResult);
+      
+      console.log("🔍 ROUTING - Transfer order processed completely");
     }
     
     // Check if at least one webhook succeeded
@@ -128,3 +107,4 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     return { status: 'error' };
   }
 };
+

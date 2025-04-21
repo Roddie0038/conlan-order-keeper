@@ -8,11 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, ArrowDownUp, Check, X, Shield, Calendar } from "lucide-react";
+import { Search, ArrowDownUp, Check, X, Shield } from "lucide-react";
 import { useInventoryContext } from "@/contexts/InventoryContext";
 import { decreaseInventoryQuantity } from "@/services/inventoryService";
-import { FilteredOrdersList } from "@/components/orders/FilteredOrdersList";
-import { format } from "date-fns";
 
 interface Order {
   id: string;
@@ -54,7 +52,6 @@ export default function AdminOrders() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { inventory, refreshInventory } = useInventoryContext();
-  const today = format(new Date(), 'yyyy-MM-dd');
 
   useEffect(() => {
     if (user && !user.isAdmin) {
@@ -286,10 +283,9 @@ export default function AdminOrders() {
           </div>
           
           <Tabs defaultValue="regular" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="regular">Regular Orders ({filteredRegularOrders?.length || 0})</TabsTrigger>
-              <TabsTrigger value="mto">MTO Orders ({filteredMTOOrders?.length || 0})</TabsTrigger>
-              <TabsTrigger value="daily">Today's Filtered Orders</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="regular">Regular Orders ({filteredRegularOrders.length})</TabsTrigger>
+              <TabsTrigger value="mto">MTO Orders ({filteredMTOOrders.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="regular">
@@ -476,17 +472,10 @@ export default function AdminOrders() {
                 </TableBody>
               </Table>
             </TabsContent>
-            
-            <TabsContent value="daily">
-              <FilteredOrdersList 
-                targetDate={today}
-                targetStore="Tulsa 36"
-                className="bg-white p-4 rounded-lg"
-              />
-            </TabsContent>
           </Tabs>
         </div>
       </div>
     </div>
   );
 }
+

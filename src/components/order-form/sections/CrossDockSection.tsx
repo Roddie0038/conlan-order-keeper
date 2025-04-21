@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { crossDockOptions, stores } from "@/components/order-form/formConfig";
 import { Truck, MapPin, Building } from "lucide-react";
-import { CrossDockDetailPanel } from "../components/CrossDockDetailPanel";
 
 interface CrossDockSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -72,32 +71,19 @@ export function CrossDockSection({
                   <MapPin className="h-4 w-4 mr-1 text-gray-400" />
                   Cross Dock Destination*
                 </FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200">
-                      <SelectValue placeholder="Select destination store" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {stores.map((store) => (
-                      <SelectItem key={store.id} value={store.id}>
-                        {store.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Input 
+                    placeholder="Enter cross dock destination" 
+                    {...field}
+                    className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         )}
       </div>
-      
-      {/* Cross Dock Detail Panel - only shown when Cross Dock is set to "yes" */}
-      {showCrossDockDestination && <CrossDockDetailPanel form={form} />}
       
       <div className="mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">

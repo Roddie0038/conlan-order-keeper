@@ -18,8 +18,6 @@ import AdminInventory from "./pages/AdminInventory";
 import AdminOrders from "./pages/AdminOrders";
 import WheelOrder from "./pages/WheelOrder";
 import OrderManagement from "./pages/OrderManagement";
-import Index from "./pages/Index";
-import WebhookTesting from "./pages/WebhookTesting";  // Add this import
 import { useEffect } from "react";
 import { orderApi } from "./api/orderApi";
 
@@ -70,17 +68,6 @@ function App() {
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Login />} />
-                
-                <Route
-                  path="/index"
-                  element={
-                    <ProtectedRoute>
-                      <InventoryProvider>
-                        <Index />
-                      </InventoryProvider>
-                    </ProtectedRoute>
-                  }
-                />
                 
                 <Route
                   path="/dashboard"
@@ -150,15 +137,6 @@ function App() {
                       <InventoryProvider>
                         <AdminOrders />
                       </InventoryProvider>
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="/webhook-testing"
-                  element={
-                    <ProtectedRoute adminOnly={true}>
-                      <WebhookTesting />
                     </ProtectedRoute>
                   }
                 />
