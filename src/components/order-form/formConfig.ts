@@ -1,4 +1,3 @@
-
 export const stores = [
   { id: "22", name: "Fort Worth 22" },
   { id: "27", name: "Grand Prairie 27" },
@@ -26,7 +25,6 @@ export const storeManagerEmails: Record<string, string> = {
   "Admin": "Roderickdemarais@aol.com, Conlantire97@gmail.com"
 };
 
-// Export the getManagerEmail function to be used by other components
 export const getManagerEmail = (store: string) => {
   if (store === "Admin") return storeManagerEmails["Admin"];
   const match = store.match(/\d+$/);
@@ -48,7 +46,7 @@ export const crossDockOptions = [
   { value: "no", name: "No" },
 ];
 
-export type FormData = {
+export interface FormData {
   yourName: string;
   store: string;
   dateReceived: string;
@@ -58,15 +56,14 @@ export type FormData = {
   scheduleArrival: string;
   notes: string;
   crossDock: string;
-  crossDockDestination?: string;
-  managersEmail?: string;
-  // Add new cross dock fields
+  crossDockDestination: string;
+  managersEmail: string;
   transferWorkOrderNumber?: string;
   trailerNumber?: string;
   eta?: string;
   crossDockFile?: string;
   crossDockConfirmation?: boolean;
-};
+}
 
 export const initialFormData: FormData = {
   yourName: "",

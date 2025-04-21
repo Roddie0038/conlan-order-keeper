@@ -4,12 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { generateAndEmailCrossDockPDF } from "./utils/pdfGenerator";
 import { OrderFormValues } from "./order-form-schema";
-
-interface OrderSummary {
-  id: string;
-  selected: boolean;
-  [key: string]: any;
-}
+import { OrderSummary } from "./types";
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: OrderSummary[];
@@ -45,31 +40,32 @@ export function OrderSubmissionHandler({
       const crossDockOrders = selectedOrders.filter(order => order.crossDock === "yes");
       
       for (const order of crossDockOrders) {
-        // Convert the order to OrderFormValues type
-        const orderFormValues: OrderFormValues = {
-          yourName: order.yourName || "",
-          store: order.store || "",
-          dateReceived: order.dateReceived || "",
-          productNumber: order.productNumber || "",
-          description: order.description || "",
-          quantity: order.quantity || "",
-          scheduleArrival: order.scheduleArrival || "",
-          notes: order.notes || "",
-          crossDock: order.crossDock || "",
-          crossDockDestination: order.crossDockDestination || "",
-          managersEmail: order.managersEmail || "",
-          transferWorkOrderNumber: order.transferWorkOrderNumber || "",
-          trailerNumber: order.trailerNumber || "",
-          eta: order.eta || "",
-          crossDockFile: order.crossDockFile || "",
-          crossDockConfirmation: order.crossDockConfirmation || false
-        };
-        
-        // Generate and email Cross Dock PDF
-        const pdfResult = await generateAndEmailCrossDockPDF(orderFormValues);
-        
-        if (!pdfResult.success) {
-          console.error("Failed to process Cross Dock PDF for order:", order.id);
+        try {
+          // Generate and email Cross Dock PDF
+          const pdfResult = await generateAndEmailCrossDockPDF({
+            yourName: order.yourName || "",
+            store: order.store || "",
+            dateReceived: order.dateReceived || "",
+            productNumber: order.productNumber || "",
+            description: order.description || "",
+            quantity: order.quantity || "",
+            scheduleArrival: order.scheduleArrival || "",
+            notes: order.notes || "",
+            crossDock: order.crossDock || "",
+            crossDockDestination: order.crossDockDestination || "",
+            managersEmail: order.managersEmail || "",
+            transferWorkOrderNumber: order.transferWorkOrderNumber || "",
+            trailerNumber: order.trailerNumber || "",
+            eta: order.eta || "",
+            crossDockFile: order.crossDockFile || "",
+            crossDockConfirmation: order.crossDockConfirmation || false
+          });
+          
+          if (!pdfResult.success) {
+            console.error("Failed to process Cross Dock PDF for order:", order.id);
+          }
+        } catch (pdfError) {
+          console.error("Error processing PDF for order:", order.id, pdfError);
         }
       }
       
