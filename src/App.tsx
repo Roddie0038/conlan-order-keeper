@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,7 @@ import AdminOrders from "./pages/AdminOrders";
 import WheelOrder from "./pages/WheelOrder";
 import OrderManagement from "./pages/OrderManagement";
 import Index from "./pages/Index";
+import WebhookTesting from "./pages/WebhookTesting";  // Add this import
 import { useEffect } from "react";
 import { orderApi } from "./api/orderApi";
 
