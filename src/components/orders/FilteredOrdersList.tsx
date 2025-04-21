@@ -12,8 +12,12 @@ interface Order {
   store: string;
   type: "MTO" | "WHEEL_POWDER_COATING" | "TRANSFER";
   productNumber: string;
-  description: string;
+  description?: string;
   quantity: string;
+  // Add the missing properties
+  dateReceived?: string;
+  tireSize?: string;
+  tireTreadNeeded?: string;
 }
 
 interface FilteredOrdersListProps {
@@ -101,7 +105,7 @@ export function FilteredOrdersList({
               {orders.map((order, index) => (
                 <TableRow key={order.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                   <TableCell>
-                    {format(new Date(order.timestamp || order.dateReceived), 'h:mm a')}
+                    {format(new Date(order.timestamp || order.dateReceived || ''), 'h:mm a')}
                   </TableCell>
                   <TableCell>
                     <Badge className={
