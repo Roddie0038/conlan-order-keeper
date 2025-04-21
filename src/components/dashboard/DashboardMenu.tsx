@@ -1,4 +1,3 @@
-
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 
@@ -55,7 +54,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/b67c7969-f995-4c10-a14f-0e3b27ec5deb.png"
+      backgroundImage: "/lovable-uploads/eb247f69-fc1e-42f8-b819-56ed7bdd9aed.png"
     },
     {
       title: "WHEEL REFURB ORDER",
@@ -67,19 +66,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/413e1d1e-7082-484b-a7e3-49f465b30f28.png"
-    },
-    {
-      title: "TRANSFER REQUEST",
-      icon: null,
-      path: "/transfer-request",  // You might need to create this route
-      color: "",
-      borderColor: "border-cyan-400",
-      delay: 0.6,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/77caa36a-d07e-488e-8dbd-4d0c2ca52112.png"
+      backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
     }
   ];
 
@@ -91,4 +78,3 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     </div>
   );
 }
-
