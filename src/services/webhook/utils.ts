@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for webhook submissions
  */
@@ -53,54 +52,41 @@ export const submitToWebhook = async (url: string, data: any) => {
     // Format the data before sending
     const formattedData = prepareWebhookData(data);
 
-    console.log("📤 WEBHOOK - Sending formatted data to webhook:", JSON.stringify(formattedData, null, 2));
+    console.log("📤 WEBHOOK - Full payload being sent:", JSON.stringify(formattedData, null, 2));
     console.log("📤 WEBHOOK - Using webhook URL:", url);
     
-    // Try with CORS first to get proper response
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formattedData),
+        body: JSON.stringify(formattedData)
       });
       
       console.log(`📥 WEBHOOK - Response status:`, response.status);
       
-      if (response.ok) {
-        console.log(`✅ WEBHOOK - Successfully triggered webhook with proper CORS`);
-        
-        try {
-          const responseText = await response.text();
-          console.log(`📥 WEBHOOK - Response body:`, responseText);
-        } catch (e) {
-          console.log(`📥 WEBHOOK - Could not read response body:`, e);
-        }
-        
-        return true;
-      } else {
-        console.warn(`⚠️ WEBHOOK - Response not OK, falling back to no-cors mode. Status: ${response.status}`);
-        throw new Error("Response not OK");
+      // Try to read the response body regardless of status
+      try {
+        const responseText = await response.text();
+        console.log(`📥 WEBHOOK - Full response body:`, responseText);
+      } catch (bodyReadError) {
+        console.warn(`⚠️ WEBHOOK - Could not read response body:`, bodyReadError);
       }
-    } catch (corsError) {
-      // If CORS fails, fall back to no-cors mode
-      console.log(`⚠️ WEBHOOK - CORS request failed, trying no-cors mode:`, corsError);
       
-      const noCorsResponse = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "no-cors", // Fall back to no-cors mode
-        body: JSON.stringify(formattedData),
-      });
+      if (!response.ok) {
+        console.error(`❌ WEBHOOK - Non-OK response. Status: ${response.status}`);
+        return false;
+      }
       
-      console.log(`📥 WEBHOOK - no-cors mode used, cannot read response status. Assuming success.`);
+      console.log(`✅ WEBHOOK - Successfully triggered webhook`);
       return true;
+    } catch (fetchError) {
+      console.error(`❌ WEBHOOK - Fetch error:`, fetchError);
+      return false;
     }
   } catch (error) {
-    console.error(`❌ WEBHOOK - Error triggering webhook ${url}:`, error);
+    console.error(`❌ WEBHOOK - Unexpected error triggering webhook ${url}:`, error);
     return false;
   }
 };
