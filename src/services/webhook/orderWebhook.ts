@@ -1,7 +1,6 @@
 
-import { submitToWebhook } from './utils';
+import { submitToWebhook, formatDate } from './utils';
 import { WEBHOOK_URLS } from './config';
-import { formatDate } from './utils';
 
 export const submitToOrdersWebhook = async (data: any) => {
   try {

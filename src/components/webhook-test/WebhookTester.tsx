@@ -75,6 +75,22 @@ export const WebhookTester = () => {
             >
               Test Orders Webhook
             </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => runTest(WEBHOOK_URLS.WHEEL_ORDERS, "Wheel Orders")}
+              disabled={isLoading}
+            >
+              Test Wheel Orders Webhook
+            </Button>
+
+            <Button 
+              variant="outline" 
+              onClick={() => runTest(WEBHOOK_URLS.MTO_ORDERS, "MTO Orders")}
+              disabled={isLoading}
+            >
+              Test MTO Orders Webhook
+            </Button>
           </div>
         </div>
         
@@ -98,6 +114,40 @@ export const WebhookTester = () => {
             </Button>
           </div>
         </div>
+
+        {testResults && (
+          <div className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900">
+            <h3 className="text-lg font-medium flex items-center">
+              {testResults.success ? (
+                <>
+                  <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
+                  <span>Test Successful</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="mr-2 h-5 w-5 text-amber-500" />
+                  <span>Test Failed</span>
+                </>
+              )}
+            </h3>
+            <div className="mt-2 text-sm">
+              <div><strong>Webhook:</strong> {testResults.label}</div>
+              <div><strong>URL:</strong> {testResults.url}</div>
+              {testResults.error && (
+                <div className="text-red-500 mt-2">
+                  <strong>Error:</strong> {testResults.error}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="flex justify-center items-center p-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <span className="ml-2">Testing webhook...</span>
+          </div>
+        )}
       </CardContent>
       
       <CardFooter className="border-t p-4 text-xs text-muted-foreground">
@@ -106,4 +156,3 @@ export const WebhookTester = () => {
     </Card>
   );
 };
-
