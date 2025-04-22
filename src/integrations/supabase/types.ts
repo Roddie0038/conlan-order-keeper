@@ -63,6 +63,51 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          "Cross Dock": string | null
+          "Cross Dock Destination": string | null
+          Description: string | null
+          Email: string | null
+          "Invoice#": string | null
+          Name: string | null
+          Notes: string | null
+          "Product Number": string | null
+          Quantity: number | null
+          "Schedule Arrival": string | null
+          Store: string | null
+          Timestamp: string
+        }
+        Insert: {
+          "Cross Dock"?: string | null
+          "Cross Dock Destination"?: string | null
+          Description?: string | null
+          Email?: string | null
+          "Invoice#"?: string | null
+          Name?: string | null
+          Notes?: string | null
+          "Product Number"?: string | null
+          Quantity?: number | null
+          "Schedule Arrival"?: string | null
+          Store?: string | null
+          Timestamp: string
+        }
+        Update: {
+          "Cross Dock"?: string | null
+          "Cross Dock Destination"?: string | null
+          Description?: string | null
+          Email?: string | null
+          "Invoice#"?: string | null
+          Name?: string | null
+          Notes?: string | null
+          "Product Number"?: string | null
+          Quantity?: number | null
+          "Schedule Arrival"?: string | null
+          Store?: string | null
+          Timestamp?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

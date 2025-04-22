@@ -1,8 +1,10 @@
+
 import { MTOFormData } from "../mto-form-config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { usePlant } from "@/contexts/PlantContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { saveOrderToSupabase } from "@/services/orderService";
 
 interface SubmitMTOOrderProps {
   formData: MTOFormData;
@@ -131,6 +133,20 @@ export const useSubmitMTOOrder = ({
 
       console.log("Sending order data to webhook:", orderData);
       const result = await submitToGoogleSheets(orderData);
+      
+      // Save to Supabase
+      await saveOrderToSupabase({
+        name: formData.name,
+        store: formData.store,
+        productNumber: formData.productNumber,
+        description: `MTO: ${finalTireSize}, ${formData.tireTreadNeeded}, Grade: ${formData.casingGrade.join(',')}`,
+        quantity: formData.quantity,
+        scheduleArrival: formData.scheduleArrival || "",
+        notes: formData.notes || "",
+        email: managersEmail,
+        timestamp: new Date().toISOString(),
+        type: "MTO"
+      });
       
       if (result.status === 'success' || result.status === 'partial_success') {
         const existingOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');

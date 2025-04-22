@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { OrderFormValues } from "../order-form-schema";
+import { saveOrderToSupabase } from "@/services/orderService";
 
 interface UseOrderFormSubmitProps {
   setIsSubmitting: (value: boolean) => void;
@@ -56,6 +57,22 @@ export function useOrderFormSubmit({
         managersEmail,
         plant: selectedPlant,
         type: "TRANSFER" // Set explicit type for OrderType
+      });
+
+      // Save to Supabase
+      await saveOrderToSupabase({
+        name: values.yourName,
+        store: values.store,
+        productNumber: values.productNumber,
+        description: values.description,
+        quantity: values.quantity,
+        scheduleArrival: values.scheduleArrival,
+        notes: values.notes || "",
+        crossDock: values.crossDock,
+        crossDockDestination: values.crossDockDestination,
+        email: managersEmail,
+        timestamp: new Date().toISOString(),
+        type: "TRANSFER"
       });
       
       if (result.status === "success") {

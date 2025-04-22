@@ -1,11 +1,15 @@
+
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardMenuProps {
   loaded: boolean;
 }
 
 export function DashboardMenu({ loaded }: DashboardMenuProps) {
+  const { user } = useAuth();
+  
   const menuItems: MenuItemProps[] = [
     {
       title: "NEW ORDER",
@@ -69,6 +73,20 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
     }
   ];
+  
+  // Add admin-only menu items
+  if (user?.isAdmin) {
+    menuItems.push({
+      title: "ALL ORDERS",
+      icon: <Package className="h-10 w-10" />,
+      path: "/all-orders",
+      color: "bg-gradient-to-r from-amber-500 to-orange-500",
+      borderColor: "border-amber-400",
+      delay: 0.6,
+      size: "col-span-1",
+      highlight: true
+    });
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

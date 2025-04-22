@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { usePlant } from "@/contexts/PlantContext";
 import { getManagerEmail } from "@/components/order-form/formConfig";
+import { saveOrderToSupabase } from "@/services/orderService";
 import type { OrderSummary } from "./types";
 
 interface OrderSubmissionHandlerProps {
@@ -47,7 +47,21 @@ export const OrderSubmissionHandler = ({
           type: order.type || "TRANSFER", // Ensure type is set to a valid OrderType
         });
 
-        // Store in localStorage for persistence
+        await saveOrderToSupabase({
+          name: order.yourName,
+          store: order.store,
+          productNumber: order.productNumber,
+          description: order.description,
+          quantity: order.quantity,
+          scheduleArrival: order.scheduleArrival,
+          notes: order.notes,
+          crossDock: order.crossDock,
+          crossDockDestination: order.crossDockDestination,
+          email: managersEmail,
+          timestamp: new Date().toISOString(),
+          type: order.type || "TRANSFER"
+        });
+
         const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
         existingOrders.push({
           ...order,
@@ -58,7 +72,6 @@ export const OrderSubmissionHandler = ({
         localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
       }
 
-      // Remove submitted orders from the list
       setOrderSummaries(prev => prev.filter(order => !order.selected));
       
       toast({

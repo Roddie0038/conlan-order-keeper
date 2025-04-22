@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,6 +8,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { stores, getManagerEmail } from "@/components/order-form/formConfig";
 import { WheelFormData } from "../types";
 import { WEBHOOK_URLS } from "@/services/webhook/config";
+import { saveOrderToSupabase } from "@/services/orderService";
 
 export function useWheelOrderForm() {
   const { user } = useAuth();
@@ -158,6 +160,20 @@ export function useWheelOrderForm() {
       console.log("🔍 WHEEL FORM - Full submission data:", JSON.stringify(submissionData, null, 2));
 
       const result = await submitToGoogleSheets(submissionData);
+      
+      // Save to Supabase
+      await saveOrderToSupabase({
+        name: formData.yourName,
+        store: formData.storeName,
+        productNumber: "WHEEL-COATING",
+        description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
+        quantity: formData.qtyWheels,
+        scheduleArrival: formData.scheduleArrival || formData.dateReceived,
+        notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
+        email: managerEmail,
+        timestamp: new Date().toISOString(),
+        type: "WHEEL_POWDER_COATING"
+      });
       
       if (result.status === 'success' || result.status === 'partial_success') {
         const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
