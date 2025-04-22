@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface OrderData {
@@ -25,7 +24,6 @@ export interface OrderData {
 }
 
 export async function saveOrderToSupabase(order: OrderData) {
-  // Format the order data to match the Supabase table structure
   const formattedOrder = {
     Name: order.name || "",
     Store: order.store,
@@ -39,6 +37,7 @@ export async function saveOrderToSupabase(order: OrderData) {
     "Invoice#": order.invoiceNumber || "",
     Email: order.email || "",
     Timestamp: order.timestamp || new Date().toISOString(),
+    created_at: new Date().toISOString(),
     type: order.type || "TRANSFER"
   };
 
@@ -61,7 +60,7 @@ export async function fetchAllOrders() {
   const { data, error } = await supabase
     .from('orders')
     .select('*')
-    .order('Timestamp', { ascending: false });
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error("❌ Supabase Fetch Error:", error);

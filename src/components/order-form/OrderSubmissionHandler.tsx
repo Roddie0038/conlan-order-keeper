@@ -39,14 +39,6 @@ export const OrderSubmissionHandler = ({
       for (const order of selectedOrders) {
         const managersEmail = getManagerEmail(order.store);
         
-        await submitToGoogleSheets({
-          ...order,
-          managersEmail,
-          plant: selectedPlant,
-          timestamp: new Date().toISOString(),
-          type: order.type || "TRANSFER", // Ensure type is set to a valid OrderType
-        });
-
         await saveOrderToSupabase({
           name: order.yourName,
           store: order.store,
@@ -62,12 +54,20 @@ export const OrderSubmissionHandler = ({
           type: order.type || "TRANSFER"
         });
 
+        await submitToGoogleSheets({
+          ...order,
+          managersEmail,
+          plant: selectedPlant,
+          timestamp: new Date().toISOString(),
+          type: order.type || "TRANSFER"
+        });
+
         const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
         existingOrders.push({
           ...order,
           managersEmail,
           plant: selectedPlant,
-          type: order.type || "TRANSFER" // Ensure type is properly set for localStorage too
+          type: order.type || "TRANSFER"
         });
         localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
       }

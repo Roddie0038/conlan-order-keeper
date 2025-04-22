@@ -1,4 +1,6 @@
 
+// Patch MTO order submit hook with Supabase save-first approach before webhook submission.
+
 import { MTOFormData } from "../mto-form-config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -25,7 +27,6 @@ export const useSubmitMTOOrder = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields
     if (!formData.store) {
       toast({
         title: "Missing Store",
@@ -35,7 +36,6 @@ export const useSubmitMTOOrder = ({
       return;
     }
     
-    // If user is not admin, they can only submit orders for their store
     if (!user?.isAdmin && formData.store !== user?.store) {
       toast({
         title: "Unauthorized",
@@ -113,8 +113,6 @@ export const useSubmitMTOOrder = ({
 
     try {
       const finalTireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
-      
-      // Get the manager's email for the selected store
       const managersEmail = getManagerEmail(formData.store);
       console.log("Manager email for store:", formData.store, "is:", managersEmail);
       
@@ -122,19 +120,15 @@ export const useSubmitMTOOrder = ({
         id: crypto.randomUUID(),
         ...formData,
         tireSize: finalTireSize,
-        type: 'MTO' as const, // Explicitly set the type as MTO
+        type: 'MTO' as const,
         managersEmail,
-        managerEmail: managersEmail, // Adding both formats to ensure compatibility
+        managerEmail: managersEmail,
         triggered_from: window.location.origin,
-        plant: selectedPlant, // Include the plant from context
-        store: formData.store, // Ensure store is included
+        plant: selectedPlant,
+        store: formData.store,
         timestamp: new Date().toISOString()
       };
 
-      console.log("Sending order data to webhook:", orderData);
-      const result = await submitToGoogleSheets(orderData);
-      
-      // Save to Supabase
       await saveOrderToSupabase({
         name: formData.name,
         store: formData.store,
@@ -147,13 +141,13 @@ export const useSubmitMTOOrder = ({
         timestamp: new Date().toISOString(),
         type: "MTO"
       });
+
+      const result = await submitToGoogleSheets(orderData);
       
       if (result.status === 'success' || result.status === 'partial_success') {
         const existingOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');
         existingOrders.push(orderData);
         localStorage.setItem('mtoOrders', JSON.stringify(existingOrders));
-        
-        console.log("MTO order submitted successfully");
         
         toast({
           title: "Order Submitted Successfully",
