@@ -24,6 +24,7 @@ interface Order {
   Email?: string;
   created_at: string;
   type?: string;
+  Timestamp?: string;
 }
 
 export default function AdminOrders() {
@@ -50,8 +51,14 @@ export default function AdminOrders() {
           variant: "destructive"
         });
       } else {
-        // Type assertion to match our Order interface
-        setOrders(data as Order[]);
+        // Transform the data to ensure it matches our Order interface
+        const transformedData = (data || []).map(order => ({
+          ...order,
+          // Make sure created_at exists - use Timestamp or current date as fallback
+          created_at: order.created_at || order.Timestamp || new Date().toISOString()
+        }));
+        
+        setOrders(transformedData as Order[]);
       }
       setLoading(false);
     }
