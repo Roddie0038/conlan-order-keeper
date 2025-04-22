@@ -1,6 +1,4 @@
 
-// New admin-only orders page, fetching from Supabase and displaying orders in a table.
-
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +11,7 @@ interface Order {
   Name: string;
   Store: string;
   "Product Number": string;
+  Description: string;
   Quantity: number;
   "Schedule Arrival": string;
   Notes: string;
@@ -51,7 +50,8 @@ export default function AdminOrders() {
           variant: "destructive"
         });
       } else {
-        setOrders(data);
+        // Type assertion to match our Order interface
+        setOrders(data as Order[]);
       }
       setLoading(false);
     }
@@ -101,14 +101,14 @@ export default function AdminOrders() {
                   <td>{order.type || "TRANSFER"}</td>
                   <td>
                     {order.Completed ? (
-                      <Badge variant="success">Yes</Badge>
+                      <Badge variant="default" className="bg-green-500">Yes</Badge>
                     ) : (
                       <Badge variant="outline">No</Badge>
                     )}
                   </td>
                   <td>
                     {order.SendInvoice ? (
-                      <Badge variant="success">Yes</Badge>
+                      <Badge variant="default" className="bg-green-500">Yes</Badge>
                     ) : (
                       <Badge variant="outline">No</Badge>
                     )}
