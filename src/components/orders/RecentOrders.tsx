@@ -16,9 +16,9 @@ export function RecentOrders() {
           ...allOrdersResponse.data.regular,
           ...allOrdersResponse.data.mto
         ]
-        // Sort by timestamp descending and take last 5
+        // Sort by timestamp descending and take last 10
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-        .slice(0, 5);
+        .slice(0, 10);
         
         setRecentOrders(combinedOrders);
       }
