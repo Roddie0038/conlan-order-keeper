@@ -76,17 +76,21 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     }
   ];
   
+  // Admin-only "ALL ORDERS" card uses the supplied dashboard image
   if (user?.isAdmin) {
     menuItems.push({
       title: "ALL ORDERS",
-      icon: <Package className="h-10 w-10" />,
+      icon: null, // We show just the image
       path: "/admin-orders",
-      color: "bg-gradient-to-r from-amber-500 to-orange-500",
+      color: "",
       borderColor: "border-amber-400",
       delay: 0.6,
       size: "col-span-1",
       highlight: true,
-      adminOnly: true
+      adminOnly: true,
+      backgroundImage: "/lovable-uploads/4fb3a709-c374-4a11-a611-16b4857831b7.png",
+      fullSizeImage: true,
+      hideTitle: true,
     });
   }
 

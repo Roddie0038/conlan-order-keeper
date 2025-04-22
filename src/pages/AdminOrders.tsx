@@ -5,27 +5,31 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Table } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ProtectedRoute } from "@/components/ui/ProtectedRoute";
 
-interface Order {
-  Name: string;
-  Store: string;
-  "Product Number": string;
-  Description: string;
-  Quantity: number;
-  "Schedule Arrival": string;
-  Notes: string;
-  "Cross Dock": string;
-  "Cross Dock Destination": string;
-  "Invoice#": string;
-  Completed?: boolean;
-  SendInvoice?: boolean;
-  OutOfStock?: boolean;
-  Email?: string;
+// The updated Order type matches Supabase's snake_case schema.
+type Order = {
+  id?: string;
+  store: string;
+  product_number: string;
+  description?: string;
+  quantity: number;
+  schedule_arrival?: string;
+  notes?: string;
+  cross_dock?: string;
+  cross_dock_destination?: string;
+  invoice_number?: string;
+  completed?: boolean;
+  send_invoice?: boolean;
+  out_of_stock?: boolean;
+  email?: string;
+  pull_sheet?: string;
+  order_completion_link?: string;
+  send_email_message?: boolean;
+  message?: string;
   created_at: string;
-  type?: string;
-  Timestamp?: string;
-}
+  timestamp?: string;
+  name?: string;
+};
 
 export default function AdminOrders() {
   const { user } = useAuth();
@@ -51,14 +55,8 @@ export default function AdminOrders() {
           variant: "destructive"
         });
       } else {
-        // Transform the data to ensure it matches our Order interface
-        const transformedData = (data || []).map(order => ({
-          ...order,
-          // Make sure created_at exists - use Timestamp or current date as fallback
-          created_at: order.created_at || order.Timestamp || new Date().toISOString()
-        }));
-        
-        setOrders(transformedData as Order[]);
+        // Directly use the Supabase data format (snake_case)
+        setOrders((data || []) as Order[]);
       }
       setLoading(false);
     }
@@ -75,61 +73,58 @@ export default function AdminOrders() {
   }
 
   return (
-    <ProtectedRoute adminOnly>
-      <div className="max-w-7xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-6">All Orders (Supabase)</h1>
-
-        {loading ? (
-          <p>Loading orders...</p>
-        ) : (
-          <Table>
-            <thead>
-              <tr>
-                <th>Store</th>
-                <th>Product Number</th>
-                <th>Quantity</th>
-                <th>Date Submitted</th>
-                <th>Order Type</th>
-                <th>Completed</th>
-                <th>Send Invoice</th>
-                <th>Notes</th>
-                <th>Cross Dock</th>
-                <th>Cross Dock Destination</th>
-                <th>Invoice#</th>
+    <div className="max-w-7xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">All Orders (Supabase)</h1>
+      {loading ? (
+        <p>Loading orders...</p>
+      ) : (
+        <Table>
+          <thead>
+            <tr>
+              <th>Store</th>
+              <th>Product Number</th>
+              <th>Quantity</th>
+              <th>Date Submitted</th>
+              <th>Order Type</th>
+              <th>Completed</th>
+              <th>Send Invoice</th>
+              <th>Notes</th>
+              <th>Cross Dock</th>
+              <th>Cross Dock Destination</th>
+              <th>Invoice#</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order, idx) => (
+              <tr key={`${order.store}-${idx}`} className="text-sm">
+                <td>{order.store}</td>
+                <td>{order.product_number}</td>
+                <td>{order.quantity}</td>
+                <td>{new Date(order.created_at).toLocaleString()}</td>
+                <td>{order.description || "TRANSFER"}</td>
+                <td>
+                  {order.completed ? (
+                    <Badge variant="success">Yes</Badge>
+                  ) : (
+                    <Badge variant="outline">No</Badge>
+                  )}
+                </td>
+                <td>
+                  {order.send_invoice ? (
+                    <Badge variant="success">Yes</Badge>
+                  ) : (
+                    <Badge variant="outline">No</Badge>
+                  )}
+                </td>
+                <td>{order.notes}</td>
+                <td>{order.cross_dock}</td>
+                <td>{order.cross_dock_destination}</td>
+                <td>{order.invoice_number}</td>
               </tr>
-            </thead>
-            <tbody>
-              {orders.map((order, idx) => (
-                <tr key={`${order.Store}-${idx}`} className="text-sm">
-                  <td>{order.Store}</td>
-                  <td>{order["Product Number"]}</td>
-                  <td>{order.Quantity}</td>
-                  <td>{new Date(order.created_at).toLocaleString()}</td>
-                  <td>{order.type || "TRANSFER"}</td>
-                  <td>
-                    {order.Completed ? (
-                      <Badge variant="default" className="bg-green-500">Yes</Badge>
-                    ) : (
-                      <Badge variant="outline">No</Badge>
-                    )}
-                  </td>
-                  <td>
-                    {order.SendInvoice ? (
-                      <Badge variant="default" className="bg-green-500">Yes</Badge>
-                    ) : (
-                      <Badge variant="outline">No</Badge>
-                    )}
-                  </td>
-                  <td>{order.Notes}</td>
-                  <td>{order["Cross Dock"]}</td>
-                  <td>{order["Cross Dock Destination"]}</td>
-                  <td>{order["Invoice#"]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
-      </div>
-    </ProtectedRoute>
+            ))}
+          </tbody>
+        </Table>
+      )}
+    </div>
   );
 }
