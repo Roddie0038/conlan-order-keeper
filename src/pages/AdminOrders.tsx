@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,7 +99,7 @@ export default function AdminOrders() {
           order_completion_link: rawOrder.OrderCompletionLink,
           send_email_message: rawOrder.SendEmailMessage,
           message: rawOrder.Message,
-          created_at: rawOrder.created_at,
+          created_at: rawOrder.created_at, // Directly use created_at from Supabase
           timestamp: rawOrder.Timestamp,
           name: rawOrder.Name
         }));
@@ -176,3 +177,4 @@ export default function AdminOrders() {
     </ProtectedRoute>
   );
 }
+
