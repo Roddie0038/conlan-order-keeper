@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,7 +21,7 @@ export function useWheelOrderForm() {
   const [formData, setFormData] = useState<WheelFormData>({
     yourName: "",
     storeName: user?.store || "",
-    storeId: "",
+    storeId: "", // We'll set this based on user.store
     dateReceived: new Date().toISOString().split("T")[0],
     qtyWheels: "",
     customerName: "",
@@ -68,12 +69,12 @@ export function useWheelOrderForm() {
 
     const selectedStore = stores.find(store => store.id === value);
     if (selectedStore) {
-      setFormData(prev => ({
-        ...prev,
+      setFormData(prev => ({ 
+        ...prev, 
         storeId: value,
         storeName: selectedStore.name
       }));
-
+      
       const email = getManagerEmail(selectedStore.name);
       setManagerEmail(email);
     }
@@ -124,6 +125,12 @@ export function useWheelOrderForm() {
     }
 
     try {
+      console.log("🔍 WHEEL FORM - Preparing wheel order submission");
+      console.log("🔍 WHEEL FORM - Verifying webhook URL from config:");
+      console.log("🔍 WHEEL FORM - Target webhook URL will be:", WEBHOOK_URLS.WHEEL_ORDERS);
+      console.log("🔍 WHEEL FORM - Expected URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
+      console.log("🔍 WHEEL FORM - URLs match?", WEBHOOK_URLS.WHEEL_ORDERS === "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
+      
       const submissionData = {
         yourName: formData.yourName,
         store: formData.storeName,
@@ -149,6 +156,12 @@ export function useWheelOrderForm() {
         timestamp: new Date().toISOString(),
       };
 
+      console.log("🔍 WHEEL FORM - Submitting raw schedule arrival:", submissionData.scheduleArrival);
+      console.log("🔍 WHEEL FORM - Full submission data:", JSON.stringify(submissionData, null, 2));
+
+      const result = await submitToGoogleSheets(submissionData);
+      
+      // Save to Supabase
       await saveOrderToSupabase({
         name: formData.yourName,
         store: formData.storeName,
@@ -161,8 +174,6 @@ export function useWheelOrderForm() {
         timestamp: new Date().toISOString(),
         type: "WHEEL_POWDER_COATING"
       });
-
-      const result = await submitToGoogleSheets(submissionData);
       
       if (result.status === 'success' || result.status === 'partial_success') {
         const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');

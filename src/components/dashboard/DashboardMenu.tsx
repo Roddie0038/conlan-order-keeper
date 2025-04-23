@@ -1,6 +1,4 @@
 
-// Add "ALL ORDERS" menu item visible only for admin (already done but add adminOnly flag for clarity)
-
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -76,24 +74,24 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     }
   ];
   
+  // Add admin-only menu items
   if (user?.isAdmin) {
     menuItems.push({
       title: "ALL ORDERS",
       icon: <Package className="h-10 w-10" />,
-      path: "/admin-orders",
+      path: "/all-orders",
       color: "bg-gradient-to-r from-amber-500 to-orange-500",
       borderColor: "border-amber-400",
       delay: 0.6,
       size: "col-span-1",
-      highlight: true,
-      adminOnly: true
+      highlight: true
     });
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {menuItems.map((item) => (
-        (!item.adminOnly || (user?.isAdmin)) && <MenuCard key={item.title} item={item} loaded={loaded} />
+        <MenuCard key={item.title} item={item} loaded={loaded} />
       ))}
     </div>
   );

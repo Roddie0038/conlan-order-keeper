@@ -1,6 +1,4 @@
 
-// Patch useOrderFormSubmit to save to Supabase first and still send to Google Sheets.
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -24,10 +22,12 @@ export function useOrderFormSubmit({
   return async (values: OrderFormValues) => {
     setIsSubmitting(true);
     
+    // Get the manager's email for the selected store
     const managersEmail = getManagerEmail(values.store);
     console.log("Schedule arrival in form submit:", values.scheduleArrival);
     
     try {
+      // Add order to localStorage
       const pendingOrders = JSON.parse(localStorage.getItem("pendingOrders") || "[]");
       const newOrder = {
         ...values,
@@ -35,10 +35,31 @@ export function useOrderFormSubmit({
         timestamp: new Date().toISOString(),
         managersEmail,
         plant: selectedPlant,
-        type: "TRANSFER"
+        type: "TRANSFER" // Set explicit type for TypeScript
       };
       
-      // Save to Supabase first
+      pendingOrders.push(newOrder);
+      localStorage.setItem("pendingOrders", JSON.stringify(pendingOrders));
+      
+      // Submit to Google Sheets
+      const result = await submitToGoogleSheets({
+        ...values,
+        yourName: values.yourName,  // Explicitly include required fields
+        store: values.store,
+        dateReceived: values.dateReceived,  // Use string value directly
+        productNumber: values.productNumber,
+        description: values.description,
+        quantity: values.quantity,
+        scheduleArrival: values.scheduleArrival,  // Send the weekday name directly
+        notes: values.notes || "",
+        crossDock: values.crossDock,
+        timestamp: new Date().toISOString(),
+        managersEmail,
+        plant: selectedPlant,
+        type: "TRANSFER" // Set explicit type for OrderType
+      });
+
+      // Save to Supabase
       await saveOrderToSupabase({
         name: values.yourName,
         store: values.store,
@@ -53,27 +74,6 @@ export function useOrderFormSubmit({
         timestamp: new Date().toISOString(),
         type: "TRANSFER"
       });
-
-      // Then submit to Google Sheets (submits to webhook too)
-      const result = await submitToGoogleSheets({
-        ...values,
-        yourName: values.yourName,
-        store: values.store,
-        dateReceived: values.dateReceived,
-        productNumber: values.productNumber,
-        description: values.description,
-        quantity: values.quantity,
-        scheduleArrival: values.scheduleArrival,
-        notes: values.notes || "",
-        crossDock: values.crossDock,
-        timestamp: new Date().toISOString(),
-        managersEmail,
-        plant: selectedPlant,
-        type: "TRANSFER"
-      });
-
-      pendingOrders.push(newOrder);
-      localStorage.setItem("pendingOrders", JSON.stringify(pendingOrders));
       
       if (result.status === "success") {
         toast({
