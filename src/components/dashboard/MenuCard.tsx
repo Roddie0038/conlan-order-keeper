@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
@@ -13,8 +14,7 @@ export interface MenuItemProps {
   highlight?: boolean;
   backgroundImage?: string;
   hideTitle?: boolean;
-  fullSizeImage?: boolean;
-  adminOnly?: boolean;
+  fullSizeImage?: boolean; // New property to show full size image
 }
 
 export function MenuCard({ item, loaded }: { item: MenuItemProps; loaded: boolean }) {

@@ -65,7 +65,6 @@ export type Database = {
       }
       orders: {
         Row: {
-          created_at: string | null
           "Cross Dock": string | null
           "Cross Dock Destination": string | null
           Description: string | null
@@ -80,7 +79,6 @@ export type Database = {
           Timestamp: string
         }
         Insert: {
-          created_at?: string | null
           "Cross Dock"?: string | null
           "Cross Dock Destination"?: string | null
           Description?: string | null
@@ -95,7 +93,6 @@ export type Database = {
           Timestamp: string
         }
         Update: {
-          created_at?: string | null
           "Cross Dock"?: string | null
           "Cross Dock Destination"?: string | null
           Description?: string | null

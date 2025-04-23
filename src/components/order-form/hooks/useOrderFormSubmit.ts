@@ -1,5 +1,5 @@
 
-// Updated useOrderFormSubmit to properly save to Supabase and show clear feedback
+// Patch useOrderFormSubmit to save to Supabase first and still send to Google Sheets.
 
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
@@ -38,8 +38,8 @@ export function useOrderFormSubmit({
         type: "TRANSFER"
       };
       
-      // Save to Supabase first with better error handling
-      console.log("Calling saveOrderToSupabase with:", {
+      // Save to Supabase first
+      await saveOrderToSupabase({
         name: values.yourName,
         store: values.store,
         productNumber: values.productNumber,
@@ -53,36 +53,6 @@ export function useOrderFormSubmit({
         timestamp: new Date().toISOString(),
         type: "TRANSFER"
       });
-
-      const { error: supabaseError } = await saveOrderToSupabase({
-        name: values.yourName,
-        store: values.store,
-        productNumber: values.productNumber,
-        description: values.description,
-        quantity: values.quantity,
-        scheduleArrival: values.scheduleArrival,
-        notes: values.notes || "",
-        crossDock: values.crossDock,
-        crossDockDestination: values.crossDockDestination,
-        email: managersEmail,
-        timestamp: new Date().toISOString(),
-        type: "TRANSFER"
-      });
-
-      if (supabaseError) {
-        console.error("Supabase save error:", supabaseError);
-        toast({
-          title: "Database Error",
-          description: "Failed to save order to database. Please try again.",
-          variant: "destructive"
-        });
-        throw supabaseError;
-      } else {
-        toast({
-          title: "Saved to Database",
-          description: "Order successfully saved to Supabase.",
-        });
-      }
 
       // Then submit to Google Sheets (submits to webhook too)
       const result = await submitToGoogleSheets({
@@ -108,14 +78,14 @@ export function useOrderFormSubmit({
       if (result.status === "success") {
         toast({
           title: "Order Submitted",
-          description: "Your order has been submitted successfully to both Supabase and Google Sheets.",
+          description: "Your order has been submitted successfully.",
         });
         resetForm();
       } else {
         toast({
-          title: "Partial Success",
-          description: "Order saved to database but failed to submit to Google Sheets.",
-          variant: "warning",
+          title: "Failed to Submit",
+          description: "There was an error submitting your order to Google Sheets.",
+          variant: "destructive",
         });
       }
     } catch (error) {

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -40,8 +39,7 @@ export const OrderSubmissionHandler = ({
       for (const order of selectedOrders) {
         const managersEmail = getManagerEmail(order.store);
         
-        // Save to Supabase with enhanced error handling
-        const { error: supabaseError } = await saveOrderToSupabase({
+        await saveOrderToSupabase({
           name: order.yourName,
           store: order.store,
           productNumber: order.productNumber,
@@ -55,16 +53,6 @@ export const OrderSubmissionHandler = ({
           timestamp: new Date().toISOString(),
           type: order.type || "TRANSFER"
         });
-
-        if (supabaseError) {
-          console.error("Error saving to Supabase:", supabaseError);
-          toast({
-            title: "Supabase Save Error",
-            description: "Failed to save order to database. Please try again.",
-            variant: "destructive"
-          });
-          throw supabaseError;
-        }
 
         await submitToGoogleSheets({
           ...order,
@@ -88,7 +76,7 @@ export const OrderSubmissionHandler = ({
       
       toast({
         title: "Orders Submitted",
-        description: `Successfully submitted ${selectedOrders.length} order(s) to Supabase and Google Sheets.`
+        description: `Successfully submitted ${selectedOrders.length} order(s).`
       });
     } catch (error) {
       console.error("Error submitting orders:", error);
