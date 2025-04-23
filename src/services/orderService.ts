@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface OrderData {
@@ -24,8 +25,10 @@ export interface OrderData {
 }
 
 export async function saveOrderToSupabase(order: OrderData) {
+  console.log("🟡 Saving order to Supabase:", order);
+
   const formattedOrder = {
-    Name: order.name || "",
+    Name: order.name || "Unknown",
     Store: order.store,
     "Product Number": order.productNumber || "",
     Description: order.description || "",
