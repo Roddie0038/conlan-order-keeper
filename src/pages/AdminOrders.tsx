@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +6,7 @@ import { Table } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ProtectedRoute } from "@/components/ui/ProtectedRoute";
 
-// The updated Order type matches Supabase's snake_case schema.
+// The updated Order type matches Supabase's snake_case schema
 type Order = {
   id?: string;
   store: string;
@@ -52,7 +51,7 @@ type RawOrder = {
   SendEmailMessage?: boolean;
   Message?: string;
   Timestamp: string;
-  created_at?: string;
+  created_at: string;
   Name?: string;
 };
 
@@ -99,8 +98,7 @@ export default function AdminOrders() {
           order_completion_link: rawOrder.OrderCompletionLink,
           send_email_message: rawOrder.SendEmailMessage,
           message: rawOrder.Message,
-          // Use created_at if it exists, otherwise use Timestamp or current date
-          created_at: rawOrder.created_at || rawOrder.Timestamp || new Date().toISOString(),
+          created_at: rawOrder.created_at,
           timestamp: rawOrder.Timestamp,
           name: rawOrder.Name
         }));
