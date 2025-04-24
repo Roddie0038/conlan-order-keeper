@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,7 +18,6 @@ import AdminOrders from "./pages/AdminOrders";
 import AllOrders from "./pages/AllOrders";
 import WheelOrder from "./pages/WheelOrder";
 import OrderManagement from "./pages/OrderManagement";
-import Index from "./pages/Index";
 import { useEffect } from "react";
 import { orderApi } from "./api/orderApi";
 
@@ -77,17 +75,6 @@ function App() {
                     <ProtectedRoute showNav={false}>
                       <InventoryProvider>
                         <Dashboard />
-                      </InventoryProvider>
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="/index"
-                  element={
-                    <ProtectedRoute showNav={false}>
-                      <InventoryProvider>
-                        <Index />
                       </InventoryProvider>
                     </ProtectedRoute>
                   }
