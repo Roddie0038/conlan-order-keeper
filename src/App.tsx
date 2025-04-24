@@ -1,165 +1,53 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { PlantProvider } from "./contexts/PlantContext";
-import { InventoryProvider } from "./contexts/InventoryContext";
-import { Navigation } from "./components/Navigation";
-import { LogoutButton } from "./components/LogoutButton";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import PendingOrders from "./pages/PendingOrders";
-import MTOOrder from "./pages/MTOOrder";
-import CrossDock from "./pages/CrossDock";
-import AdminInventory from "./pages/AdminInventory";
-import AdminOrders from "./pages/AdminOrders";
-import AllOrders from "./pages/AllOrders";
-import WheelOrder from "./pages/WheelOrder";
-import OrderManagement from "./pages/OrderManagement";
-import { useEffect } from "react";
-import { orderApi } from "./api/orderApi";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-    },
-  },
-});
-
-function ProtectedRoute({ children, showNav = true, adminOnly = false }: { children: React.ReactNode, showNav?: boolean, adminOnly?: boolean }) {
-  const { user } = useAuth();
-  
-  useEffect(() => {
-    if (window) {
-      window.orderApi = orderApi;
-      console.log("Order API initialized and available via window.orderApi");
-    }
-  }, []);
-  
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
-  
-  if (adminOnly && !user.isAdmin) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return (
-    <>
-      {showNav && <Navigation />}
-      <LogoutButton />
-      {children}
-    </>
-  );
-}
+import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Index from './pages/Index';
+import Login from './pages/Login';
+import OrderForm from './components/order-form';
+import PendingOrders from './pages/PendingOrders';
+import MTOOrder from './pages/MTOOrder';
+import Dashboard from './pages/Dashboard';
+import CompletedOrders from './pages/CompletedOrders';
+import CrossDock from './pages/CrossDock';
+import WheelOrder from './pages/WheelOrder';
+import OrderManagement from './pages/OrderManagement';
+import StagingDashboard from './pages/StagingDashboard';
+import { useAuth } from './contexts/AuthContext';
+import { PlantProvider } from './contexts/PlantContext';
+import { Toaster } from '@/components/ui/toaster';
+import { isStaging } from './config/environment';
+import { EnvironmentIndicator } from './components/environment/EnvironmentIndicator';
+import { StagingNav } from './components/environment/StagingNav';
 
 function App() {
+  const { user } = useAuth();
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <PlantProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Login />} />
-                
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute showNav={false}>
-                      <InventoryProvider>
-                        <Dashboard />
-                      </InventoryProvider>
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="/pending-orders"
-                  element={
-                    <ProtectedRoute>
-                      <InventoryProvider>
-                        <PendingOrders />
-                      </InventoryProvider>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/order-management"
-                  element={
-                    <ProtectedRoute>
-                      <OrderManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/mto-order"
-                  element={
-                    <ProtectedRoute>
-                      <MTOOrder />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/cross-dock"
-                  element={
-                    <ProtectedRoute>
-                      <CrossDock />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/wheel-order"
-                  element={
-                    <ProtectedRoute showNav={false}>
-                      <WheelOrder />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin-inventory"
-                  element={
-                    <ProtectedRoute adminOnly={true}>
-                      <AdminInventory />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin-orders"
-                  element={
-                    <ProtectedRoute adminOnly={true}>
-                      <InventoryProvider>
-                        <AdminOrders />
-                      </InventoryProvider>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/all-orders"
-                  element={
-                    <ProtectedRoute adminOnly={true}>
-                      <AllOrders />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                <Route
-                  path="*"
-                  element={<Navigate to="/dashboard" replace />}
-                />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </PlantProvider>
-    </QueryClientProvider>
+    <PlantProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/order-form" element={<OrderForm />} />
+          <Route path="/pending-orders" element={<PendingOrders />} />
+          <Route path="/mto-order" element={<MTOOrder />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/completed-orders" element={<CompletedOrders />} />
+          <Route path="/cross-dock" element={<CrossDock />} />
+          <Route path="/wheel-order" element={<WheelOrder />} />
+          <Route path="/order-management" element={<OrderManagement />} />
+          
+          {/* Staging Dashboard - only accessible in staging environment */}
+          {isStaging && <Route path="/staging" element={<StagingDashboard />} />}
+          
+          {/* Catch all redirect */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+        <StagingNav />
+      </Router>
+      <Toaster />
+      <EnvironmentIndicator />
+    </PlantProvider>
   );
 }
 
