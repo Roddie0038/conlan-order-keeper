@@ -1,4 +1,3 @@
-
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +20,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/b866e767-c11e-42b3-8973-1e01be98c454.png"
+      backgroundImage: "/lovable-uploads/1b8bf6a6-d276-42e1-bee3-930fd68515c4.png"
     },
     {
       title: "MTO",
@@ -74,7 +73,6 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     }
   ];
   
-  // Add admin-only menu items
   if (user?.isAdmin) {
     menuItems.push({
       title: "ALL ORDERS",
