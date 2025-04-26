@@ -20,7 +20,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/1b8bf6a6-d276-42e1-bee3-930fd68515c4.png"
+      backgroundImage: "/lovable-uploads/a0aa8846-9b65-429e-8825-76c0574bf5b8.png"
     },
     {
       title: "MTO",
