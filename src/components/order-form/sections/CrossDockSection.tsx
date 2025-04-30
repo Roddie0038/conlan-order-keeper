@@ -11,11 +11,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { crossDockOptions, stores } from "@/components/order-form/formConfig";
-import { Truck, MapPin, Building, FileText, CalendarIcon, Printer, CheckSquare } from "lucide-react";
+import { Truck, MapPin, Building, FileText, Calendar, Printer, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -103,13 +103,23 @@ export function CrossDockSection({
                     <MapPin className="h-4 w-4 mr-1 text-gray-400" />
                     Destination Store*
                   </FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter cross dock destination" 
-                      {...field}
-                      className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200"
-                    />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200">
+                        <SelectValue placeholder="Select destination store" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {stores.map((store) => (
+                        <SelectItem key={store.id} value={store.id}>
+                          {store.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -163,7 +173,7 @@ export function CrossDockSection({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center">
-                    <CalendarIcon className="h-4 w-4 mr-1 text-gray-400" />
+                    <Calendar className="h-4 w-4 mr-1 text-gray-400" />
                     ETA Date*
                   </FormLabel>
                   <Popover>
@@ -181,12 +191,12 @@ export function CrossDockSection({
                           ) : (
                             <span>Pick a date</span>
                           )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          <Calendar className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
+                      <CalendarComponent
                         mode="single"
                         selected={field.value ? new Date(field.value) : undefined}
                         onSelect={(date) => field.onChange(date ? date.toISOString() : '')}
