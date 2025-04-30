@@ -78,13 +78,16 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
   if (user?.isAdmin) {
     menuItems.push({
       title: "ALL ORDERS",
-      icon: <Package className="h-10 w-10" />,
+      icon: null,
       path: "/all-orders",
-      color: "bg-gradient-to-r from-amber-500 to-orange-500",
+      color: "",
       borderColor: "border-amber-400",
       delay: 0.6,
       size: "col-span-1",
-      highlight: true
+      highlight: true,
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/d105eb33-3189-4f02-995f-dfd6eaf2b08a.png"
     });
   }
 
