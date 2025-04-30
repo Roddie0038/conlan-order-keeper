@@ -9,7 +9,7 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -30,7 +30,7 @@ export function ETADateField({ form }: ETADateFieldProps) {
       render={({ field }) => (
         <FormItem>
           <FormLabel className="flex items-center">
-            <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+            <CalendarIcon className="h-4 w-4 mr-1 text-gray-400" />
             ETA Date*
           </FormLabel>
           <Popover>
@@ -48,7 +48,7 @@ export function ETADateField({ form }: ETADateFieldProps) {
                   ) : (
                     <span>Pick a date</span>
                   )}
-                  <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
               </FormControl>
             </PopoverTrigger>
