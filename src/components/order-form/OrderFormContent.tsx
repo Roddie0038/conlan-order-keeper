@@ -25,7 +25,6 @@ export function OrderFormContent({
   const printRef = useRef<HTMLDivElement>(null);
   
   const handlePrintForm = useReactToPrint({
-    content: () => printRef.current,
     documentTitle: 'Cross_Dock_Form',
     onBeforePrint: () => {
       console.log("Preparing to print Cross Dock form...");
@@ -45,7 +44,10 @@ export function OrderFormContent({
         title: "Success",
         description: "Cross Dock form generated successfully!"
       });
-    }
+    },
+    // Use the correct property for printing the content
+    // TypeScript requires we provide this function directly:
+    content: () => printRef.current
   });
   
   return (

@@ -11,9 +11,10 @@ export interface OrderData {
   notes?: string;
   crossDock?: string;
   crossDockDestination?: string;
-  transferWorkOrderNumber?: string;
-  trailerNumber?: string;
-  etaDate?: string;
+  transferWorkOrderNumber?: string;  // Added for Cross Dock functionality
+  trailerNumber?: string;            // Added for Cross Dock functionality
+  etaDate?: string;                  // Added for Cross Dock functionality
+  crossDockConfirmation?: boolean;   // Added for Cross Dock functionality
   invoiceNumber?: string;
   completed?: boolean;
   sendInvoice?: boolean;
