@@ -29,6 +29,7 @@ export function OrderFormContent({
     documentTitle: 'Cross_Dock_Form',
     onBeforePrint: () => {
       console.log("Preparing to print Cross Dock form...");
+      return Promise.resolve(); // Return a Promise to satisfy TypeScript
     },
     onPrintError: (error) => {
       console.error('Print failed:', error);

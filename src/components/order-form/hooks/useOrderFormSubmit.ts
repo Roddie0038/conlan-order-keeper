@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { getManagerEmail } from "@/components/order-form/formConfig";
-import { OrderFormValues } from "../order-form-schema";
+import { OrderFormValues, validateCrossDockFields } from "../order-form-schema";
 import { saveOrderToSupabase } from "@/services/orderService";
 
 interface UseOrderFormSubmitProps {
@@ -20,6 +20,22 @@ export function useOrderFormSubmit({
   const { toast } = useToast();
 
   return async (values: OrderFormValues) => {
+    // Validate cross dock fields if cross dock is "yes"
+    if (values.crossDock === "yes") {
+      const { isValid, errors } = validateCrossDockFields(values);
+      
+      if (!isValid) {
+        // Show the first error
+        const firstError = Object.entries(errors)[0];
+        toast({
+          title: "Form Incomplete",
+          description: firstError[1],
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     setIsSubmitting(true);
     
     // Get the manager's email for the selected store
