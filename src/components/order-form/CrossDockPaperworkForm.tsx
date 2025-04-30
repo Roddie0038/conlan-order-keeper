@@ -1,103 +1,159 @@
-
-import { UseFormReturn } from "react-hook-form";
-import { OrderFormValues } from "./order-form-schema";
-import { format } from "date-fns";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { FormField } from "./FormField";
 import { stores } from "./formConfig";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface CrossDockPaperworkFormProps {
-  form: UseFormReturn<OrderFormValues>;
+interface CrossDockPaperworkData {
+  date: string;
+  fromStore: string;
+  toStore: string;
+  receiverNo: string;
+  productCode: string;
+  description: string;
+  quantity: string;
 }
 
-export function CrossDockPaperworkForm({ form }: CrossDockPaperworkFormProps) {
-  const values = form.getValues();
-  
-  // Find store name from store ID
-  const storeFrom = stores.find(s => s.id === values.store)?.name || values.store;
-  const storeTo = values.crossDockDestination || '';
-  
+const initialFormData: CrossDockPaperworkData = {
+  date: new Date().toISOString().split('T')[0],
+  fromStore: "",
+  toStore: "",
+  receiverNo: "",
+  productCode: "",
+  description: "",
+  quantity: "",
+};
+
+export const CrossDockPaperworkForm = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [formData, setFormData] = useState<CrossDockPaperworkData>(initialFormData);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // Find full store names
+      const fromStore = stores.find(s => s.id === formData.fromStore);
+      const toStore = stores.find(s => s.id === formData.toStore);
+      
+      const documentData = {
+        ...formData,
+        fromStore: fromStore ? `${fromStore.name} (${fromStore.id})` : formData.fromStore,
+        toStore: toStore ? `${toStore.name} (${toStore.id})` : formData.toStore,
+      };
+
+      console.log("Submitting cross dock paperwork:", documentData);
+      
+      // Submit to Google Docs via webhook
+      await fetch("https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "no-cors",
+        body: JSON.stringify({
+          ...documentData,
+          type: "crossDockPaperwork",
+          triggered_from: window.location.origin,
+        }),
+      });
+
+      toast({
+        title: "Success",
+        description: "Cross dock paperwork has been submitted.",
+      });
+
+      setFormData(initialFormData);
+    } catch (error) {
+      console.error("Error submitting cross dock paperwork:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit cross dock paperwork. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleChange = (field: keyof CrossDockPaperworkData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   return (
-    <div className="p-8 max-w-4xl mx-auto bg-white">
-      {/* Header with black/orange color scheme */}
-      <div className="text-center space-y-2 mb-8 border-b-4 border-orange-500 pb-4">
-        <h2 className="text-4xl font-bold bg-black text-white py-2">CROSS DOCK FORM</h2>
-        <p className="text-sm italic">
-          This form must be attached to all cross dock materials
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-primary">Cross Dock Paperwork</h2>
+        <p className="text-sm text-gray-600 mt-2">
+          This form is intended for sending tires or materials to another store using the Warehouse as a cross dock location
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 mb-8">
-        <div>
-          <p className="font-bold mb-1 text-gray-700">Date:</p>
-          <p className="border p-2 bg-gray-50">{format(new Date(), 'MM/dd/yyyy')}</p>
-        </div>
-
-        <div>
-          <p className="font-bold mb-1 text-gray-700">Receiver No (MaddenCo):</p>
-          <p className="border p-2 bg-gray-50">{values.receiverNo || '________________'}</p>
-        </div>
-
-        <div>
-          <p className="font-bold mb-1 text-gray-700">FROM Store:</p>
-          <p className="border p-2 bg-gray-50">{storeFrom}</p>
-        </div>
-
-        <div>
-          <p className="font-bold mb-1 text-gray-700">TO Store:</p>
-          <p className="border p-2 bg-gray-50">{storeTo}</p>
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <FormField
+          label="Date"
+          type="date"
+          value={formData.date}
+          onChange={(value) => handleChange("date", value)}
+          required
+        />
         
-        <div>
-          <p className="font-bold mb-1 text-gray-700">ETA Date:</p>
-          <p className="border p-2 bg-gray-50">
-            {values.etaDate ? format(new Date(values.etaDate), 'MM/dd/yyyy') : '________________'}
-          </p>
-        </div>
-      </div>
+        <FormField
+          label="From Store"
+          value={formData.fromStore}
+          onChange={(value) => handleChange("fromStore", value)}
+          options={stores}
+          required
+        />
+        
+        <FormField
+          label="To Store"
+          value={formData.toStore}
+          onChange={(value) => handleChange("toStore", value)}
+          options={stores}
+          required
+        />
+        
+        <FormField
+          label="Receiver No (MaddenCo)"
+          value={formData.receiverNo}
+          onChange={(value) => handleChange("receiverNo", value)}
+          required
+        />
+        
+        <FormField
+          label="Product Code"
+          value={formData.productCode}
+          onChange={(value) => handleChange("productCode", value)}
+          required
+        />
+        
+        <FormField
+          label="Description"
+          value={formData.description}
+          onChange={(value) => handleChange("description", value)}
+          required
+        />
+        
+        <FormField
+          label="Quantity"
+          type="number"
+          value={formData.quantity}
+          onChange={(value) => handleChange("quantity", value)}
+          required
+        />
 
-      <div className="mb-8">
-        <p className="font-bold mb-2 text-gray-700 bg-orange-100 p-2">Product Details:</p>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-black text-white">
-              <th className="border p-2 text-left">Product Code</th>
-              <th className="border p-2 text-left">Description</th>
-              <th className="border p-2 text-left">Qty</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="border p-2">{values.productNumber}</td>
-              <td className="border p-2">{values.description}</td>
-              <td className="border p-2">{values.quantity}</td>
-            </tr>
-            {/* Empty rows for additional items */}
-            {[...Array(5)].map((_, i) => (
-              <tr key={i}>
-                <td className="border p-2 h-10"></td>
-                <td className="border p-2"></td>
-                <td className="border p-2"></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mt-8 p-4 border-t border-orange-500">
-        <div className="flex justify-between">
-          <div>
-            <p className="font-bold text-gray-700">Sender Signature:</p>
-            <div className="border-b border-black w-48 h-8 mt-6"></div>
-          </div>
-          <div>
-            <p className="font-bold text-gray-700">Receiver Signature:</p>
-            <div className="border-b border-black w-48 h-8 mt-6"></div>
-          </div>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors"
+          >
+            Submit Paperwork
+          </button>
         </div>
-      </div>
-      
-      <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Form Version: CDOF-1.2</p>
-      </div>
+      </form>
     </div>
   );
-}
+};

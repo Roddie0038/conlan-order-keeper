@@ -8,8 +8,4 @@ export interface OrderSummary extends FormData {
   selected?: boolean;
   managersEmail?: string;
   type?: "MTO" | "WHEEL_POWDER_COATING" | "TRANSFER";
-  receiverNo?: string;
-  etaDate?: string;
-  crossDockDestination?: string;
-  crossDockConfirmation?: boolean;
 }

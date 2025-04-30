@@ -11,9 +11,6 @@ export interface OrderData {
   notes?: string;
   crossDock?: string;
   crossDockDestination?: string;
-  receiverNo?: string;           // Renamed from transferWorkOrderNumber
-  etaDate?: string;              // Added for Cross Dock functionality
-  crossDockConfirmation?: boolean;   // Added for Cross Dock functionality
   invoiceNumber?: string;
   completed?: boolean;
   sendInvoice?: boolean;
@@ -25,20 +22,6 @@ export interface OrderData {
   message?: string;
   timestamp?: string;
   type?: string;
-}
-
-// Export this interface explicitly to fix the error in useOrderFormSubmit.ts
-export interface MTOOrderData extends OrderData {
-  // Additional MTO-specific fields
-  casingGrade?: string[];
-  tireSize?: string;
-  customTireSize?: string;
-  tireTreadNeeded?: string;
-  // Making sure the cross dock fields are also available here
-  receiverNo?: string;
-  etaDate?: string;
-  crossDockDestination?: string;
-  crossDockConfirmation?: boolean;
 }
 
 export async function saveOrderToSupabase(order: OrderData) {
@@ -53,8 +36,6 @@ export async function saveOrderToSupabase(order: OrderData) {
     Notes: order.notes || "",
     "Cross Dock": order.crossDock || "",
     "Cross Dock Destination": order.crossDockDestination || "",
-    "Receiver No": order.receiverNo || "",
-    "ETA Date": order.etaDate || "",
     "Invoice#": order.invoiceNumber || "",
     Email: order.email || "",
     Timestamp: order.timestamp || new Date().toISOString(),

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -58,8 +57,6 @@ export const OrderSubmissionHandler = ({
           notes: order.notes,
           crossDock: order.crossDock,
           crossDockDestination: order.crossDockDestination,
-          receiverNo: order.receiverNo, // Renamed from transferWorkOrderNumber
-          etaDate: order.etaDate,
           email: managersEmail,
           timestamp: new Date().toISOString(),
           type: order.type || "TRANSFER"

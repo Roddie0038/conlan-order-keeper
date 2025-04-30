@@ -12,37 +12,7 @@ export const formSchema = z.object({
   notes: z.string(),
   crossDock: z.string(),
   crossDockDestination: z.string().optional(),
-  receiverNo: z.string().optional(),
-  etaDate: z.string().optional(),
-  crossDockConfirmation: z.boolean().optional().default(false),
   managersEmail: z.string(),
 });
-
-// Add custom validation for cross dock fields
-export const validateCrossDockFields = (values: z.infer<typeof formSchema>) => {
-  if (values.crossDock === "yes") {
-    const errors: Record<string, string> = {};
-    
-    if (!values.crossDockDestination) {
-      errors.crossDockDestination = "Destination store is required for cross dock orders";
-    }
-    
-    if (!values.receiverNo) {
-      errors.receiverNo = "Receiver No (MaddenCo) is required for cross dock orders";
-    }
-    
-    if (!values.etaDate) {
-      errors.etaDate = "ETA date is required for cross dock orders";
-    }
-    
-    if (!values.crossDockConfirmation) {
-      errors.crossDockConfirmation = "Please confirm paperwork is printed and attached";
-    }
-    
-    return { isValid: Object.keys(errors).length === 0, errors };
-  }
-  
-  return { isValid: true, errors: {} };
-};
 
 export type OrderFormValues = z.infer<typeof formSchema>;

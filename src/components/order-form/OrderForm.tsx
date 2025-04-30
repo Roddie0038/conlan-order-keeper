@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -9,7 +10,7 @@ import { useOrderFormSubmit } from "./hooks/useOrderFormSubmit";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { formSchema, validateCrossDockFields } from "./order-form-schema";
+import { formSchema } from "./order-form-schema";
 import { OrderSummaryTable } from "./OrderSummaryTable";
 import { OrderSubmissionHandler } from "./OrderSubmissionHandler";
 import { toast } from "@/hooks/use-toast";
@@ -36,13 +37,9 @@ export function OrderForm() {
     notes: "",
     crossDock: "",
     crossDockDestination: "",
-    receiverNo: "", // Renamed from transferWorkOrderNumber
-    etaDate: "",
-    crossDockConfirmation: false,
     managersEmail: managerEmail,
   };
 
-  // Create form with enhanced validation
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues,
@@ -57,46 +54,10 @@ export function OrderForm() {
     }
   }, [user, form]);
 
-  const { handleSubmit, formState, reset, watch, trigger } = form;
-  const showCrossDockDestination = watch("crossDock") === "yes";
+  const { handleSubmit, formState, reset } = form;
+  const showCrossDockDestination = form.watch("crossDock") === "yes";
   
-  // Function to validate cross dock fields
-  const validateFormCrossDockFields = async () => {
-    if (showCrossDockDestination) {
-      const values = form.getValues();
-      const { isValid, errors } = validateCrossDockFields(values);
-      
-      if (!isValid) {
-        // Show the first error in toast
-        const firstError = Object.entries(errors)[0];
-        toast({
-          title: "Cross Dock Form Incomplete",
-          description: firstError[1],
-          variant: "destructive",
-        });
-        
-        // Set form errors
-        Object.entries(errors).forEach(([field, message]) => {
-          form.setError(field as any, {
-            type: "manual",
-            message
-          });
-        });
-      }
-      
-      return isValid;
-    }
-    
-    return true;
-  };
-  
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Validate cross dock fields if cross dock is selected
-    if (showCrossDockDestination) {
-      const isValid = await validateFormCrossDockFields();
-      if (!isValid) return;
-    }
-    
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
     // Add current form values to the order summaries
     const newOrder = {
       ...values,
@@ -139,11 +100,8 @@ export function OrderForm() {
   };
 
   // This function will be called when the "Add To Order" button is clicked
-  const handleAddToOrder = async () => {
-    const isValid = await validateFormCrossDockFields();
-    if (isValid) {
-      form.handleSubmit(onSubmit)();
-    }
+  const handleAddToOrder = () => {
+    form.handleSubmit(onSubmit)();
   };
 
   return (
