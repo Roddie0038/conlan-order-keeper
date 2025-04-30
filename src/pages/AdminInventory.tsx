@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -6,8 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { OrdersOverview } from "@/components/inventory/OrdersOverview";
 import { DocumentUpload } from "@/components/inventory/DocumentUpload";
+import { DeploymentControls } from "@/components/admin/DeploymentControls";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, ClipboardList, Upload } from "lucide-react";
+import { FileText, ClipboardList, Upload, Rocket } from "lucide-react";
 import { InventoryProvider } from "@/contexts/InventoryContext";
 
 export default function AdminInventory() {
@@ -75,7 +77,7 @@ export default function AdminInventory() {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-gray-800/50 backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-800/50 backdrop-blur-sm">
               <TabsTrigger value="inventory" className="flex gap-2 items-center">
                 <ClipboardList size={18} />
                 <span>Inventory</span>
@@ -88,6 +90,12 @@ export default function AdminInventory() {
                 <Upload size={18} />
                 <span>Documents</span>
               </TabsTrigger>
+              {user.username === 'Conlan97' && (
+                <TabsTrigger value="deployment" className="flex gap-2 items-center">
+                  <Rocket size={18} />
+                  <span>Deployment</span>
+                </TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="inventory" className="rounded-lg shadow p-6 backdrop-blur-sm bg-gray-100/90">
@@ -101,6 +109,14 @@ export default function AdminInventory() {
             <TabsContent value="documents" className="rounded-lg shadow p-6 backdrop-blur-sm bg-gray-100/90">
               <DocumentUpload />
             </TabsContent>
+
+            {user.username === 'Conlan97' && (
+              <TabsContent value="deployment" className="rounded-lg shadow p-6 backdrop-blur-sm bg-gray-100/90">
+                <div className="max-w-md mx-auto">
+                  <DeploymentControls />
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
         </InventoryProvider>
       </main>
