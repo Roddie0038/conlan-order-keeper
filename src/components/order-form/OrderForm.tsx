@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -37,8 +36,7 @@ export function OrderForm() {
     notes: "",
     crossDock: "",
     crossDockDestination: "",
-    transferWorkOrderNumber: "",
-    trailerNumber: "",
+    receiverNo: "", // Renamed from transferWorkOrderNumber
     etaDate: "",
     crossDockConfirmation: false,
     managersEmail: managerEmail,

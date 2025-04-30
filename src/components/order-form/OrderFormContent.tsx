@@ -6,7 +6,7 @@ import { ContactSection } from "./sections/ContactSection";
 import { ProductSection } from "./sections/ProductSection";
 import { ScheduleSection } from "./sections/ScheduleSection";
 import { CrossDockSection } from "./sections/CrossDockSection";
-import { useReactToPrint, UseReactToPrintOptions } from "react-to-print";
+import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
 import { toast } from "@/hooks/use-toast";
 import { CrossDockPaperworkForm } from "./CrossDockPaperworkForm";
@@ -46,7 +46,7 @@ export function OrderFormContent({
       });
     },
     content: () => printRef.current
-  } as UseReactToPrintOptions); // Cast to correct type to fix TypeScript error
+  });
   
   return (
     <>

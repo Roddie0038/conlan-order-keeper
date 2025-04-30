@@ -12,8 +12,7 @@ export const formSchema = z.object({
   notes: z.string(),
   crossDock: z.string(),
   crossDockDestination: z.string().optional(),
-  transferWorkOrderNumber: z.string().optional(),
-  trailerNumber: z.string().optional(),
+  receiverNo: z.string().optional(),
   etaDate: z.string().optional(),
   crossDockConfirmation: z.boolean().optional().default(false),
   managersEmail: z.string(),
@@ -28,8 +27,8 @@ export const validateCrossDockFields = (values: z.infer<typeof formSchema>) => {
       errors.crossDockDestination = "Destination store is required for cross dock orders";
     }
     
-    if (!values.transferWorkOrderNumber) {
-      errors.transferWorkOrderNumber = "Work order number is required for cross dock orders";
+    if (!values.receiverNo) {
+      errors.receiverNo = "Receiver No (MaddenCo) is required for cross dock orders";
     }
     
     if (!values.etaDate) {

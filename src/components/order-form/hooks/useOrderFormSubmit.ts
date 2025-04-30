@@ -70,8 +70,7 @@ export function useOrderFormSubmit({
         notes: values.notes || "",
         crossDock: values.crossDock,
         crossDockDestination: values.crossDockDestination || "",
-        transferWorkOrderNumber: values.transferWorkOrderNumber || "",
-        trailerNumber: values.trailerNumber || "",
+        receiverNo: values.receiverNo || "", // Renamed from transferWorkOrderNumber
         etaDate: values.etaDate || "",
         crossDockConfirmation: values.crossDockConfirmation || false,
         timestamp: new Date().toISOString(),
@@ -91,8 +90,7 @@ export function useOrderFormSubmit({
         notes: values.notes || "",
         crossDock: values.crossDock,
         crossDockDestination: values.crossDockDestination,
-        transferWorkOrderNumber: values.transferWorkOrderNumber,
-        trailerNumber: values.trailerNumber,
+        receiverNo: values.receiverNo, // Renamed from transferWorkOrderNumber
         etaDate: values.etaDate,
         email: managersEmail,
         timestamp: new Date().toISOString(),

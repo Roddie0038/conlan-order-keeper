@@ -32,8 +32,8 @@ export function CrossDockPaperworkForm({ form }: CrossDockPaperworkFormProps) {
         </div>
 
         <div>
-          <p className="font-bold mb-1 text-gray-700">Transfer Work Order Number:</p>
-          <p className="border p-2 bg-gray-50">{values.transferWorkOrderNumber || '________________'}</p>
+          <p className="font-bold mb-1 text-gray-700">Receiver No (MaddenCo):</p>
+          <p className="border p-2 bg-gray-50">{values.receiverNo || '________________'}</p>
         </div>
 
         <div>
@@ -44,11 +44,6 @@ export function CrossDockPaperworkForm({ form }: CrossDockPaperworkFormProps) {
         <div>
           <p className="font-bold mb-1 text-gray-700">TO Store:</p>
           <p className="border p-2 bg-gray-50">{storeTo}</p>
-        </div>
-        
-        <div>
-          <p className="font-bold mb-1 text-gray-700">Trailer Number:</p>
-          <p className="border p-2 bg-gray-50">{values.trailerNumber || '________________'}</p>
         </div>
         
         <div>

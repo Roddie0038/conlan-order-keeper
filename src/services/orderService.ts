@@ -11,9 +11,8 @@ export interface OrderData {
   notes?: string;
   crossDock?: string;
   crossDockDestination?: string;
-  transferWorkOrderNumber?: string;  // Added for Cross Dock functionality
-  trailerNumber?: string;            // Added for Cross Dock functionality
-  etaDate?: string;                  // Added for Cross Dock functionality
+  receiverNo?: string;           // Renamed from transferWorkOrderNumber
+  etaDate?: string;              // Added for Cross Dock functionality
   crossDockConfirmation?: boolean;   // Added for Cross Dock functionality
   invoiceNumber?: string;
   completed?: boolean;
@@ -40,8 +39,7 @@ export async function saveOrderToSupabase(order: OrderData) {
     Notes: order.notes || "",
     "Cross Dock": order.crossDock || "",
     "Cross Dock Destination": order.crossDockDestination || "",
-    "Transfer Work Order Number": order.transferWorkOrderNumber || "",
-    "Trailer Number": order.trailerNumber || "",
+    "Receiver No": order.receiverNo || "",
     "ETA Date": order.etaDate || "",
     "Invoice#": order.invoiceNumber || "",
     Email: order.email || "",

@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { crossDockOptions, stores } from "@/components/order-form/formConfig";
-import { Truck, MapPin, Building, FileText, Calendar, Printer, CheckSquare } from "lucide-react";
+import { Truck, MapPin, FileText, Calendar, Printer, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -57,8 +57,7 @@ export function CrossDockSection({
                   // Reset the cross dock form fields if "no" is selected
                   if (value === "no") {
                     form.setValue("crossDockDestination", "");
-                    form.setValue("transferWorkOrderNumber", "");
-                    form.setValue("trailerNumber", "");
+                    form.setValue("receiverNo", "");
                     form.setValue("etaDate", "");
                     form.setValue("crossDockConfirmation", false);
                   }
@@ -127,37 +126,16 @@ export function CrossDockSection({
             
             <FormField
               control={form.control}
-              name="transferWorkOrderNumber"
+              name="receiverNo"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center">
                     <FileText className="h-4 w-4 mr-1 text-gray-400" />
-                    Transfer Work Order Number*
+                    Receiver No (MaddenCo)*
                   </FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Enter work order number" 
-                      {...field}
-                      className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="trailerNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center">
-                    <Truck className="h-4 w-4 mr-1 text-gray-400" />
-                    Trailer Number (Optional)
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter trailer number" 
+                      placeholder="Enter receiver number" 
                       {...field}
                       className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200"
                     />
@@ -253,7 +231,7 @@ export function CrossDockSection({
       
       <div className="mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-          <Building className="h-4 w-4 text-blue-500" />
+          <Truck className="h-4 w-4 text-blue-500" />
           <span>Your order will be processed at <strong>{form.getValues().store || "selected store"}</strong></span>
         </div>
       </div>
