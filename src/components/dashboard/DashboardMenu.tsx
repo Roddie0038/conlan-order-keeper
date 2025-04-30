@@ -1,6 +1,8 @@
-import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList } from "lucide-react";
+
+import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { DeploymentControls } from "@/components/admin/DeploymentControls";
 
 interface DashboardMenuProps {
   loaded: boolean;
@@ -87,10 +89,18 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {menuItems.map((item) => (
-        <MenuCard key={item.title} item={item} loaded={loaded} />
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {menuItems.map((item) => (
+          <MenuCard key={item.title} item={item} loaded={loaded} />
+        ))}
+      </div>
+      
+      {user?.username === 'Conlan97' && (
+        <div className="mt-10 max-w-md mx-auto">
+          <DeploymentControls />
+        </div>
+      )}
+    </>
   );
 }
