@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -52,8 +52,8 @@ export function ETADateField({ form }: ETADateFieldProps) {
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
+            <PopoverContent className="w-auto p-0 z-50" align="start">
+              <Calendar
                 mode="single"
                 selected={field.value ? new Date(field.value) : undefined}
                 onSelect={(date) => field.onChange(date ? date.toISOString() : '')}
