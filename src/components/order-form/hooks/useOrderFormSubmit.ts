@@ -53,6 +53,11 @@ export function useOrderFormSubmit({
         scheduleArrival: values.scheduleArrival,  // Send the weekday name directly
         notes: values.notes || "",
         crossDock: values.crossDock,
+        crossDockDestination: values.crossDockDestination || "",
+        transferWorkOrderNumber: values.transferWorkOrderNumber || "",
+        trailerNumber: values.trailerNumber || "",
+        etaDate: values.etaDate || "",
+        crossDockConfirmation: values.crossDockConfirmation || false,
         timestamp: new Date().toISOString(),
         managersEmail,
         plant: selectedPlant,
@@ -70,6 +75,9 @@ export function useOrderFormSubmit({
         notes: values.notes || "",
         crossDock: values.crossDock,
         crossDockDestination: values.crossDockDestination,
+        transferWorkOrderNumber: values.transferWorkOrderNumber,
+        trailerNumber: values.trailerNumber,
+        etaDate: values.etaDate,
         email: managersEmail,
         timestamp: new Date().toISOString(),
         type: "TRANSFER"

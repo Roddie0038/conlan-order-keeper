@@ -12,6 +12,11 @@ export const formSchema = z.object({
   notes: z.string(),
   crossDock: z.string(),
   crossDockDestination: z.string().optional(),
+  // New fields for cross dock form
+  transferWorkOrderNumber: z.string().optional(),
+  trailerNumber: z.string().optional(),
+  etaDate: z.string().optional(),
+  crossDockConfirmation: z.boolean().optional().default(false),
   managersEmail: z.string(),
 });
 
