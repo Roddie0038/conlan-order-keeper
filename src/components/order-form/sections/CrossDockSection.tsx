@@ -180,7 +180,7 @@ export function CrossDockSection({
                         onSelect={(date) => field.onChange(date ? date.toISOString() : '')}
                         disabled={(date) => date < today}
                         initialFocus
-                        className={cn("p-3 pointer-events-auto")}
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
