@@ -46,7 +46,7 @@ export function OrderFormContent({
       });
     },
     content: () => printRef.current
-  });
+  } as any); // Cast to any to fix TypeScript issue
   
   return (
     <>
