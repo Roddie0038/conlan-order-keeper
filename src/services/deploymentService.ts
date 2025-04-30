@@ -3,8 +3,8 @@
  * Deployment Service for Vercel API integrations
  */
 
-// In a production environment, this should come from environment variables
-const VERCEL_DEPLOY_HOOK_MAIN = "https://api.vercel.com/v1/integrations/deploy/your-deploy-hook-id";
+// Use our production deploy hook URL from Vercel
+const VERCEL_DEPLOY_HOOK_MAIN = "https://api.vercel.com/v1/integrations/deploy/prj_Q68iO56syOvHVUvaLAbCLi1dyQaR/SoxhuMzHBs";
 
 /**
  * Triggers a deployment to the production environment using Vercel's deploy hook
@@ -22,6 +22,7 @@ export async function triggerProductionDeployment(): Promise<{ success: boolean;
       throw new Error(`Deployment failed: ${response.status} ${response.statusText}`);
     }
 
+    // Optionally, you may parse and log additional data if needed:
     const data = await response.json();
     return { 
       success: true, 
@@ -37,12 +38,11 @@ export async function triggerProductionDeployment(): Promise<{ success: boolean;
 }
 
 /**
- * Get information about the most recent deployment
- * Note: This is a placeholder for future implementation using Vercel API
+ * Get information about the most recent deployment.
+ * This is a placeholder function for future Vercel API integrations.
  */
 export async function getDeploymentStatus(): Promise<{ lastDeployed: string | null }> {
-  // This would be replaced with an actual API call to Vercel
-  // For now, just return the current time
+  // For now, just return the current time.
   return {
     lastDeployed: new Date().toISOString()
   };
