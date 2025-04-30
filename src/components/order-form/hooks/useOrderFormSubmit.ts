@@ -1,102 +1,79 @@
-
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { submitToGoogleSheets } from "@/services/sheets";
-import { getManagerEmail } from "@/components/order-form/formConfig";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePlant } from "@/contexts/PlantContext";
+import { useToast } from "@/hooks/use-toast";
 import { OrderFormValues } from "../order-form-schema";
-import { saveOrderToSupabase } from "@/services/orderService";
+import { OrderSummary } from "../types";
+import { submitOrder } from "@/services/orderService";
+import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 
-interface UseOrderFormSubmitProps {
-  setIsSubmitting: (value: boolean) => void;
-  selectedPlant: string;
-  resetForm: () => void;
-}
-
-export function useOrderFormSubmit({ 
-  setIsSubmitting, 
-  selectedPlant,
-  resetForm 
-}: UseOrderFormSubmitProps) {
+export function useOrderFormSubmit() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+  const { selectedPlant } = usePlant();
   const { toast } = useToast();
 
-  return async (values: OrderFormValues) => {
+  const handleSubmitOrders = async (
+    selectedOrders: OrderSummary[],
+    onSuccess?: () => void
+  ) => {
+    if (selectedOrders.length === 0) {
+      toast({
+        title: "No Orders Selected",
+        description: "Please select at least one order to submit.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    
-    // Get the manager's email for the selected store
-    const managersEmail = getManagerEmail(values.store);
-    console.log("Schedule arrival in form submit:", values.scheduleArrival);
-    
+
     try {
-      // Add order to localStorage
-      const pendingOrders = JSON.parse(localStorage.getItem("pendingOrders") || "[]");
-      const newOrder = {
-        ...values,
-        id: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        managersEmail,
+      // Format the orders for submission
+      const formattedOrders = selectedOrders.map((order) => ({
+        yourName: order.yourName,
+        store: order.store,
+        dateReceived: order.dateReceived,
+        productNumber: order.productNumber,
+        description: order.description,
+        quantity: order.quantity,
+        scheduleArrival: order.scheduleArrival,
+        notes: order.notes,
+        crossDock: SHOW_CROSS_DOCK ? order.crossDock : "no",
+        crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
+        managersEmail: order.managersEmail || "",
         plant: selectedPlant,
-        type: "TRANSFER" // Set explicit type for TypeScript
-      };
-      
-      pendingOrders.push(newOrder);
-      localStorage.setItem("pendingOrders", JSON.stringify(pendingOrders));
-      
-      // Submit to Google Sheets
-      const result = await submitToGoogleSheets({
-        ...values,
-        yourName: values.yourName,  // Explicitly include required fields
-        store: values.store,
-        dateReceived: values.dateReceived,  // Use string value directly
-        productNumber: values.productNumber,
-        description: values.description,
-        quantity: values.quantity,
-        scheduleArrival: values.scheduleArrival,  // Send the weekday name directly
-        notes: values.notes || "",
-        crossDock: values.crossDock,
         timestamp: new Date().toISOString(),
-        managersEmail,
-        plant: selectedPlant,
-        type: "TRANSFER" // Set explicit type for OrderType
+        userId: user?.id || "anonymous",
+        userEmail: user?.email || "anonymous",
+      }));
+
+      // Submit the orders
+      await submitOrder(formattedOrders);
+
+      toast({
+        title: "Orders Submitted Successfully",
+        description: `${selectedOrders.length} order(s) have been submitted.`,
       });
 
-      // Save to Supabase
-      await saveOrderToSupabase({
-        name: values.yourName,
-        store: values.store,
-        productNumber: values.productNumber,
-        description: values.description,
-        quantity: values.quantity,
-        scheduleArrival: values.scheduleArrival,
-        notes: values.notes || "",
-        crossDock: values.crossDock,
-        crossDockDestination: values.crossDockDestination,
-        email: managersEmail,
-        timestamp: new Date().toISOString(),
-        type: "TRANSFER"
-      });
-      
-      if (result.status === "success") {
-        toast({
-          title: "Order Submitted",
-          description: "Your order has been submitted successfully.",
-        });
-        resetForm();
-      } else {
-        toast({
-          title: "Failed to Submit",
-          description: "There was an error submitting your order to Google Sheets.",
-          variant: "destructive",
-        });
+      if (onSuccess) {
+        onSuccess();
       }
     } catch (error) {
-      console.error("Error submitting order:", error);
+      console.error("Error submitting orders:", error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Error Submitting Orders",
+        description:
+          "There was an error submitting your orders. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  return {
+    isSubmitting,
+    handleSubmitOrders,
   };
 }

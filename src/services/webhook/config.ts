@@ -60,3 +60,7 @@ export interface MTOOrderData extends BaseOrderData {
   scheduleArrival: string;
   notes: string;
 }
+
+// If this file exists and contains definitions of OrderData or MTOOrderData,
+// ensure they are consistent and don't contain references to receiverNo
+// Instead, they should use crossDockDestination or similar property

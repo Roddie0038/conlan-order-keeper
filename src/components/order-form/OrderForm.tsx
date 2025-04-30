@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -16,6 +15,7 @@ import { OrderSubmissionHandler } from "./OrderSubmissionHandler";
 import { toast } from "@/hooks/use-toast";
 import { getManagerEmail } from "./formConfig";
 import { getCurrentDateTime } from "@/utils/dateTime";
+import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 
 export function OrderForm() {
   const { user } = useAuth();
@@ -55,7 +55,8 @@ export function OrderForm() {
   }, [user, form]);
 
   const { handleSubmit, formState, reset } = form;
-  const showCrossDockDestination = form.watch("crossDock") === "yes";
+  // Updated to use feature flag
+  const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "yes";
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     // Add current form values to the order summaries
