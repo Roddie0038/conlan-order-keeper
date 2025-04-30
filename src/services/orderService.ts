@@ -27,6 +27,20 @@ export interface OrderData {
   type?: string;
 }
 
+// Export this interface explicitly to fix the error in useOrderFormSubmit.ts
+export interface MTOOrderData extends OrderData {
+  // Additional MTO-specific fields
+  casingGrade?: string[];
+  tireSize?: string;
+  customTireSize?: string;
+  tireTreadNeeded?: string;
+  // Making sure the cross dock fields are also available here
+  receiverNo?: string;
+  etaDate?: string;
+  crossDockDestination?: string;
+  crossDockConfirmation?: boolean;
+}
+
 export async function saveOrderToSupabase(order: OrderData) {
   // Format the order data to match the Supabase table structure
   const formattedOrder = {
