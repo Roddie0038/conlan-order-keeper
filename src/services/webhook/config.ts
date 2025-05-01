@@ -1,4 +1,5 @@
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
+import { CrossDockFields } from '@/types/cross-dock.types';
 
 // Webhook URLs for Google Apps Script
 export const WEBHOOK_URLS = {
@@ -38,7 +39,7 @@ export interface BaseOrderData {
   plant: string;
 }
 
-export interface OrderData extends BaseOrderData {
+export interface OrderData extends BaseOrderData, CrossDockFields {
   yourName: string;
   dateReceived: string;
   productNumber: string;
@@ -46,8 +47,6 @@ export interface OrderData extends BaseOrderData {
   quantity: string;
   scheduleArrival: string;
   notes: string;
-  crossDock: string;
-  crossDockDestination?: string;
 }
 
 export interface MTOOrderData extends BaseOrderData {

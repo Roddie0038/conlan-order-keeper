@@ -1,7 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { CrossDockFields } from "@/types/cross-dock.types";
 
-export interface OrderData {
+export interface OrderData extends CrossDockFields {
   name?: string;
   store: string;
   productNumber?: string;
@@ -9,8 +9,6 @@ export interface OrderData {
   quantity?: number | string;
   scheduleArrival?: string;
   notes?: string;
-  crossDock?: string;
-  crossDockDestination?: string;
   invoiceNumber?: string;
   completed?: boolean;
   sendInvoice?: boolean;
