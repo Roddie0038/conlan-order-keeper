@@ -1,159 +1,93 @@
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { FormField } from "./FormField";
-import { stores } from "./formConfig";
-import { useAuth } from "@/contexts/AuthContext";
 
-interface CrossDockPaperworkData {
-  date: string;
-  fromStore: string;
-  toStore: string;
-  receiverNo: string;
-  productCode: string;
-  description: string;
-  quantity: string;
+import { UseFormReturn } from "react-hook-form";
+import { OrderFormValues } from "./order-form-schema";
+import { format } from "date-fns";
+import { stores } from "./formConfig";
+
+interface CrossDockPaperworkFormProps {
+  form: UseFormReturn<OrderFormValues>;
 }
 
-const initialFormData: CrossDockPaperworkData = {
-  date: new Date().toISOString().split('T')[0],
-  fromStore: "",
-  toStore: "",
-  receiverNo: "",
-  productCode: "",
-  description: "",
-  quantity: "",
-};
+export function CrossDockPaperworkForm({ form }: CrossDockPaperworkFormProps) {
+  const values = form.getValues();
 
-export const CrossDockPaperworkForm = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [formData, setFormData] = useState<CrossDockPaperworkData>(initialFormData);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      // Find full store names
-      const fromStore = stores.find(s => s.id === formData.fromStore);
-      const toStore = stores.find(s => s.id === formData.toStore);
-      
-      const documentData = {
-        ...formData,
-        fromStore: fromStore ? `${fromStore.name} (${fromStore.id})` : formData.fromStore,
-        toStore: toStore ? `${toStore.name} (${toStore.id})` : formData.toStore,
-      };
-
-      console.log("Submitting cross dock paperwork:", documentData);
-      
-      // Submit to Google Docs via webhook
-      await fetch("https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "no-cors",
-        body: JSON.stringify({
-          ...documentData,
-          type: "crossDockPaperwork",
-          triggered_from: window.location.origin,
-        }),
-      });
-
-      toast({
-        title: "Success",
-        description: "Cross dock paperwork has been submitted.",
-      });
-
-      setFormData(initialFormData);
-    } catch (error) {
-      console.error("Error submitting cross dock paperwork:", error);
-      toast({
-        title: "Error",
-        description: "Failed to submit cross dock paperwork. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleChange = (field: keyof CrossDockPaperworkData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const storeFrom = stores.find((s) => s.id === values.store)?.name || values.store;
+  const storeTo = stores.find((s) => s.id === values.crossDockDestination)?.name || values.crossDockDestination;
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-primary">Cross Dock Paperwork</h2>
-        <p className="text-sm text-gray-600 mt-2">
-          This form is intended for sending tires or materials to another store using the Warehouse as a cross dock location
-        </p>
+    <div style={{ fontFamily: "Arial, sans-serif", padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
+      <h2 style={{ textAlign: "center", fontSize: "1.75rem", borderBottom: "2px solid black", paddingBottom: "0.5rem" }}>
+        Cross Dock Transfer Form
+      </h2>
+
+      <p style={{ textAlign: "center", fontSize: "0.9rem", color: "#666" }}>
+        Use this form when transferring material between stores using a warehouse as the dock point.
+      </p>
+
+      <div style={{ marginTop: "2rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+        <div>
+          <strong>Date:</strong>
+          <div style={{ border: "1px solid black", padding: "0.5rem" }}>
+            {format(new Date(values.dateReceived), "MM/dd/yyyy")}
+          </div>
+        </div>
+        <div>
+          <strong>Receiver No (MaddenCo):</strong>
+          <div style={{ border: "1px solid black", padding: "0.5rem" }}>{values.receiverNo}</div>
+        </div>
+        <div>
+          <strong>FROM Store:</strong>
+          <div style={{ border: "1px solid black", padding: "0.5rem" }}>{storeFrom}</div>
+        </div>
+        <div>
+          <strong>TO Store:</strong>
+          <div style={{ border: "1px solid black", padding: "0.5rem" }}>{storeTo}</div>
+        </div>
+        <div>
+          <strong>ETA Date:</strong>
+          <div style={{ border: "1px solid black", padding: "0.5rem" }}>
+            {values.etaDate ? format(new Date(values.etaDate), "MM/dd/yyyy") : ""}
+          </div>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <FormField
-          label="Date"
-          type="date"
-          value={formData.date}
-          onChange={(value) => handleChange("date", value)}
-          required
-        />
-        
-        <FormField
-          label="From Store"
-          value={formData.fromStore}
-          onChange={(value) => handleChange("fromStore", value)}
-          options={stores}
-          required
-        />
-        
-        <FormField
-          label="To Store"
-          value={formData.toStore}
-          onChange={(value) => handleChange("toStore", value)}
-          options={stores}
-          required
-        />
-        
-        <FormField
-          label="Receiver No (MaddenCo)"
-          value={formData.receiverNo}
-          onChange={(value) => handleChange("receiverNo", value)}
-          required
-        />
-        
-        <FormField
-          label="Product Code"
-          value={formData.productCode}
-          onChange={(value) => handleChange("productCode", value)}
-          required
-        />
-        
-        <FormField
-          label="Description"
-          value={formData.description}
-          onChange={(value) => handleChange("description", value)}
-          required
-        />
-        
-        <FormField
-          label="Quantity"
-          type="number"
-          value={formData.quantity}
-          onChange={(value) => handleChange("quantity", value)}
-          required
-        />
+      <div style={{ marginTop: "2rem" }}>
+        <strong>Product Details:</strong>
+        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "0.5rem" }}>
+          <thead>
+            <tr>
+              <th style={{ border: "1px solid black", padding: "0.5rem" }}>Product Code</th>
+              <th style={{ border: "1px solid black", padding: "0.5rem" }}>Description</th>
+              <th style={{ border: "1px solid black", padding: "0.5rem" }}>Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{ border: "1px solid black", padding: "0.5rem" }}>{values.productNumber}</td>
+              <td style={{ border: "1px solid black", padding: "0.5rem" }}>{values.description}</td>
+              <td style={{ border: "1px solid black", padding: "0.5rem" }}>{values.quantity}</td>
+            </tr>
+            {[...Array(3)].map((_, i) => (
+              <tr key={i}>
+                <td style={{ border: "1px solid black", padding: "1.5rem" }}></td>
+                <td style={{ border: "1px solid black", padding: "1.5rem" }}></td>
+                <td style={{ border: "1px solid black", padding: "1.5rem" }}></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors"
-          >
-            Submit Paperwork
-          </button>
+      <div style={{ marginTop: "2rem", display: "flex", justifyContent: "space-between" }}>
+        <div>
+          <strong>Sender Signature:</strong>
+          <div style={{ borderBottom: "2px solid black", width: "250px", height: "2rem", marginTop: "1rem" }}></div>
         </div>
-      </form>
+        <div>
+          <strong>Receiver Signature:</strong>
+          <div style={{ borderBottom: "2px solid black", width: "250px", height: "2rem", marginTop: "1rem" }}></div>
+        </div>
+      </div>
     </div>
   );
-};
+}
