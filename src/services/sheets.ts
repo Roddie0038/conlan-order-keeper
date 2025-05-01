@@ -14,6 +14,16 @@ import {
 
 export type { OrderType, OrderData, MTOOrderData };
 
+// Type guard to check if the data is an OrderData (with CrossDock fields)
+function isOrderData(data: OrderData | MTOOrderData): data is OrderData {
+  return 'yourName' in data && !('casingGrade' in data);
+}
+
+// Type guard to check if the data is an MTOOrderData
+function isMTOOrderData(data: OrderData | MTOOrderData): data is MTOOrderData {
+  return 'casingGrade' in data;
+}
+
 export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("🔍 SHEETS - Submitting to webhooks:", data);
   console.log("🔍 SHEETS - Manager's email in submitToGoogleSheets:", data.managersEmail || data.managerEmail);
@@ -39,7 +49,8 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     }
     
     // For crossDock="Yes" orders, ensure we have the destination manager email
-    if (data.crossDock === "Yes" && data.crossDockDestination && !data.destinationManagerEmail) {
+    // Only check this for OrderData types, not MTOOrderData
+    if (isOrderData(data) && data.crossDock === "Yes" && data.crossDockDestination && !data.destinationManagerEmail) {
       // Import directly here to avoid circular dependency
       const { getManagerEmail } = await import('@/components/order-form/formConfig');
       data.destinationManagerEmail = getManagerEmail(data.crossDockDestination);

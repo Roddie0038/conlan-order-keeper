@@ -21,6 +21,7 @@ export interface OrderData extends CrossDockFields {
   message?: string;
   timestamp?: string;
   type?: string;
+  destinationManagerEmail?: string; // Added for cross dock destinations
 }
 
 export async function saveOrderToSupabase(order: OrderData) {
@@ -40,6 +41,7 @@ export async function saveOrderToSupabase(order: OrderData) {
     "Cross Dock Confirmation": order.crossDockConfirmation || false,
     "Invoice#": order.invoiceNumber || "",
     Email: order.email || "",
+    "Destination Manager Email": order.destinationManagerEmail || "", // Added for Cross Dock orders
     Timestamp: order.timestamp || new Date().toISOString(),
     type: order.type || "TRANSFER"
   };

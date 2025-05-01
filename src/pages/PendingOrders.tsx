@@ -25,6 +25,8 @@ interface Order {
   notes: string;
   crossDock: string;
   crossDockDestination?: string;
+  receiverNo?: string;
+  etaDate?: string;
   destinationManagerEmail?: string;
   managerEmail?: string;
   plant?: string;

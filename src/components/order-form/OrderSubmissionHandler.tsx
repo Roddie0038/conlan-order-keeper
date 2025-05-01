@@ -8,6 +8,7 @@ import { usePlant } from "@/contexts/PlantContext";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { saveOrderToSupabase } from "@/services/orderService";
 import type { OrderSummary } from "./types";
+import { OrderType } from "@/services/webhook/config";
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: OrderSummary[];
@@ -46,14 +47,21 @@ export const OrderSubmissionHandler = ({
           destinationManagerEmail = getManagerEmail(order.crossDockDestination);
         }
         
-        await submitToGoogleSheets({
+        // Create the submission data with proper typing
+        const submissionData = {
           ...order,
           managersEmail,
-          destinationManagerEmail, // Add destination manager email
           plant: selectedPlant,
           timestamp: new Date().toISOString(),
-          type: order.type || "TRANSFER", // Ensure type is set to a valid OrderType
-        });
+          type: order.type || "TRANSFER" as OrderType, 
+        };
+        
+        // Add cross dock specific fields only when crossDock is "Yes"
+        if (order.crossDock === "Yes") {
+          submissionData.destinationManagerEmail = destinationManagerEmail;
+        }
+
+        await submitToGoogleSheets(submissionData);
 
         await saveOrderToSupabase({
           name: order.yourName,
@@ -63,8 +71,11 @@ export const OrderSubmissionHandler = ({
           quantity: order.quantity,
           scheduleArrival: order.scheduleArrival,
           notes: order.notes,
-          crossDock: order.crossDock === "Yes" ? "Yes" : "No", // Ensure it's properly typed
+          crossDock: order.crossDock,
           crossDockDestination: order.crossDockDestination,
+          receiverNo: order.receiverNo,
+          etaDate: order.etaDate,
+          destinationManagerEmail: order.crossDock === "Yes" ? destinationManagerEmail : undefined,
           email: managersEmail,
           timestamp: new Date().toISOString(),
           type: order.type || "TRANSFER"
@@ -74,9 +85,9 @@ export const OrderSubmissionHandler = ({
         existingOrders.push({
           ...order,
           managersEmail,
-          destinationManagerEmail, // Include in localStorage too
+          destinationManagerEmail: order.crossDock === "Yes" ? destinationManagerEmail : undefined,
           plant: selectedPlant,
-          type: order.type || "TRANSFER" // Ensure type is properly set for localStorage too
+          type: order.type || "TRANSFER"
         });
         localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
       }
