@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -35,8 +36,11 @@ export function OrderForm() {
     quantity: "",
     scheduleArrival: "",
     notes: "",
-    crossDock: "",
+    crossDock: "No",
     crossDockDestination: "",
+    receiverNo: "",
+    etaDate: "",
+    crossDockConfirmation: false,
     managersEmail: managerEmail,
   };
 
@@ -55,8 +59,8 @@ export function OrderForm() {
   }, [user, form]);
 
   const { handleSubmit, formState, reset } = form;
-  // Updated to use feature flag
-  const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "yes";
+  // Updated to use feature flag and to check for "Yes" instead of "yes"
+  const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "Yes";
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     // Add current form values to the order summaries

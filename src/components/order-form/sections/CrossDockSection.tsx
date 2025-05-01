@@ -6,12 +6,14 @@ import {
   FormItem, 
   FormLabel, 
   FormControl, 
-  FormMessage 
+  FormMessage,
+  FormDescription
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { crossDockOptions, stores } from "@/components/order-form/formConfig";
-import { Truck, MapPin, Building } from "lucide-react";
+import { Truck, MapPin, Building, CalendarClock, FileCheck, Clipboard } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface CrossDockSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -42,6 +44,7 @@ export function CrossDockSection({
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
+                value={field.value}
               >
                 <FormControl>
                   <SelectTrigger className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200">
@@ -71,17 +74,102 @@ export function CrossDockSection({
                   <MapPin className="h-4 w-4 mr-1 text-gray-400" />
                   Cross Dock Destination*
                 </FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter cross dock destination" 
-                    {...field}
-                    className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200"
-                  />
-                </FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200">
+                      <SelectValue placeholder="Select destination" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {stores.map(store => (
+                      <SelectItem key={store.id} value={store.id}>
+                        {store.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
+        )}
+
+        {/* New fields for CrossDock when "Yes" is selected */}
+        {form.watch("crossDock") === "Yes" && (
+          <>
+            <FormField
+              control={form.control}
+              name="receiverNo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    <Clipboard className="h-4 w-4 mr-1 text-gray-400" />
+                    Receiver No*
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter receiver number" 
+                      {...field}
+                      className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="etaDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    <CalendarClock className="h-4 w-4 mr-1 text-gray-400" />
+                    ETA Date*
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="date"
+                      placeholder="Select ETA date" 
+                      {...field}
+                      className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="col-span-2">
+              <FormField
+                control={form.control}
+                name="crossDockConfirmation"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-900/30 p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="flex items-center">
+                        <FileCheck className="h-4 w-4 mr-1 text-yellow-600" />
+                        <span>Cross Dock Paperwork Confirmation*</span>
+                      </FormLabel>
+                      <FormDescription className="text-sm text-gray-600 dark:text-gray-400">
+                        I confirm that the cross dock paperwork has been attached to this order.
+                      </FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </>
         )}
       </div>
       

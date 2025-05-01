@@ -282,20 +282,51 @@ export const OrderFormInputs = ({
               placeholder="Select yes/no" 
             />
 
-            {formData.crossDock === "yes" && (
-              <FormField 
-                label="Cross Dock Destination" 
-                value={formData.crossDockDestination || ""} 
-                onChange={value => {
-                  onChange("crossDockDestination", value);
-                  // Set manager email based on selected store ID
-                  const managersEmail = storeManagerEmails[value] || '';
-                  onChange("managersEmail", managersEmail);
-                }} 
-                options={stores} 
-                placeholder="Select destination" 
-                required 
-              />
+            {formData.crossDock === "Yes" && (
+              <>
+                <FormField 
+                  label="Cross Dock Destination" 
+                  value={formData.crossDockDestination || ""} 
+                  onChange={value => {
+                    onChange("crossDockDestination", value);
+                    // Set manager email based on selected store ID
+                    const managersEmail = storeManagerEmails[value] || '';
+                    onChange("managersEmail", managersEmail);
+                  }} 
+                  options={stores} 
+                  placeholder="Select destination" 
+                  required 
+                />
+
+                <FormField 
+                  label="Receiver No" 
+                  required 
+                  value={formData.receiverNo || ""} 
+                  onChange={value => onChange("receiverNo", value)} 
+                  placeholder="Enter receiver number" 
+                />
+
+                <FormField 
+                  label="ETA Date" 
+                  type="date" 
+                  required 
+                  value={formData.etaDate || ""} 
+                  onChange={value => onChange("etaDate", value)} 
+                  placeholder="Select ETA date" 
+                />
+
+                <div className="bg-yellow-900/30 border border-yellow-800 p-4 rounded-lg">
+                  <label className="flex items-center gap-2 text-yellow-400">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.crossDockConfirmation} 
+                      onChange={e => onChange("crossDockConfirmation", e.target.checked ? "true" : "false")} 
+                      className="rounded border-yellow-600 text-yellow-600 focus:ring-yellow-500" 
+                    />
+                    <span>I confirm that the cross dock paperwork has been attached to this order</span>
+                  </label>
+                </div>
+              </>
             )}
           </div>
         </div>

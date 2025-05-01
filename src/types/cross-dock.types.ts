@@ -5,6 +5,9 @@
  */
 
 export interface CrossDockFields {
-  crossDock: string; // Changed from optional to required
+  crossDock: string; // Required field
   crossDockDestination?: string;
+  receiverNo?: string; // Added for cross dock validation
+  etaDate?: string; // Added for cross dock validation
+  crossDockConfirmation?: boolean; // Added for confirmation checkbox
 }

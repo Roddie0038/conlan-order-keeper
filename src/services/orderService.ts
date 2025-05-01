@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CrossDockFields } from "@/types/cross-dock.types";
 
@@ -32,8 +33,11 @@ export async function saveOrderToSupabase(order: OrderData) {
     Quantity: typeof order.quantity === 'string' ? parseInt(order.quantity) : order.quantity || 0,
     "Schedule Arrival": order.scheduleArrival || "",
     Notes: order.notes || "",
-    "Cross Dock": order.crossDock || "",
+    "Cross Dock": order.crossDock || "No",
     "Cross Dock Destination": order.crossDockDestination || "",
+    "Receiver No": order.receiverNo || "",
+    "ETA Date": order.etaDate || "",
+    "Cross Dock Confirmation": order.crossDockConfirmation || false,
     "Invoice#": order.invoiceNumber || "",
     Email: order.email || "",
     Timestamp: order.timestamp || new Date().toISOString(),

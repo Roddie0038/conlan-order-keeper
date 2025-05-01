@@ -46,8 +46,8 @@ export const scheduleOptions = [
 ].map(value => ({ value }));
 
 export const crossDockOptions = [
-  { value: "yes", name: "Yes" },
-  { value: "no", name: "No" },
+  { value: "Yes", name: "Yes" },
+  { value: "No", name: "No" },
 ];
 
 export type FormData = {
@@ -72,7 +72,10 @@ export const initialFormData: FormData = {
   quantity: "",
   scheduleArrival: "",
   notes: "",
-  crossDock: "", // Now required
+  crossDock: "No", // Default to "No"
   crossDockDestination: "",
+  receiverNo: "",
+  etaDate: "",
+  crossDockConfirmation: false,
   managersEmail: "",
 };
