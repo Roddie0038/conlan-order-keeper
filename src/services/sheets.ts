@@ -1,3 +1,4 @@
+
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { submitToWebhook } from './webhook/utils';
 import { submitToOrdersWebhook } from './webhook/orderWebhook';
@@ -35,6 +36,14 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
         body: JSON.stringify(data),
       });
       results.push(gp97Result.ok);
+    }
+    
+    // For crossDock="Yes" orders, ensure we have the destination manager email
+    if (data.crossDock === "Yes" && data.crossDockDestination && !data.destinationManagerEmail) {
+      // Import directly here to avoid circular dependency
+      const { getManagerEmail } = await import('@/components/order-form/formConfig');
+      data.destinationManagerEmail = getManagerEmail(data.crossDockDestination);
+      console.log("🔍 ROUTING - Added destinationManagerEmail:", data.destinationManagerEmail);
     }
     
     // Determine which type of order it is and submit to appropriate webhooks

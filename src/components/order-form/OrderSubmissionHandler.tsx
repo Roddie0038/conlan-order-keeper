@@ -40,9 +40,16 @@ export const OrderSubmissionHandler = ({
       for (const order of selectedOrders) {
         const managersEmail = getManagerEmail(order.store);
         
+        // Get destination manager email if crossDock is "Yes"
+        let destinationManagerEmail = "";
+        if (order.crossDock === "Yes" && order.crossDockDestination) {
+          destinationManagerEmail = getManagerEmail(order.crossDockDestination);
+        }
+        
         await submitToGoogleSheets({
           ...order,
           managersEmail,
+          destinationManagerEmail, // Add destination manager email
           plant: selectedPlant,
           timestamp: new Date().toISOString(),
           type: order.type || "TRANSFER", // Ensure type is set to a valid OrderType
@@ -67,6 +74,7 @@ export const OrderSubmissionHandler = ({
         existingOrders.push({
           ...order,
           managersEmail,
+          destinationManagerEmail, // Include in localStorage too
           plant: selectedPlant,
           type: order.type || "TRANSFER" // Ensure type is properly set for localStorage too
         });

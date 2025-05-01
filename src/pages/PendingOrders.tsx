@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { useState, useEffect } from "react";
@@ -23,6 +24,8 @@ interface Order {
   scheduleArrival: string;
   notes: string;
   crossDock: string;
+  crossDockDestination?: string;
+  destinationManagerEmail?: string;
   managerEmail?: string;
   plant?: string;
 }
@@ -41,10 +44,22 @@ export default function PendingOrders() {
           order.store === user?.store && 
           (!order.plant || order.plant === selectedPlant)
         )
-        .map((order: Order) => ({
-          ...order,
-          managerEmail: getManagerEmail(order.store)
-        }));
+        .map((order: Order) => {
+          // Ensure we have manager email
+          const managerEmail = order.managerEmail || getManagerEmail(order.store);
+          
+          // Add destination manager email if missing but have cross dock destination
+          let destEmail = order.destinationManagerEmail;
+          if (order.crossDock === "Yes" && order.crossDockDestination && !destEmail) {
+            destEmail = getManagerEmail(order.crossDockDestination);
+          }
+          
+          return {
+            ...order,
+            managerEmail,
+            destinationManagerEmail: destEmail
+          };
+        });
       setOrders(filteredOrders);
     }
   }, [user?.store, selectedPlant]);
@@ -53,10 +68,15 @@ export default function PendingOrders() {
     const allPendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
     const orderToComplete = allPendingOrders.find((o: Order) => o.id === orderId);
     if (orderToComplete) {
+      // Ensure destination manager email is set for cross dock orders
+      if (orderToComplete.crossDock === "Yes" && orderToComplete.crossDockDestination && !orderToComplete.destinationManagerEmail) {
+        orderToComplete.destinationManagerEmail = getManagerEmail(orderToComplete.crossDockDestination);
+      }
+      
       const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
       completedOrders.push({
         ...orderToComplete,
-        managerEmail: getManagerEmail(orderToComplete.store),
+        managerEmail: orderToComplete.managerEmail || getManagerEmail(orderToComplete.store),
         plant: selectedPlant
       });
       localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
@@ -70,7 +90,10 @@ export default function PendingOrders() {
         )
         .map((order: Order) => ({
           ...order,
-          managerEmail: getManagerEmail(order.store)
+          managerEmail: order.managerEmail || getManagerEmail(order.store),
+          destinationManagerEmail: order.destinationManagerEmail || 
+            (order.crossDock === "Yes" && order.crossDockDestination ? 
+              getManagerEmail(order.crossDockDestination) : undefined)
         }))
       );
     }
