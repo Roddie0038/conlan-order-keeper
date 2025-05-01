@@ -92,15 +92,9 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       
       // Send to the Wheel Orders webhook
       console.log("🔍 ROUTING - Sending to Wheel Orders Google Sheet webhook");
-      console.log("🔍 ROUTING - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS);
-      console.log("🔍 ROUTING - Expected URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
-      console.log("🔍 ROUTING - URLs match?", WEBHOOK_URLS.WHEEL_ORDERS === "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
-      
       const wheelOrdersResult = await submitToWheelOrdersWebhook(data);
       results.push(wheelOrdersResult);
       
-      // Explicitly log that we're NOT sending to MTO webhook for wheel orders
-      console.log("✅ ROUTING - NOT sending wheel order to MTO webhook - correct routing");
       console.log("🔍 ROUTING - Wheel order processed completely");
     }
     else {
@@ -113,8 +107,8 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       const plantWebhookResult = await submitToWebhook(plantUrl, data);
       results.push(plantWebhookResult);
       
-      // Send to the new Orders webhook
-      console.log("🔍 ROUTING - Sending to Orders Google Sheet webhook");
+      // Send to the new Orders webhook and Zapier
+      console.log("🔍 ROUTING - Sending to Orders Google Sheet webhook and Zapier");
       const ordersResult = await submitToOrdersWebhook(data);
       results.push(ordersResult);
       

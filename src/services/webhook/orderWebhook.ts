@@ -1,6 +1,6 @@
 
 import { submitToWebhook } from './utils';
-import { WEBHOOK_URLS } from './config';
+import { WEBHOOK_URLS, ADDITIONAL_WEBHOOKS } from './config';
 import { formatDate } from './utils';
 import { CrossDockWebhookPayload } from '@/types/webhook.types';
 
@@ -36,7 +36,8 @@ export const submitToOrdersWebhook = async (data: any) => {
     console.log("Using Orders webhook URL:", WEBHOOK_URLS.ORDERS);
     console.log("Schedule arrival value being sent:", mappedData.schedule_arrival);
 
-    const response = await fetch(WEBHOOK_URLS.ORDERS, {
+    // Submit to Google Sheets webhook
+    const googleSheetsResponse = await fetch(WEBHOOK_URLS.ORDERS, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -45,10 +46,29 @@ export const submitToOrdersWebhook = async (data: any) => {
       body: JSON.stringify(mappedData),
     });
 
-    console.log("Successfully triggered Orders webhook");
+    console.log("Successfully triggered Orders Google Sheets webhook");
+    
+    // Also submit to Zapier webhook for new orders
+    console.log("Also submitting to Zapier webhook:", ADDITIONAL_WEBHOOKS.ZAPIER_NEW_ORDERS);
+    
+    const zapierResponse = await fetch(ADDITIONAL_WEBHOOKS.ZAPIER_NEW_ORDERS, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      mode: "no-cors", // Use no-cors to avoid CORS issues
+      body: JSON.stringify({
+        ...mappedData,
+        submission_source: "transfer_request",
+        timestamp: new Date().toISOString()
+      }),
+    });
+    
+    console.log("Successfully triggered Zapier webhook for new orders");
+
     return true;
   } catch (error) {
-    console.error("Error triggering Orders webhook:", error);
+    console.error("Error triggering Orders webhooks:", error);
     return false;
   }
 };

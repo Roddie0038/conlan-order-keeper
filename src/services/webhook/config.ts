@@ -5,7 +5,7 @@ import { CrossDockFields } from '@/types/cross-dock.types';
 // Webhook URLs for Google Apps Script
 export const WEBHOOK_URLS = {
   // New Orders (Orders Tab)
-  ORDERS: "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec",
+  ORDERS: "https://script.google.com/macros/s/AKfycbwlFNudZkk0jFFORdU-Tr-Ma-iNytJQ8b4nq3H7IXhsiFov1iGX8uCs2AF0eMrMbrpXcg/exec",
   // Wheel Orders (Stores Wheel Orders Tab)
   WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec",
   // MTO Orders (MTO'S Tab)
@@ -14,7 +14,8 @@ export const WEBHOOK_URLS = {
 
 // Additional webhook endpoints
 export const ADDITIONAL_WEBHOOKS = {
-  GP97_ORDERS: "https://eot9y6n22fro4la.m.pipedream.net"
+  GP97_ORDERS: "https://eot9y6n22fro4la.m.pipedream.net",
+  ZAPIER_NEW_ORDERS: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
 };
 
 // Log webhook URLs on initial load for verification
@@ -22,9 +23,9 @@ console.log("🔍 CONFIG - Webhook URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS URL:", WEBHOOK_URLS.ORDERS);
 console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
 console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
-console.log("🔍 CONFIG - Expected WHEEL_ORDERS URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
-console.log("🔍 CONFIG - URLs match?", WEBHOOK_URLS.WHEEL_ORDERS === "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
+console.log("🔍 CONFIG - ZAPIER_NEW_ORDERS URL:", ADDITIONAL_WEBHOOKS.ZAPIER_NEW_ORDERS);
 
+// Define plant type
 export type Plant = keyof typeof PLANT_WEBHOOKS;
 
 // Define order type union
