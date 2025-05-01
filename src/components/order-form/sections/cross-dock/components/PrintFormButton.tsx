@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { OrderFormValues } from "@/components/order-form/order-form-schema";
-import { CrossDockPaperworkForm } from "@/components/order-form/CrossDockPaperworkForm";
+import { CrossDockPaperworkForm } from "./CrossDockPaperworkForm";
 import { useToast } from "@/components/ui/use-toast";
 
 interface PrintFormButtonProps {

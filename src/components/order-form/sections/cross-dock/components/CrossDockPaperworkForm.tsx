@@ -1,8 +1,8 @@
 
 import { UseFormReturn } from "react-hook-form";
-import { OrderFormValues } from "./order-form-schema";
+import { OrderFormValues } from "../../../order-form-schema";
 import { format } from "date-fns";
-import { stores } from "./formConfig";
+import { stores } from "../../../formConfig";
 
 interface CrossDockPaperworkFormProps {
   form: UseFormReturn<OrderFormValues>;
