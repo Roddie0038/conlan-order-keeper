@@ -23,6 +23,7 @@ import { useRef } from "react";
 import { CrossDockPaperworkForm } from "../../CrossDockPaperworkForm";
 import { useReactToPrint } from "react-to-print";
 import { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CrossDockDetailsFormProps {
   form: UseFormReturn<OrderFormValues>;
@@ -31,6 +32,7 @@ interface CrossDockDetailsFormProps {
 export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
   const printComponentRef = useRef<HTMLDivElement>(null);
   const [destManagerEmail, setDestManagerEmail] = useState<string>("");
+  const { toast } = useToast();
   
   // Update manager email when destination store changes
   useEffect(() => {
@@ -41,13 +43,29 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
     }
   }, [form.watch("crossDockDestination")]);
   
-  const handlePrint = useReactToPrint({
+  const handlePrintForm = useReactToPrint({
     content: () => printComponentRef.current,
     documentTitle: "Cross-Dock-Transfer-Form",
-    removeAfterPrint: true,
-    copyStyles: true,
-    pageStyle: "@page { size: auto; margin: 10mm; }",
-  } as any); // Cast to 'any' to resolve TypeScript errors with the library's type definitions
+    onBeforePrint: () => {
+      console.log("Preparing to print cross dock form...");
+    },
+    onPrintError: (error) => {
+      console.error("Print error:", error);
+      toast({
+        title: "Print Error",
+        description: "Failed to print the form. Please try again.",
+        variant: "destructive"
+      });
+    },
+    onAfterPrint: () => {
+      console.log("Cross dock form printed successfully");
+      toast({
+        title: "Success",
+        description: "Form printed successfully!",
+        duration: 3000
+      });
+    }
+  });
   
   return (
     <Card className="mt-4 p-4 border border-purple-200 bg-purple-50 dark:bg-purple-900/20">
@@ -228,22 +246,26 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
         />
       </div>
 
-      {/* Print button moved to the bottom */}
+      {/* Print button moved to the bottom - Fixed to prevent form submission */}
       <div className="mt-6 flex justify-center">
         <Button 
+          type="button" 
           variant="outline" 
           size="sm"
           className="flex items-center border-purple-300 hover:bg-purple-100 text-purple-700 dark:text-purple-300 w-full md:w-auto"
-          onClick={handlePrint}
+          onClick={(e) => {
+            e.preventDefault(); // Prevent form submission
+            handlePrintForm();
+          }}
         >
           <Printer className="h-4 w-4 mr-1" />
           Print Form
         </Button>
       </div>
 
-      {/* Hidden div that contains the printable form */}
+      {/* Hidden div that contains the printable form - Fixed to ensure proper ref */}
       <div className="hidden">
-        <div ref={printComponentRef}>
+        <div ref={printComponentRef} className="p-8 bg-white">
           <CrossDockPaperworkForm form={form} />
         </div>
       </div>

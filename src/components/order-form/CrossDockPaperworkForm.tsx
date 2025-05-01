@@ -15,77 +15,77 @@ export function CrossDockPaperworkForm({ form }: CrossDockPaperworkFormProps) {
   const storeTo = stores.find((s) => s.id === values.crossDockDestination)?.name || values.crossDockDestination;
 
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
-      <h2 style={{ textAlign: "center", fontSize: "1.75rem", borderBottom: "2px solid black", paddingBottom: "0.5rem" }}>
+    <div className="font-sans px-8 py-6 max-w-4xl mx-auto bg-white text-black">
+      <h2 className="text-center text-2xl font-bold border-b-2 border-black pb-2 mb-4">
         Cross Dock Transfer Form
       </h2>
 
-      <p style={{ textAlign: "center", fontSize: "0.9rem", color: "#666" }}>
+      <p className="text-center text-sm text-gray-600 mb-8">
         Use this form when transferring material between stores using a warehouse as the dock point.
       </p>
 
-      <div style={{ marginTop: "2rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+      <div className="grid grid-cols-2 gap-4 mb-8">
         <div>
-          <strong>Date:</strong>
-          <div style={{ border: "1px solid black", padding: "0.5rem" }}>
-            {format(new Date(values.dateReceived), "MM/dd/yyyy")}
+          <strong className="block mb-1">Date:</strong>
+          <div className="border border-black p-2 min-h-[2rem]">
+            {values.dateReceived ? format(new Date(values.dateReceived), "MM/dd/yyyy") : format(new Date(), "MM/dd/yyyy")}
           </div>
         </div>
         <div>
-          <strong>Receiver No (MaddenCo):</strong>
-          <div style={{ border: "1px solid black", padding: "0.5rem" }}>{values.receiverNo}</div>
+          <strong className="block mb-1">Receiver No (MaddenCo):</strong>
+          <div className="border border-black p-2 min-h-[2rem]">{values.receiverNo || ""}</div>
         </div>
         <div>
-          <strong>FROM Store:</strong>
-          <div style={{ border: "1px solid black", padding: "0.5rem" }}>{storeFrom}</div>
+          <strong className="block mb-1">FROM Store:</strong>
+          <div className="border border-black p-2 min-h-[2rem]">{storeFrom}</div>
         </div>
         <div>
-          <strong>TO Store:</strong>
-          <div style={{ border: "1px solid black", padding: "0.5rem" }}>{storeTo}</div>
+          <strong className="block mb-1">TO Store:</strong>
+          <div className="border border-black p-2 min-h-[2rem]">{storeTo}</div>
         </div>
         <div>
-          <strong>ETA Date:</strong>
-          <div style={{ border: "1px solid black", padding: "0.5rem" }}>
+          <strong className="block mb-1">ETA Date:</strong>
+          <div className="border border-black p-2 min-h-[2rem]">
             {values.etaDate ? format(new Date(values.etaDate), "MM/dd/yyyy") : ""}
           </div>
         </div>
       </div>
 
-      <div style={{ marginTop: "2rem" }}>
-        <strong>Product Details:</strong>
-        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "0.5rem" }}>
+      <div className="mb-8">
+        <strong className="block mb-2">Product Details:</strong>
+        <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th style={{ border: "1px solid black", padding: "0.5rem" }}>Product Code</th>
-              <th style={{ border: "1px solid black", padding: "0.5rem" }}>Description</th>
-              <th style={{ border: "1px solid black", padding: "0.5rem" }}>Quantity</th>
+              <th className="border border-black p-2 text-left w-1/4">Product Code</th>
+              <th className="border border-black p-2 text-left w-2/4">Description</th>
+              <th className="border border-black p-2 text-left w-1/4">Quantity</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={{ border: "1px solid black", padding: "0.5rem" }}>{values.productNumber}</td>
-              <td style={{ border: "1px solid black", padding: "0.5rem" }}>{values.description}</td>
-              <td style={{ border: "1px solid black", padding: "0.5rem" }}>{values.quantity}</td>
+              <td className="border border-black p-2">{values.productNumber || ""}</td>
+              <td className="border border-black p-2">{values.description || ""}</td>
+              <td className="border border-black p-2">{values.quantity || ""}</td>
             </tr>
             {[...Array(3)].map((_, i) => (
               <tr key={i}>
-                <td style={{ border: "1px solid black", padding: "1.5rem" }}></td>
-                <td style={{ border: "1px solid black", padding: "1.5rem" }}></td>
-                <td style={{ border: "1px solid black", padding: "1.5rem" }}></td>
+                <td className="border border-black p-4"></td>
+                <td className="border border-black p-4"></td>
+                <td className="border border-black p-4"></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <div style={{ marginTop: "2rem", display: "flex", justifyContent: "space-between" }}>
-        <div>
-          <strong>Sender Signature:</strong>
-          <div style={{ borderBottom: "2px solid black", width: "250px", height: "2rem", marginTop: "1rem" }}></div>
+      <div className="flex justify-between mt-12">
+        <div className="w-5/12">
+          <strong className="block mb-2">Sender Signature:</strong>
+          <div className="border-b-2 border-black h-8 mb-1"></div>
         </div>
-        <div>
-          <strong>Receiver Signature:</strong>
-          <div style={{ borderBottom: "2px solid black", width: "250px", height: "2rem", marginTop: "1rem" }}></div>
+        <div className="w-5/12">
+          <strong className="block mb-2">Receiver Signature:</strong>
+          <div className="border-b-2 border-black h-8 mb-1"></div>
         </div>
       </div>
     </div>
