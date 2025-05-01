@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { stores } from "@/components/order-form/formConfig";
-import { Truck, MapPin, FileText, Calendar as CalendarIcon } from "lucide-react";
+import { Truck, MapPin, FileText, Calendar as CalendarIcon, Printer } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -19,19 +19,42 @@ import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { useState } from "react";
+import { CrossDockPaperworkForm } from "../../CrossDockPaperworkForm";
+import ReactToPrint from "react-to-print";
+import { useRef } from "react";
 
 interface CrossDockDetailsFormProps {
   form: UseFormReturn<OrderFormValues>;
 }
 
 export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
+  const printComponentRef = useRef<HTMLDivElement>(null);
+  
   return (
     <Card className="mt-4 p-4 border border-purple-200 bg-purple-50 dark:bg-purple-900/20">
       <div className="mb-4 border-b border-purple-200 pb-2">
-        <h4 className="text-md font-medium text-purple-700 dark:text-purple-300 flex items-center">
-          <Truck className="h-4 w-4 mr-2" />
-          Cross Dock Form Details
-        </h4>
+        <div className="flex justify-between items-center">
+          <h4 className="text-md font-medium text-purple-700 dark:text-purple-300 flex items-center">
+            <Truck className="h-4 w-4 mr-2" />
+            Cross Dock Form Details
+          </h4>
+          
+          <ReactToPrint
+            trigger={() => (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex items-center border-purple-300 hover:bg-purple-100 text-purple-700 dark:text-purple-300"
+              >
+                <Printer className="h-4 w-4 mr-1" />
+                Print Form
+              </Button>
+            )}
+            content={() => printComponentRef.current}
+            documentTitle="Cross-Dock-Transfer-Form"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -181,6 +204,13 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
             </FormItem>
           )}
         />
+      </div>
+
+      {/* Hidden div that contains the printable form */}
+      <div className="hidden">
+        <div ref={printComponentRef}>
+          <CrossDockPaperworkForm form={form} />
+        </div>
       </div>
     </Card>
   );
