@@ -44,7 +44,6 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
   }, [form.watch("crossDockDestination")]);
   
   const handlePrintForm = useReactToPrint({
-    content: () => printComponentRef.current,
     documentTitle: "Cross-Dock-Transfer-Form",
     onBeforePrint: async () => {
       console.log("Preparing to print cross dock form...");
@@ -256,7 +255,7 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
           className="flex items-center border-purple-300 hover:bg-purple-100 text-purple-700 dark:text-purple-300 w-full md:w-auto"
           onClick={(e) => {
             e.preventDefault(); // Prevent form submission
-            handlePrintForm();
+            handlePrintForm(() => printComponentRef.current);
           }}
         >
           <Printer className="h-4 w-4 mr-1" />
