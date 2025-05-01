@@ -10,4 +10,9 @@ export interface OrderSummary extends FormData {
   selected?: boolean;
   managersEmail?: string;
   type?: "MTO" | "WHEEL_POWDER_COATING" | "TRANSFER";
+  
+  // Add Cross Dock fields
+  destinationManagerEmail?: string;
+  receiverNo?: string;
+  etaDate?: string;
 }
