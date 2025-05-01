@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -53,13 +52,9 @@ export const OrderSubmissionHandler = ({
           managersEmail,
           plant: selectedPlant,
           timestamp: new Date().toISOString(),
-          type: order.type || "TRANSFER" as OrderType, 
+          type: order.type || "TRANSFER" as OrderType,
+          destinationManagerEmail: order.crossDock === "Yes" ? destinationManagerEmail : undefined
         };
-        
-        // Add cross dock specific fields only when crossDock is "Yes"
-        if (order.crossDock === "Yes") {
-          submissionData.destinationManagerEmail = destinationManagerEmail;
-        }
 
         await submitToGoogleSheets(submissionData);
 
