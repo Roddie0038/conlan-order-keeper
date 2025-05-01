@@ -5,7 +5,7 @@
  */
 
 export interface CrossDockFields {
-  crossDock: string; // Required field
+  crossDock: "Yes" | "No"; // Updated to be a string union type matching the Zod schema
   crossDockDestination?: string;
   receiverNo?: string; // Added for cross dock validation
   etaDate?: string; // Added for cross dock validation

@@ -36,7 +36,7 @@ export function OrderForm() {
     quantity: "",
     scheduleArrival: "",
     notes: "",
-    crossDock: "No",
+    crossDock: "No" as "Yes" | "No", // Fixed enum value to match Zod schema
     crossDockDestination: "",
     receiverNo: "",
     etaDate: "",
