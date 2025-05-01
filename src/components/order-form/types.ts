@@ -1,8 +1,9 @@
 
 import { FormData } from "./formConfig";
-import { CrossDockFields } from "@/types/cross-dock.types";
+// We no longer need to extend CrossDockFields directly since FormData already includes it
+// import { CrossDockFields } from "@/types/cross-dock.types";
 
-export interface OrderSummary extends FormData, CrossDockFields {
+export interface OrderSummary extends FormData {
   id: string;
   timestamp: string;
   store: string;

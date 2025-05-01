@@ -5,6 +5,6 @@
  */
 
 export interface CrossDockFields {
-  crossDock?: string;
+  crossDock: string; // Changed from optional to required
   crossDockDestination?: string;
 }

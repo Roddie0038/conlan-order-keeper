@@ -10,7 +10,7 @@ export const formSchema = z.object({
   quantity: z.string().min(1, "Quantity is required"),
   scheduleArrival: z.string().min(1, "Schedule arrival is required"),
   notes: z.string(),
-  crossDock: z.string(),
+  crossDock: z.string(), // Required field
   crossDockDestination: z.string().optional(),
   managersEmail: z.string(),
 });

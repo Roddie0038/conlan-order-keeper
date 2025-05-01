@@ -1,4 +1,6 @@
 
+import { CrossDockFields } from "@/types/cross-dock.types";
+
 export const stores = [
   { id: "22", name: "Fort Worth 22" },
   { id: "27", name: "Grand Prairie 27" },
@@ -57,10 +59,9 @@ export type FormData = {
   quantity: string;
   scheduleArrival: string;
   notes: string;
-  crossDock: string;
-  crossDockDestination?: string;
+  // Remove duplicate fields that are defined in CrossDockFields
   managersEmail?: string;
-};
+} & CrossDockFields; // Extend FormData with CrossDockFields
 
 export const initialFormData: FormData = {
   yourName: "",
@@ -71,7 +72,7 @@ export const initialFormData: FormData = {
   quantity: "",
   scheduleArrival: "",
   notes: "",
-  crossDock: "",
+  crossDock: "", // Now required
   crossDockDestination: "",
   managersEmail: "",
 };
