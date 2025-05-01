@@ -17,16 +17,18 @@ export function CrossDockSection({
 }: CrossDockSectionProps) {
   return (
     <>
-      <div className="flex items-center space-x-2 mb-6 border-l-4 border-purple-500 pl-3">
+      <div className="flex items-center justify-center space-x-2 mb-6">
         <Truck className="h-5 w-5 text-purple-500" />
         <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Cross Dock Options</h3>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="flex flex-col items-center space-y-6">
         <CrossDockOptionSelect form={form} />
 
         {showCrossDockDestination && (
-          <CrossDockDetailsForm form={form} />
+          <div className="w-full">
+            <CrossDockDetailsForm form={form} />
+          </div>
         )}
       </div>
       

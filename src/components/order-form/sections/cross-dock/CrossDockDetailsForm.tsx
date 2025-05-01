@@ -42,21 +42,11 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
   return (
     <Card className="mt-4 p-4 border border-purple-200 bg-purple-50 dark:bg-purple-900/20">
       <div className="mb-4 border-b border-purple-200 pb-2">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-center items-center">
           <h4 className="text-md font-medium text-purple-700 dark:text-purple-300 flex items-center">
             <Truck className="h-4 w-4 mr-2" />
             Cross Dock Form Details
           </h4>
-          
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="flex items-center border-purple-300 hover:bg-purple-100 text-purple-700 dark:text-purple-300"
-            onClick={handlePrint}
-          >
-            <Printer className="h-4 w-4 mr-1" />
-            Print Form
-          </Button>
         </div>
       </div>
 
@@ -207,6 +197,19 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
             </FormItem>
           )}
         />
+      </div>
+
+      {/* Print button moved to the bottom */}
+      <div className="mt-6 flex justify-center">
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="flex items-center border-purple-300 hover:bg-purple-100 text-purple-700 dark:text-purple-300 w-full md:w-auto"
+          onClick={handlePrint}
+        >
+          <Printer className="h-4 w-4 mr-1" />
+          Print Form
+        </Button>
       </div>
 
       {/* Hidden div that contains the printable form */}
