@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
 import { CrossDockPaperworkForm } from "../../CrossDockPaperworkForm";
-import ReactToPrint from "react-to-print";
+import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
 
 interface CrossDockDetailsFormProps {
@@ -30,6 +30,11 @@ interface CrossDockDetailsFormProps {
 
 export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
   const printComponentRef = useRef<HTMLDivElement>(null);
+  
+  const handlePrint = useReactToPrint({
+    content: () => printComponentRef.current,
+    documentTitle: "Cross-Dock-Transfer-Form",
+  });
   
   return (
     <Card className="mt-4 p-4 border border-purple-200 bg-purple-50 dark:bg-purple-900/20">
@@ -40,20 +45,15 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
             Cross Dock Form Details
           </h4>
           
-          <ReactToPrint
-            trigger={() => (
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="flex items-center border-purple-300 hover:bg-purple-100 text-purple-700 dark:text-purple-300"
-              >
-                <Printer className="h-4 w-4 mr-1" />
-                Print Form
-              </Button>
-            )}
-            content={() => printComponentRef.current}
-            documentTitle="Cross-Dock-Transfer-Form"
-          />
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="flex items-center border-purple-300 hover:bg-purple-100 text-purple-700 dark:text-purple-300"
+            onClick={handlePrint}
+          >
+            <Printer className="h-4 w-4 mr-1" />
+            Print Form
+          </Button>
         </div>
       </div>
 
