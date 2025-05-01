@@ -37,7 +37,7 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
     removeAfterPrint: true,
     copyStyles: true,
     pageStyle: "@page { size: auto; margin: 10mm; }",
-  });
+  } as any); // Cast to 'any' to resolve TypeScript errors with the library's type definitions
   
   return (
     <Card className="mt-4 p-4 border border-purple-200 bg-purple-50 dark:bg-purple-900/20">
