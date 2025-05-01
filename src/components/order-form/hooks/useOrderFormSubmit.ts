@@ -40,7 +40,7 @@ export function useOrderFormSubmit() {
         quantity: order.quantity,
         scheduleArrival: order.scheduleArrival,
         notes: order.notes,
-        crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No",
+        crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
         crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
         managersEmail: order.managersEmail || "",
         plant: selectedPlant,
