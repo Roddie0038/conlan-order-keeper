@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -55,7 +56,7 @@ export const OrderSubmissionHandler = ({
           quantity: order.quantity,
           scheduleArrival: order.scheduleArrival,
           notes: order.notes,
-          crossDock: order.crossDock,
+          crossDock: order.crossDock === "Yes" ? "Yes" : "No", // Ensure it's properly typed
           crossDockDestination: order.crossDockDestination,
           email: managersEmail,
           timestamp: new Date().toISOString(),

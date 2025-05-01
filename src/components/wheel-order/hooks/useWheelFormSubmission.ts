@@ -45,7 +45,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         quantity: formData.qtyWheels,
         scheduleArrival: formData.scheduleArrival || formData.dateReceived,
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
-        crossDock: "No", // Default value for wheel orders - they are not cross-docked
+        crossDock: "No" as "Yes" | "No", // Added explicit type to match the union type
         managersEmail: managerEmail,
         managerEmail: managerEmail,
         plant: selectedPlant,
@@ -64,7 +64,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
 
       const result = await submitToGoogleSheets(submissionData);
       
-      // Save to Supabase - Updated to include crossDock
+      // Save to Supabase - Updated to include crossDock with correct type
       await saveOrderToSupabase({
         name: formData.yourName,
         store: formData.storeName,
@@ -76,7 +76,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         email: managerEmail,
         timestamp: new Date().toISOString(),
         type: "WHEEL_POWDER_COATING",
-        crossDock: "No" // Added default value for wheel orders
+        crossDock: "No" as "Yes" | "No" // Added explicit type casting to match the union type
       });
       
       if (result.status === 'success' || result.status === 'partial_success') {
