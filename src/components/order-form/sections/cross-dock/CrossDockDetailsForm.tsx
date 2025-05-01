@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { stores } from "@/components/order-form/formConfig";
-import { Truck, MapPin, FileText, Calendar as CalendarIcon, Printer } from "lucide-react";
+import { stores, getManagerEmail } from "@/components/order-form/formConfig";
+import { Truck, MapPin, FileText, Calendar as CalendarIcon, Printer, Mail } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -19,10 +19,10 @@ import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { useState } from "react";
+import { useRef } from "react";
 import { CrossDockPaperworkForm } from "../../CrossDockPaperworkForm";
 import { useReactToPrint } from "react-to-print";
-import { useRef } from "react";
+import { useState, useEffect } from "react";
 
 interface CrossDockDetailsFormProps {
   form: UseFormReturn<OrderFormValues>;
@@ -30,6 +30,16 @@ interface CrossDockDetailsFormProps {
 
 export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
   const printComponentRef = useRef<HTMLDivElement>(null);
+  const [destManagerEmail, setDestManagerEmail] = useState<string>("");
+  
+  // Update manager email when destination store changes
+  useEffect(() => {
+    const destStore = form.watch("crossDockDestination");
+    if (destStore) {
+      const email = getManagerEmail(destStore);
+      setDestManagerEmail(email || "");
+    }
+  }, [form.watch("crossDockDestination")]);
   
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
@@ -88,7 +98,14 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
                 <MapPin className="h-4 w-4 mr-1 text-gray-400" />
                 TO Store*
               </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select 
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const email = getManagerEmail(value);
+                  setDestManagerEmail(email || "");
+                }} 
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200">
                     <SelectValue placeholder="Select destination store" />
@@ -106,6 +123,18 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
             </FormItem>
           )}
         />
+
+        <FormItem>
+          <FormLabel className="flex items-center">
+            <Mail className="h-4 w-4 mr-1 text-gray-400" />
+            Destination Manager Email
+          </FormLabel>
+          <Input
+            value={destManagerEmail}
+            readOnly
+            className="bg-gray-100 border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200"
+          />
+        </FormItem>
         
         <FormField
           control={form.control}

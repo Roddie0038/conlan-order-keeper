@@ -16,23 +16,25 @@ export function CrossDockSection({
   showCrossDockDestination 
 }: CrossDockSectionProps) {
   return (
-    <>
-      <div className="flex items-center justify-center space-x-2 mb-6">
+    <div className="flex flex-col items-center">
+      <div className="flex items-center space-x-2 mb-6">
         <Truck className="h-5 w-5 text-purple-500" />
         <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Cross Dock Options</h3>
       </div>
       
-      <div className="flex flex-col items-center space-y-6">
+      {/* Centered Cross Dock Options selector */}
+      <div className="w-full max-w-xs mb-6">
         <CrossDockOptionSelect form={form} />
-
-        {showCrossDockDestination && (
-          <div className="w-full">
-            <CrossDockDetailsForm form={form} />
-          </div>
-        )}
       </div>
       
+      {/* Cross Dock Form Details section only shown when "Yes" is selected */}
+      {showCrossDockDestination && (
+        <div className="w-full mt-4">
+          <CrossDockDetailsForm form={form} />
+        </div>
+      )}
+      
       <StoreInfoBar form={form} />
-    </>
+    </div>
   );
 }
