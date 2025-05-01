@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { useToast } from "@/hooks/use-toast";
 import { OrderFormValues } from "../order-form-schema";
 import { OrderSummary } from "../types";
-import { submitOrder } from "@/services/orderService";
+import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 
 export function useOrderFormSubmit() {
@@ -44,12 +45,14 @@ export function useOrderFormSubmit() {
         managersEmail: order.managersEmail || "",
         plant: selectedPlant,
         timestamp: new Date().toISOString(),
-        userId: user?.id || "anonymous",
-        userEmail: user?.email || "anonymous",
+        userId: user ? user.id || "anonymous" : "anonymous",
+        userEmail: user ? user.email || "anonymous" : "anonymous",
       }));
 
-      // Submit the orders
-      await submitOrder(formattedOrders);
+      // Submit each order to Supabase
+      for (const order of formattedOrders) {
+        await saveOrderToSupabase(order);
+      }
 
       toast({
         title: "Orders Submitted Successfully",
