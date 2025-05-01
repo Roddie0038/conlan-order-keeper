@@ -24,7 +24,9 @@ export function useWheelFormValidation() {
       return false;
     }
 
-    if (!isAdmin && formData.storeName !== isAdmin?.store) {
+    // Fix: Check if user is not admin and the store name doesn't match the user's store
+    // The issue was trying to access isAdmin.store when isAdmin is a boolean
+    if (!isAdmin && formData.storeName !== formData.userStore) {
       toast({
         title: "Unauthorized",
         description: "You can only submit orders for your own store.",

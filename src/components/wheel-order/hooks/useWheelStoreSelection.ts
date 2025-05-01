@@ -21,7 +21,8 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
         setFormData(prev => ({
           ...prev,
           storeName: user.store,
-          storeId: storeId
+          storeId: storeId,
+          userStore: user.store  // Set the userStore field based on the authenticated user
         }));
       }
 
@@ -45,7 +46,8 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
       setFormData(prev => ({ 
         ...prev, 
         storeId: value,
-        storeName: selectedStore.name
+        storeName: selectedStore.name,
+        userStore: user?.store || ""  // Preserve the user's actual store for validation
       }));
       
       const email = getManagerEmail(selectedStore.name);
