@@ -31,9 +31,8 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
   const printComponentRef = useRef<HTMLDivElement>(null);
   
   const handlePrint = useReactToPrint({
+    content: () => printComponentRef.current,
     documentTitle: "Cross-Dock-Transfer-Form",
-    onBeforeGetContent: () => Promise.resolve(),
-    onPrintError: () => console.error("Failed to print the document"),
     removeAfterPrint: true,
     copyStyles: true,
     pageStyle: "@page { size: auto; margin: 10mm; }",
@@ -52,11 +51,7 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
             variant="outline" 
             size="sm"
             className="flex items-center border-purple-300 hover:bg-purple-100 text-purple-700 dark:text-purple-300"
-            onClick={() => {
-              if (printComponentRef.current) {
-                handlePrint(printComponentRef.current);
-              }
-            }}
+            onClick={handlePrint}
           >
             <Printer className="h-4 w-4 mr-1" />
             Print Form
