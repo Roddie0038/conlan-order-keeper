@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -142,7 +141,7 @@ export function useWheelOrderForm() {
         quantity: formData.qtyWheels,
         scheduleArrival: formData.scheduleArrival || formData.dateReceived,
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
-        crossDock: "No",
+        crossDock: "No", // Default value for wheel orders - they are not cross-docked
         managersEmail: managerEmail,
         managerEmail: managerEmail,
         plant: selectedPlant,
@@ -161,7 +160,7 @@ export function useWheelOrderForm() {
 
       const result = await submitToGoogleSheets(submissionData);
       
-      // Save to Supabase
+      // Save to Supabase - Updated to include crossDock
       await saveOrderToSupabase({
         name: formData.yourName,
         store: formData.storeName,
@@ -172,7 +171,8 @@ export function useWheelOrderForm() {
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
         email: managerEmail,
         timestamp: new Date().toISOString(),
-        type: "WHEEL_POWDER_COATING"
+        type: "WHEEL_POWDER_COATING",
+        crossDock: "No" // Added default value for wheel orders
       });
       
       if (result.status === 'success' || result.status === 'partial_success') {

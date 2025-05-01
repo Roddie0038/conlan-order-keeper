@@ -1,4 +1,3 @@
-
 import { MTOFormData } from "../mto-form-config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -134,7 +133,7 @@ export const useSubmitMTOOrder = ({
       console.log("Sending order data to webhook:", orderData);
       const result = await submitToGoogleSheets(orderData);
       
-      // Save to Supabase
+      // Save to Supabase - Updated to include crossDock
       await saveOrderToSupabase({
         name: formData.name,
         store: formData.store,
@@ -145,7 +144,8 @@ export const useSubmitMTOOrder = ({
         notes: formData.notes || "",
         email: managersEmail,
         timestamp: new Date().toISOString(),
-        type: "MTO"
+        type: "MTO",
+        crossDock: "No" // Added default value for MTO orders
       });
       
       if (result.status === 'success' || result.status === 'partial_success') {
