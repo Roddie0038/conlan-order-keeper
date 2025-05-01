@@ -45,8 +45,8 @@ export function useOrderFormSubmit() {
         managersEmail: order.managersEmail || "",
         plant: selectedPlant,
         timestamp: new Date().toISOString(),
-        userId: user ? user.id || "anonymous" : "anonymous",
-        userEmail: user ? user.email || "anonymous" : "anonymous",
+        userId: user ? user.username || "anonymous" : "anonymous",
+        userEmail: user ? user.store || "anonymous" : "anonymous",
       }));
 
       // Submit each order to Supabase
