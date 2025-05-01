@@ -46,8 +46,9 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
   const handlePrintForm = useReactToPrint({
     content: () => printComponentRef.current,
     documentTitle: "Cross-Dock-Transfer-Form",
-    onBeforePrint: () => {
+    onBeforePrint: async () => {
       console.log("Preparing to print cross dock form...");
+      return Promise.resolve(); // Ensures the type matches Promise<void>
     },
     onPrintError: (error) => {
       console.error("Print error:", error);
