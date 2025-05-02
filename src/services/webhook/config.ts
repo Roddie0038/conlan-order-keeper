@@ -5,7 +5,7 @@ import { CrossDockFields } from '@/types/cross-dock.types';
 // Webhook URLs for Google Apps Script
 export const WEBHOOK_URLS = {
   // New Orders (Orders Tab)
-  ORDERS: "https://script.google.com/macros/s/AKfycbz2aEWpMizZhDFXsG4IxnQFCwj50-GjzVLZ1PcIkxNRhJRILLY-Cp4uh2kDryZll5kTfg/exec",
+  ORDERS: "https://script.google.com/macros/s/AKfycbyRUwzQsWUI5D9zUzNauc21UtUYBtk5VBUFwraHs3p_bQbe6ZAT9gBaSKOgToPbmpTG7Q/exec",
   // Wheel Orders (Stores Wheel Orders Tab)
   WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec",
   // MTO Orders (MTO'S Tab)
