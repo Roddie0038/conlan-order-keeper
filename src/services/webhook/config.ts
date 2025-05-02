@@ -1,4 +1,3 @@
-
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { CrossDockFields } from '@/types/cross-dock.types';
 
@@ -12,18 +11,11 @@ export const WEBHOOK_URLS = {
   MTO_ORDERS: "https://script.google.com/macros/s/AKfycbySpbQtyGFnhR1pvMq53HwBAUXGI-TS5j7wcaCq0m9zotDyvV-IzGXJJCU3nOrUc5z-wQ/exec"
 };
 
-// Additional webhook endpoints
-export const ADDITIONAL_WEBHOOKS = {
-  GP97_ORDERS: "https://eot9y6n22fro4la.m.pipedream.net",
-  ZAPIER_NEW_ORDERS: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
-};
-
 // Log webhook URLs on initial load for verification
 console.log("🔍 CONFIG - Webhook URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS URL:", WEBHOOK_URLS.ORDERS);
 console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
 console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
-console.log("🔍 CONFIG - ZAPIER_NEW_ORDERS URL:", ADDITIONAL_WEBHOOKS.ZAPIER_NEW_ORDERS);
 
 // Define plant type
 export type Plant = keyof typeof PLANT_WEBHOOKS;

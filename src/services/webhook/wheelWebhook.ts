@@ -9,6 +9,13 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
     console.log("🔍 WHEEL ORDER WEBHOOK - Data type:", data.type);
     console.log("🔍 WHEEL ORDER WEBHOOK - Has qtyWheels:", 'qtyWheels' in data);
     
+    // Verify this is actually a wheel order
+    if (data.type !== 'WHEEL_POWDER_COATING' && !('qtyWheels' in data && data.qtyWheels)) {
+      console.error("❌ WHEEL ORDER WEBHOOK - Incorrect order type sent to wheel webhook:", data.type);
+      console.error("❌ WHEEL ORDER WEBHOOK - This should not be processed as a wheel order");
+      return false;
+    }
+    
     // Extract the store number from the store name (e.g., "Fort Worth 22" -> "22")
     const storeMatch = data.store?.match(/\d+/);
     const storeNumber = storeMatch ? storeMatch[0] : "";
@@ -26,7 +33,9 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       wheel_size: data.wheelSize || "",
       desired_color: data.wheelColor || "",
       email: data.managersEmail || data.managerEmail || "",
-      store_colors: "" // This could be populated if available
+      store_colors: "", // This could be populated if available
+      order_source: "web_app", // Add source for tracking purposes
+      order_type: "WHEEL_POWDER_COATING" // Explicitly mark the order type
     };
 
     // Log exactly what we're sending and to which URL
@@ -42,9 +51,6 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       });
     }
 
-    // Confirm the type is set correctly
-    console.log("🔍 WHEEL ORDER WEBHOOK - Order type:", data.type);
-    
     // Log the exact URL being used for final verification
     console.log("🔍 WHEEL ORDER WEBHOOK - Final webhook URL check:", WEBHOOK_URLS.WHEEL_ORDERS);
     console.log("🔍 WHEEL ORDER WEBHOOK - Expected correct URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
@@ -67,4 +73,3 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
     return false;
   }
 };
-

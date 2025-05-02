@@ -17,14 +17,14 @@ export const PLANT_WEBHOOKS = {
     transferRequests: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
   },
   "Mulberry 99": {
-    wheelOrders: "https://hooks.zapier.com/hooks/catch/21741437/20t4pic/",
-    mtoOrders: "https://hooks.zapier.com/hooks/catch/21741437/20t4mfn/",
-    transferRequests: "https://hooks.zapier.com/hooks/catch/21741437/20tbqy0/"
+    wheelOrders: "",
+    mtoOrders: "",
+    transferRequests: ""
   },
   "Romulus 098": {
-    wheelOrders: "https://hooks.zapier.com/hooks/catch/21741437/20tiytj/",
-    mtoOrders: "https://hooks.zapier.com/hooks/catch/21741437/20t1so6/",
-    transferRequests: "https://hooks.zapier.com/hooks/catch/21741437/20t1otr/"
+    wheelOrders: "",
+    mtoOrders: "",
+    transferRequests: ""
   }
 };
 

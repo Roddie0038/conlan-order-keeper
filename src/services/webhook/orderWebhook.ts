@@ -1,11 +1,20 @@
 
 import { submitToWebhook } from './utils';
-import { WEBHOOK_URLS, ADDITIONAL_WEBHOOKS } from './config';
+import { WEBHOOK_URLS } from './config';
 import { formatDate } from './utils';
 import { CrossDockWebhookPayload } from '@/types/webhook.types';
 
 export const submitToOrdersWebhook = async (data: any) => {
   try {
+    // Skip if this isn't a transfer order
+    if (data.type === 'WHEEL_POWDER_COATING' || data.type === 'MTO') {
+      console.warn("❌ ORDER WEBHOOK - Non-transfer order type sent to order webhook:", data.type);
+      console.warn("❌ ORDER WEBHOOK - This should not be processed as a transfer order");
+      return false;
+    }
+
+    console.log("🔍 ORDER WEBHOOK - Processing transfer order");
+    
     // Check if scheduleArrival is a weekday name
     const isWeekdayName = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Will Call Pick Up)$/i.test(data.scheduleArrival);
     
@@ -21,6 +30,8 @@ export const submitToOrdersWebhook = async (data: any) => {
       notes: data.notes || "",
       email: data.managersEmail || data.managerEmail || "",
       cross_dock: data.crossDock?.toLowerCase() === "yes" ? "Yes" : "No",
+      order_source: "web_app", // Add source for tracking purposes
+      order_type: "TRANSFER" // Explicitly mark the order type
     };
     
     // Only add cross dock specific fields when crossDock is "Yes"
@@ -32,9 +43,8 @@ export const submitToOrdersWebhook = async (data: any) => {
       mappedData.eta_date = data.etaDate ? formatDate(data.etaDate) : "";
     }
 
-    console.log("Sending mapped data to Orders webhook:", mappedData);
-    console.log("Using Orders webhook URL:", WEBHOOK_URLS.ORDERS);
-    console.log("Schedule arrival value being sent:", mappedData.schedule_arrival);
+    console.log("🔍 ORDER WEBHOOK - Sending mapped data to Orders webhook:", mappedData);
+    console.log("🔍 ORDER WEBHOOK - Using Orders webhook URL:", WEBHOOK_URLS.ORDERS);
 
     // Submit to Google Sheets webhook
     const googleSheetsResponse = await fetch(WEBHOOK_URLS.ORDERS, {
@@ -46,29 +56,13 @@ export const submitToOrdersWebhook = async (data: any) => {
       body: JSON.stringify(mappedData),
     });
 
-    console.log("Successfully triggered Orders Google Sheets webhook");
+    console.log("🔍 ORDER WEBHOOK - Successfully triggered Orders Google Sheets webhook");
     
-    // Also submit to Zapier webhook for new orders
-    console.log("Also submitting to Zapier webhook:", ADDITIONAL_WEBHOOKS.ZAPIER_NEW_ORDERS);
+    // Also submit to plant-specific Zapier webhook (already handled in sheets.ts)
     
-    const zapierResponse = await fetch(ADDITIONAL_WEBHOOKS.ZAPIER_NEW_ORDERS, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      mode: "no-cors", // Use no-cors to avoid CORS issues
-      body: JSON.stringify({
-        ...mappedData,
-        submission_source: "transfer_request",
-        timestamp: new Date().toISOString()
-      }),
-    });
-    
-    console.log("Successfully triggered Zapier webhook for new orders");
-
     return true;
   } catch (error) {
-    console.error("Error triggering Orders webhooks:", error);
+    console.error("❌ ORDER WEBHOOK - Error triggering Orders webhooks:", error);
     return false;
   }
 };

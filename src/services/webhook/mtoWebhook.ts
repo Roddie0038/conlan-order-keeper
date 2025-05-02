@@ -7,16 +7,11 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
   try {
     console.log("🔍 MTO WEBHOOK - Starting MTO webhook submission");
     console.log("🔍 MTO WEBHOOK - Verification - Data type:", data.type);
-    console.log("🔍 MTO WEBHOOK - Verification - Is this wheel order?", {
-      isWheelType: data.type === 'WHEEL_POWDER_COATING',
-      hasQtyWheels: 'qtyWheels' in data && Boolean(data.qtyWheels),
-      hasWheelProperties: Boolean(data.wheelColor || data.wheelSize || data.wheelType)
-    });
     
-    // If this is a wheel order that somehow got routed here, log a warning
-    if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
-      console.error("⚠️ MTO WEBHOOK - WARNING: Wheel order incorrectly routed to MTO webhook!");
-      console.error("⚠️ MTO WEBHOOK - This should never happen. Please check routing logic.");
+    // Verify this is actually an MTO order
+    if (data.type !== 'MTO') {
+      console.error("❌ MTO WEBHOOK - Incorrect order type sent to MTO webhook:", data.type);
+      console.error("❌ MTO WEBHOOK - This should not be processed as an MTO order");
       return false;
     }
     
@@ -43,7 +38,9 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       projected_delivery: data.scheduleArrival ? formatDate(data.scheduleArrival) : formatDate(new Date().toISOString()),
       tread_inventory: "To Be Determined", // Default value
       submitted_by: data.yourName || data.name || "",
-      email: data.managersEmail || data.managerEmail || ""
+      email: data.managersEmail || data.managerEmail || "",
+      order_source: "web_app", // Add source for tracking purposes
+      order_type: "MTO" // Explicitly mark the order type
     };
 
     console.log("🔍 MTO WEBHOOK - Sending mapped data to MTO Orders webhook:", mappedData);
@@ -65,4 +62,3 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
     return false;
   }
 };
-

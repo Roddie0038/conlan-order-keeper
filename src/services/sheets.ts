@@ -8,8 +8,7 @@ import {
   OrderType, 
   OrderData, 
   MTOOrderData,
-  WEBHOOK_URLS,
-  ADDITIONAL_WEBHOOKS
+  WEBHOOK_URLS
 } from './webhook/config';
 
 export type { OrderType, OrderData, MTOOrderData };
@@ -32,21 +31,14 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   const plant = data.plant || "Grand Prairie 97";
   console.log("🔍 SHEETS - Selected plant for webhook submission:", plant);
   
+  // Skip webhook submission if not Grand Prairie 97
+  if (plant !== "Grand Prairie 97") {
+    console.log("🔍 ROUTING - Skipping webhook submission for non-GP97 plant:", plant);
+    return { status: 'success' };
+  }
+  
   try {
     const results = [];
-    
-    // If the plant is Grand Prairie 97, send to the additional webhook
-    if (plant === "Grand Prairie 97") {
-      console.log("🔍 ROUTING - Sending to GP97 additional webhook");
-      const gp97Result = await fetch(ADDITIONAL_WEBHOOKS.GP97_ORDERS, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      results.push(gp97Result.ok);
-    }
     
     // For crossDock="Yes" orders, ensure we have the destination manager email
     // Only check this for OrderData types, not MTOOrderData
@@ -63,9 +55,11 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       
       // Send to the plant-specific MTO webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].mtoOrders;
-      console.log("🔍 ROUTING - Using plant-specific MTO webhook URL:", plantUrl);
-      const plantWebhookResult = await submitToWebhook(plantUrl, data);
-      results.push(plantWebhookResult);
+      if (plantUrl) {
+        console.log("🔍 ROUTING - Using plant-specific MTO webhook URL:", plantUrl);
+        const plantWebhookResult = await submitToWebhook(plantUrl, data);
+        results.push(plantWebhookResult);
+      }
       
       // Send to the new MTO Orders webhook
       console.log("🔍 ROUTING - Sending to MTO Orders Google Sheet webhook");
@@ -86,9 +80,11 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       
       // Send to the plant-specific Wheel Orders webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].wheelOrders;
-      console.log("🔍 ROUTING - Using plant-specific Wheel webhook URL:", plantUrl);
-      const plantWebhookResult = await submitToWebhook(plantUrl, data);
-      results.push(plantWebhookResult);
+      if (plantUrl) {
+        console.log("🔍 ROUTING - Using plant-specific Wheel webhook URL:", plantUrl);
+        const plantWebhookResult = await submitToWebhook(plantUrl, data);
+        results.push(plantWebhookResult);
+      }
       
       // Send to the Wheel Orders webhook
       console.log("🔍 ROUTING - Sending to Wheel Orders Google Sheet webhook");
@@ -103,12 +99,14 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       // Default to TRANSFER type for regular orders
       // Send to the plant-specific webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;
-      console.log("🔍 ROUTING - Using plant-specific Transfer webhook URL:", plantUrl);
-      const plantWebhookResult = await submitToWebhook(plantUrl, data);
-      results.push(plantWebhookResult);
+      if (plantUrl) {
+        console.log("🔍 ROUTING - Using plant-specific Transfer webhook URL:", plantUrl);
+        const plantWebhookResult = await submitToWebhook(plantUrl, data);
+        results.push(plantWebhookResult);
+      }
       
-      // Send to the new Orders webhook and Zapier
-      console.log("🔍 ROUTING - Sending to Orders Google Sheet webhook and Zapier");
+      // Send to the new Orders webhook
+      console.log("🔍 ROUTING - Sending to Orders Google Sheet webhook");
       const ordersResult = await submitToOrdersWebhook(data);
       results.push(ordersResult);
       

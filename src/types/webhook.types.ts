@@ -24,4 +24,7 @@ export interface CrossDockWebhookPayload {
   destination_manager_email?: string;
   receiver_no?: string;
   eta_date?: string;
+  order_source?: string;
+  order_type?: string;
 }
+
