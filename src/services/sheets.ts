@@ -95,6 +95,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     }
     else {
       console.log("🔍 ROUTING - Processing regular TRANSFER order");
+      console.log("🔍 ROUTING - Using updated webhook URL for transfer orders");
       
       // Default to TRANSFER type for regular orders
       // Send to the plant-specific webhook

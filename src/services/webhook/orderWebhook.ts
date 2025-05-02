@@ -14,6 +14,7 @@ export const submitToOrdersWebhook = async (data: any) => {
     }
 
     console.log("🔍 ORDER WEBHOOK - Processing transfer order");
+    console.log("🔍 ORDER WEBHOOK - Using updated Orders webhook URL:", WEBHOOK_URLS.ORDERS);
     
     // Check if scheduleArrival is a weekday name
     const isWeekdayName = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Will Call Pick Up)$/i.test(data.scheduleArrival);
