@@ -5,11 +5,11 @@ import { CrossDockFields } from '@/types/cross-dock.types';
 // Webhook URLs for Google Apps Script
 export const WEBHOOK_URLS = {
   // New Orders (Orders Tab)
-  ORDERS: "https://script.google.com/macros/s/AKfycbz2aEWpMizZhDFXsG4IxnQFCwj50-GjzVLZ1PcIkxNRhJRILLY-Cp4uh2kDryZll5kTfg/exec",
+  ORDERS: "https://script.google.com/macros/s/AKfycbwWSU8hJCZkg3m3ASQQOcrhLnBu4mu7pbgdzYy-wk5yx81kBSp8o8xR534BP7iiqBsMVQ/exec",
   // Wheel Orders (Stores Wheel Orders Tab)
-  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec",
+  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbzKqcxF0lJaplxHS65J_YeOqwE8R528wqmdakeGK07uxAFCMId_44l58zro7DXVRXLUbw/exec",
   // MTO Orders (MTO'S Tab)
-  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbySpbQtyGFnhR1pvMq53HwBAUXGI-TS5j7wcaCq0m9zotDyvV-IzGXJJCU3nOrUc5z-wQ/exec"
+  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbxW5uKeEQGc8470iq7Zo8piFBp2hAwP8YNTIzVBm9WSiqp7OO3jIeqP69ezvJJcwLDf4A/exec"
 };
 
 // Log webhook URLs on initial load for verification
