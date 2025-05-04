@@ -6,7 +6,7 @@ import { CrossDockWebhookPayload } from '@/types/webhook.types';
 
 // Webhook URLs for transfer orders
 const N8N_WEBHOOK_URL = "https://roddie.app.n8n.cloud/webhook-test/b3ecab16-dd6a-4c2e-b88f-ffd741f8d6b2";
-const N8N_NEW_ORDER_WEBHOOK_URL = "https://roddie.app.n8n.cloud/webhook/new-order";
+const N8N_NEW_ORDER_WEBHOOK_URL = "https://roddie.app.n8n.cloud/webhook/New Order";
 
 export const submitToOrdersWebhook = async (data: any) => {
   try {
