@@ -4,8 +4,9 @@ import { WEBHOOK_URLS } from './config';
 import { formatDate } from './utils';
 import { CrossDockWebhookPayload } from '@/types/webhook.types';
 
-// New n8n webhook URL for transfer orders
+// Webhook URLs for transfer orders
 const N8N_WEBHOOK_URL = "https://roddie.app.n8n.cloud/webhook-test/b3ecab16-dd6a-4c2e-b88f-ffd741f8d6b2";
+const N8N_NEW_ORDER_WEBHOOK_URL = "https://roddie.app.n8n.cloud/webhook/new-order";
 
 export const submitToOrdersWebhook = async (data: any) => {
   try {
@@ -62,8 +63,8 @@ export const submitToOrdersWebhook = async (data: any) => {
 
     console.log("🔍 ORDER WEBHOOK - Successfully triggered Orders Google Sheets webhook");
     
-    // Also submit to new n8n webhook (for transfer orders only)
-    console.log("🔍 ORDER WEBHOOK - Sending data to n8n webhook:", N8N_WEBHOOK_URL);
+    // Submit to first n8n webhook
+    console.log("🔍 ORDER WEBHOOK - Sending data to first n8n webhook:", N8N_WEBHOOK_URL);
     
     const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
       method: "POST",
@@ -74,7 +75,21 @@ export const submitToOrdersWebhook = async (data: any) => {
       body: JSON.stringify(mappedData),
     });
     
-    console.log("🔍 ORDER WEBHOOK - Successfully triggered n8n webhook");
+    console.log("🔍 ORDER WEBHOOK - Successfully triggered first n8n webhook");
+    
+    // Submit to new n8n webhook
+    console.log("🔍 ORDER WEBHOOK - Sending data to new n8n webhook:", N8N_NEW_ORDER_WEBHOOK_URL);
+    
+    const newN8nResponse = await fetch(N8N_NEW_ORDER_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      mode: "no-cors", // Use no-cors to avoid CORS issues
+      body: JSON.stringify(mappedData),
+    });
+    
+    console.log("🔍 ORDER WEBHOOK - Successfully triggered new n8n webhook");
     
     // Also submit to plant-specific Zapier webhook (already handled in sheets.ts)
     
