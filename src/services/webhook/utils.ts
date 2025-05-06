@@ -57,62 +57,20 @@ export const submitToWebhook = async (url: string, data: any) => {
     console.log("Using plant webhook URL:", url);
     console.log("Schedule Arrival value being sent:", formattedData.scheduleArrival);
 
-    // TEMPORARILY REMOVED mode: "no-cors" for debugging
-    try {
-      console.log("🔍 WEBHOOK UTILS - Initiating fetch request to webhook URL:", url);
-      
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        // mode: "no-cors" has been temporarily removed for debugging
-        body: JSON.stringify(formattedData),
-      });
-      
-      // Log detailed response information
-      console.log(`🔍 WEBHOOK UTILS - Response received from webhook: ${url}`);
-      console.log("🔍 WEBHOOK UTILS - HTTP Status:", response.status);
-      console.log("🔍 WEBHOOK UTILS - Status Text:", response.statusText);
-      
-      // Log response headers
-      const headers: Record<string, string> = {};
-      response.headers.forEach((value, key) => {
-        headers[key] = value;
-      });
-      console.log("🔍 WEBHOOK UTILS - Response Headers:", headers);
-      
-      // Attempt to parse and log the response body
-      try {
-        const responseText = await response.text();
-        console.log("🔍 WEBHOOK UTILS - Response Body Text:", responseText);
-        
-        try {
-          // Try to parse as JSON if possible
-          const responseJson = JSON.parse(responseText);
-          console.log("🔍 WEBHOOK UTILS - Response Body JSON:", responseJson);
-        } catch (jsonError) {
-          console.log("🔍 WEBHOOK UTILS - Response is not JSON format");
-        }
-      } catch (textError) {
-        console.error("❌ WEBHOOK UTILS - Error reading response body:", textError);
-      }
-      
-      // Check if response was successful
-      if (response.ok) {
-        console.log(`🔍 WEBHOOK UTILS - Successfully triggered webhook: ${url}`);
-        return true;
-      } else {
-        console.error(`❌ WEBHOOK UTILS - Error from webhook ${url}: ${response.status} ${response.statusText}`);
-        return false;
-      }
-      
-    } catch (fetchError) {
-      console.error(`❌ WEBHOOK UTILS - Fetch error triggering webhook ${url}:`, fetchError);
-      return false;
-    }
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      mode: "no-cors", // Keep no-cors mode for CORS handling
+      body: JSON.stringify(formattedData),
+    });
+
+    // With no-cors, we won't get a meaningful status, but the request will go through
+    console.log(`Successfully triggered plant webhook: ${url}`);
+    return true;
   } catch (error) {
-    console.error(`❌ WEBHOOK UTILS - Error triggering webhook ${url}:`, error);
+    console.error(`Error triggering plant webhook ${url}:`, error);
     return false;
   }
 };
