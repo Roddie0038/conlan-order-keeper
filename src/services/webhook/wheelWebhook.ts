@@ -53,9 +53,6 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
 
     // Log the exact URL being used for final verification
     console.log("🔍 WHEEL ORDER WEBHOOK - Final webhook URL check:", WEBHOOK_URLS.WHEEL_ORDERS);
-    console.log("🔍 WHEEL ORDER WEBHOOK - Expected correct URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
-    console.log("🔍 WHEEL ORDER WEBHOOK - Do URLs match?", 
-                WEBHOOK_URLS.WHEEL_ORDERS === "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
     
     const response = await fetch(WEBHOOK_URLS.WHEEL_ORDERS, {
       method: "POST",
