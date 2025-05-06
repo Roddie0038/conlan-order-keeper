@@ -43,6 +43,13 @@ export const submitToOrdersWebhook = async (data: any) => {
       mappedData.receiver_no = data.receiverNo || "";
       mappedData.eta_date = data.etaDate ? formatDate(data.etaDate) : "";
     }
+    
+    // Add admin test mode flag if applicable
+    if (data.isTestData || data.testMode) {
+      mappedData.test_data = true;
+      mappedData.notes = `[TEST DATA - NO NOTIFICATIONS] ${mappedData.notes}`;
+      console.log("🔍 ORDER WEBHOOK - Admin test mode detected - marking as test data");
+    }
 
     console.log("🔍 ORDER WEBHOOK - Sending mapped data to Orders webhook:", mappedData);
     console.log("🔍 ORDER WEBHOOK - Using Orders webhook URL:", WEBHOOK_URLS.ORDERS);
