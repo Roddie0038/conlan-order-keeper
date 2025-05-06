@@ -16,10 +16,9 @@ import { stores, getManagerEmail } from "@/components/order-form/formConfig";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, User, Building, Calendar as CalendarIcon2, Mail, Lock } from "lucide-react";
+import { CalendarIcon, User, Building, Calendar as CalendarIcon2, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
-import { getCurrentDateTime } from "@/utils/dateTime";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -27,15 +26,10 @@ interface ContactSectionProps {
 
 export function ContactSection({ form }: ContactSectionProps) {
   const { user } = useAuth();
-  const isAdmin = user?.isAdmin || false;
   
   // Set the store to the user's store on component mount for non-admin users
-  // Also set the current date and time
   useEffect(() => {
-    // Set current date and time for all users
-    form.setValue("dateReceived", getCurrentDateTime());
-    
-    if (user && user.store && !isAdmin) {
+    if (user && user.store && !user.isAdmin) {
       // Set store
       form.setValue("store", user.store);
       
@@ -45,7 +39,7 @@ export function ContactSection({ form }: ContactSectionProps) {
         form.setValue("managersEmail", managerEmail);
       }
     }
-  }, [user, isAdmin, form]);
+  }, [user, form]);
   
   return (
     <>
@@ -80,7 +74,6 @@ export function ContactSection({ form }: ContactSectionProps) {
               <FormLabel className="flex items-center">
                 <Building className="h-4 w-4 mr-1 text-gray-400" />
                 Store*
-                {!isAdmin && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
               </FormLabel>
               <Select 
                 onValueChange={(value) => {
@@ -91,17 +84,14 @@ export function ContactSection({ form }: ContactSectionProps) {
                 }} 
                 defaultValue={field.value}
                 value={field.value}
-                disabled={!isAdmin}
+                disabled={!user?.isAdmin}
               >
                 <FormControl>
-                  <SelectTrigger className={`transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200 ${!isAdmin ? 'bg-gray-100' : ''}`}>
+                  <SelectTrigger className="transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200">
                     <SelectValue placeholder="Select a store" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {isAdmin && (
-                    <SelectItem value="Admin">Admin Only</SelectItem>
-                  )}
                   {stores.map((store) => (
                     <SelectItem key={store.id} value={store.name}>
                       {store.name}
@@ -122,7 +112,6 @@ export function ContactSection({ form }: ContactSectionProps) {
               <FormLabel className="flex items-center">
                 <Mail className="h-4 w-4 mr-1 text-gray-400" />
                 Manager's Email
-                <Lock className="h-3 w-3 ml-1 text-gray-500" />
               </FormLabel>
               <FormControl>
                 <Input 
@@ -145,14 +134,12 @@ export function ContactSection({ form }: ContactSectionProps) {
               <FormLabel className="flex items-center">
                 <CalendarIcon2 className="h-4 w-4 mr-1 text-gray-400" />
                 Date Received*
-                <Lock className="h-3 w-3 ml-1 text-gray-500" />
               </FormLabel>
               <FormControl>
                 <Input 
                   type="datetime-local" 
                   {...field}
-                  disabled={true}
-                  className="bg-gray-100 transition-all border-gray-300" 
+                  className="transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200" 
                 />
               </FormControl>
               <FormMessage />

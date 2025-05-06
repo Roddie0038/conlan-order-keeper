@@ -1,35 +1,34 @@
-
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { submitToGoogleSheets } from "@/services/sheets";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { submitToOrdersWebhook } from "@/services/webhook/orderWebhook";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
+import { Send } from "lucide-react";
+import { usePlant } from "@/contexts/PlantContext";
+import { getManagerEmail } from "@/components/order-form/formConfig";
+import { saveOrderToSupabase } from "@/services/orderService";
+import type { OrderSummary } from "./types";
+import { OrderType } from "@/services/webhook/config";
 
 interface OrderSubmissionHandlerProps {
-  orderSummaries: any[];
-  setOrderSummaries: React.Dispatch<React.SetStateAction<any[]>>;
+  orderSummaries: OrderSummary[];
+  setOrderSummaries: React.Dispatch<React.SetStateAction<OrderSummary[]>>;
 }
 
-export function OrderSubmissionHandler({ 
-  orderSummaries, 
-  setOrderSummaries 
-}: OrderSubmissionHandlerProps) {
+export const OrderSubmissionHandler = ({
+  orderSummaries,
+  setOrderSummaries
+}: OrderSubmissionHandlerProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
-  const isAdmin = user?.isAdmin || false;
-  const [testMode, setTestMode] = useState(false);
+  const { selectedPlant } = usePlant();
 
-  const selectedOrders = orderSummaries.filter(order => order.selected);
-  
-  const handleSubmitOrders = async () => {
+  const handleSubmitSelected = async () => {
+    const selectedOrders = orderSummaries.filter(order => order.selected);
+    
     if (selectedOrders.length === 0) {
       toast({
-        title: "No orders selected",
-        description: "Please select at least one order to submit",
+        title: "No Orders Selected",
+        description: "Please select at least one order to submit.",
         variant: "destructive"
       });
       return;
@@ -38,102 +37,91 @@ export function OrderSubmissionHandler({
     setIsSubmitting(true);
     
     try {
-      // Admin test mode notification - but now webhooks will still be triggered
-      if (isAdmin && !testMode) {
-        toast({
-          title: "Admin Test Mode",
-          description: "Order submission processed in test mode - webhooks will be triggered with TEST flags, but no notifications will be sent to stores."
-        });
-      }
-      
-      // Normal submission process for both admin and store users
       for (const order of selectedOrders) {
-        // Add test flag to orders if admin is in test mode
-        if (isAdmin && !testMode) {
-          order.isTestData = true;
-          order.testMode = true;
+        const managersEmail = getManagerEmail(order.store);
+        
+        // Get destination manager email if crossDock is "Yes"
+        let destinationManagerEmail = "";
+        if (order.crossDock === "Yes" && order.crossDockDestination) {
+          destinationManagerEmail = getManagerEmail(order.crossDockDestination);
         }
         
-        // Always send webhook for both test and live modes
-        await submitToOrdersWebhook(order);
+        // Create the submission data with proper typing
+        const submissionData = {
+          ...order,
+          managersEmail,
+          plant: selectedPlant,
+          timestamp: new Date().toISOString(),
+          type: order.type || "TRANSFER" as OrderType,
+          destinationManagerEmail: order.crossDock === "Yes" ? destinationManagerEmail : undefined
+        };
+
+        await submitToGoogleSheets(submissionData);
+
+        await saveOrderToSupabase({
+          name: order.yourName,
+          store: order.store,
+          productNumber: order.productNumber,
+          description: order.description,
+          quantity: order.quantity,
+          scheduleArrival: order.scheduleArrival,
+          notes: order.notes,
+          crossDock: order.crossDock,
+          crossDockDestination: order.crossDockDestination,
+          receiverNo: order.receiverNo,
+          etaDate: order.etaDate,
+          destinationManagerEmail: order.crossDock === "Yes" ? destinationManagerEmail : undefined,
+          email: managersEmail,
+          timestamp: new Date().toISOString(),
+          type: order.type || "TRANSFER"
+        });
+
+        const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
+        existingOrders.push({
+          ...order,
+          managersEmail,
+          destinationManagerEmail: order.crossDock === "Yes" ? destinationManagerEmail : undefined,
+          plant: selectedPlant,
+          type: order.type || "TRANSFER"
+        });
+        localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
       }
-      
-      // Store in local storage
-      const timestamp = new Date().toLocaleString();
-      const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-      
-      const newCompletedOrders = selectedOrders.map(order => ({
-        ...order,
-        id: order.id,
-        timestamp: timestamp,
-        testMode: isAdmin && !testMode ? true : false
-      }));
-      
-      localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...newCompletedOrders]));
-      
-      // Remove submitted orders from summary
+
       setOrderSummaries(prev => prev.filter(order => !order.selected));
       
       toast({
-        title: "Orders submitted successfully",
-        description: `${selectedOrders.length} order(s) have been submitted successfully${isAdmin && !testMode ? " in test mode" : ""}.`
+        title: "Orders Submitted",
+        description: `Successfully submitted ${selectedOrders.length} order(s).`
       });
     } catch (error) {
       console.error("Error submitting orders:", error);
       toast({
-        title: "Error submitting orders",
-        description: "There was an error submitting the orders. Please try again.",
+        title: "Error",
+        description: "Failed to submit orders. Please try again.",
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  if (orderSummaries.length === 0) {
-    return null;
-  }
-  
+
   return (
-    <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div>
-          <h3 className="font-medium mb-1">Submit Selected Orders</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {selectedOrders.length} of {orderSummaries.length} orders selected
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          {isAdmin && (
-            <div className="flex items-center">
-              <Checkbox
-                id="testMode"
-                checked={testMode}
-                onCheckedChange={(checked) => setTestMode(checked as boolean)}
-                className="mr-2"
-              />
-              <Label htmlFor="testMode" className="text-sm">
-                Enable notifications (live mode)
-              </Label>
-            </div>
+    orderSummaries.length > 0 ? (
+      <div className="mt-6 flex justify-end">
+        <Button
+          onClick={handleSubmitSelected}
+          disabled={isSubmitting || !orderSummaries.some(order => order.selected)}
+          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center gap-2"
+        >
+          {isSubmitting ? (
+            "Submitting..."
+          ) : (
+            <>
+              <Send className="h-4 w-4" /> Submit Selected Orders
+            </>
           )}
-          
-          <Button
-            onClick={handleSubmitOrders}
-            disabled={isSubmitting || selectedOrders.length === 0}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Check className="h-4 w-4 mr-2" />
-            )}
-            Submit {selectedOrders.length} Order{selectedOrders.length !== 1 ? 's' : ''}
-            {isAdmin && !testMode && " (Test Mode)"}
-          </Button>
-        </div>
+        </Button>
       </div>
-    </div>
+    ) : null
   );
-}
+};

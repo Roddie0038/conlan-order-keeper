@@ -9,7 +9,6 @@ import { StoreFields } from "./components/StoreFields";
 import { OrderInfoFields } from "./components/OrderInfoFields";
 import { ConfirmationCheckbox } from "./components/ConfirmationCheckbox";
 import { PrintFormButton } from "./components/PrintFormButton";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface CrossDockDetailsFormProps {
   form: UseFormReturn<OrderFormValues>;
@@ -17,8 +16,6 @@ interface CrossDockDetailsFormProps {
 
 export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
   const [destManagerEmail, setDestManagerEmail] = useState<string>("");
-  const { user } = useAuth();
-  const isAdmin = user?.isAdmin || false;
   
   // Update manager email when destination store changes
   useEffect(() => {
@@ -33,21 +30,6 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
     const email = getManagerEmail(value);
     setDestManagerEmail(email || "");
   };
-
-  // Auto-validate that FROM and TO stores are different
-  useEffect(() => {
-    const fromStore = form.watch("store");
-    const toStore = form.watch("crossDockDestination");
-    
-    if (fromStore && toStore && fromStore === toStore) {
-      form.setError("crossDockDestination", {
-        type: "manual",
-        message: "Destination store cannot be the same as origin store"
-      });
-    } else {
-      form.clearErrors("crossDockDestination");
-    }
-  }, [form.watch("store"), form.watch("crossDockDestination"), form]);
   
   return (
     <Card className="mt-4 p-4 border border-purple-200 bg-purple-50 dark:bg-purple-900/20">
@@ -63,14 +45,12 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <StoreFields 
           form={form} 
-          onDestinationChange={handleDestinationChange}
-          isAdmin={isAdmin}
+          onDestinationChange={handleDestinationChange} 
         />
 
         <OrderInfoFields 
           form={form} 
-          destManagerEmail={destManagerEmail}
-          isAdmin={isAdmin} 
+          destManagerEmail={destManagerEmail} 
         />
       </div>
 
@@ -80,7 +60,7 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
 
       {/* Print button moved to the bottom */}
       <div className="mt-6 flex justify-center">
-        <PrintFormButton form={form} isAdmin={isAdmin} />
+        <PrintFormButton form={form} />
       </div>
     </Card>
   );

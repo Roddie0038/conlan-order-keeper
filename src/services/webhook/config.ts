@@ -33,10 +33,6 @@ export interface BaseOrderData {
   managerEmail?: string; // Add both formats to ensure compatibility
   plant: string;
   destinationManagerEmail?: string; // Added for cross dock orders
-  
-  // Add test mode properties
-  isTestData?: boolean;
-  testMode?: boolean;
 }
 
 export interface OrderData extends BaseOrderData, CrossDockFields {
