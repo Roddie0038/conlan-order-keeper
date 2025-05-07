@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,18 +9,9 @@ import { PlantProvider } from "./contexts/PlantContext";
 import { InventoryProvider } from "./contexts/InventoryContext";
 import { Navigation } from "./components/Navigation";
 import { LogoutButton } from "./components/LogoutButton";
+import { DarkModeToggle } from "./components/DarkModeToggle";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import PendingOrders from "./pages/PendingOrders";
-import MTOOrder from "./pages/MTOOrder";
-import CrossDock from "./pages/CrossDock";
-import AdminInventory from "./pages/AdminInventory";
-import AdminOrders from "./pages/AdminOrders";
-import AllOrders from "./pages/AllOrders";
-import WheelOrder from "./pages/WheelOrder";
-import OrderManagement from "./pages/OrderManagement";
-import { useEffect } from "react";
-import { orderApi } from "./api/orderApi";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,13 +24,6 @@ const queryClient = new QueryClient({
 
 function ProtectedRoute({ children, showNav = true, adminOnly = false }: { children: React.ReactNode, showNav?: boolean, adminOnly?: boolean }) {
   const { user } = useAuth();
-  
-  useEffect(() => {
-    if (window) {
-      window.orderApi = orderApi;
-      console.log("Order API initialized and available via window.orderApi");
-    }
-  }, []);
   
   if (!user) {
     return <Navigate to="/" replace />;
@@ -80,13 +65,15 @@ function App() {
                   }
                 />
                 
+                {/* Add placeholder routes for features to be implemented */}
                 <Route
                   path="/pending-orders"
                   element={
                     <ProtectedRoute>
-                      <InventoryProvider>
-                        <PendingOrders />
-                      </InventoryProvider>
+                      <div className="container mx-auto p-8">
+                        <h1 className="text-3xl font-bold mb-8">Pending Orders Page</h1>
+                        <p>This feature will be implemented in the next phase.</p>
+                      </div>
                     </ProtectedRoute>
                   }
                 />
@@ -94,7 +81,10 @@ function App() {
                   path="/order-management"
                   element={
                     <ProtectedRoute>
-                      <OrderManagement />
+                      <div className="container mx-auto p-8">
+                        <h1 className="text-3xl font-bold mb-8">Order Management Page</h1>
+                        <p>This feature will be implemented in the next phase.</p>
+                      </div>
                     </ProtectedRoute>
                   }
                 />
@@ -102,7 +92,10 @@ function App() {
                   path="/mto-order"
                   element={
                     <ProtectedRoute>
-                      <MTOOrder />
+                      <div className="container mx-auto p-8">
+                        <h1 className="text-3xl font-bold mb-8">MTO Order Page</h1>
+                        <p>This feature will be implemented in the next phase.</p>
+                      </div>
                     </ProtectedRoute>
                   }
                 />
@@ -110,15 +103,21 @@ function App() {
                   path="/cross-dock"
                   element={
                     <ProtectedRoute>
-                      <CrossDock />
+                      <div className="container mx-auto p-8">
+                        <h1 className="text-3xl font-bold mb-8">Cross Dock Page</h1>
+                        <p>This feature will be implemented in the next phase.</p>
+                      </div>
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/wheel-order"
                   element={
-                    <ProtectedRoute showNav={false}>
-                      <WheelOrder />
+                    <ProtectedRoute>
+                      <div className="container mx-auto p-8">
+                        <h1 className="text-3xl font-bold mb-8">Wheel Order Page</h1>
+                        <p>This feature will be implemented in the next phase.</p>
+                      </div>
                     </ProtectedRoute>
                   }
                 />
@@ -126,7 +125,10 @@ function App() {
                   path="/admin-inventory"
                   element={
                     <ProtectedRoute adminOnly={true}>
-                      <AdminInventory />
+                      <div className="container mx-auto p-8">
+                        <h1 className="text-3xl font-bold mb-8">Admin Inventory Page</h1>
+                        <p>This feature will be implemented in the next phase.</p>
+                      </div>
                     </ProtectedRoute>
                   }
                 />
@@ -134,9 +136,10 @@ function App() {
                   path="/admin-orders"
                   element={
                     <ProtectedRoute adminOnly={true}>
-                      <InventoryProvider>
-                        <AdminOrders />
-                      </InventoryProvider>
+                      <div className="container mx-auto p-8">
+                        <h1 className="text-3xl font-bold mb-8">Admin Orders Page</h1>
+                        <p>This feature will be implemented in the next phase.</p>
+                      </div>
                     </ProtectedRoute>
                   }
                 />
@@ -144,7 +147,10 @@ function App() {
                   path="/all-orders"
                   element={
                     <ProtectedRoute adminOnly={true}>
-                      <AllOrders />
+                      <div className="container mx-auto p-8">
+                        <h1 className="text-3xl font-bold mb-8">All Orders Page</h1>
+                        <p>This feature will be implemented in the next phase.</p>
+                      </div>
                     </ProtectedRoute>
                   }
                 />

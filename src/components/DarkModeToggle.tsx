@@ -1,39 +1,30 @@
 
 import { Moon, Sun } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 export function DarkModeToggle() {
-  const [isDark, setIsDark] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains("dark");
-    setIsDark(isDarkMode);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
-  const toggleDarkMode = () => {
-    const newMode = !isDark;
-    setIsDark(newMode);
-    if (newMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
+  if (!mounted) return null;
 
   return (
-    <Button 
-      variant="outline" 
-      size="icon" 
-      onClick={toggleDarkMode}
-      className="rounded-full bg-transparent border-none hover:bg-gray-200 dark:hover:bg-gray-700"
-      aria-label="Toggle dark mode"
+    <Button
+      variant="ghost"
+      size="icon"
+      className="rounded-full bg-transparent hover:bg-blue-800/50"
+      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
     >
-      {isDark ? (
-        <Sun className="h-5 w-5 text-yellow-500" />
+      {theme === 'light' ? (
+        <Sun className="h-5 w-5 text-yellow-300" />
       ) : (
-        <Moon className="h-5 w-5 text-slate-700" />
+        <Moon className="h-5 w-5 text-blue-200" />
       )}
+      <span className="sr-only">Toggle theme</span>
     </Button>
   );
 }

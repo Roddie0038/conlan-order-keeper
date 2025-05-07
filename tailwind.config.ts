@@ -95,7 +95,7 @@ export default {
   },
   plugins: [
     require("tailwindcss-animate"),
-    function({ addUtilities }) {
+    function({ addUtilities }: { addUtilities: Function }) {
       const newUtilities = {
         '.rotate-y-12': {
           transform: 'rotateY(12deg)',
