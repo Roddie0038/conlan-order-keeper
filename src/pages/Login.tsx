@@ -14,7 +14,7 @@ const usernames = [
 
 export default function Login() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black relative overflow-hidden">
       <LoginBackground />
       <LoginCard usernames={usernames} />
     </div>

@@ -30,7 +30,7 @@ export const LoginForm = ({ usernames }: LoginFormProps) => {
       if (login(username, password, selectedPlant)) {
         toast({
           title: "Login successful",
-          description: `Welcome back to ${selectedPlant} Store Order System!`,
+          description: `Welcome back to ${selectedPlant} Order Tracking!`,
           className: "bg-green-50 border-green-200",
         });
         navigate("/dashboard");

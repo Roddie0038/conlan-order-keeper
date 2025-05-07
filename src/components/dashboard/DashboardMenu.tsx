@@ -2,6 +2,7 @@
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { DeploymentControls } from "@/components/admin/DeploymentControls";
 
 interface DashboardMenuProps {
   loaded: boolean;
@@ -97,6 +98,12 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
           <MenuCard key={item.title} item={item} loaded={loaded} />
         ))}
       </div>
+      
+      {user?.username === 'Conlan97' && (
+        <div className="mt-10 max-w-md mx-auto">
+          <DeploymentControls />
+        </div>
+      )}
     </>
   );
 }

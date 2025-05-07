@@ -1,6 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { DarkModeToggle } from "./DarkModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { LayoutDashboard, Database, ClipboardList, ShoppingCart, Disc, Building, Package } from "lucide-react";
@@ -75,6 +76,7 @@ export function Navigation() {
               <Building className="w-4 h-4 text-amber-400" />
               <span className="text-sm font-bold text-amber-400">{selectedPlant}</span>
             </div>
+            <DarkModeToggle />
           </div>
         </div>
       </div>
