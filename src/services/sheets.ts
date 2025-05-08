@@ -31,12 +31,6 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   const plant = data.plant || "Grand Prairie 97";
   console.log("🔍 SHEETS - Selected plant for webhook submission:", plant);
   
-  // Skip webhook submission if not Grand Prairie 97
-  if (plant !== "Grand Prairie 97") {
-    console.log("🔍 ROUTING - Skipping webhook submission for non-GP97 plant:", plant);
-    return { status: 'success' };
-  }
-  
   try {
     const results = [];
     
@@ -54,7 +48,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       console.log("🔍 ROUTING - Processing MTO order");
       
       // Send to the plant-specific MTO webhook
-      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].mtoOrders;
+      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.mtoOrders;
       if (plantUrl) {
         console.log("🔍 ROUTING - Using plant-specific MTO webhook URL:", plantUrl);
         const plantWebhookResult = await submitToWebhook(plantUrl, data);
@@ -79,7 +73,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       data.type = 'WHEEL_POWDER_COATING';
       
       // Send to the plant-specific Wheel Orders webhook
-      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].wheelOrders;
+      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.wheelOrders;
       if (plantUrl) {
         console.log("🔍 ROUTING - Using plant-specific Wheel webhook URL:", plantUrl);
         const plantWebhookResult = await submitToWebhook(plantUrl, data);
@@ -97,13 +91,15 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       console.log("🔍 ROUTING - Processing regular TRANSFER order");
       console.log("🔍 ROUTING - Using updated webhook URL for transfer orders");
       
-      // Default to TRANSFER type for regular orders
       // Send to the plant-specific webhook
-      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;
+      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.transferRequests;
       if (plantUrl) {
         console.log("🔍 ROUTING - Using plant-specific Transfer webhook URL:", plantUrl);
+        console.log("🔍 ROUTING - Plant URL for transferRequests:", plantUrl);
         const plantWebhookResult = await submitToWebhook(plantUrl, data);
         results.push(plantWebhookResult);
+      } else {
+        console.log("❌ ROUTING - No plant-specific webhook URL found for:", plant);
       }
       
       // Send to the new Orders webhook

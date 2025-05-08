@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
@@ -6,6 +7,8 @@ import { submitToOrdersWebhook } from "@/services/webhook/orderWebhook";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlant } from "@/contexts/PlantContext";
+import { submitToWebhook } from "@/services/webhook/utils";
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: any[];
@@ -19,6 +22,7 @@ export function OrderSubmissionHandler({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
+  const { selectedPlant, PLANT_WEBHOOKS } = usePlant();
   const isAdmin = user?.isAdmin || false;
   const [testMode, setTestMode] = useState(false);
 
@@ -66,7 +70,23 @@ export function OrderSubmissionHandler({
 
       // Normal submission process for store users or admins with test mode enabled
       for (const order of selectedOrders) {
-        await submitToOrdersWebhook(order);
+        // Ensure proper plant information is included
+        const orderWithPlant = {
+          ...order,
+          plant: selectedPlant
+        };
+        
+        await submitToOrdersWebhook(orderWithPlant);
+        
+        // For admin users with test mode enabled, also send to the plant-specific webhook
+        if (isAdmin && testMode) {
+          console.log("Admin user submitting with live mode to plant:", selectedPlant);
+          const plantUrl = PLANT_WEBHOOKS[selectedPlant]?.transferRequests;
+          if (plantUrl) {
+            console.log("Sending to plant-specific webhook:", plantUrl);
+            await submitToWebhook(plantUrl, orderWithPlant);
+          }
+        }
       }
       
       // Store in local storage
@@ -76,7 +96,8 @@ export function OrderSubmissionHandler({
       const newCompletedOrders = selectedOrders.map(order => ({
         ...order,
         id: order.id,
-        timestamp: timestamp
+        timestamp: timestamp,
+        plant: selectedPlant
       }));
       
       localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...newCompletedOrders]));

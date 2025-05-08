@@ -6,6 +6,7 @@ export type Plant = 'Grand Prairie 97' | 'Romulus 098' | 'Mulberry 99';
 interface PlantContextType {
   selectedPlant: Plant;
   setSelectedPlant: (plant: Plant) => void;
+  PLANT_WEBHOOKS: typeof PLANT_WEBHOOKS;
 }
 
 const PlantContext = createContext<PlantContextType | undefined>(undefined);
@@ -39,7 +40,7 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
   }, [selectedPlant]);
 
   return (
-    <PlantContext.Provider value={{ selectedPlant, setSelectedPlant }}>
+    <PlantContext.Provider value={{ selectedPlant, setSelectedPlant, PLANT_WEBHOOKS }}>
       {children}
     </PlantContext.Provider>
   );
