@@ -25,32 +25,35 @@ export interface OrderData extends CrossDockFields {
 }
 
 export async function saveOrderToSupabase(order: OrderData) {
+  // Get current timestamp if not provided
+  const timestamp = order.timestamp || new Date().toISOString();
+
   // Format the order data to match the Supabase table structure
   const formattedOrder = {
-    Name: order.name || "",
-    Store: order.store,
-    "Product Number": order.productNumber || "",
-    Description: order.description || "",
-    Quantity: typeof order.quantity === 'string' ? parseInt(order.quantity) : order.quantity || 0,
-    "Schedule Arrival": order.scheduleArrival || "",
-    Notes: order.notes || "",
-    "Cross Dock": order.crossDock || "No",
-    "Cross Dock Destination": order.crossDockDestination || "",
-    "Receiver No": order.receiverNo || "",
-    "ETA Date": order.etaDate || "",
-    "Cross Dock Confirmation": order.crossDockConfirmation || false,
-    "Invoice#": order.invoiceNumber || "",
-    Email: order.email || "",
-    "Destination Manager Email": order.destinationManagerEmail || "", // Added for Cross Dock orders
-    Timestamp: order.timestamp || new Date().toISOString(),
-    type: order.type || "TRANSFER"
+    timestamp: timestamp, // Add timestamp explicitly to match the Supabase schema requirement
+    completed: order.completed || false,
+    name: order.name || "",
+    store: order.store,
+    product_number: order.productNumber || "",
+    description: order.description || "",
+    quantity: typeof order.quantity === 'string' ? parseInt(order.quantity) : order.quantity || 0,
+    schedule_arrival: order.scheduleArrival || "",
+    notes: order.notes || "",
+    cross_dock_type: order.crossDock || "No",
+    cross_dock_destination: order.crossDockDestination || "",
+    cross_dock_receiver_number: order.receiverNo || "",
+    "cross_dock_ eta_date": order.etaDate || "",
+    invoice_number: order.invoiceNumber || "",
+    email: order.email || "",
+    destination_manager_email: order.destinationManagerEmail || "", // Added for Cross Dock orders
+    order_type: order.type || "TRANSFER"
   };
 
   console.log("Saving order to Supabase:", formattedOrder);
 
   const { data, error } = await supabase
     .from('orders')
-    .insert([formattedOrder]);
+    .insert(formattedOrder);
 
   if (error) {
     console.error("❌ Supabase Insert Error:", error);
