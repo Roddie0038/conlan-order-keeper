@@ -30,6 +30,8 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   
   const plant = data.plant || "Grand Prairie 97";
   console.log("🔍 SHEETS - Selected plant for webhook submission:", plant);
+  console.log("🔍 SHEETS - All plant webhooks:", PLANT_WEBHOOKS);
+  console.log("🔍 SHEETS - Plant webhook for selected plant:", PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]);
   
   try {
     const results = [];
@@ -53,6 +55,8 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
         console.log("🔍 ROUTING - Using plant-specific MTO webhook URL:", plantUrl);
         const plantWebhookResult = await submitToWebhook(plantUrl, data);
         results.push(plantWebhookResult);
+      } else {
+        console.log("⚠️ ROUTING - No plant-specific MTO webhook URL found for plant:", plant);
       }
       
       // Send to the new MTO Orders webhook
@@ -78,6 +82,8 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
         console.log("🔍 ROUTING - Using plant-specific Wheel webhook URL:", plantUrl);
         const plantWebhookResult = await submitToWebhook(plantUrl, data);
         results.push(plantWebhookResult);
+      } else {
+        console.log("⚠️ ROUTING - No plant-specific Wheel webhook URL found for plant:", plant);
       }
       
       // Send to the Wheel Orders webhook
@@ -98,14 +104,16 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
         console.log("🔍 ROUTING - Plant URL for transferRequests:", plantUrl);
         const plantWebhookResult = await submitToWebhook(plantUrl, data);
         results.push(plantWebhookResult);
+        console.log("🔍 ROUTING - Plant webhook submission result:", plantWebhookResult);
       } else {
-        console.log("❌ ROUTING - No plant-specific webhook URL found for:", plant);
+        console.error("❌ ROUTING - No plant-specific webhook URL found for:", plant);
       }
       
       // Send to the new Orders webhook
       console.log("🔍 ROUTING - Sending to Orders Google Sheet webhook");
       const ordersResult = await submitToOrdersWebhook(data);
       results.push(ordersResult);
+      console.log("🔍 ROUTING - Orders webhook submission result:", ordersResult);
       
       console.log("🔍 ROUTING - Transfer order processed completely");
     }

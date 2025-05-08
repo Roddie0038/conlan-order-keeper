@@ -50,12 +50,17 @@ export const prepareWebhookData = (data: any) => {
  */
 export const submitToWebhook = async (url: string, data: any) => {
   try {
+    if (!url || url.trim() === "") {
+      console.error("❌ WEBHOOK - Empty webhook URL provided");
+      return false;
+    }
+    
     // Format the data before sending
     const formattedData = prepareWebhookData(data);
 
-    console.log("Sending formatted data to plant webhook:", formattedData);
-    console.log("Using plant webhook URL:", url);
-    console.log("Schedule Arrival value being sent:", formattedData.scheduleArrival);
+    console.log("🔍 WEBHOOK - Sending formatted data to webhook:", formattedData);
+    console.log("🔍 WEBHOOK - Using webhook URL:", url);
+    console.log("🔍 WEBHOOK - Schedule Arrival value being sent:", formattedData.scheduleArrival);
 
     const response = await fetch(url, {
       method: "POST",
@@ -67,10 +72,10 @@ export const submitToWebhook = async (url: string, data: any) => {
     });
 
     // With no-cors, we won't get a meaningful status, but the request will go through
-    console.log(`Successfully triggered plant webhook: ${url}`);
+    console.log(`🔍 WEBHOOK - Successfully triggered webhook: ${url}`);
     return true;
   } catch (error) {
-    console.error(`Error triggering plant webhook ${url}:`, error);
+    console.error(`❌ WEBHOOK - Error triggering webhook ${url}:`, error);
     return false;
   }
 };

@@ -29,14 +29,20 @@ export const PLANT_WEBHOOKS = {
   }
 };
 
+console.log("🔍 PLANT CONTEXT - Loading plant webhooks:", PLANT_WEBHOOKS);
+console.log("🔍 PLANT CONTEXT - Transfer webhook for Grand Prairie 97:", PLANT_WEBHOOKS["Grand Prairie 97"].transferRequests);
+
 export function PlantProvider({ children }: { children: React.ReactNode }) {
   const [selectedPlant, setSelectedPlant] = useState<Plant>(() => {
     const savedPlant = localStorage.getItem('selectedPlant');
+    console.log("🔍 PLANT CONTEXT - Loading saved plant from localStorage:", savedPlant);
     return (savedPlant as Plant) || 'Grand Prairie 97';
   });
 
   useEffect(() => {
     localStorage.setItem('selectedPlant', selectedPlant);
+    console.log("🔍 PLANT CONTEXT - Saving selected plant to localStorage:", selectedPlant);
+    console.log("🔍 PLANT CONTEXT - Selected plant webhooks:", PLANT_WEBHOOKS[selectedPlant]);
   }, [selectedPlant]);
 
   return (

@@ -28,8 +28,12 @@ interface PendingOrdersTableProps {
 
 export function PendingOrdersTable({ orders, onComplete }: PendingOrdersTableProps) {
   const { user } = useAuth();
-  const { selectedPlant } = usePlant();
+  const { selectedPlant, PLANT_WEBHOOKS } = usePlant();
 
+  // Debug log to see if webhook URLs are available
+  console.log("🔍 TABLE DEBUG - Selected Plant:", selectedPlant);
+  console.log("🔍 TABLE DEBUG - Plant Webhooks:", PLANT_WEBHOOKS[selectedPlant]?.transferRequests);
+  
   return (
     <div className="backdrop-blur-sm p-8 shadow-xl rounded-2xl bg-slate-800/90 border border-slate-700">
       <h2 className="font-bold mb-6 text-slate-50 text-center text-2xl flex items-center justify-center gap-2">
