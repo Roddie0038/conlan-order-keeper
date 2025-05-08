@@ -33,13 +33,11 @@ export function PrintFormButton({ form, isAdmin = false }: PrintFormButtonProps)
       return;
     }
 
-    // Admin test mode notification - but now webhooks will still be triggered
-    if (isAdmin) {
+    // Admin test mode notification
+    if (isAdmin && !isTesting) {
       toast({
-        title: isAdmin && !isTesting ? "Admin Test Mode" : "Admin Live Mode",
-        description: isAdmin && !isTesting 
-          ? "Test mode active - webhooks will be triggered with 'TEST' flags. No notifications will be sent to stores."
-          : "Live mode active - all notifications will be sent as normal."
+        title: "Admin Test Mode",
+        description: "Email notifications and document generation are suppressed in test mode."
       });
     }
     

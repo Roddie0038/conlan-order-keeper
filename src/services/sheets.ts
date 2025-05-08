@@ -31,14 +31,11 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   const plant = data.plant || "Grand Prairie 97";
   console.log("🔍 SHEETS - Selected plant for webhook submission:", plant);
   
-  // Add test flag to data if it's from admin test mode
-  if (data.isTestData || data.testMode) {
-    console.log("🔍 SHEETS - Admin test mode detected - marking as test data");
-    // These flags will be processed by the specific webhook handlers
+  // Skip webhook submission if not Grand Prairie 97
+  if (plant !== "Grand Prairie 97") {
+    console.log("🔍 ROUTING - Skipping webhook submission for non-GP97 plant:", plant);
+    return { status: 'success' };
   }
-  
-  // Skip webhook submission if not Grand Prairie 97 - REMOVED THIS RESTRICTION
-  // Now we send to webhooks regardless of plant selection
   
   try {
     const results = [];
@@ -57,7 +54,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       console.log("🔍 ROUTING - Processing MTO order");
       
       // Send to the plant-specific MTO webhook
-      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.mtoOrders;
+      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].mtoOrders;
       if (plantUrl) {
         console.log("🔍 ROUTING - Using plant-specific MTO webhook URL:", plantUrl);
         const plantWebhookResult = await submitToWebhook(plantUrl, data);
@@ -82,7 +79,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       data.type = 'WHEEL_POWDER_COATING';
       
       // Send to the plant-specific Wheel Orders webhook
-      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.wheelOrders;
+      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].wheelOrders;
       if (plantUrl) {
         console.log("🔍 ROUTING - Using plant-specific Wheel webhook URL:", plantUrl);
         const plantWebhookResult = await submitToWebhook(plantUrl, data);
@@ -102,7 +99,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       
       // Default to TRANSFER type for regular orders
       // Send to the plant-specific webhook
-      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.transferRequests;
+      const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS].transferRequests;
       if (plantUrl) {
         console.log("🔍 ROUTING - Using plant-specific Transfer webhook URL:", plantUrl);
         const plantWebhookResult = await submitToWebhook(plantUrl, data);

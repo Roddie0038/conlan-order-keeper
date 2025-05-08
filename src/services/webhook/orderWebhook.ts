@@ -43,70 +43,25 @@ export const submitToOrdersWebhook = async (data: any) => {
       mappedData.receiver_no = data.receiverNo || "";
       mappedData.eta_date = data.etaDate ? formatDate(data.etaDate) : "";
     }
-    
-    // Add admin test mode flag if applicable
-    if (data.isTestData || data.testMode) {
-      mappedData.test_data = true;
-      mappedData.notes = `[TEST DATA - NO NOTIFICATIONS] ${mappedData.notes}`;
-      console.log("🔍 ORDER WEBHOOK - Admin test mode detected - marking as test data");
-    }
 
     console.log("🔍 ORDER WEBHOOK - Sending mapped data to Orders webhook:", mappedData);
     console.log("🔍 ORDER WEBHOOK - Using Orders webhook URL:", WEBHOOK_URLS.ORDERS);
 
-    // Submit to Google Sheets webhook - TEMPORARILY REMOVED mode: "no-cors" for debugging
-    try {
-      console.log("🔍 ORDER WEBHOOK - Initiating fetch request to Google Sheets webhook...");
-      
-      const googleSheetsResponse = await fetch(WEBHOOK_URLS.ORDERS, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        // mode: "no-cors" has been temporarily removed for debugging
-        body: JSON.stringify(mappedData),
-      });
-      
-      // Log detailed response information
-      console.log("🔍 ORDER WEBHOOK - Response received from Google Sheets webhook");
-      console.log("🔍 ORDER WEBHOOK - HTTP Status:", googleSheetsResponse.status);
-      console.log("🔍 ORDER WEBHOOK - Status Text:", googleSheetsResponse.statusText);
-      
-      // Log response headers
-      const headers: Record<string, string> = {};
-      googleSheetsResponse.headers.forEach((value, key) => {
-        headers[key] = value;
-      });
-      console.log("🔍 ORDER WEBHOOK - Response Headers:", headers);
-      
-      // Attempt to parse and log the response body
-      try {
-        const responseText = await googleSheetsResponse.text();
-        console.log("🔍 ORDER WEBHOOK - Response Body Text:", responseText);
-        
-        try {
-          // Try to parse as JSON if possible
-          const responseJson = JSON.parse(responseText);
-          console.log("🔍 ORDER WEBHOOK - Response Body JSON:", responseJson);
-        } catch (jsonError) {
-          console.log("🔍 ORDER WEBHOOK - Response is not JSON format");
-        }
-      } catch (textError) {
-        console.error("❌ ORDER WEBHOOK - Error reading response body:", textError);
-      }
-      
-      // Check if response was successful
-      if (googleSheetsResponse.ok) {
-        console.log("🔍 ORDER WEBHOOK - Successfully triggered Orders Google Sheets webhook");
-        return true;
-      } else {
-        console.error(`❌ ORDER WEBHOOK - Error from Google Sheets webhook: ${googleSheetsResponse.status} ${googleSheetsResponse.statusText}`);
-        return false;
-      }
-    } catch (fetchError) {
-      console.error("❌ ORDER WEBHOOK - Fetch error triggering Orders webhook:", fetchError);
-      return false;
-    }
+    // Submit to Google Sheets webhook
+    const googleSheetsResponse = await fetch(WEBHOOK_URLS.ORDERS, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      mode: "no-cors", // Use no-cors to avoid CORS issues
+      body: JSON.stringify(mappedData),
+    });
+
+    console.log("🔍 ORDER WEBHOOK - Successfully triggered Orders Google Sheets webhook");
+    
+    // Also submit to plant-specific Zapier webhook (already handled in sheets.ts)
+    
+    return true;
   } catch (error) {
     console.error("❌ ORDER WEBHOOK - Error triggering Orders webhooks:", error);
     return false;

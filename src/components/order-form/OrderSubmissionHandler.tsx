@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
@@ -38,23 +37,35 @@ export function OrderSubmissionHandler({
     setIsSubmitting(true);
     
     try {
-      // Admin test mode notification - but now webhooks will still be triggered
+      // Admin test mode notification
       if (isAdmin && !testMode) {
         toast({
           title: "Admin Test Mode",
-          description: "Order submission processed in test mode - webhooks will be triggered with TEST flags, but no notifications will be sent to stores."
+          description: "Order submission processed in test mode - no notifications will be sent."
         });
-      }
-      
-      // Normal submission process for both admin and store users
-      for (const order of selectedOrders) {
-        // Add test flag to orders if admin is in test mode
-        if (isAdmin && !testMode) {
-          order.isTestData = true;
-          order.testMode = true;
-        }
         
-        // Always send webhook for both test and live modes
+        // Store in local storage but don't trigger webhooks
+        const timestamp = new Date().toLocaleString();
+        const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
+        
+        const adminTestOrders = selectedOrders.map(order => ({
+          ...order,
+          id: order.id,
+          timestamp: timestamp,
+          testMode: true
+        }));
+        
+        localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...adminTestOrders]));
+        
+        // Remove submitted orders from summary
+        setOrderSummaries(prev => prev.filter(order => !order.selected));
+        
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Normal submission process for store users or admins with test mode enabled
+      for (const order of selectedOrders) {
         await submitToOrdersWebhook(order);
       }
       
@@ -65,8 +76,7 @@ export function OrderSubmissionHandler({
       const newCompletedOrders = selectedOrders.map(order => ({
         ...order,
         id: order.id,
-        timestamp: timestamp,
-        testMode: isAdmin && !testMode ? true : false
+        timestamp: timestamp
       }));
       
       localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...newCompletedOrders]));
@@ -76,7 +86,7 @@ export function OrderSubmissionHandler({
       
       toast({
         title: "Orders submitted successfully",
-        description: `${selectedOrders.length} order(s) have been submitted successfully${isAdmin && !testMode ? " in test mode" : ""}.`
+        description: `${selectedOrders.length} order(s) have been submitted successfully.`
       });
     } catch (error) {
       console.error("Error submitting orders:", error);
