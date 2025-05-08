@@ -24,7 +24,7 @@ export const PLANT_WEBHOOKS = {
   "Romulus 098": {
     wheelOrders: "",
     mtoOrders: "",
-    transferRequests: ""
+    transferRequests: "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/"
   }
 };
 

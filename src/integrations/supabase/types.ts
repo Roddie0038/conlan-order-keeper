@@ -63,51 +63,240 @@ export type Database = {
         }
         Relationships: []
       }
-      orders: {
+      mto_orders: {
         Row: {
-          created_at: string | null
-          "Cross Dock": string | null
-          "Cross Dock Destination": string | null
-          Description: string | null
-          Email: string | null
-          "Invoice#": string | null
-          Name: string | null
-          Notes: string | null
-          "Product Number": string | null
-          Quantity: number | null
-          "Schedule Arrival": string | null
-          Store: string | null
-          Timestamp: string
+          casing_grade: string | null
+          completed: boolean | null
+          cross_dock_form_link: string | null
+          destination_manager_email: string | null
+          email_message: string | null
+          have_casings: boolean | null
+          id: string
+          invoice_number: string | null
+          name: string | null
+          notes: string | null
+          order_completion_link: string | null
+          order_type: string | null
+          product_number: string | null
+          projected_delivery: string | null
+          quantity: number | null
+          send_email_trigger: boolean | null
+          send_invoice: boolean | null
+          store: string | null
+          timestamp: string | null
+          tire_size: string | null
+          tread: string | null
+          tread_in_inventory: boolean | null
         }
         Insert: {
-          created_at?: string | null
-          "Cross Dock"?: string | null
-          "Cross Dock Destination"?: string | null
-          Description?: string | null
-          Email?: string | null
-          "Invoice#"?: string | null
-          Name?: string | null
-          Notes?: string | null
-          "Product Number"?: string | null
-          Quantity?: number | null
-          "Schedule Arrival"?: string | null
-          Store?: string | null
-          Timestamp: string
+          casing_grade?: string | null
+          completed?: boolean | null
+          cross_dock_form_link?: string | null
+          destination_manager_email?: string | null
+          email_message?: string | null
+          have_casings?: boolean | null
+          id?: string
+          invoice_number?: string | null
+          name?: string | null
+          notes?: string | null
+          order_completion_link?: string | null
+          order_type?: string | null
+          product_number?: string | null
+          projected_delivery?: string | null
+          quantity?: number | null
+          send_email_trigger?: boolean | null
+          send_invoice?: boolean | null
+          store?: string | null
+          timestamp?: string | null
+          tire_size?: string | null
+          tread?: string | null
+          tread_in_inventory?: boolean | null
         }
         Update: {
-          created_at?: string | null
-          "Cross Dock"?: string | null
-          "Cross Dock Destination"?: string | null
-          Description?: string | null
-          Email?: string | null
-          "Invoice#"?: string | null
-          Name?: string | null
-          Notes?: string | null
-          "Product Number"?: string | null
-          Quantity?: number | null
-          "Schedule Arrival"?: string | null
-          Store?: string | null
-          Timestamp?: string
+          casing_grade?: string | null
+          completed?: boolean | null
+          cross_dock_form_link?: string | null
+          destination_manager_email?: string | null
+          email_message?: string | null
+          have_casings?: boolean | null
+          id?: string
+          invoice_number?: string | null
+          name?: string | null
+          notes?: string | null
+          order_completion_link?: string | null
+          order_type?: string | null
+          product_number?: string | null
+          projected_delivery?: string | null
+          quantity?: number | null
+          send_email_trigger?: boolean | null
+          send_invoice?: boolean | null
+          store?: string | null
+          timestamp?: string | null
+          tire_size?: string | null
+          tread?: string | null
+          tread_in_inventory?: boolean | null
+        }
+        Relationships: []
+      }
+      order_history: {
+        Row: {
+          archived_at: string | null
+          id: string
+          original_data: Json | null
+          source_table: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          id?: string
+          original_data?: Json | null
+          source_table?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          id?: string
+          original_data?: Json | null
+          source_table?: string | null
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          completed: boolean | null
+          "cross_dock_ eta_date": string | null
+          cross_dock_destination: string | null
+          cross_dock_form_link: string | null
+          cross_dock_receiver_number: string | null
+          cross_dock_type: string | null
+          description: string | null
+          destination_manager_email: string | null
+          email: string | null
+          email_message: string | null
+          invoice_number: string | null
+          name: string | null
+          notes: string | null
+          order_completion_link: string | null
+          order_type: string | null
+          out_of_stock: boolean | null
+          product_number: string | null
+          pull_sheet_link: string | null
+          quantity: number | null
+          schedule_arrival: string | null
+          send_email_trigger: boolean | null
+          send_invoice: boolean | null
+          store: string | null
+          timestamp: string
+        }
+        Insert: {
+          completed?: boolean | null
+          "cross_dock_ eta_date"?: string | null
+          cross_dock_destination?: string | null
+          cross_dock_form_link?: string | null
+          cross_dock_receiver_number?: string | null
+          cross_dock_type?: string | null
+          description?: string | null
+          destination_manager_email?: string | null
+          email?: string | null
+          email_message?: string | null
+          invoice_number?: string | null
+          name?: string | null
+          notes?: string | null
+          order_completion_link?: string | null
+          order_type?: string | null
+          out_of_stock?: boolean | null
+          product_number?: string | null
+          pull_sheet_link?: string | null
+          quantity?: number | null
+          schedule_arrival?: string | null
+          send_email_trigger?: boolean | null
+          send_invoice?: boolean | null
+          store?: string | null
+          timestamp: string
+        }
+        Update: {
+          completed?: boolean | null
+          "cross_dock_ eta_date"?: string | null
+          cross_dock_destination?: string | null
+          cross_dock_form_link?: string | null
+          cross_dock_receiver_number?: string | null
+          cross_dock_type?: string | null
+          description?: string | null
+          destination_manager_email?: string | null
+          email?: string | null
+          email_message?: string | null
+          invoice_number?: string | null
+          name?: string | null
+          notes?: string | null
+          order_completion_link?: string | null
+          order_type?: string | null
+          out_of_stock?: boolean | null
+          product_number?: string | null
+          pull_sheet_link?: string | null
+          quantity?: number | null
+          schedule_arrival?: string | null
+          send_email_trigger?: boolean | null
+          send_invoice?: boolean | null
+          store?: string | null
+          timestamp?: string
+        }
+        Relationships: []
+      }
+      wheel_orders: {
+        Row: {
+          completed: boolean | null
+          cross_dock_form_link: string | null
+          desired_color: string | null
+          destination_manager_email: string | null
+          email_message: string | null
+          hand_holes: number | null
+          id: string
+          name: string | null
+          order_type: string | null
+          quantity: number | null
+          send_email_trigger: boolean | null
+          store: string | null
+          timestamp: string | null
+          wheel_material: string | null
+          wheel_size: string | null
+          wheel_type: string | null
+          work_order_link: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          cross_dock_form_link?: string | null
+          desired_color?: string | null
+          destination_manager_email?: string | null
+          email_message?: string | null
+          hand_holes?: number | null
+          id?: string
+          name?: string | null
+          order_type?: string | null
+          quantity?: number | null
+          send_email_trigger?: boolean | null
+          store?: string | null
+          timestamp?: string | null
+          wheel_material?: string | null
+          wheel_size?: string | null
+          wheel_type?: string | null
+          work_order_link?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          cross_dock_form_link?: string | null
+          desired_color?: string | null
+          destination_manager_email?: string | null
+          email_message?: string | null
+          hand_holes?: number | null
+          id?: string
+          name?: string | null
+          order_type?: string | null
+          quantity?: number | null
+          send_email_trigger?: boolean | null
+          store?: string | null
+          timestamp?: string | null
+          wheel_material?: string | null
+          wheel_size?: string | null
+          wheel_type?: string | null
+          work_order_link?: string | null
         }
         Relationships: []
       }
@@ -116,7 +305,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      archive_order_by_invoice: {
+        Args: { p_invoice: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
