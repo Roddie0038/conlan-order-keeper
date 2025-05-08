@@ -9,7 +9,9 @@ export const WEBHOOK_URLS = {
   // Wheel Orders
   WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycby787MsaPsVc9A-lV9UmFagAsvwSezy7StjoX1Cxm2cb43HTSJnv7OBu7lCrRmLvUrY3w/exec",
   // MTO Orders
-  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbwWSU8hJCZkg3m3ASQQOcrhLnBu4mu7pbgdzYy-wk5yx81kBSp8o8xR534BP7iiqBsMVQ/exec"
+  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbwWSU8hJCZkg3m3ASQQOcrhLnBu4mu7pbgdzYy-wk5yx81kBSp8o8xR534BP7iiqBsMVQ/exec",
+  // Admin Orders
+  ADMIN_ORDERS: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
 };
 
 // Log webhook URLs on initial load for verification
@@ -17,12 +19,13 @@ console.log("🔍 CONFIG - Webhook URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS URL:", WEBHOOK_URLS.ORDERS);
 console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
 console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
+console.log("🔍 CONFIG - ADMIN_ORDERS URL:", WEBHOOK_URLS.ADMIN_ORDERS);
 
 // Define plant type
 export type Plant = keyof typeof PLANT_WEBHOOKS;
 
 // Define order type union
-export type OrderType = "MTO" | "WHEEL_POWDER_COATING" | "TRANSFER";
+export type OrderType = "MTO" | "WHEEL_POWDER_COATING" | "TRANSFER" | "ADMIN";
 
 // Base interface with common properties
 export interface BaseOrderData {

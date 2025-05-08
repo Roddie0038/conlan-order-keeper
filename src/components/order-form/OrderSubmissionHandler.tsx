@@ -31,6 +31,7 @@ export function OrderSubmissionHandler({
   console.log("🔍 ORDERS - Selected Plant:", selectedPlant);
   console.log("🔍 ORDERS - Plant Webhooks for selected plant:", PLANT_WEBHOOKS[selectedPlant]);
   console.log("🔍 ORDERS - Transfer Requests Webhook:", PLANT_WEBHOOKS[selectedPlant]?.transferRequests);
+  console.log("🔍 ORDERS - Admin Orders Webhook:", PLANT_WEBHOOKS[selectedPlant]?.adminOrders);
   
   const handleSubmitOrders = async () => {
     if (selectedOrders.length === 0) {
@@ -94,15 +95,26 @@ export function OrderSubmissionHandler({
         const result = await submitToGoogleSheets(orderWithPlant);
         console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
         
-        // For admin users with test mode enabled, also send directly to the plant-specific webhook
-        if (isAdmin && testMode) {
-          console.log("🔍 SUBMIT - Admin user submitting with live mode to plant:", selectedPlant);
-          const plantUrl = PLANT_WEBHOOKS[selectedPlant]?.transferRequests;
-          if (plantUrl) {
-            console.log("🔍 SUBMIT - Sending to plant-specific webhook:", plantUrl);
-            await submitToWebhook(plantUrl, orderWithPlant);
+        // For admin users with test mode enabled or in production mode
+        if (isAdmin) {
+          console.log("🔍 SUBMIT - Admin user submitting order to plant:", selectedPlant);
+          
+          let webhookUrl;
+          if (testMode) {
+            // Use the plant-specific webhook for test mode
+            webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.transferRequests;
+            console.log("🔍 SUBMIT - Admin in test mode, using plant-specific webhook:", webhookUrl);
           } else {
-            console.error("❌ SUBMIT - No webhook URL found for plant:", selectedPlant);
+            // Use the admin-specific webhook for production mode
+            webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.adminOrders;
+            console.log("🔍 SUBMIT - Admin in production mode, using admin webhook:", webhookUrl);
+          }
+          
+          if (webhookUrl) {
+            console.log("🔍 SUBMIT - Sending to webhook:", webhookUrl);
+            await submitToWebhook(webhookUrl, orderWithPlant);
+          } else {
+            console.error("❌ SUBMIT - No webhook URL found for this configuration");
           }
         }
       }

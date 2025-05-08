@@ -45,8 +45,27 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
       console.log("🔍 ROUTING - Added destinationManagerEmail:", data.destinationManagerEmail);
     }
     
+    // Special case: Admin submitted orders (use admin webhook if available)
+    if (data.type === 'ADMIN' || ('isAdmin' in data && data.isAdmin === true)) {
+      console.log("🔍 ROUTING - Processing ADMIN order");
+      
+      const adminWebhookUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.adminOrders;
+      if (adminWebhookUrl) {
+        console.log("🔍 ROUTING - Using admin webhook URL:", adminWebhookUrl);
+        const adminResult = await submitToWebhook(adminWebhookUrl, {
+          ...data,
+          type: 'ADMIN',
+          admin_submission: true
+        });
+        console.log("🔍 ROUTING - Admin webhook result:", adminResult);
+        results.push(adminResult);
+      } else {
+        console.log("⚠️ ROUTING - No admin webhook URL found, falling back to standard routing");
+      }
+    }
+    
     // Determine which type of order it is and submit to appropriate webhooks
-    if (data.type === 'MTO') {
+    else if (data.type === 'MTO') {
       console.log("🔍 ROUTING - Processing MTO order");
       
       // Send to the plant-specific MTO webhook

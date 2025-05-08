@@ -15,22 +15,26 @@ export const PLANT_WEBHOOKS = {
   "Grand Prairie 97": {
     wheelOrders: "https://hooks.zapier.com/hooks/catch/21741437/2c1zjty/",
     mtoOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wax8rh/",
-    transferRequests: "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/"
+    transferRequests: "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
+    adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/" // Added new admin webhook
   },
   "Mulberry 99": {
     wheelOrders: "",
     mtoOrders: "",
-    transferRequests: ""
+    transferRequests: "",
+    adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/" // Added new admin webhook
   },
   "Romulus 098": {
     wheelOrders: "",
     mtoOrders: "",
-    transferRequests: ""
+    transferRequests: "",
+    adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/" // Added new admin webhook
   }
 };
 
 console.log("🔍 PLANT CONTEXT - Loading plant webhooks:", PLANT_WEBHOOKS);
 console.log("🔍 PLANT CONTEXT - Transfer webhook for Grand Prairie 97:", PLANT_WEBHOOKS["Grand Prairie 97"].transferRequests);
+console.log("🔍 PLANT CONTEXT - Admin webhook for Grand Prairie 97:", PLANT_WEBHOOKS["Grand Prairie 97"].adminOrders);
 
 export function PlantProvider({ children }: { children: React.ReactNode }) {
   const [selectedPlant, setSelectedPlant] = useState<Plant>(() => {
