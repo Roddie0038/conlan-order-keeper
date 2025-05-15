@@ -33,6 +33,7 @@ export function useOrderFormSubmit() {
       // Format the orders for submission
       const formattedOrders = selectedOrders.map((order) => ({
         yourName: order.yourName,
+        name: order.yourName, // Explicitly set name to yourName for better identification
         store: order.store,
         dateReceived: order.dateReceived,
         productNumber: order.productNumber,
@@ -43,8 +44,9 @@ export function useOrderFormSubmit() {
         crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
         crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
         managersEmail: order.managersEmail || "",
+        email: order.managersEmail || "",
         plant: selectedPlant,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString(), // Will be reformatted in saveOrderToSupabase
         userId: user ? user.username || "anonymous" : "anonymous",
         userEmail: user ? user.store || "anonymous" : "anonymous",
       }));

@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { CrossDockFields } from "@/types/cross-dock.types";
+import { storeData } from "@/config/storeData";
 
 export interface OrderData extends CrossDockFields {
   name?: string;
@@ -25,14 +26,23 @@ export interface OrderData extends CrossDockFields {
 }
 
 export async function saveOrderToSupabase(order: OrderData) {
-  // Get current timestamp if not provided
-  const timestamp = order.timestamp || new Date().toISOString();
+  // Format timestamp as MM/DD-YYYY hh:mm AM/PM
+  const rawDate = new Date();
+  const formattedTimestamp = `${(rawDate.getMonth() + 1).toString().padStart(2, '0')}/${rawDate.getDate().toString().padStart(2, '0')}-${rawDate.getFullYear()} ${rawDate.toLocaleTimeString([], { 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: true 
+  })}`;
+
+  // Get store manager email from storeData if not supplied
+  const matchedStore = storeData.find(s => s.storeNumber === order.store);
+  const storeManagerEmail = matchedStore?.managerEmails || "";
 
   // Format the order data to match the Supabase table structure
   const formattedOrder = {
-    timestamp: timestamp, // Add timestamp explicitly to match the Supabase schema requirement
+    timestamp: formattedTimestamp,
     completed: order.completed || false,
-    name: order.name || "",
+    name: order.name || "Unknown",
     store: order.store,
     product_number: order.productNumber || "",
     description: order.description || "",
@@ -40,12 +50,12 @@ export async function saveOrderToSupabase(order: OrderData) {
     schedule_arrival: order.scheduleArrival || "",
     notes: order.notes || "",
     cross_dock_type: order.crossDock || "No",
-    cross_dock_destination: order.crossDockDestination || "",
+    cross_dock_destination: order.crossDockDestination ? `Store ${order.crossDockDestination}` : "",
     cross_dock_receiver_number: order.receiverNo || "",
-    "cross_dock_eta_date": order.etaDate || "",
+    cross_dock_eta_date: order.etaDate || "",
     invoice_number: order.invoiceNumber || "",
-    email: order.email || "",
-    destination_manager_email: order.destinationManagerEmail || "", // Added for Cross Dock orders
+    email: order.email || storeManagerEmail,
+    destination_manager_email: order.destinationManagerEmail || "",
     order_type: order.type || "TRANSFER"
   };
 
@@ -68,7 +78,7 @@ export async function fetchAllOrders() {
   const { data, error } = await supabase
     .from('orders')
     .select('*')
-    .order('Timestamp', { ascending: false });
+    .order('timestamp', { ascending: false });
 
   if (error) {
     console.error("❌ Supabase Fetch Error:", error);
