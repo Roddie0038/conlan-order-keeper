@@ -44,11 +44,15 @@ export function useOrderStatus() {
       const table = getTable(orderType);
       const timestampField = getTimestampField(newStatus);
       
-      // Use a simpler explicit type to avoid deep instantiation
-      const updateData = {
+      // Fix deep type instantiation by using a simple type annotation
+      const updateData: { 
+        status: string; 
+        status_updated_at: string;
+        [key: string]: string; 
+      } = {
         status: newStatus,
         status_updated_at: new Date().toISOString()
-      } as Record<string, string>;
+      };
       
       // Add timestamp for specific status if applicable
       if (timestampField) {

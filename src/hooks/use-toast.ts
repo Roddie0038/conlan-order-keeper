@@ -1,5 +1,5 @@
 
-import { toast as sonner, type Toast } from "sonner";
+import { toast as sonner } from "sonner";
 
 // Create a type that includes description for our toast calls
 export interface ToastProps {
@@ -66,11 +66,9 @@ const toastFn = (props: ToastProps) => {
 };
 
 // Create the final toast object with the convenience methods
-const toast = Object.assign(toastFn, {
+export const toast = Object.assign(toastFn, {
   success: sonner.success,
   error: sonner.error,
   warning: sonner.warning,
   info: sonner.info
 }) as ToastFunction;
-
-export { toast };
