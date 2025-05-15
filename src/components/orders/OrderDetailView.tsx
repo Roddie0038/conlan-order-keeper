@@ -26,7 +26,7 @@ export function OrderDetailView({ order, onClose, isAdmin = false }: OrderDetail
 
   const handlePrint = useReactToPrint({
     documentTitle: `Order-${order.id}`,
-    // Fix: useReactToPrint expects a function that returns a React element ref
+    // The correct way to use content is with a function returning a ref
     content: () => printRef.current
   });
 

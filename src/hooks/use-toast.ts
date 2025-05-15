@@ -50,10 +50,8 @@ export function useToast() {
   };
 }
 
-// Add convenience methods to sonnerToast
+// Add convenience methods to toast
 const toast = {
-  ...sonnerToast,
-  // Add support for our object style API with title/description
   success: (titleOrOptions: string | { title?: string, description?: string }, options?: any) => {
     if (typeof titleOrOptions === 'object') {
       return sonnerToast.success(titleOrOptions.title || "", {

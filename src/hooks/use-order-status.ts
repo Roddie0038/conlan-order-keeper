@@ -61,17 +61,28 @@ export function useOrderStatus() {
         .eq('id', orderId);
         
       if (error) {
-        toast.error("Status update failed: " + error.message);
+        toast({
+          title: "Status update failed",
+          description: error.message,
+          variant: "destructive"
+        });
         console.error("Error updating status:", error);
         return null;
       }
       
-      toast.success("Status updated to " + newStatus.replace(/_/g, " "));
+      toast({
+        title: "Status Updated",
+        description: `Status updated to ${newStatus.replace(/_/g, " ")}`,
+        variant: "default"
+      });
       
       return newStatus;
     } catch (error) {
       console.error("Error updating status:", error);
-      toast.error("An unexpected error occurred");
+      toast({
+        title: "An unexpected error occurred",
+        variant: "destructive"
+      });
       return null;
     } finally {
       setIsUpdating(false);
