@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { exportAllOrderData, exportToCSV, prepareOrderDataForExport } from "@/utils/exportUtils";
 import { ReactNode } from "react";
 
@@ -34,7 +34,7 @@ export const ExportButton = ({
         if (result.success) {
           toast({
             title: "Export Successful",
-            description: `Exported ${result.counts?.regular || 0} regular orders and ${result.counts?.mto || 0} MTO orders.`,
+            description: `Exported ${result.counts?.regular || 0} regular orders and ${result.counts?.mto || 0} MTO orders.`
           });
         } else {
           toast({

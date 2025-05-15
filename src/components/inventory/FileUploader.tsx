@@ -34,7 +34,7 @@ export function FileUploader({ value, onChange, disabled }: FileUploaderProps) {
       
       toast({
         title: "File Selected",
-        description: `${file.name} (${formatFileSize(file.size)})`,
+        description: `${file.name} (${formatFileSize(file.size)})`
       });
     }
   };
@@ -58,7 +58,7 @@ export function FileUploader({ value, onChange, disabled }: FileUploaderProps) {
       
       toast({
         title: "File Dropped",
-        description: `${file.name} (${formatFileSize(file.size)})`,
+        description: `${file.name} (${formatFileSize(file.size)})`
       });
     }
   };

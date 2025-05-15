@@ -4,7 +4,7 @@ import { Printer } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { OrderFormValues } from "@/components/order-form/order-form-schema";
 import { useEffect, useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface PrintFormButtonProps {
   form: UseFormReturn<OrderFormValues>;
@@ -26,9 +26,9 @@ export function PrintFormButton({ form, isAdmin = false }: PrintFormButtonProps)
     // Validation checks
     if (values.store === values.crossDockDestination) {
       toast({
-        variant: "destructive",
         title: "Invalid destination",
-        description: "The destination store cannot be the same as the origin store"
+        description: "The destination store cannot be the same as the origin store",
+        variant: "destructive"
       });
       return;
     }

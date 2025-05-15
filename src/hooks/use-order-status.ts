@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderStatus } from "@/components/orders/StatusBadge";
 
@@ -45,7 +45,7 @@ export function useOrderStatus() {
       const timestampField = getTimestampField(newStatus);
       
       // Build update object
-      const updateData: any = {
+      const updateData: Record<string, any> = {
         status: newStatus,
         status_updated_at: new Date().toISOString()
       };
@@ -66,7 +66,7 @@ export function useOrderStatus() {
         return null;
       }
       
-      toast.success("Status updated to " + newStatus);
+      toast.success("Status updated to " + newStatus.replace(/_/g, " "));
       
       return newStatus;
     } catch (error) {

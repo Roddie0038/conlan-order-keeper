@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ export function DeploymentControls() {
       if (success) {
         setLastDeployedTime(new Date().toLocaleTimeString());
         toast.success("Deployment Triggered Successfully", {
-          description: "Your changes are being deployed to production.",
+          description: "Your changes are being deployed to production."
         });
       } else {
         throw new Error(message);
@@ -33,7 +34,7 @@ export function DeploymentControls() {
     } catch (error) {
       console.error("Deployment error:", error);
       toast.error("Deployment Failed", {
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        description: error instanceof Error ? error.message : "An unknown error occurred"
       });
     } finally {
       setIsDeploying(false);
