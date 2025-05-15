@@ -44,25 +44,20 @@ export function useOrderStatus() {
       const table = getTable(orderType);
       const timestampField = getTimestampField(newStatus);
       
-      // Use a simple interface to avoid deep type instantiation
-      interface UpdateData {
-        status: string;
-        status_updated_at: string;
-        [key: string]: string | null;
-      }
-      
-      const updateData: UpdateData = {
+      // Create a simple update data object without complex typing
+      const updateData = {
         status: newStatus,
         status_updated_at: new Date().toISOString()
-      };
+      } as Record<string, any>;
       
       // Add timestamp for specific status if applicable
       if (timestampField) {
         updateData[timestampField] = new Date().toISOString();
       }
       
-      const { error } = await supabase
-        .from(table)
+      // Break the type inference chain by using type assertion
+      const { error } = await (supabase
+        .from(table) as any)
         .update(updateData)
         .eq('id', orderId);
         
