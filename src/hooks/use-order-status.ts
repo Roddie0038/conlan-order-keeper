@@ -44,12 +44,14 @@ export function useOrderStatus() {
       const table = getTable(orderType);
       const timestampField = getTimestampField(newStatus);
       
-      // Fix: Use a simpler type definition that doesn't cause deep instantiation
-      const updateData: {
+      // Use a simple interface to avoid deep type instantiation
+      interface UpdateData {
         status: string;
         status_updated_at: string;
         [key: string]: string | null;
-      } = {
+      }
+      
+      const updateData: UpdateData = {
         status: newStatus,
         status_updated_at: new Date().toISOString()
       };
