@@ -44,12 +44,8 @@ export function useOrderStatus() {
       const table = getTable(orderType);
       const timestampField = getTimestampField(newStatus);
       
-      // Fix deep type instantiation by using a simple type annotation
-      const updateData: { 
-        status: string; 
-        status_updated_at: string;
-        [key: string]: string; 
-      } = {
+      // Create a simple update data object with a specific shape to avoid deep type recursion
+      const updateData: Record<string, string> = {
         status: newStatus,
         status_updated_at: new Date().toISOString()
       };
