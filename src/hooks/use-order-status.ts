@@ -11,6 +11,12 @@ export interface StatusUpdateParams {
   orderType: 'regular' | 'mto' | 'wheel';
 }
 
+interface UpdateDataType {
+  status: string;
+  status_updated_at: string;
+  [key: string]: string | null;
+}
+
 export function useOrderStatus() {
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -44,18 +50,17 @@ export function useOrderStatus() {
       const table = getTable(orderType);
       const timestampField = getTimestampField(newStatus);
       
-      // Create a simple update data object without complex typing
-      const updateData = {
+      const updateData: UpdateDataType = {
         status: newStatus,
         status_updated_at: new Date().toISOString()
-      } as Record<string, any>;
+      };
       
       // Add timestamp for specific status if applicable
       if (timestampField) {
         updateData[timestampField] = new Date().toISOString();
       }
       
-      // Break the type inference chain by using type assertion
+      // Use type assertion to break the deep type inference chain
       const { error } = await (supabase
         .from(table) as any)
         .update(updateData)

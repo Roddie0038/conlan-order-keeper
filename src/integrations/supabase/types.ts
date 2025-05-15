@@ -178,8 +178,8 @@ export type Database = {
         Row: {
           completed: boolean | null
           completed_at: string | null
-          "cross_dock_ eta_date": string | null
           cross_dock_destination: string | null
+          cross_dock_eta_date: string | null
           cross_dock_form_link: string | null
           cross_dock_receiver_number: string | null
           cross_dock_type: string | null
@@ -210,8 +210,8 @@ export type Database = {
         Insert: {
           completed?: boolean | null
           completed_at?: string | null
-          "cross_dock_ eta_date"?: string | null
           cross_dock_destination?: string | null
+          cross_dock_eta_date?: string | null
           cross_dock_form_link?: string | null
           cross_dock_receiver_number?: string | null
           cross_dock_type?: string | null
@@ -242,8 +242,8 @@ export type Database = {
         Update: {
           completed?: boolean | null
           completed_at?: string | null
-          "cross_dock_ eta_date"?: string | null
           cross_dock_destination?: string | null
+          cross_dock_eta_date?: string | null
           cross_dock_form_link?: string | null
           cross_dock_receiver_number?: string | null
           cross_dock_type?: string | null
