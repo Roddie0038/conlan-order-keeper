@@ -42,7 +42,7 @@ export async function saveOrderToSupabase(order: OrderData) {
     cross_dock_type: order.crossDock || "No",
     cross_dock_destination: order.crossDockDestination || "",
     cross_dock_receiver_number: order.receiverNo || "",
-    "cross_dock_ eta_date": order.etaDate || "",
+    "cross_dock_eta_date": order.etaDate || "",
     invoice_number: order.invoiceNumber || "",
     email: order.email || "",
     destination_manager_email: order.destinationManagerEmail || "", // Added for Cross Dock orders
