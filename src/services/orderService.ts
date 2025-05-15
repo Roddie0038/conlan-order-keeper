@@ -1,6 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CrossDockFields } from "@/types/cross-dock.types";
-import { storeData } from "@/config/storeData"; // Adjust if needed
+import { storeData } from "@/config/storeData"; // Import the store data we just created
 
 export interface OrderData extends CrossDockFields {
   name?: string;
