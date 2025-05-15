@@ -44,11 +44,11 @@ export function useOrderStatus() {
       const table = getTable(orderType);
       const timestampField = getTimestampField(newStatus);
       
-      // Using a more specific type annotation to prevent deep type instantiation
+      // Fix: Use a simpler type definition that doesn't cause deep instantiation
       const updateData: {
         status: string;
         status_updated_at: string;
-        [key: string]: string;
+        [key: string]: string | null;
       } = {
         status: newStatus,
         status_updated_at: new Date().toISOString()
