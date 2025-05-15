@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { File, Info, CheckCircle, XCircle, Send, Sync, Hourglass } from "lucide-react";
+import { File, Info, CheckCircle, XCircle, Send, RefreshCw, Hourglass } from "lucide-react";
 
 interface OrderDetailViewProps {
   order: any;
@@ -81,7 +81,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
               </Badge>
             ) : (
               <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                <Sync className="h-3 w-3 mr-1" />
+                <RefreshCw className="h-3 w-3 mr-1" />
                 Synced to Supabase
               </Badge>
             )}

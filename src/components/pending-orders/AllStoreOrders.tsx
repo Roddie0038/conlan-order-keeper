@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Filter, Search, Info, Sync, Hourglass } from "lucide-react";
+import { Calendar, Filter, Search, Info, RefreshCw, Hourglass } from "lucide-react";
 import { OrderDetailView } from "./OrderDetailView";
 import { DatePickerWithRange } from "./DateRangePicker";
 import { ExportButton } from "@/components/ExportButton";
@@ -284,7 +284,7 @@ export function AllStoreOrders() {
                       <TableCell>
                         {order.status === "synced" ? (
                           <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                            <Sync className="h-3 w-3 mr-1" />
+                            <RefreshCw className="h-3 w-3 mr-1" />
                             Synced
                           </Badge>
                         ) : (
