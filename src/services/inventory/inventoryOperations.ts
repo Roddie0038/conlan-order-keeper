@@ -13,10 +13,8 @@ export const fetchInventory = async (): Promise<InventoryItem[]> => {
 
     if (error) {
       console.error("Error fetching inventory:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch inventory. Please try again.",
-        variant: "destructive"
+      toast.error("Error", {
+        description: "Failed to fetch inventory. Please try again."
       });
       return [];
     }
@@ -32,10 +30,8 @@ export const fetchInventory = async (): Promise<InventoryItem[]> => {
     })) || [];
   } catch (error: any) {
     console.error("Unexpected error fetching inventory:", error.message);
-    toast({
-      title: "Error",
-      description: `Unexpected error: ${error.message}. Please contact support.`,
-      variant: "destructive"
+    toast.error("Error", {
+      description: `Unexpected error: ${error.message}. Please contact support.`
     });
     return [];
   }

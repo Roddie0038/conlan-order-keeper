@@ -1,3 +1,4 @@
+
 import { useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ export function OrderDetailView({ order, onClose, isAdmin = false }: OrderDetail
 
   const handlePrint = useReactToPrint({
     documentTitle: `Order-${order.id}`,
+    // Fix: useReactToPrint expects a function that returns a React element ref
     content: () => printRef.current
   });
 

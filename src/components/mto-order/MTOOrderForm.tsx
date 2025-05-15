@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { MTOFormFields } from "./MTOFormFields";
@@ -43,8 +42,7 @@ export const MTOOrderForm = () => {
       store: isAdmin ? templateData.store : user?.store || "",
       timestamp: new Date().toLocaleString() // Always use current timestamp
     });
-    toast({
-      title: "Template Loaded",
+    toast.success("Template Loaded", {
       description: "The template has been loaded successfully."
     });
   };
