@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CrossDockFields } from "@/types/cross-dock.types";
-import { storeData } from "@/config/storeData"; // Ensure this path is correct in your project
+import { storeData } from "@/config/storeData"; // Adjust if needed
 
 export interface OrderData extends CrossDockFields {
   name?: string;
@@ -39,7 +39,6 @@ export async function saveOrderToSupabase(order: OrderData) {
   const matchedStore = storeData.find((s) => s.storeNumber === order.store);
   const storeManagerEmail = matchedStore?.managerEmails || "";
 
-  // Format order data
   const formattedOrder = {
     timestamp: formattedTimestamp,
     completed: order.completed || false,
@@ -85,6 +84,4 @@ export async function fetchAllOrders() {
   }
 
   return { orders: data || [], error: null };
-}
-
 }
