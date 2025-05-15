@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { submitToWebhook } from "@/services/webhook/utils";
+import { saveOrderToSupabase } from "@/services/orderService"; // Import the saveOrderToSupabase function
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: any[];
@@ -94,6 +95,16 @@ export function OrderSubmissionHandler({
         console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
         const result = await submitToGoogleSheets(orderWithPlant);
         console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
+        
+        // CRITICAL FIX: Save the order to Supabase
+        console.log("🔍 SUBMIT - Saving order to Supabase:", orderWithPlant);
+        const { data, error } = await saveOrderToSupabase(orderWithPlant);
+        
+        if (error) {
+          console.error("❌ SUBMIT - Error saving to Supabase:", error);
+        } else {
+          console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
+        }
         
         // For admin users with test mode enabled or in production mode
         if (isAdmin) {
