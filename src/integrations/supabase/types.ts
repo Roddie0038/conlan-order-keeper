@@ -64,11 +64,13 @@ export type Database = {
         Row: {
           casing_grade: string | null
           completed: boolean | null
+          completed_at: string | null
           cross_dock_form_link: string | null
           destination_manager_email: string | null
           email_message: string | null
           have_casings: boolean | null
           id: string
+          in_transit_at: string | null
           invoice_number: string | null
           name: string | null
           notes: string | null
@@ -77,8 +79,12 @@ export type Database = {
           product_number: string | null
           projected_delivery: string | null
           quantity: number | null
+          ready_to_ship_at: string | null
+          received_at: string | null
           send_email_trigger: boolean | null
           send_invoice: boolean | null
+          status: string | null
+          status_updated_at: string | null
           store: string | null
           timestamp: string | null
           tire_size: string | null
@@ -88,11 +94,13 @@ export type Database = {
         Insert: {
           casing_grade?: string | null
           completed?: boolean | null
+          completed_at?: string | null
           cross_dock_form_link?: string | null
           destination_manager_email?: string | null
           email_message?: string | null
           have_casings?: boolean | null
           id?: string
+          in_transit_at?: string | null
           invoice_number?: string | null
           name?: string | null
           notes?: string | null
@@ -101,8 +109,12 @@ export type Database = {
           product_number?: string | null
           projected_delivery?: string | null
           quantity?: number | null
+          ready_to_ship_at?: string | null
+          received_at?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
+          status?: string | null
+          status_updated_at?: string | null
           store?: string | null
           timestamp?: string | null
           tire_size?: string | null
@@ -112,11 +124,13 @@ export type Database = {
         Update: {
           casing_grade?: string | null
           completed?: boolean | null
+          completed_at?: string | null
           cross_dock_form_link?: string | null
           destination_manager_email?: string | null
           email_message?: string | null
           have_casings?: boolean | null
           id?: string
+          in_transit_at?: string | null
           invoice_number?: string | null
           name?: string | null
           notes?: string | null
@@ -125,8 +139,12 @@ export type Database = {
           product_number?: string | null
           projected_delivery?: string | null
           quantity?: number | null
+          ready_to_ship_at?: string | null
+          received_at?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
+          status?: string | null
+          status_updated_at?: string | null
           store?: string | null
           timestamp?: string | null
           tire_size?: string | null
@@ -159,6 +177,7 @@ export type Database = {
       orders: {
         Row: {
           completed: boolean | null
+          completed_at: string | null
           "cross_dock_ eta_date": string | null
           cross_dock_destination: string | null
           cross_dock_form_link: string | null
@@ -168,6 +187,7 @@ export type Database = {
           destination_manager_email: string | null
           email: string | null
           email_message: string | null
+          in_transit_at: string | null
           invoice_number: string | null
           name: string | null
           notes: string | null
@@ -177,14 +197,19 @@ export type Database = {
           product_number: string | null
           pull_sheet_link: string | null
           quantity: number | null
+          ready_to_ship_at: string | null
+          received_at: string | null
           schedule_arrival: string | null
           send_email_trigger: boolean | null
           send_invoice: boolean | null
+          status: string | null
+          status_updated_at: string | null
           store: string | null
           timestamp: string
         }
         Insert: {
           completed?: boolean | null
+          completed_at?: string | null
           "cross_dock_ eta_date"?: string | null
           cross_dock_destination?: string | null
           cross_dock_form_link?: string | null
@@ -194,6 +219,7 @@ export type Database = {
           destination_manager_email?: string | null
           email?: string | null
           email_message?: string | null
+          in_transit_at?: string | null
           invoice_number?: string | null
           name?: string | null
           notes?: string | null
@@ -203,14 +229,19 @@ export type Database = {
           product_number?: string | null
           pull_sheet_link?: string | null
           quantity?: number | null
+          ready_to_ship_at?: string | null
+          received_at?: string | null
           schedule_arrival?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
+          status?: string | null
+          status_updated_at?: string | null
           store?: string | null
           timestamp: string
         }
         Update: {
           completed?: boolean | null
+          completed_at?: string | null
           "cross_dock_ eta_date"?: string | null
           cross_dock_destination?: string | null
           cross_dock_form_link?: string | null
@@ -220,6 +251,7 @@ export type Database = {
           destination_manager_email?: string | null
           email?: string | null
           email_message?: string | null
+          in_transit_at?: string | null
           invoice_number?: string | null
           name?: string | null
           notes?: string | null
@@ -229,9 +261,13 @@ export type Database = {
           product_number?: string | null
           pull_sheet_link?: string | null
           quantity?: number | null
+          ready_to_ship_at?: string | null
+          received_at?: string | null
           schedule_arrival?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
+          status?: string | null
+          status_updated_at?: string | null
           store?: string | null
           timestamp?: string
         }

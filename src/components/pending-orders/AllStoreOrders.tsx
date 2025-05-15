@@ -4,75 +4,27 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Filter, Search, Info, RefreshCw, Hourglass } from "lucide-react";
-import { OrderDetailView } from "./OrderDetailView";
+import { Calendar, Filter, Search, Info, RefreshCw } from "lucide-react";
+import { OrderDetailView } from "@/components/orders/OrderDetailView";
 import { DatePickerWithRange } from "./DateRangePicker";
 import { ExportButton } from "@/components/ExportButton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-
-// Mock data for demonstration
-const mockOrders = [
-  {
-    id: "ORD-001",
-    timestamp: "2025-05-14T10:30:00Z",
-    store: "Fort Worth 22",
-    storeManager: "John Smith",
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    productNumber: "PRD-12345",
-    description: "High Performance All-Season Tire 225/60R17",
-    quantity: "4",
-    scheduleArrival: "2025-05-18",
-    notes: "Customer waiting for these tires",
-    type: "TRANSFER",
-    status: "synced",
-    priority: false
-  },
-  {
-    id: "ORD-002",
-    timestamp: "2025-05-13T15:45:00Z",
-    store: "Grand Prairie 27",
-    storeManager: "Maria Rodriguez",
-    name: "Chris Wong",
-    email: "chris@example.com",
-    productNumber: "PRD-67890",
-    description: "All Terrain Truck Tire LT265/70R17",
-    quantity: "2",
-    scheduleArrival: "2025-05-20",
-    notes: "",
-    type: "MTO",
-    status: "pending",
-    priority: true
-  },
-  {
-    id: "ORD-003",
-    timestamp: "2025-05-12T09:15:00Z",
-    store: "Houston 28",
-    storeManager: "Robert Chen",
-    name: "Dana Smith",
-    email: "dana@example.com",
-    productNumber: "PRD-54321",
-    description: "Performance Summer Tire 205/55R16",
-    quantity: "4",
-    scheduleArrival: "2025-05-17",
-    notes: "Special order for fleet customer",
-    type: "WHEEL_POWDER_COATING",
-    status: "synced",
-    priority: false
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
+import { StatusBadge } from "@/components/orders/StatusBadge";
+import { toast } from "@/hooks/use-toast";
 
 export function AllStoreOrders() {
-  const [orders, setOrders] = useState<any[]>(mockOrders);
-  const [filteredOrders, setFilteredOrders] = useState<any[]>(mockOrders);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStore, setFilterStore] = useState("all");
   const [filterType, setFilterType] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [dateRange, setDateRange] = useState<any>(null);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
   // Stores list for filter dropdown
@@ -89,6 +41,109 @@ export function AllStoreOrders() {
     "Austin 39"
   ];
 
+  // Fetch orders from Supabase
+  useEffect(() => {
+    async function fetchOrders() {
+      setIsLoading(true);
+      try {
+        // First fetch regular orders
+        const { data: regularOrders, error: regularError } = await supabase
+          .from('orders')
+          .select('*')
+          .order('timestamp', { ascending: false });
+          
+        if (regularError) {
+          console.error("Error fetching regular orders:", regularError);
+          toast({
+            variant: "destructive",
+            title: "Error fetching orders",
+            description: regularError.message
+          });
+        }
+        
+        // Then fetch MTO orders
+        const { data: mtoOrders, error: mtoError } = await supabase
+          .from('mto_orders')
+          .select('*')
+          .order('timestamp', { ascending: false });
+          
+        if (mtoError) {
+          console.error("Error fetching MTO orders:", mtoError);
+          toast({
+            variant: "destructive",
+            title: "Error fetching MTO orders",
+            description: mtoError.message
+          });
+        }
+        
+        // Combine and normalize the orders
+        const allOrders = [
+          ...(regularOrders || []).map(order => ({
+            ...order,
+            type: order.order_type || "TRANSFER",
+            productNumber: order.product_number,
+            scheduleArrival: order.schedule_arrival
+          })),
+          ...(mtoOrders || []).map(order => ({
+            ...order,
+            type: "MTO",
+            productNumber: order.product_number,
+            scheduleArrival: order.projected_delivery
+          }))
+        ];
+        
+        // Sort by timestamp (most recent first) and set default status if missing
+        const processedOrders = allOrders
+          .map(order => ({
+            ...order,
+            timestamp: order.timestamp || new Date().toISOString(),
+            status: order.status || "pending"
+          }))
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        
+        setOrders(processedOrders);
+      } catch (error) {
+        console.error("Error in fetchOrders:", error);
+        toast({
+          variant: "destructive",
+          title: "Error fetching orders",
+          description: "An unexpected error occurred while fetching orders"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchOrders();
+    
+    // Set up realtime subscription for order updates
+    const ordersChannel = supabase
+      .channel('orders-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload) => {
+          console.log('Orders change received!', payload);
+          // Refresh the orders when changes occur
+          fetchOrders();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'mto_orders' },
+        (payload) => {
+          console.log('MTO orders change received!', payload);
+          // Refresh the orders when changes occur
+          fetchOrders();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(ordersChannel);
+    };
+  }, []);
+
   // Filter orders based on all filter criteria
   useEffect(() => {
     let result = [...orders];
@@ -97,10 +152,10 @@ export function AllStoreOrders() {
     if (searchTerm) {
       const lowerCaseTerm = searchTerm.toLowerCase();
       result = result.filter(order => 
-        order.productNumber.toLowerCase().includes(lowerCaseTerm) ||
-        order.description.toLowerCase().includes(lowerCaseTerm) ||
-        order.store.toLowerCase().includes(lowerCaseTerm) ||
-        order.name.toLowerCase().includes(lowerCaseTerm)
+        (order.product_number || order.productNumber || "").toLowerCase().includes(lowerCaseTerm) ||
+        (order.description || "").toLowerCase().includes(lowerCaseTerm) ||
+        (order.store || "").toLowerCase().includes(lowerCaseTerm) ||
+        (order.name || "").toLowerCase().includes(lowerCaseTerm)
       );
     }
 
@@ -112,6 +167,11 @@ export function AllStoreOrders() {
     // Apply order type filter
     if (filterType !== "all") {
       result = result.filter(order => order.type === filterType);
+    }
+    
+    // Apply status filter
+    if (filterStatus !== "all") {
+      result = result.filter(order => order.status === filterStatus);
     }
 
     // Apply date range filter
@@ -135,7 +195,7 @@ export function AllStoreOrders() {
     });
 
     setFilteredOrders(result);
-  }, [orders, searchTerm, filterStore, filterType, dateRange]);
+  }, [orders, searchTerm, filterStore, filterType, filterStatus, dateRange]);
 
   const handleOrderClick = (order: any) => {
     setSelectedOrder(order);
@@ -145,11 +205,81 @@ export function AllStoreOrders() {
     setSelectedOrder(null);
   };
 
+  const handleRefreshOrders = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch regular orders
+      const { data: regularOrders, error: regularError } = await supabase
+        .from('orders')
+        .select('*')
+        .order('timestamp', { ascending: false });
+        
+      if (regularError) throw regularError;
+      
+      // Fetch MTO orders
+      const { data: mtoOrders, error: mtoError } = await supabase
+        .from('mto_orders')
+        .select('*')
+        .order('timestamp', { ascending: false });
+        
+      if (mtoError) throw mtoError;
+      
+      // Combine and normalize the orders
+      const allOrders = [
+        ...(regularOrders || []).map(order => ({
+          ...order,
+          type: order.order_type || "TRANSFER",
+          productNumber: order.product_number,
+          scheduleArrival: order.schedule_arrival
+        })),
+        ...(mtoOrders || []).map(order => ({
+          ...order,
+          type: "MTO",
+          productNumber: order.product_number,
+          scheduleArrival: order.projected_delivery
+        }))
+      ];
+      
+      // Sort by timestamp (most recent first)
+      const processedOrders = allOrders
+        .map(order => ({
+          ...order,
+          timestamp: order.timestamp || new Date().toISOString(),
+          status: order.status || "pending"
+        }))
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+      setOrders(processedOrders);
+      toast({
+        title: "Orders refreshed",
+        description: `Found ${processedOrders.length} orders`
+      });
+    } catch (error: any) {
+      console.error("Error refreshing orders:", error);
+      toast({
+        variant: "destructive",
+        title: "Error refreshing orders",
+        description: error.message || "An unexpected error occurred"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">All Store Orders</h1>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleRefreshOrders}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
+          
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -213,6 +343,23 @@ export function AllStoreOrders() {
             </SelectContent>
           </Select>
           
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[180px] bg-white">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <SelectValue placeholder="Filter by status" />
+              </div>
+            </SelectTrigger>
+            <SelectContent align="end" className="w-[180px]">
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="ready_to_ship">Ready to Ship</SelectItem>
+              <SelectItem value="in_transit">In Transit</SelectItem>
+              <SelectItem value="received">Received</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+          
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -242,7 +389,11 @@ export function AllStoreOrders() {
       </div>
 
       {selectedOrder ? (
-        <OrderDetailView order={selectedOrder} onClose={closeOrderDetail} />
+        <OrderDetailView 
+          order={selectedOrder} 
+          onClose={closeOrderDetail} 
+          isAdmin={!!user?.isAdmin}
+        />
       ) : (
         <div className="bg-white shadow-sm rounded-lg border overflow-hidden">
           <div className="overflow-x-auto">
@@ -260,7 +411,13 @@ export function AllStoreOrders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      Loading orders...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredOrders.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                       No orders found matching your filters
@@ -277,22 +434,12 @@ export function AllStoreOrders() {
                         {new Date(order.timestamp).toLocaleString()}
                       </TableCell>
                       <TableCell>{order.store}</TableCell>
-                      <TableCell>{order.productNumber}</TableCell>
+                      <TableCell>{order.product_number || order.productNumber}</TableCell>
                       <TableCell className="max-w-xs truncate">{order.description}</TableCell>
                       <TableCell>{order.quantity}</TableCell>
-                      <TableCell>{order.scheduleArrival}</TableCell>
+                      <TableCell>{order.schedule_arrival || order.scheduleArrival}</TableCell>
                       <TableCell>
-                        {order.status === "synced" ? (
-                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                            <RefreshCw className="h-3 w-3 mr-1" />
-                            Synced
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
-                            <Hourglass className="h-3 w-3 mr-1" />
-                            Pending
-                          </Badge>
-                        )}
+                        <StatusBadge status={order.status || "pending"} />
                       </TableCell>
                       <TableCell>
                         <Badge 
@@ -320,17 +467,6 @@ export function AllStoreOrders() {
           </div>
         </div>
       )}
-
-      {/* Placeholder for future functionality - not visible in UI */}
-      <div className="hidden">
-        <h3>Future Features (Not Implemented)</h3>
-        <ul>
-          <li>Activity logs (who triggered which action, and when)</li>
-          <li>SMS notifications for new orders via Twilio</li>
-          <li>Admin configuration of document templates and email content</li>
-          <li>Full Supabase Edge Function integrations (for sending PDFs + emails)</li>
-        </ul>
-      </div>
     </div>
   );
 }

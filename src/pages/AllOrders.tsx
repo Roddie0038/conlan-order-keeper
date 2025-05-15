@@ -1,11 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AllStoreOrders } from "@/components/pending-orders/AllStoreOrders";
+import { toast } from "@/hooks/use-toast";
 
 export default function AllOrders() {
   const { user } = useAuth();
@@ -15,6 +16,11 @@ export default function AllOrders() {
   useEffect(() => {
     if (!user?.isAdmin) {
       navigate("/dashboard");
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "Only admin users can access the order management page."
+      });
     }
   }, [user, navigate]);
 
@@ -43,7 +49,7 @@ export default function AllOrders() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <header className="bg-gradient-to-r from-blue-700 to-blue-900 text-white py-6 mb-6 shadow-md">
         <div className="container mx-auto px-4">
-          <h1 className="text-2xl md:text-3xl font-bold">All Store Orders</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Order Management</h1>
           <p className="text-blue-100">View and manage all orders across all stores</p>
         </div>
       </header>
