@@ -26,8 +26,8 @@ export function OrderDetailView({ order, onClose, isAdmin = false }: OrderDetail
 
   const handlePrint = useReactToPrint({
     documentTitle: `Order-${order.id}`,
-    // The correct way to use content is with a function returning a ref
-    content: () => printRef.current
+    // The correct way to pass the content with the react-to-print library
+    contentRef: printRef
   });
 
   // Determine order type
