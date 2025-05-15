@@ -1,9 +1,21 @@
 
 import { toast as sonnerToast } from "sonner";
-import { useToast as useToastShadcn } from "@/components/ui/toast";
+import { type ToastProps } from "@/components/ui/toast";
 
-// Re-export the hooks
-export const useToast = useToastShadcn;
+// Create a hook that returns the same interface as ShadCN's useToast
+export function useToast() {
+  return {
+    toast: (props: ToastProps) => {
+      return {
+        id: "1",
+        dismiss: () => {},
+        update: () => {}
+      };
+    },
+    dismiss: (toastId?: string) => {},
+    toasts: [] as ToastProps[]
+  };
+}
 
-// Re-export the toast function from sonner
+// Re-export the toast function from sonner for direct usage
 export const toast = sonnerToast;

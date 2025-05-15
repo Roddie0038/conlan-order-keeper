@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { Rocket, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { triggerProductionDeployment } from "@/services/deploymentService";
@@ -25,20 +24,16 @@ export function DeploymentControls() {
       
       if (success) {
         setLastDeployedTime(new Date().toLocaleTimeString());
-        toast({
-          title: "Deployment Triggered Successfully",
+        toast.success("Deployment Triggered Successfully", {
           description: "Your changes are being deployed to production.",
-          variant: "default",
         });
       } else {
         throw new Error(message);
       }
     } catch (error) {
       console.error("Deployment error:", error);
-      toast({
-        title: "Deployment Failed",
+      toast.error("Deployment Failed", {
         description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
       });
     } finally {
       setIsDeploying(false);

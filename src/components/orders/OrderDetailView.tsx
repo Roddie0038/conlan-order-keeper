@@ -1,4 +1,3 @@
-
 import { useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,8 +25,7 @@ export function OrderDetailView({ order, onClose, isAdmin = false }: OrderDetail
 
   const handlePrint = useReactToPrint({
     documentTitle: `Order-${order.id}`,
-    // Fix: using a function that returns the current ref
-    content: () => printRef.current,
+    content: () => printRef.current
   });
 
   // Determine order type

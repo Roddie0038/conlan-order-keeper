@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -75,8 +74,7 @@ export function OrderForm() {
     setOrderSummaries(prev => [...prev, newOrder]);
     
     // Show toast notification
-    toast({
-      title: "Item Added",
+    toast.success("Item Added", {
       description: "The item has been added to your order. You can add more items or submit the order.",
     });
     

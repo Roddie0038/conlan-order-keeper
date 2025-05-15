@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderStatus } from "@/components/orders/StatusBadge";
 

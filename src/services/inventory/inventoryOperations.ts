@@ -1,7 +1,6 @@
-
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
-import { InventoryItem } from "@/types/inventory";
+import { supabase } from '@/integrations/supabase/extended-client';
+import { toast } from '@/hooks/use-toast';
+import { InventoryItem } from '@/types/inventory';
 
 /**
  * Fetches all inventory items from the database
@@ -227,3 +226,30 @@ export const deleteInventoryItem = async (productNumber: string) => {
     return { success: false, error: error.message };
   }
 };
+
+/**
+ * Adds a new inventory item
+ */
+export async function addInventoryItem(item: Omit<InventoryItem, 'id'>) {
+  try {
+    const { data, error } = await supabase
+      .from('inventory_items')
+      .insert(item);
+
+    if (error) throw error;
+    
+    toast.success("Item Added", {
+      description: "Inventory item successfully added"
+    });
+    
+    return data;
+  } catch (error) {
+    console.error('Error adding inventory item:', error);
+    
+    toast.error("Add Failed", {
+      description: error instanceof Error ? error.message : "Could not add inventory item"
+    });
+    
+    return null;
+  }
+}
