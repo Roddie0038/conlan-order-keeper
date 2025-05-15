@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderStatus } from "@/components/orders/StatusBadge";
 
@@ -61,28 +61,17 @@ export function useOrderStatus() {
         .eq('id', orderId);
         
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Status update failed",
-          description: error.message
-        });
+        toast.error("Status update failed: " + error.message);
         console.error("Error updating status:", error);
         return null;
       }
       
-      toast({
-        title: "Status updated",
-        description: `Order status changed to ${newStatus}`
-      });
+      toast.success("Status updated to " + newStatus);
       
       return newStatus;
     } catch (error) {
       console.error("Error updating status:", error);
-      toast({
-        variant: "destructive",
-        title: "Status update failed",
-        description: "An unexpected error occurred"
-      });
+      toast.error("An unexpected error occurred");
       return null;
     } finally {
       setIsUpdating(false);

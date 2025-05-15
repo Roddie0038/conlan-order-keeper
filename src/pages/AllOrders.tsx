@@ -16,11 +16,7 @@ export default function AllOrders() {
   useEffect(() => {
     if (!user?.isAdmin) {
       navigate("/dashboard");
-      toast({
-        variant: "destructive",
-        title: "Access Denied",
-        description: "Only admin users can access the order management page."
-      });
+      toast.error("Only admin users can access the order management page.");
     }
   }, [user, navigate]);
 

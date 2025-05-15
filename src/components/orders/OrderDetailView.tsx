@@ -25,8 +25,9 @@ export function OrderDetailView({ order, onClose, isAdmin = false }: OrderDetail
   };
 
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
     documentTitle: `Order-${order.id}`,
+    // Fix: using a function that returns the current ref
+    content: () => printRef.current,
   });
 
   // Determine order type

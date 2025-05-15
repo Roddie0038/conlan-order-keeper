@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -13,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge } from "@/components/orders/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 
 export function AllStoreOrders() {
@@ -54,11 +54,7 @@ export function AllStoreOrders() {
           
         if (regularError) {
           console.error("Error fetching regular orders:", regularError);
-          toast({
-            variant: "destructive",
-            title: "Error fetching orders",
-            description: regularError.message
-          });
+          toast.error("Error fetching orders: " + regularError.message);
         }
         
         // Then fetch MTO orders
@@ -69,11 +65,7 @@ export function AllStoreOrders() {
           
         if (mtoError) {
           console.error("Error fetching MTO orders:", mtoError);
-          toast({
-            variant: "destructive",
-            title: "Error fetching MTO orders",
-            description: mtoError.message
-          });
+          toast.error("Error fetching MTO orders: " + mtoError.message);
         }
         
         // Combine and normalize the orders
@@ -104,11 +96,7 @@ export function AllStoreOrders() {
         setOrders(processedOrders);
       } catch (error) {
         console.error("Error in fetchOrders:", error);
-        toast({
-          variant: "destructive",
-          title: "Error fetching orders",
-          description: "An unexpected error occurred while fetching orders"
-        });
+        toast.error("An unexpected error occurred while fetching orders");
       } finally {
         setIsLoading(false);
       }
@@ -250,17 +238,10 @@ export function AllStoreOrders() {
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       
       setOrders(processedOrders);
-      toast({
-        title: "Orders refreshed",
-        description: `Found ${processedOrders.length} orders`
-      });
+      toast.success("Orders refreshed - Found " + processedOrders.length + " orders");
     } catch (error: any) {
       console.error("Error refreshing orders:", error);
-      toast({
-        variant: "destructive",
-        title: "Error refreshing orders",
-        description: error.message || "An unexpected error occurred"
-      });
+      toast.error("Error refreshing orders: " + (error.message || "An unexpected error occurred"));
     } finally {
       setIsLoading(false);
     }
