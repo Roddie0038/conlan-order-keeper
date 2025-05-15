@@ -1,5 +1,5 @@
 
-import { sonnerToast as sonner, type ToastT } from "sonner";
+import { toast as sonner, type Toast } from "sonner";
 
 // Create a type that includes description for our toast calls
 export interface ToastProps {
@@ -51,24 +51,26 @@ export function useToast() {
 }
 
 // Create a callable toast function with convenience methods
-type ToastFunction = ((props: ToastProps) => void) & {
+interface ToastFunction {
+  (props: ToastProps): void;
   success: typeof sonner.success;
   error: typeof sonner.error;
   warning: typeof sonner.warning;
   info: typeof sonner.info;
-};
+}
 
-// Base toast function
-const toastBase = (props: ToastProps) => {
+// Create a base toast function
+const toastFn = (props: ToastProps) => {
   const { toast } = useToast();
-  return toast(props);
+  toast(props);
 };
 
-// Add convenience methods to the callable function
-const toast = toastBase as ToastFunction;
-toast.success = sonner.success;
-toast.error = sonner.error;
-toast.warning = sonner.warning;
-toast.info = sonner.info;
+// Create the final toast object with the convenience methods
+const toast = Object.assign(toastFn, {
+  success: sonner.success,
+  error: sonner.error,
+  warning: sonner.warning,
+  info: sonner.info
+}) as ToastFunction;
 
 export { toast };
