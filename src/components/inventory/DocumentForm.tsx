@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUploader } from "./FileUploader";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/extended-client";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -172,7 +171,7 @@ export function DocumentForm({ onFormSubmitted }: DocumentFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="inventory">Inventory Sheet</SelectItem>
+                      <SelectItem value="inventory-update">Inventory Sheet</SelectItem>
                       <SelectItem value="invoice">Invoice</SelectItem>
                       <SelectItem value="purchase_order">Purchase Order</SelectItem>
                       <SelectItem value="packing_slip">Packing Slip</SelectItem>

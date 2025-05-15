@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/extended-client";
 
 export interface Document {
   id: string;

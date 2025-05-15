@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   AlertDialog,
@@ -17,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useInventoryContext } from "@/contexts/InventoryContext";
 import { Document } from "@/hooks/useDocuments";
 import { parseExcelFile, parseCSV } from "@/utils/excelParser";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/extended-client";
 
 interface ImportPreviewDialogProps {
   isOpen: boolean;
