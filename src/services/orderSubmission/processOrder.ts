@@ -39,7 +39,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     store: orderWithPlant.store,
     productNumber: orderWithPlant.productNumber,
     description: orderWithPlant.description,
-    quantity: orderWithPlant.quantity,
+    quantity: String(orderWithPlant.quantity), // Convert to string to match OrderData type
     scheduleArrival: orderWithPlant.scheduleArrival,
     notes: orderWithPlant.notes,
     crossDock: orderWithPlant.crossDock,

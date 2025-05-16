@@ -18,7 +18,7 @@ export function OrdersTableHeader({
   
   const handleSort = (field: keyof OrderRecord) => {
     if (sortField === field) {
-      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
       setSortDirection(field === "timestamp" ? "desc" : "asc");

@@ -5,9 +5,10 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { OrdersFilters } from "./OrdersFilters";
 import { OrdersTable } from "./OrdersTable";
+import { OrdersEmptyState } from "./OrdersEmptyState";
 
 export function AllStoreOrders() {
-  const { orders, loading, error } = useFetchOrders();
+  const { orders, loading, error, pagination, goToPage, setPageSize } = useFetchOrders(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStore, setFilterStore] = useState<string>("all");
   const [sortField, setSortField] = useState<keyof OrderRecord>("timestamp");
@@ -98,6 +99,8 @@ export function AllStoreOrders() {
             sortDirection={sortDirection}
             setSortField={setSortField}
             setSortDirection={setSortDirection}
+            pagination={pagination}
+            goToPage={goToPage}
           />
         )}
       </CardContent>
