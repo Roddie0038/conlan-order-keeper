@@ -34,7 +34,7 @@ export function useFetchOrders() {
       try {
         const { data, error } = await supabase
           .from("orders")
-          .select("*")
+          .select("id, timestamp, name, store, product_number, description, quantity, schedule_arrival, notes, cross_dock_type, cross_dock_destination, cross_dock_receiver_number, cross_dock_eta_date, invoice_number, email, destination_manager_email, order_type, completed, completed_at, cross_dock_form_link, status")
           .order("timestamp", { ascending: false });
 
         if (error) {

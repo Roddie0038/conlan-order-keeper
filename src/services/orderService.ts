@@ -24,6 +24,7 @@ export interface OrderData extends CrossDockFields {
   type?: string;
   destinationManagerEmail?: string; // Added for cross dock destinations
   yourName?: string; // Added to handle form submission field
+  dateReceived?: string; // Added dateReceived field
 }
 
 export async function saveOrderToSupabase(order: OrderData) {

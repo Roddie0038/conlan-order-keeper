@@ -25,6 +25,7 @@ export type OrderSummary = {
   crossDockDestination?: string;
   receiverNo?: string;
   etaDate?: string;
+  dateReceived?: string; // Added dateReceived field
   [key: string]: any;
 };
 
@@ -50,7 +51,9 @@ export function useOrderSubmission() {
       plant: selectedPlant,
       type: 'TRANSFER', // Explicitly set the order type
       name: order.yourName || order.name || user?.username || "Unknown", // Ensure name is set
-      email: storeManagerEmail // Ensure email is set with the manager's email
+      email: storeManagerEmail, // Ensure email is set with the manager's email
+      dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
+      crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No" // Ensure crossDock is correctly typed
     };
     
     console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
