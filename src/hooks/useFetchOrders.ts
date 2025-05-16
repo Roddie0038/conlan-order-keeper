@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface OrderRecord {
-  id: string; // Updated to string since Supabase uses UUIDs
+  // Note: id is not included because it does not exist in the orders table
   timestamp: string;
   name: string;
   store: string;

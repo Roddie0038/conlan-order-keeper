@@ -3,11 +3,9 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
-import { submitToGoogleSheets } from "@/services/sheets";
-import { submitToWebhook } from "@/services/webhook/utils";
-import { saveOrderToSupabase } from "@/services/orderService";
-import { storeData } from "@/config/storeData";
-import { getManagerEmail } from "@/components/order-form/formConfig";
+import { processOrder } from "@/services/orderSubmission/processOrder";
+import { processWebhook } from "@/services/orderSubmission/processWebhook";
+import { storeCompletedOrders } from "@/services/orderSubmission/storeStorage";
 
 export type OrderSummary = {
   id: string;
@@ -25,7 +23,7 @@ export type OrderSummary = {
   crossDockDestination?: string;
   receiverNo?: string;
   etaDate?: string;
-  dateReceived?: string; // Added dateReceived field
+  dateReceived?: string;
   [key: string]: any;
 };
 
@@ -35,84 +33,6 @@ export function useOrderSubmission() {
   const { user } = useAuth();
   const { selectedPlant, PLANT_WEBHOOKS } = usePlant();
   const isAdmin = user?.isAdmin || false;
-
-  // Helper function for order processing logic
-  const processOrder = async (order: OrderSummary) => {
-    console.log("🔍 SUBMIT - Processing order:", order.id);
-    
-    // Find the store manager email from storeData
-    const storeNumber = order.store.match(/\d+$/)?.[0] || "";
-    const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
-    const storeManagerEmail = matchedStore?.managerEmails || "";
-    
-    // Ensure proper plant information is included
-    const orderWithPlant = {
-      ...order,
-      plant: selectedPlant,
-      type: 'TRANSFER', // Explicitly set the order type
-      name: order.yourName || order.name || user?.username || "Unknown", // Ensure name is set
-      email: storeManagerEmail, // Ensure email is set with the manager's email
-      dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
-      crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No" // Ensure crossDock is correctly typed
-    };
-    
-    console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
-    const result = await submitToGoogleSheets(orderWithPlant);
-    console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
-    
-    // Save the order to Supabase
-    console.log("🔍 SUBMIT - Saving order to Supabase:", orderWithPlant);
-    const { data, error } = await saveOrderToSupabase(orderWithPlant);
-    
-    if (error) {
-      console.error("❌ SUBMIT - Error saving to Supabase:", error);
-      throw error;
-    } else {
-      console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
-    }
-    
-    return orderWithPlant;
-  };
-
-  // Helper function for webhook processing
-  const processWebhook = async (order: OrderSummary, testMode: boolean) => {
-    if (!isAdmin) return;
-    
-    console.log("🔍 SUBMIT - Admin user submitting order to plant:", selectedPlant);
-    
-    let webhookUrl;
-    if (testMode) {
-      // Use the plant-specific webhook for test mode
-      webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.transferRequests;
-      console.log("🔍 SUBMIT - Admin in test mode, using plant-specific webhook:", webhookUrl);
-    } else {
-      // Use the admin-specific webhook for production mode
-      webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.adminOrders;
-      console.log("🔍 SUBMIT - Admin in production mode, using admin webhook:", webhookUrl);
-    }
-    
-    if (webhookUrl) {
-      console.log("🔍 SUBMIT - Sending to webhook:", webhookUrl);
-      await submitToWebhook(webhookUrl, order);
-    } else {
-      console.error("❌ SUBMIT - No webhook URL found for this configuration");
-    }
-  };
-
-  // Helper function for storing orders in local storage
-  const storeCompletedOrders = (orders: OrderSummary[]) => {
-    const timestamp = new Date().toLocaleString();
-    const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-    
-    const newCompletedOrders = orders.map(order => ({
-      ...order,
-      id: order.id,
-      timestamp: timestamp,
-      plant: selectedPlant
-    }));
-    
-    localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...newCompletedOrders]));
-  };
 
   // Main submission handler
   const handleSubmitOrders = async (
@@ -171,11 +91,17 @@ export function useOrderSubmission() {
       
       for (const order of selectedOrders) {
         try {
-          const processedOrder = await processOrder(order);
+          const processedOrder = await processOrder(order, selectedPlant);
           processedOrders.push(processedOrder);
           
           // Handle webhook submission for admin users
-          await processWebhook(processedOrder, testMode);
+          await processWebhook(
+            processedOrder, 
+            testMode, 
+            isAdmin, 
+            selectedPlant, 
+            PLANT_WEBHOOKS
+          );
         } catch (error) {
           console.error(`Error processing order ${order.id}:`, error);
           // Continue with other orders even if one fails
@@ -183,7 +109,7 @@ export function useOrderSubmission() {
       }
       
       // Store successfully processed orders in local storage
-      storeCompletedOrders(processedOrders);
+      storeCompletedOrders(processedOrders, selectedPlant);
       
       // Call success callback with processed orders
       onSuccess(processedOrders);
