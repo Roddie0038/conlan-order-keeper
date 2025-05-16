@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { submitToGoogleSheets } from "@/services/sheets";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
+import { submitToGoogleSheets } from "@/services/sheets";
 import { submitToWebhook } from "@/services/webhook/utils";
 import { saveOrderToSupabase } from "@/services/orderService"; 
 import { storeData } from "@/config/storeData";
@@ -30,11 +30,83 @@ export function OrderSubmissionHandler({
 
   const selectedOrders = orderSummaries.filter(order => order.selected);
   
-  console.log("🔍 ORDERS - Selected Plant:", selectedPlant);
-  console.log("🔍 ORDERS - Plant Webhooks for selected plant:", PLANT_WEBHOOKS[selectedPlant]);
-  console.log("🔍 ORDERS - Transfer Requests Webhook:", PLANT_WEBHOOKS[selectedPlant]?.transferRequests);
-  console.log("🔍 ORDERS - Admin Orders Webhook:", PLANT_WEBHOOKS[selectedPlant]?.adminOrders);
-  
+  // Helper function for order processing logic
+  const processOrder = async (order: any) => {
+    console.log("🔍 SUBMIT - Processing order:", order.id);
+    
+    // Find the store manager email from storeData
+    const storeNumber = order.store.match(/\d+$/)?.[0] || "";
+    const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
+    const storeManagerEmail = matchedStore?.managerEmails || "";
+    
+    // Ensure proper plant information is included
+    const orderWithPlant = {
+      ...order,
+      plant: selectedPlant,
+      type: 'TRANSFER', // Explicitly set the order type
+      name: order.yourName || user?.username || "Unknown", // Ensure name is set
+      email: storeManagerEmail // Ensure email is set with the manager's email
+    };
+    
+    console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
+    const result = await submitToGoogleSheets(orderWithPlant);
+    console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
+    
+    // Save the order to Supabase
+    console.log("🔍 SUBMIT - Saving order to Supabase:", orderWithPlant);
+    const { data, error } = await saveOrderToSupabase(orderWithPlant);
+    
+    if (error) {
+      console.error("❌ SUBMIT - Error saving to Supabase:", error);
+      throw error;
+    } else {
+      console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
+    }
+    
+    return orderWithPlant;
+  };
+
+  // Helper function for webhook processing
+  const processWebhook = async (order: any) => {
+    if (!isAdmin) return;
+    
+    console.log("🔍 SUBMIT - Admin user submitting order to plant:", selectedPlant);
+    
+    let webhookUrl;
+    if (testMode) {
+      // Use the plant-specific webhook for test mode
+      webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.transferRequests;
+      console.log("🔍 SUBMIT - Admin in test mode, using plant-specific webhook:", webhookUrl);
+    } else {
+      // Use the admin-specific webhook for production mode
+      webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.adminOrders;
+      console.log("🔍 SUBMIT - Admin in production mode, using admin webhook:", webhookUrl);
+    }
+    
+    if (webhookUrl) {
+      console.log("🔍 SUBMIT - Sending to webhook:", webhookUrl);
+      await submitToWebhook(webhookUrl, order);
+    } else {
+      console.error("❌ SUBMIT - No webhook URL found for this configuration");
+    }
+  };
+
+  // Helper function for storing orders in local storage
+  const storeCompletedOrders = (orders: any[]) => {
+    const timestamp = new Date().toLocaleString();
+    const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
+    
+    const newCompletedOrders = orders.map(order => ({
+      ...order,
+      id: order.id,
+      timestamp: timestamp,
+      plant: selectedPlant
+    }));
+    
+    localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...newCompletedOrders]));
+  };
+
+  // Main submission handler
   const handleSubmitOrders = async () => {
     if (selectedOrders.length === 0) {
       toast({
@@ -82,81 +154,31 @@ export function OrderSubmissionHandler({
       }
 
       console.log("🔍 SUBMIT - Processing orders with notifications");
-      // Normal submission process for store users or admins with test mode enabled
+      // Normal submission process
+      const processedOrders = [];
+      
       for (const order of selectedOrders) {
-        console.log("🔍 SUBMIT - Processing order:", order.id);
-        
-        // Find the store manager email from storeData
-        const storeNumber = order.store.match(/\d+$/)?.[0] || "";
-        const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
-        const storeManagerEmail = order.managersEmail || matchedStore?.managerEmails || "";
-        
-        // Ensure proper plant information is included
-        const orderWithPlant = {
-          ...order,
-          plant: selectedPlant,
-          type: 'TRANSFER', // Explicitly set the order type
-          name: order.yourName || user?.username || "Unknown", // Ensure name is set
-          email: storeManagerEmail // Ensure email is set with the manager's email
-        };
-        
-        console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
-        const result = await submitToGoogleSheets(orderWithPlant);
-        console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
-        
-        // CRITICAL FIX: Save the order to Supabase
-        console.log("🔍 SUBMIT - Saving order to Supabase:", orderWithPlant);
-        const { data, error } = await saveOrderToSupabase(orderWithPlant);
-        
-        if (error) {
-          console.error("❌ SUBMIT - Error saving to Supabase:", error);
-        } else {
-          console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
-        }
-        
-        // For admin users with test mode enabled or in production mode
-        if (isAdmin) {
-          console.log("🔍 SUBMIT - Admin user submitting order to plant:", selectedPlant);
+        try {
+          const processedOrder = await processOrder(order);
+          processedOrders.push(processedOrder);
           
-          let webhookUrl;
-          if (testMode) {
-            // Use the plant-specific webhook for test mode
-            webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.transferRequests;
-            console.log("🔍 SUBMIT - Admin in test mode, using plant-specific webhook:", webhookUrl);
-          } else {
-            // Use the admin-specific webhook for production mode
-            webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.adminOrders;
-            console.log("🔍 SUBMIT - Admin in production mode, using admin webhook:", webhookUrl);
-          }
-          
-          if (webhookUrl) {
-            console.log("🔍 SUBMIT - Sending to webhook:", webhookUrl);
-            await submitToWebhook(webhookUrl, orderWithPlant);
-          } else {
-            console.error("❌ SUBMIT - No webhook URL found for this configuration");
-          }
+          // Handle webhook submission for admin users
+          await processWebhook(processedOrder);
+        } catch (error) {
+          console.error(`Error processing order ${order.id}:`, error);
+          // Continue with other orders even if one fails
         }
       }
       
-      // Store in local storage
-      const timestamp = new Date().toLocaleString();
-      const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-      
-      const newCompletedOrders = selectedOrders.map(order => ({
-        ...order,
-        id: order.id,
-        timestamp: timestamp,
-        plant: selectedPlant
-      }));
-      
-      localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...newCompletedOrders]));
+      // Store successfully processed orders in local storage
+      storeCompletedOrders(processedOrders);
       
       // Remove submitted orders from summary
       setOrderSummaries(prev => prev.filter(order => !order.selected));
       
       toast({
         title: "Orders submitted successfully",
-        description: `${selectedOrders.length} order(s) have been submitted successfully.`
+        description: `${processedOrders.length} order(s) have been submitted successfully.`
       });
     } catch (error) {
       console.error("❌ SUBMIT - Error submitting orders:", error);

@@ -1,24 +1,29 @@
 
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AllStoreOrders } from "@/components/pending-orders/AllStoreOrders";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export default function AllOrders() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Check if user is admin
   useEffect(() => {
     if (!user?.isAdmin) {
       navigate("/dashboard");
-      toast.error("Only admin users can access the order management page.");
+      toast({
+        title: "Access Denied",
+        description: "Only admin users can access the order management page.",
+        variant: "destructive"
+      });
     }
-  }, [user, navigate]);
+  }, [user, navigate, toast]);
 
   if (!user?.isAdmin) {
     return (
