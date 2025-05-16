@@ -7,6 +7,7 @@ import { OrderFormValues } from "../order-form-schema";
 import { OrderSummary } from "../types";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
+import { storeData } from "@/config/storeData";
 
 export function useOrderFormSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,25 +32,32 @@ export function useOrderFormSubmit() {
 
     try {
       // Format the orders for submission
-      const formattedOrders = selectedOrders.map((order) => ({
-        yourName: order.yourName,
-        name: order.yourName, // Explicitly set name to yourName for better identification
-        store: order.store,
-        dateReceived: order.dateReceived,
-        productNumber: order.productNumber,
-        description: order.description,
-        quantity: order.quantity,
-        scheduleArrival: order.scheduleArrival,
-        notes: order.notes,
-        crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
-        crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
-        managersEmail: order.managersEmail || "",
-        email: order.managersEmail || "",
-        plant: selectedPlant,
-        timestamp: new Date().toISOString(), // Will be reformatted in saveOrderToSupabase
-        userId: user ? user.username || "anonymous" : "anonymous",
-        userEmail: user ? user.store || "anonymous" : "anonymous",
-      }));
+      const formattedOrders = selectedOrders.map((order) => {
+        // Find the store manager email from storeData
+        const storeNumber = order.store.match(/\d+$/)?.[0] || "";
+        const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
+        const storeManagerEmail = order.managersEmail || matchedStore?.managerEmails || "";
+        
+        return {
+          yourName: order.yourName,
+          name: order.yourName, // Explicitly set name to yourName for better identification
+          store: order.store,
+          dateReceived: order.dateReceived,
+          productNumber: order.productNumber,
+          description: order.description,
+          quantity: order.quantity,
+          scheduleArrival: order.scheduleArrival,
+          notes: order.notes,
+          crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
+          crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
+          managersEmail: storeManagerEmail,
+          email: storeManagerEmail, // Ensure email is set with the manager's email
+          plant: selectedPlant,
+          timestamp: new Date().toISOString(), // Will be reformatted in saveOrderToSupabase
+          userId: user ? user.username || "anonymous" : "anonymous",
+          userEmail: user ? user.store || "anonymous" : "anonymous",
+        };
+      });
 
       // Submit each order to Supabase
       for (const order of formattedOrders) {

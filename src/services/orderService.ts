@@ -23,6 +23,7 @@ export interface OrderData extends CrossDockFields {
   timestamp?: string;
   type?: string;
   destinationManagerEmail?: string; // Added for cross dock destinations
+  yourName?: string; // Added to handle form submission field
 }
 
 export async function saveOrderToSupabase(order: OrderData) {
@@ -35,14 +36,19 @@ export async function saveOrderToSupabase(order: OrderData) {
   })}`;
 
   // Get store manager email from storeData if not supplied
-  const matchedStore = storeData.find(s => s.storeNumber === order.store);
-  const storeManagerEmail = matchedStore?.managerEmails || "";
+  let storeNumber = "";
+  if (order.store) {
+    const match = order.store.match(/\d+$/);
+    storeNumber = match ? match[0] : '';
+  }
+  const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
+  const storeManagerEmail = order.email || order.managersEmail || (matchedStore?.managerEmails || "");
 
   // Format the order data to match the Supabase table structure
   const formattedOrder = {
     timestamp: formattedTimestamp,
     completed: order.completed || false,
-    name: order.name || "Unknown",
+    name: order.name || order.yourName || "Unknown",
     store: order.store,
     product_number: order.productNumber || "",
     description: order.description || "",
@@ -54,7 +60,7 @@ export async function saveOrderToSupabase(order: OrderData) {
     cross_dock_receiver_number: order.receiverNo || "",
     cross_dock_eta_date: order.etaDate || "",
     invoice_number: order.invoiceNumber || "",
-    email: order.email || storeManagerEmail,
+    email: storeManagerEmail,
     destination_manager_email: order.destinationManagerEmail || "",
     order_type: order.type || "TRANSFER"
   };

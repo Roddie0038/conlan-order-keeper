@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { submitToWebhook } from "@/services/webhook/utils";
-import { saveOrderToSupabase } from "@/services/orderService"; // Import the saveOrderToSupabase function
+import { saveOrderToSupabase } from "@/services/orderService"; 
+import { storeData } from "@/config/storeData";
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: any[];
@@ -85,11 +86,18 @@ export function OrderSubmissionHandler({
       for (const order of selectedOrders) {
         console.log("🔍 SUBMIT - Processing order:", order.id);
         
+        // Find the store manager email from storeData
+        const storeNumber = order.store.match(/\d+$/)?.[0] || "";
+        const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
+        const storeManagerEmail = order.managersEmail || matchedStore?.managerEmails || "";
+        
         // Ensure proper plant information is included
         const orderWithPlant = {
           ...order,
           plant: selectedPlant,
-          type: 'TRANSFER' // Explicitly set the order type
+          type: 'TRANSFER', // Explicitly set the order type
+          name: order.yourName || user?.username || "Unknown", // Ensure name is set
+          email: storeManagerEmail // Ensure email is set with the manager's email
         };
         
         console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
