@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CrossDockFields } from "@/types/cross-dock.types";
 import { storeData } from "@/config/storeData";
+import { OrderType } from "@/services/webhook/config"; // Import OrderType
 
 export interface OrderData extends CrossDockFields {
   name?: string;
@@ -21,7 +22,7 @@ export interface OrderData extends CrossDockFields {
   sendEmailMessage?: boolean;
   message?: string;
   timestamp?: string;
-  type?: string;
+  type?: OrderType; // Use the proper OrderType type instead of string
   destinationManagerEmail?: string; // Added for cross dock destinations
   yourName?: string; // Updated to optional
   dateReceived?: string; // Added dateReceived field

@@ -3,6 +3,7 @@ import { OrderSummary } from "@/hooks/useOrderSubmission";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { storeData } from "@/config/storeData";
+import { OrderType } from "@/services/webhook/config"; // Import OrderType
 
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage
@@ -23,7 +24,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const orderWithPlant = {
     ...order,
     plant: selectedPlant,
-    type: 'TRANSFER', // Explicitly set the order type
+    type: 'TRANSFER' as OrderType, // Cast to OrderType to fix the TypeScript error
     name: order.yourName || order.name || "Unknown", // Ensure name is set
     email: storeManagerEmail, // Ensure email is set with the manager's email
     dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
@@ -49,7 +50,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     dateReceived: orderWithPlant.dateReceived,
     email: orderWithPlant.email,
     plant: orderWithPlant.plant,
-    type: orderWithPlant.type,
+    type: orderWithPlant.type, // This will now be properly typed as OrderType
     timestamp: orderWithPlant.timestamp
   };
   
