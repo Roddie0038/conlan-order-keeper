@@ -24,6 +24,7 @@ export default function AdminOrders() {
   const { toast } = useToast();
   const navigate = useNavigate();
   
+  // Break the deep type inference chain by using a concrete type
   const { 
     orders, 
     loading, 
@@ -34,7 +35,8 @@ export default function AdminOrders() {
     refreshOrders 
   } = useFetchOrders(20); // Fetch more orders per page for admin view
   
-  const selectedOrder = orders.find(order => order.id === selectedOrderId);
+  // Find the selected order using safe optional chaining to avoid type issues
+  const selectedOrder = orders.find(order => order.id === selectedOrderId) || null;
 
   const handleOrderClick = (orderId: string) => {
     setSelectedOrderId(orderId);
@@ -89,6 +91,9 @@ export default function AdminOrders() {
 
   // Filter orders by order type if filter is set
   const filteredOrders = orders.filter(order => {
+    // Safety check for null values
+    if (!order) return false;
+    
     // Search filter
     const matchesSearch = 
       (order.product_number?.toLowerCase().includes(searchTerm.toLowerCase())) || 

@@ -76,8 +76,14 @@ export function useFetchOrders(initialPageSize = 10) {
         throw error;
       }
       
+      // Make sure each record has an id property (use timestamp as fallback if needed)
+      const processedData = data?.map(item => ({
+        ...item,
+        id: item.id || item.timestamp // Use timestamp as fallback id if needed
+      })) as OrderRecord[];
+      
       // Update state with the fetched data and pagination info
-      setOrders(data || []);
+      setOrders(processedData || []);
       setPagination({
         page,
         pageSize,
