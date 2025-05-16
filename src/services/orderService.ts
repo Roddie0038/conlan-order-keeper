@@ -23,7 +23,7 @@ export interface OrderData extends CrossDockFields {
   timestamp?: string;
   type?: string;
   destinationManagerEmail?: string; // Added for cross dock destinations
-  yourName?: string; // Added to handle form submission field
+  yourName?: string; // Updated to optional
   dateReceived?: string; // Added dateReceived field
 }
 
