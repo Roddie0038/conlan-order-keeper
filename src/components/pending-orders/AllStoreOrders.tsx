@@ -1,19 +1,10 @@
 
 import { useFetchOrders, OrderRecord } from "@/hooks/useFetchOrders";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { OrdersFilters } from "./OrdersFilters";
+import { OrdersTable } from "./OrdersTable";
 
 export function AllStoreOrders() {
   const { orders, loading, error } = useFetchOrders();
@@ -84,131 +75,30 @@ export function AllStoreOrders() {
         : (bValue < aValue ? -1 : 1);
     });
 
-  // Function to get status badge color
-  const getStatusBadge = (status: string | undefined, completed: boolean) => {
-    if (completed) return "bg-green-500 hover:bg-green-600";
-    if (!status) return "bg-gray-500 hover:bg-gray-600";
-    
-    switch(status.toLowerCase()) {
-      case "pending": return "bg-yellow-500 hover:bg-yellow-600";
-      case "in_transit": return "bg-blue-500 hover:bg-blue-600";
-      case "ready_to_ship": return "bg-purple-500 hover:bg-purple-600";
-      case "received": return "bg-cyan-500 hover:bg-cyan-600";
-      case "completed": return "bg-green-500 hover:bg-green-600";
-      default: return "bg-gray-500 hover:bg-gray-600";
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>All Store Orders</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="w-full md:w-1/3">
-            <Input
-              type="search"
-              placeholder="Search orders..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div>
-            <Select value={filterStore} onValueChange={setFilterStore}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by store" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Stores</SelectItem>
-                {uniqueStores.map(store => (
-                  <SelectItem key={store} value={store}>{store}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <OrdersFilters 
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterStore={filterStore}
+          setFilterStore={setFilterStore}
+          uniqueStores={uniqueStores}
+        />
 
         {filteredOrders.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No orders found matching your criteria
-          </div>
+          <OrdersEmptyState />
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead 
-                    className="cursor-pointer"
-                    onClick={() => {
-                      if (sortField === "timestamp") {
-                        setSortDirection(prev => prev === "asc" ? "desc" : "asc");
-                      } else {
-                        setSortField("timestamp");
-                        setSortDirection("desc");
-                      }
-                    }}
-                  >
-                    Timestamp {sortField === "timestamp" && (sortDirection === "asc" ? "↑" : "↓")}
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer"
-                    onClick={() => {
-                      if (sortField === "name") {
-                        setSortDirection(prev => prev === "asc" ? "desc" : "asc");
-                      } else {
-                        setSortField("name");
-                        setSortDirection("asc");
-                      }
-                    }}
-                  >
-                    Name {sortField === "name" && (sortDirection === "asc" ? "↑" : "↓")}
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer"
-                    onClick={() => {
-                      if (sortField === "store") {
-                        setSortDirection(prev => prev === "asc" ? "desc" : "asc");
-                      } else {
-                        setSortField("store");
-                        setSortDirection("asc");
-                      }
-                    }}
-                  >
-                    Store {sortField === "store" && (sortDirection === "asc" ? "↑" : "↓")}
-                  </TableHead>
-                  <TableHead>Product #</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Qty</TableHead>
-                  <TableHead>Arrival</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Destination</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{order.timestamp}</TableCell>
-                    <TableCell>{order.name || 'N/A'}</TableCell>
-                    <TableCell>{order.store || 'N/A'}</TableCell>
-                    <TableCell>{order.product_number || 'N/A'}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{order.description || 'N/A'}</TableCell>
-                    <TableCell>{order.quantity || 'N/A'}</TableCell>
-                    <TableCell>{order.schedule_arrival || 'N/A'}</TableCell>
-                    <TableCell>{order.order_type || 'Transfer'}</TableCell>
-                    <TableCell>{order.cross_dock_destination || 'N/A'}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadge(order.status, Boolean(order.completed))}>
-                        {order.completed ? 'Completed' : (order.status || 'Pending')}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <OrdersTable 
+            orders={filteredOrders} 
+            sortField={sortField}
+            sortDirection={sortDirection}
+            setSortField={setSortField}
+            setSortDirection={setSortDirection}
+          />
         )}
       </CardContent>
     </Card>

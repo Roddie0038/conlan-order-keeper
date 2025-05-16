@@ -27,7 +27,8 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     name: order.yourName || order.name || "Unknown", // Ensure name is set
     email: storeManagerEmail, // Ensure email is set with the manager's email
     dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
-    crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No" // Ensure crossDock is correctly typed
+    crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", // Ensure crossDock is correctly typed
+    timestamp: new Date().toISOString() // Add timestamp to fix TS error
   };
 
   // Create a new object with only the fields needed for submission
@@ -48,7 +49,8 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     dateReceived: orderWithPlant.dateReceived,
     email: orderWithPlant.email,
     plant: orderWithPlant.plant,
-    type: orderWithPlant.type
+    type: orderWithPlant.type,
+    timestamp: orderWithPlant.timestamp
   };
   
   console.log("🔍 SUBMIT - Using sheets service with order:", submissionOrder);

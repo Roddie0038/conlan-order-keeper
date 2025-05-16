@@ -9,8 +9,8 @@ interface OrderCountSummaryProps {
 
 export function OrderCountSummary({ selectedOrders, totalOrders }: OrderCountSummaryProps) {
   return (
-    <div>
-      <h3 className="font-medium mb-1">Submit Selected Orders</h3>
+    <div className="flex flex-col space-y-1">
+      <h3 className="font-medium">Submit Selected Orders</h3>
       <p className="text-sm text-gray-500 dark:text-gray-400">
         {selectedOrders.length} of {totalOrders} orders selected
       </p>
