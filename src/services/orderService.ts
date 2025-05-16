@@ -42,7 +42,7 @@ export async function saveOrderToSupabase(order: OrderData) {
     storeNumber = match ? match[0] : '';
   }
   const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
-  const storeManagerEmail = order.email || order.managersEmail || (matchedStore?.managerEmails || "");
+  const storeManagerEmail = order.email || (matchedStore?.managerEmails || "");
 
   // Format the order data to match the Supabase table structure
   const formattedOrder = {

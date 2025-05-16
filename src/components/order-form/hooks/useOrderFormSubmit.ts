@@ -36,7 +36,7 @@ export function useOrderFormSubmit() {
         // Find the store manager email from storeData
         const storeNumber = order.store.match(/\d+$/)?.[0] || "";
         const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
-        const storeManagerEmail = order.managersEmail || matchedStore?.managerEmails || "";
+        const storeManagerEmail = matchedStore?.managerEmails || "";
         
         return {
           yourName: order.yourName,
@@ -50,8 +50,7 @@ export function useOrderFormSubmit() {
           notes: order.notes,
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
-          managersEmail: storeManagerEmail,
-          email: storeManagerEmail, // Ensure email is set with the manager's email
+          email: storeManagerEmail, // Set email to the store manager's email
           plant: selectedPlant,
           timestamp: new Date().toISOString(), // Will be reformatted in saveOrderToSupabase
           userId: user ? user.username || "anonymous" : "anonymous",
