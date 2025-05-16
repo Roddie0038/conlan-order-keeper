@@ -29,14 +29,35 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
     crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No" // Ensure crossDock is correctly typed
   };
+
+  // Create a new object with only the fields needed for submission
+  const submissionOrder = {
+    id: orderWithPlant.id,
+    name: orderWithPlant.name,
+    yourName: orderWithPlant.yourName,
+    store: orderWithPlant.store,
+    productNumber: orderWithPlant.productNumber,
+    description: orderWithPlant.description,
+    quantity: orderWithPlant.quantity,
+    scheduleArrival: orderWithPlant.scheduleArrival,
+    notes: orderWithPlant.notes,
+    crossDock: orderWithPlant.crossDock,
+    crossDockDestination: orderWithPlant.crossDockDestination,
+    receiverNo: orderWithPlant.receiverNo,
+    etaDate: orderWithPlant.etaDate,
+    dateReceived: orderWithPlant.dateReceived,
+    email: orderWithPlant.email,
+    plant: orderWithPlant.plant,
+    type: orderWithPlant.type
+  };
   
-  console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
-  const result = await submitToGoogleSheets(orderWithPlant);
+  console.log("🔍 SUBMIT - Using sheets service with order:", submissionOrder);
+  const result = await submitToGoogleSheets(submissionOrder);
   console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
   
   // Save the order to Supabase
-  console.log("🔍 SUBMIT - Saving order to Supabase:", orderWithPlant);
-  const { data, error } = await saveOrderToSupabase(orderWithPlant);
+  console.log("🔍 SUBMIT - Saving order to Supabase:", submissionOrder);
+  const { data, error } = await saveOrderToSupabase(submissionOrder);
   
   if (error) {
     console.error("❌ SUBMIT - Error saving to Supabase:", error);

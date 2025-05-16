@@ -188,8 +188,8 @@ export function AllStoreOrders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order.id}>
+                {filteredOrders.map((order, index) => (
+                  <TableRow key={index}>
                     <TableCell>{order.timestamp}</TableCell>
                     <TableCell>{order.name || 'N/A'}</TableCell>
                     <TableCell>{order.store || 'N/A'}</TableCell>
