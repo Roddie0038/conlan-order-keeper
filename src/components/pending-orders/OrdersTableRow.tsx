@@ -1,31 +1,27 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { OrderRecord } from "@/hooks/useFetchOrders";
 import { StatusBadge } from "@/components/orders/StatusBadge";
 
 interface OrdersTableRowProps {
   order: OrderRecord;
+  onClick?: () => void;
 }
 
-export function OrdersTableRow({ order }: OrdersTableRowProps) {
-  // Function to get status badge color
-  const getStatusBadge = (status: string | undefined, completed: boolean) => {
-    if (completed) return "bg-green-500 hover:bg-green-600";
-    if (!status) return "bg-gray-500 hover:bg-gray-600";
-    
-    switch(status.toLowerCase()) {
-      case "pending": return "bg-yellow-500 hover:bg-yellow-600";
-      case "in_transit": return "bg-blue-500 hover:bg-blue-600";
-      case "ready_to_ship": return "bg-purple-500 hover:bg-purple-600";
-      case "received": return "bg-cyan-500 hover:bg-cyan-600";
-      case "completed": return "bg-green-500 hover:bg-green-600";
-      default: return "bg-gray-500 hover:bg-gray-600";
-    }
+export function OrdersTableRow({ order, onClick }: OrdersTableRowProps) {
+  // Get order type display text
+  const getOrderTypeDisplay = (order: OrderRecord): string => {
+    if (order.order_type === 'MTO') return 'MTO';
+    if (order.order_type === 'WHEEL_POWDER_COATING') return 'Wheel';
+    if (order.cross_dock_type === 'Yes') return 'Cross-Dock';
+    return 'Transfer';
   };
 
   return (
-    <TableRow>
+    <TableRow 
+      onClick={onClick} 
+      className={onClick ? "cursor-pointer hover:bg-slate-700/50" : ""}
+    >
       <TableCell>{order.timestamp}</TableCell>
       <TableCell>{order.name || 'N/A'}</TableCell>
       <TableCell>{order.store || 'N/A'}</TableCell>
@@ -33,12 +29,13 @@ export function OrdersTableRow({ order }: OrdersTableRowProps) {
       <TableCell className="max-w-[200px] truncate">{order.description || 'N/A'}</TableCell>
       <TableCell>{order.quantity || 'N/A'}</TableCell>
       <TableCell>{order.schedule_arrival || 'N/A'}</TableCell>
-      <TableCell>{order.order_type || 'Transfer'}</TableCell>
+      <TableCell>{getOrderTypeDisplay(order)}</TableCell>
       <TableCell>{order.cross_dock_destination || 'N/A'}</TableCell>
       <TableCell>
-        <Badge className={getStatusBadge(order.status, Boolean(order.completed))}>
-          {order.completed ? 'Completed' : (order.status || 'Pending')}
-        </Badge>
+        <StatusBadge 
+          status={order.completed ? 'completed' : (order.status as any || 'pending')} 
+          outOfStock={order.out_of_stock}
+        />
       </TableCell>
     </TableRow>
   );

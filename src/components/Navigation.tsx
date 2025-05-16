@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { DarkModeToggle } from "./DarkModeToggle";
@@ -37,12 +36,6 @@ export function Navigation() {
         href: "/admin-orders", 
         label: "Admin Order Management", 
         icon: <ClipboardList className="w-4 h-4 mr-2" />,
-        highlight: true
-      },
-      {
-        href: "/all-orders",
-        label: "All Orders (Supabase)",
-        icon: <Package className="w-4 h-4 mr-2" />,
         highlight: true
       }
     );

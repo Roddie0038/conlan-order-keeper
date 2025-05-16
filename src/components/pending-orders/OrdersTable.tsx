@@ -26,6 +26,7 @@ interface OrdersTableProps {
     totalPages: number;
   };
   goToPage?: (page: number) => void;
+  onRowClick?: (orderId: string) => void;
 }
 
 export function OrdersTable({ 
@@ -35,7 +36,8 @@ export function OrdersTable({
   setSortField, 
   setSortDirection,
   pagination,
-  goToPage
+  goToPage,
+  onRowClick
 }: OrdersTableProps) {
   return (
     <div className="space-y-4">
@@ -56,7 +58,11 @@ export function OrdersTable({
               </tr>
             ) : (
               orders.map((order, index) => (
-                <OrdersTableRow key={index} order={order} />
+                <OrdersTableRow 
+                  key={index} 
+                  order={order} 
+                  onClick={onRowClick ? () => onRowClick(order.id) : undefined}
+                />
               ))
             )}
           </TableBody>

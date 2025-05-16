@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export interface OrderRecord {
-  // Note: id is not included because it does not exist in the orders table
+  id: string; // Add id to the interface since it's needed to identify orders
   timestamp: string;
   name: string;
   store: string;
@@ -23,6 +23,7 @@ export interface OrderRecord {
   order_type: string;
   completed: boolean;
   status?: string;
+  out_of_stock?: boolean;
 }
 
 interface PaginationState {

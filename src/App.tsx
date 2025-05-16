@@ -16,7 +16,6 @@ import MTOOrder from "./pages/MTOOrder";
 import CrossDock from "./pages/CrossDock";
 import AdminInventory from "./pages/AdminInventory";
 import AdminOrders from "./pages/AdminOrders";
-import AllOrders from "./pages/AllOrders";
 import WheelOrder from "./pages/WheelOrder";
 import OrderManagement from "./pages/OrderManagement";
 
@@ -135,9 +134,7 @@ function App() {
                 <Route
                   path="/all-orders"
                   element={
-                    <ProtectedRoute adminOnly={true}>
-                      <AllOrders />
-                    </ProtectedRoute>
+                    <Navigate to="/admin-orders" replace />
                   }
                 />
                 
