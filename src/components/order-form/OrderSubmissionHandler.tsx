@@ -2,194 +2,40 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
-import { submitToGoogleSheets } from "@/services/sheets";
-import { submitToWebhook } from "@/services/webhook/utils";
-import { saveOrderToSupabase } from "@/services/orderService"; 
-import { storeData } from "@/config/storeData";
+import { useOrderSubmission, OrderSummary } from "@/hooks/useOrderSubmission";
 
 interface OrderSubmissionHandlerProps {
-  orderSummaries: any[];
-  setOrderSummaries: React.Dispatch<React.SetStateAction<any[]>>;
+  orderSummaries: OrderSummary[];
+  setOrderSummaries: React.Dispatch<React.SetStateAction<OrderSummary[]>>;
 }
 
 export function OrderSubmissionHandler({ 
   orderSummaries, 
   setOrderSummaries 
 }: OrderSubmissionHandlerProps) {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
-  const { selectedPlant, PLANT_WEBHOOKS } = usePlant();
+  const { selectedPlant } = usePlant();
   const isAdmin = user?.isAdmin || false;
   const [testMode, setTestMode] = useState(false);
 
+  // Use our custom submission hook
+  const { isSubmitting, handleSubmitOrders } = useOrderSubmission();
+
   const selectedOrders = orderSummaries.filter(order => order.selected);
   
-  // Helper function for order processing logic
-  const processOrder = async (order: any) => {
-    console.log("🔍 SUBMIT - Processing order:", order.id);
-    
-    // Find the store manager email from storeData
-    const storeNumber = order.store.match(/\d+$/)?.[0] || "";
-    const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
-    const storeManagerEmail = matchedStore?.managerEmails || "";
-    
-    // Ensure proper plant information is included
-    const orderWithPlant = {
-      ...order,
-      plant: selectedPlant,
-      type: 'TRANSFER', // Explicitly set the order type
-      name: order.yourName || user?.username || "Unknown", // Ensure name is set
-      email: storeManagerEmail // Ensure email is set with the manager's email
-    };
-    
-    console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
-    const result = await submitToGoogleSheets(orderWithPlant);
-    console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
-    
-    // Save the order to Supabase
-    console.log("🔍 SUBMIT - Saving order to Supabase:", orderWithPlant);
-    const { data, error } = await saveOrderToSupabase(orderWithPlant);
-    
-    if (error) {
-      console.error("❌ SUBMIT - Error saving to Supabase:", error);
-      throw error;
-    } else {
-      console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
-    }
-    
-    return orderWithPlant;
+  // Handler for successful submission
+  const handleSubmissionSuccess = (submittedOrders: OrderSummary[]) => {
+    // Remove submitted orders from summary
+    setOrderSummaries(prev => prev.filter(order => !order.selected));
   };
-
-  // Helper function for webhook processing
-  const processWebhook = async (order: any) => {
-    if (!isAdmin) return;
-    
-    console.log("🔍 SUBMIT - Admin user submitting order to plant:", selectedPlant);
-    
-    let webhookUrl;
-    if (testMode) {
-      // Use the plant-specific webhook for test mode
-      webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.transferRequests;
-      console.log("🔍 SUBMIT - Admin in test mode, using plant-specific webhook:", webhookUrl);
-    } else {
-      // Use the admin-specific webhook for production mode
-      webhookUrl = PLANT_WEBHOOKS[selectedPlant]?.adminOrders;
-      console.log("🔍 SUBMIT - Admin in production mode, using admin webhook:", webhookUrl);
-    }
-    
-    if (webhookUrl) {
-      console.log("🔍 SUBMIT - Sending to webhook:", webhookUrl);
-      await submitToWebhook(webhookUrl, order);
-    } else {
-      console.error("❌ SUBMIT - No webhook URL found for this configuration");
-    }
-  };
-
-  // Helper function for storing orders in local storage
-  const storeCompletedOrders = (orders: any[]) => {
-    const timestamp = new Date().toLocaleString();
-    const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-    
-    const newCompletedOrders = orders.map(order => ({
-      ...order,
-      id: order.id,
-      timestamp: timestamp,
-      plant: selectedPlant
-    }));
-    
-    localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...newCompletedOrders]));
-  };
-
-  // Main submission handler
-  const handleSubmitOrders = async () => {
-    if (selectedOrders.length === 0) {
-      toast({
-        title: "No orders selected",
-        description: "Please select at least one order to submit",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    console.log("🔍 SUBMIT - Starting order submission process");
-    console.log("🔍 SUBMIT - Admin user:", isAdmin);
-    console.log("🔍 SUBMIT - Test mode:", testMode);
-    console.log("🔍 SUBMIT - Selected plant:", selectedPlant);
-    
-    try {
-      // Admin test mode notification
-      if (isAdmin && !testMode) {
-        toast({
-          title: "Admin Test Mode",
-          description: "Order submission processed in test mode - no notifications will be sent."
-        });
-        
-        console.log("🔍 SUBMIT - Admin test mode active, not sending notifications");
-        
-        // Store in local storage but don't trigger webhooks
-        const timestamp = new Date().toLocaleString();
-        const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-        
-        const adminTestOrders = selectedOrders.map(order => ({
-          ...order,
-          id: order.id,
-          timestamp: timestamp,
-          testMode: true
-        }));
-        
-        localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...adminTestOrders]));
-        
-        // Remove submitted orders from summary
-        setOrderSummaries(prev => prev.filter(order => !order.selected));
-        
-        setIsSubmitting(false);
-        return;
-      }
-
-      console.log("🔍 SUBMIT - Processing orders with notifications");
-      // Normal submission process
-      const processedOrders = [];
-      
-      for (const order of selectedOrders) {
-        try {
-          const processedOrder = await processOrder(order);
-          processedOrders.push(processedOrder);
-          
-          // Handle webhook submission for admin users
-          await processWebhook(processedOrder);
-        } catch (error) {
-          console.error(`Error processing order ${order.id}:`, error);
-          // Continue with other orders even if one fails
-        }
-      }
-      
-      // Store successfully processed orders in local storage
-      storeCompletedOrders(processedOrders);
-      
-      // Remove submitted orders from summary
-      setOrderSummaries(prev => prev.filter(order => !order.selected));
-      
-      toast({
-        title: "Orders submitted successfully",
-        description: `${processedOrders.length} order(s) have been submitted successfully.`
-      });
-    } catch (error) {
-      console.error("❌ SUBMIT - Error submitting orders:", error);
-      toast({
-        title: "Error submitting orders",
-        description: "There was an error submitting the orders. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  
+  // Submit orders handler
+  const submitOrders = () => {
+    handleSubmitOrders(selectedOrders, testMode, handleSubmissionSuccess);
   };
   
   if (orderSummaries.length === 0) {
@@ -222,7 +68,7 @@ export function OrderSubmissionHandler({
           )}
           
           <Button
-            onClick={handleSubmitOrders}
+            onClick={submitOrders}
             disabled={isSubmitting || selectedOrders.length === 0}
             className="bg-green-600 hover:bg-green-700"
           >
