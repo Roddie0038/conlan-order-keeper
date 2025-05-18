@@ -79,7 +79,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     menuItems.push({
       title: "ALL ORDERS",
       icon: null,
-      path: "/admin-orders",  // Changed from "/all-orders" to "/admin-orders"
+      path: "/admin-orders",
       color: "",
       borderColor: "border-amber-400",
       delay: 0.6,

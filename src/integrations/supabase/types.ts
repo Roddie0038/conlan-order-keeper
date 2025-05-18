@@ -176,8 +176,10 @@ export type Database = {
       }
       orders: {
         Row: {
+          archived: boolean | null
           completed: boolean | null
           completed_at: string | null
+          completed_by: string | null
           cross_dock_destination: string | null
           cross_dock_eta_date: string | null
           cross_dock_form_link: string | null
@@ -187,6 +189,7 @@ export type Database = {
           destination_manager_email: string | null
           email: string | null
           email_message: string | null
+          id: number
           in_transit_at: string | null
           invoice_number: string | null
           name: string | null
@@ -199,6 +202,8 @@ export type Database = {
           quantity: number | null
           ready_to_ship_at: string | null
           received_at: string | null
+          reopened_at: string | null
+          reopened_reason: string | null
           schedule_arrival: string | null
           send_email_trigger: boolean | null
           send_invoice: boolean | null
@@ -208,8 +213,10 @@ export type Database = {
           timestamp: string
         }
         Insert: {
+          archived?: boolean | null
           completed?: boolean | null
           completed_at?: string | null
+          completed_by?: string | null
           cross_dock_destination?: string | null
           cross_dock_eta_date?: string | null
           cross_dock_form_link?: string | null
@@ -219,6 +226,7 @@ export type Database = {
           destination_manager_email?: string | null
           email?: string | null
           email_message?: string | null
+          id?: never
           in_transit_at?: string | null
           invoice_number?: string | null
           name?: string | null
@@ -231,6 +239,8 @@ export type Database = {
           quantity?: number | null
           ready_to_ship_at?: string | null
           received_at?: string | null
+          reopened_at?: string | null
+          reopened_reason?: string | null
           schedule_arrival?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
@@ -240,8 +250,10 @@ export type Database = {
           timestamp: string
         }
         Update: {
+          archived?: boolean | null
           completed?: boolean | null
           completed_at?: string | null
+          completed_by?: string | null
           cross_dock_destination?: string | null
           cross_dock_eta_date?: string | null
           cross_dock_form_link?: string | null
@@ -251,6 +263,7 @@ export type Database = {
           destination_manager_email?: string | null
           email?: string | null
           email_message?: string | null
+          id?: never
           in_transit_at?: string | null
           invoice_number?: string | null
           name?: string | null
@@ -263,6 +276,8 @@ export type Database = {
           quantity?: number | null
           ready_to_ship_at?: string | null
           received_at?: string | null
+          reopened_at?: string | null
+          reopened_reason?: string | null
           schedule_arrival?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null

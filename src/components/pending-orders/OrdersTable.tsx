@@ -26,7 +26,7 @@ interface OrdersTableProps {
     totalPages: number;
   };
   goToPage?: (page: number) => void;
-  onRowClick?: (orderId: string) => void;
+  onRowClick?: (orderId: number) => void;
 }
 
 export function OrdersTable({ 
@@ -57,9 +57,9 @@ export function OrdersTable({
                 </td>
               </tr>
             ) : (
-              orders.map((order, index) => (
+              orders.map((order) => (
                 <OrdersTableRow 
-                  key={index} 
+                  key={order.id} 
                   order={order} 
                   onClick={onRowClick ? () => onRowClick(order.id) : undefined}
                 />

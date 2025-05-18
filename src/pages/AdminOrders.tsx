@@ -15,7 +15,7 @@ import { OrderStatus } from "@/components/orders/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminOrders() {
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<keyof OrderRecord>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -24,7 +24,7 @@ export default function AdminOrders() {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Break the deep type inference chain by using a concrete type
+  // Break the deep type inference chain with explicit typing
   const { 
     orders, 
     loading, 
@@ -35,10 +35,10 @@ export default function AdminOrders() {
     refreshOrders 
   } = useFetchOrders(20); // Fetch more orders per page for admin view
   
-  // Find the selected order using safe optional chaining to avoid type issues
-  const selectedOrder = orders.find(order => order.id === selectedOrderId) || null;
+  // Find the selected order using explicit typing to avoid deep instantiation
+  const selectedOrder = selectedOrderId ? orders.find(order => order.id === selectedOrderId) || null : null;
 
-  const handleOrderClick = (orderId: string) => {
+  const handleOrderClick = (orderId: number) => {
     setSelectedOrderId(orderId);
   };
   
@@ -46,7 +46,7 @@ export default function AdminOrders() {
     setSelectedOrderId(null);
   };
   
-  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+  const handleStatusChange = async (orderId: number, newStatus: OrderStatus) => {
     try {
       // Update the status in the database
       const { error } = await supabase

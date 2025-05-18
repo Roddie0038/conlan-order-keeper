@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export interface OrderRecord {
-  id: string; // Add id to the interface since it's needed to identify orders
+  id: number; // Updated to number as the primary key is now a BIGINT
   timestamp: string;
   name: string;
   store: string;
@@ -76,14 +76,8 @@ export function useFetchOrders(initialPageSize = 10) {
         throw error;
       }
       
-      // Make sure each record has an id property (use timestamp as fallback if needed)
-      const processedData = data?.map(item => ({
-        ...item,
-        id: item.id || item.timestamp // Use timestamp as fallback id if needed
-      })) as OrderRecord[];
-      
       // Update state with the fetched data and pagination info
-      setOrders(processedData || []);
+      setOrders(data as OrderRecord[] || []);
       setPagination({
         page,
         pageSize,
