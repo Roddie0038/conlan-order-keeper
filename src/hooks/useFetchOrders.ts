@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export interface OrderRecord {
-  id: number; // Updated to number as the primary key is now a BIGINT
+  id: number; // Updated to explicitly be a number (BIGINT from database)
   timestamp: string;
   name: string;
   store: string;

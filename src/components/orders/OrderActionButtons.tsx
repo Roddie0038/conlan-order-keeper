@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import { useOrderStatus, StatusUpdateParams } from "@/hooks/use-order-status";
 import { OrderStatus } from "@/components/orders/StatusBadge";
 
 interface OrderActionButtonsProps {
-  orderId: string;
+  orderId: number; // Updated from string to number
   status: OrderStatus;
   orderType: 'regular' | 'mto' | 'wheel';
   isAdmin: boolean;

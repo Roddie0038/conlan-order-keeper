@@ -16,7 +16,7 @@ interface OrderDetailViewProps {
   order: any;
   onClose: () => void;
   isAdmin?: boolean;
-  onStatusChange?: (orderId: string, newStatus: OrderStatus) => void;
+  onStatusChange?: (orderId: number, newStatus: OrderStatus) => void; // Updated from string to number
 }
 
 export function OrderDetailView({ order, onClose, isAdmin = false, onStatusChange }: OrderDetailViewProps) {

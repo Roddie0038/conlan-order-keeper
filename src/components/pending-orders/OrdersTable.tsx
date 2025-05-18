@@ -26,7 +26,7 @@ interface OrdersTableProps {
     totalPages: number;
   };
   goToPage?: (page: number) => void;
-  onRowClick?: (orderId: number) => void;
+  onRowClick?: (orderId: number) => void; // Updated from string to number
 }
 
 export function OrdersTable({ 

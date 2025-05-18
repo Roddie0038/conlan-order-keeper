@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { OrderStatus } from "@/components/orders/StatusBadge";
 
 export interface StatusUpdateParams {
-  orderId: string;
+  orderId: number; // Updated from string to number
   currentStatus: OrderStatus;
   newStatus: OrderStatus;
   orderType: 'regular' | 'mto' | 'wheel';
