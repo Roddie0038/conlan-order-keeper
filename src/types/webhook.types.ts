@@ -4,7 +4,7 @@
  */
 
 import { CrossDockFields } from "./cross-dock.types";
-import type { OrderData as BaseOrderData } from "./supabase-extensions";
+import type { OrderData } from "./supabase-extensions";
 
 // Re-export OrderData type from supabase-extensions
 export type { OrderData } from "./supabase-extensions";

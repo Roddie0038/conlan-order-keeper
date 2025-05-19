@@ -56,7 +56,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     dateReceived: orderWithPlant.dateReceived,
     email: orderWithPlant.email,
     plant: orderWithPlant.plant,
-    type: orderWithPlant.type, // This will now be properly typed as OrderType
+    type: orderWithPlant.type,
     timestamp: orderWithPlant.timestamp
   };
   
