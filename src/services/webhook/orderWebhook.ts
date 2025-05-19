@@ -30,18 +30,18 @@ export const submitToOrdersWebhook = async (data: any) => {
       schedule_arrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival ? formatDate(data.scheduleArrival) : ""),
       notes: data.notes || "",
       email: data.managersEmail || data.managerEmail || "",
-      cross_dock: data.crossDock?.toLowerCase() === "yes" ? "Yes" : "No",
+      cross_dock: data.cross_dock_type?.toLowerCase() === "yes" ? "Yes" : "No", // Use cross_dock_type instead of crossDock
       order_source: "web_app", // Add source for tracking purposes
       order_type: "TRANSFER" // Explicitly mark the order type
     };
     
-    // Only add cross dock specific fields when crossDock is "Yes"
-    if (data.crossDock?.toLowerCase() === "yes") {
+    // Only add cross dock specific fields when cross_dock is "Yes"
+    if (data.cross_dock_type?.toLowerCase() === "yes") {
       mappedData.cross_dock_from = data.store || "";
-      mappedData.cross_dock_dest = data.crossDockDestination || "";
+      mappedData.cross_dock_dest = data.cross_dock_destination || data.crossDockDestination || "";
       mappedData.destination_manager_email = data.destinationManagerEmail || "";
-      mappedData.receiver_no = data.receiverNo || "";
-      mappedData.eta_date = data.etaDate ? formatDate(data.etaDate) : "";
+      mappedData.receiver_no = data.cross_dock_receiver_number || data.receiverNo || "";
+      mappedData.eta_date = data.cross_dock_eta_date || data.etaDate ? formatDate(data.cross_dock_eta_date || data.etaDate) : "";
     }
 
     console.log("🔍 ORDER WEBHOOK - Sending mapped data to Orders webhook:", mappedData);

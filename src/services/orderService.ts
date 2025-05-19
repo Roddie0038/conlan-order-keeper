@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { OrderData } from "@/types/supabase-extensions";
 
@@ -38,9 +37,9 @@ export const saveOrderToSupabase = async (order: OrderData) => {
       name: order.yourName || order.name, // Ensure name is set
       timestamp: order.timestamp || new Date().toISOString(), // Ensure timestamp is set
       
-      // Ensure cross dock fields use the correct column names
-      cross_dock: order.cross_dock || order.crossDock,
-      cross_dock_type: order.cross_dock_type || order.crossDock, // Add this field explicitly
+      // Map crossDock related fields to database columns
+      // Note: The database has a column called cross_dock_type, not cross_dock
+      cross_dock_type: order.crossDock === "Yes" ? "Yes" : "No",
       cross_dock_destination: order.cross_dock_destination || order.crossDockDestination,
       cross_dock_receiver_number: order.cross_dock_receiver_number || order.receiverNo,
       cross_dock_eta_date: order.cross_dock_eta_date || order.etaDate,
@@ -50,6 +49,7 @@ export const saveOrderToSupabase = async (order: OrderData) => {
     const { 
       _nocache, 
       crossDock, 
+      cross_dock, // Remove this as it's not in the schema
       crossDockDestination, 
       receiverNo, 
       etaDate,
