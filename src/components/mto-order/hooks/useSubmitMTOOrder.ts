@@ -5,6 +5,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { usePlant } from "@/contexts/PlantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveOrderToSupabase } from "@/services/orderService";
+import { getPlantForStore } from "@/utils/plantMapping";
 
 interface SubmitMTOOrderProps {
   formData: MTOFormData;
@@ -118,6 +119,10 @@ export const useSubmitMTOOrder = ({
       const managersEmail = getManagerEmail(formData.store);
       console.log("Manager email for store:", formData.store, "is:", managersEmail);
       
+      // Determine plant based on store
+      const plant = getPlantForStore(formData.store);
+      console.log(`Determined plant '${plant}' for store: ${formData.store}`);
+      
       const orderData = {
         id: crypto.randomUUID(),
         ...formData,
@@ -126,7 +131,7 @@ export const useSubmitMTOOrder = ({
         managersEmail,
         managerEmail: managersEmail, // Adding both formats to ensure compatibility
         triggered_from: window.location.origin,
-        plant: selectedPlant, // Include the plant from context
+        plant: plant, // Use determined plant instead of selectedPlant
         store: formData.store, // Ensure store is included
         timestamp: new Date().toISOString()
       };
@@ -146,6 +151,7 @@ export const useSubmitMTOOrder = ({
         email: managersEmail,
         timestamp: new Date().toISOString(),
         type: "MTO",
+        plant: plant, // Add the plant field
         crossDock: "No" as "Yes" | "No" // Added explicit type casting to match the union type
       });
       

@@ -4,6 +4,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { storeData } from "@/config/storeData";
 import { OrderType } from "@/services/webhook/config"; // Import OrderType
+import { getPlantForStore } from "@/utils/plantMapping";
 
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage
@@ -20,10 +21,14 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
   const storeManagerEmail = matchedStore?.managerEmails || "";
   
+  // Determine correct plant based on store
+  const plant = getPlantForStore(order.store);
+  console.log(`🔍 SUBMIT - Determined plant '${plant}' for store: ${order.store}`);
+  
   // Ensure proper plant information is included
   const orderWithPlant = {
     ...order,
-    plant: selectedPlant,
+    plant: plant, // Use the determined plant instead of selectedPlant
     type: 'TRANSFER' as OrderType, // Cast to OrderType to fix the TypeScript error
     name: order.yourName || order.name || "Unknown", // Ensure name is set
     email: storeManagerEmail, // Ensure email is set with the manager's email

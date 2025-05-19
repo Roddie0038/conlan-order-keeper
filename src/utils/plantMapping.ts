@@ -1,0 +1,47 @@
+
+// Plant to store mapping for determining which plant handles orders from specific stores
+export const PLANT_STORE_MAP = {
+  "Grand Prairie 97": [
+    "Fort Worth 22", "Grand Prairie 27", "Houston 28", "San Antonio 29",
+    "OKC 30", "Little Rock 32", "Kansas 33", "Laredo 35",
+    "Tulsa 36", "Austin 39"
+  ],
+  "Romulus 98": [
+    "Detroit 11", "Toledo 8", "Grand Rapids 13", "Cleveland 18", "Chicago 41"
+  ],
+  "Mulberry 99": [
+    "Miami 3", "Pompano Beach 7", "Fort Myers 9", "Jacksonville 2", "Ocala 5",
+    "Tallahassee 15", "Orlando 4", "Tampa 6", "Vero Beach 21", "Sarasota 23"
+  ]
+};
+
+/**
+ * Determine which plant should handle an order based on the store
+ * @param store - The full store name (e.g., "Fort Worth 22")
+ * @returns The plant name or undefined if no matching plant is found
+ */
+export function getPlantForStore(store: string): string | undefined {
+  // Normalize store name by removing extra spaces
+  const normalizedStore = store.trim();
+
+  // Check each plant's store list for a match
+  for (const [plant, stores] of Object.entries(PLANT_STORE_MAP)) {
+    if (stores.some(s => normalizedStore === s)) {
+      return plant;
+    }
+  }
+
+  // If no match is found, check for partial matches (store number)
+  const storeNumber = normalizedStore.match(/\d+$/)?.[0];
+  if (storeNumber) {
+    for (const [plant, stores] of Object.entries(PLANT_STORE_MAP)) {
+      if (stores.some(s => s.includes(storeNumber))) {
+        return plant;
+      }
+    }
+  }
+
+  // Default to Grand Prairie if no match is found
+  console.warn(`No plant mapping found for store: ${store}, defaulting to Grand Prairie 97`);
+  return "Grand Prairie 97";
+}

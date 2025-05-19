@@ -9,6 +9,7 @@ import { WEBHOOK_URLS } from "@/services/webhook/config";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
+import { getPlantForStore } from "@/utils/plantMapping";
 
 export function useWheelFormSubmission(formData: WheelFormData, managerEmail: string) {
   const { user } = useAuth();
@@ -34,6 +35,10 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       console.log("🔍 WHEEL FORM - Expected URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
       console.log("🔍 WHEEL FORM - URLs match?", WEBHOOK_URLS.WHEEL_ORDERS === "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
       
+      // Determine plant based on store
+      const plant = getPlantForStore(formData.storeName);
+      console.log(`🔍 WHEEL FORM - Determined plant '${plant}' for store: ${formData.storeName}`);
+      
       const submissionData = {
         yourName: formData.yourName,
         store: formData.storeName,
@@ -48,7 +53,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         crossDock: "No" as "Yes" | "No", // Added explicit type to match the union type
         managersEmail: managerEmail,
         managerEmail: managerEmail,
-        plant: selectedPlant,
+        plant: plant, // Use the determined plant
         qtyWheels: formData.qtyWheels,
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
@@ -76,6 +81,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         email: managerEmail,
         timestamp: new Date().toISOString(),
         type: "WHEEL_POWDER_COATING",
+        plant: plant, // Add the plant field
         crossDock: "No" as "Yes" | "No" // Added explicit type casting to match the union type
       });
       

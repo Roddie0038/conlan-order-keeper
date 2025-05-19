@@ -197,6 +197,7 @@ export type Database = {
           order_completion_link: string | null
           order_type: string | null
           out_of_stock: boolean | null
+          plant: string | null
           product_number: string | null
           pull_sheet_link: string | null
           quantity: number | null
@@ -226,7 +227,7 @@ export type Database = {
           destination_manager_email?: string | null
           email?: string | null
           email_message?: string | null
-          id?: never
+          id?: number
           in_transit_at?: string | null
           invoice_number?: string | null
           name?: string | null
@@ -234,6 +235,7 @@ export type Database = {
           order_completion_link?: string | null
           order_type?: string | null
           out_of_stock?: boolean | null
+          plant?: string | null
           product_number?: string | null
           pull_sheet_link?: string | null
           quantity?: number | null
@@ -263,7 +265,7 @@ export type Database = {
           destination_manager_email?: string | null
           email?: string | null
           email_message?: string | null
-          id?: never
+          id?: number
           in_transit_at?: string | null
           invoice_number?: string | null
           name?: string | null
@@ -271,6 +273,7 @@ export type Database = {
           order_completion_link?: string | null
           order_type?: string | null
           out_of_stock?: boolean | null
+          plant?: string | null
           product_number?: string | null
           pull_sheet_link?: string | null
           quantity?: number | null
