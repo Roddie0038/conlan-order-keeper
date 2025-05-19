@@ -34,13 +34,12 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     name: order.yourName || order.name || "Unknown", // Ensure name is set
     email: storeManagerEmail, // Ensure email is set with the manager's email
     dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
-    
-    // Important: Use ONLY cross_dock_type, not cross_dock which causes the error
-    cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
+    // Map frontend field names to database column names
+    cross_dock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", 
+    cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", // Add this field for the database
     cross_dock_destination: order.crossDockDestination || null,
     cross_dock_receiver_number: order.receiverNo || null,
     cross_dock_eta_date: order.etaDate || null,
-    
     timestamp: new Date().toISOString(), // Add timestamp to fix TS error
     // Add manager email fields for webhook compatibility
     managerEmail: storeManagerEmail,
@@ -58,14 +57,12 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     quantity: String(orderWithPlant.quantity), // Convert to string to match OrderData type
     scheduleArrival: orderWithPlant.scheduleArrival,
     notes: orderWithPlant.notes,
-    
-    // Important: Map to correct database column names
-    // Do not include cross_dock as it's not in the schema
+    // Map crossDock and related fields to the correct column names expected by Supabase
+    cross_dock: orderWithPlant.cross_dock,
     cross_dock_type: orderWithPlant.cross_dock_type,
     cross_dock_destination: orderWithPlant.cross_dock_destination,
     cross_dock_receiver_number: orderWithPlant.cross_dock_receiver_number,
     cross_dock_eta_date: orderWithPlant.cross_dock_eta_date,
-    
     dateReceived: orderWithPlant.dateReceived,
     email: orderWithPlant.email,
     plant: orderWithPlant.plant,
@@ -82,8 +79,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     // Create a copy with cache-busting parameter that will be removed before saving to Supabase
     const webhookData = {
       ...submissionOrder,
-      _nocache: Date.now(),
-      crossDock: submissionOrder.cross_dock_type // Include for Google Sheets compatibility
+      _nocache: Date.now()
     };
     
     // Submit to Google Sheets with cache-busting

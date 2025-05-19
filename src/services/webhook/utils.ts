@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for webhook submissions
  */
@@ -30,8 +31,9 @@ export const prepareWebhookData = (data: any) => {
   // Map fields to the correct database column names
   const mappedData = {
     ...data,
-    // Based on the schema error, only use cross_dock_type, not cross_dock
-    cross_dock_type: data.crossDock === "Yes" ? "Yes" : "No",
+    // Convert crossDock to both cross_dock and cross_dock_type for Supabase compatibility
+    cross_dock: data.cross_dock || data.crossDock || "No",
+    cross_dock_type: data.cross_dock_type || data.crossDock || "No",
     cross_dock_destination: data.cross_dock_destination || data.crossDockDestination,
     cross_dock_receiver_number: data.cross_dock_receiver_number || data.receiverNo,
     cross_dock_eta_date: data.cross_dock_eta_date || data.etaDate,

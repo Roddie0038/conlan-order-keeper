@@ -1,4 +1,3 @@
-
 import { Database as OriginalDatabase } from "@/integrations/supabase/types";
 import { CrossDockFields } from "./cross-dock.types";
 
@@ -11,9 +10,10 @@ export interface BaseOrderData {
   quantity?: number | string;
   scheduleArrival?: string;
   notes?: string;
-  // Support only the correct database column naming based on schema
-  crossDock?: "Yes" | "No"; // Frontend field
-  cross_dock_type?: "Yes" | "No"; // Database column (correct one)
+  // Support both frontend and database field naming conventions
+  crossDock?: "Yes" | "No";
+  cross_dock?: "Yes" | "No";
+  cross_dock_type?: "Yes" | "No"; // Added to match database column
   crossDockDestination?: string;
   cross_dock_destination?: string;
   timestamp?: string;
