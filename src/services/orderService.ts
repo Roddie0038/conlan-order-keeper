@@ -1,4 +1,5 @@
-import { supabase } from "@/supabase";
+
+import { supabase } from "@/integrations/supabase/client";
 import { OrderData } from "@/types/webhook.types";
 
 /**
@@ -39,4 +40,3 @@ export async function saveOrderToSupabase(order: OrderData) {
     return { data: null, error: 'Failed to save order to Supabase' };
   }
 }
-
