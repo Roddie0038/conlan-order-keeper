@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +9,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { OrderData } from "@/types/webhook.types"; // Import the OrderData type
 
 export function useWheelFormSubmission(formData: WheelFormData, managerEmail: string) {
   const { user } = useAuth();
@@ -50,10 +50,10 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         quantity: formData.qtyWheels,
         scheduleArrival: formData.scheduleArrival || formData.dateReceived,
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
-        crossDock: "No" as "Yes" | "No", // Added explicit type to match the union type
+        crossDock: "No" as "Yes" | "No",
         managersEmail: managerEmail,
         managerEmail: managerEmail,
-        plant: plant, // Use the determined plant
+        plant: plant,
         qtyWheels: formData.qtyWheels,
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
@@ -69,8 +69,8 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
 
       const result = await submitToGoogleSheets(submissionData);
       
-      // Save to Supabase with appropriate type information
-      await saveOrderToSupabase({
+      // Create an order object that matches the OrderData type
+      const supabaseOrder: OrderData = {
         name: formData.yourName,
         store: formData.storeName,
         productNumber: "WHEEL-COATING",
@@ -81,9 +81,12 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         email: managerEmail,
         timestamp: new Date().toISOString(),
         type: "WHEEL_POWDER_COATING",
-        plant: plant, // Add the plant field
-        crossDock: "No" as "Yes" | "No" // Added explicit type casting
-      });
+        plant: plant,
+        crossDock: "No" as "Yes" | "No"
+      };
+      
+      // Save to Supabase with appropriate type information
+      await saveOrderToSupabase(supabaseOrder);
       
       if (result.status === 'success' || result.status === 'partial_success') {
         const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');

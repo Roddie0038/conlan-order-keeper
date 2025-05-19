@@ -1,4 +1,3 @@
-
 import { MTOFormData } from "../mto-form-config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -6,6 +5,7 @@ import { usePlant } from "@/contexts/PlantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { OrderData } from "@/types/webhook.types"; // Import the OrderData type
 
 interface SubmitMTOOrderProps {
   formData: MTOFormData;
@@ -127,20 +127,20 @@ export const useSubmitMTOOrder = ({
         id: crypto.randomUUID(),
         ...formData,
         tireSize: finalTireSize,
-        type: 'MTO' as const, // Explicitly set the type as MTO
+        type: 'MTO' as const,
         managersEmail,
-        managerEmail: managersEmail, // Adding both formats to ensure compatibility
+        managerEmail: managersEmail,
         triggered_from: window.location.origin,
-        plant: plant, // Use determined plant instead of selectedPlant
-        store: formData.store, // Ensure store is included
+        plant: plant,
+        store: formData.store,
         timestamp: new Date().toISOString()
       };
 
       console.log("Sending order data to webhook:", orderData);
       const result = await submitToGoogleSheets(orderData);
       
-      // Save to Supabase with appropriate type information
-      await saveOrderToSupabase({
+      // Create an order object that matches the OrderData type
+      const supabaseOrder: OrderData = {
         name: formData.name,
         store: formData.store,
         productNumber: formData.productNumber,
@@ -151,9 +151,12 @@ export const useSubmitMTOOrder = ({
         email: managersEmail,
         timestamp: new Date().toISOString(),
         type: "MTO",
-        plant: plant, // Add the plant field
-        crossDock: "No" as "Yes" | "No" // Added explicit type casting
-      });
+        plant: plant,
+        crossDock: "No" as "Yes" | "No"
+      };
+      
+      // Save to Supabase with appropriate type information
+      await saveOrderToSupabase(supabaseOrder);
       
       if (result.status === 'success' || result.status === 'partial_success') {
         const existingOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');

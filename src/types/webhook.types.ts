@@ -26,5 +26,22 @@ export interface CrossDockWebhookPayload {
   eta_date?: string;
   order_source?: string;
   order_type?: string;
+  plant?: string; // Add plant field
 }
 
+// Export OrderData type to be used across the application
+export interface OrderData {
+  name?: string;
+  store?: string;
+  productNumber?: string;
+  description?: string;
+  quantity?: number | string;
+  scheduleArrival?: string;
+  notes?: string;
+  email?: string;
+  crossDock?: "Yes" | "No";
+  crossDockDestination?: string;
+  timestamp?: string;
+  type?: string;
+  plant?: string; // Add plant field
+}
