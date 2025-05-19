@@ -1,10 +1,10 @@
-
 import { OrderSummary } from "@/hooks/useOrderSubmission";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { storeData } from "@/config/storeData";
-import { OrderType } from "@/services/webhook/config"; // Import OrderType
+import { OrderType } from "@/services/webhook/config";
 import { getPlantForStore } from "@/utils/plantMapping";
+import type { OrderData } from "@/types/supabase-extensions";
 
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage
@@ -38,7 +38,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   };
 
   // Create a new object with only the fields needed for submission
-  const submissionOrder = {
+  const submissionOrder: OrderData = {
     id: orderWithPlant.id,
     name: orderWithPlant.name,
     yourName: orderWithPlant.yourName,

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -9,7 +8,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { OrderData } from "@/types/webhook.types"; // Import the OrderData type
+import type { OrderData } from "@/types/supabase-extensions";
 
 export function useOrderFormSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -9,7 +9,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { OrderData } from "@/types/webhook.types"; // Import the OrderData type
+import type { OrderData } from "@/types/supabase-extensions";
 
 export function useWheelFormSubmission(formData: WheelFormData, managerEmail: string) {
   const { user } = useAuth();
@@ -82,7 +82,16 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         timestamp: new Date().toISOString(),
         type: "WHEEL_POWDER_COATING",
         plant: plant,
-        crossDock: "No" as "Yes" | "No"
+        crossDock: "No" as "Yes" | "No",
+        
+        // Wheel-specific fields
+        customerName: formData.customerName,
+        wheelMaterial: formData.wheelMaterial,
+        wheelType: formData.wheelType,
+        handHoles: formData.handHoles,
+        wheelSize: formData.wheelSize,
+        wheelColor: formData.wheelColor,
+        qtyWheels: formData.qtyWheels
       };
       
       // Save to Supabase with appropriate type information

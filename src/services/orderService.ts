@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { OrderData } from "@/types/webhook.types";
+import type { OrderData } from "@/types/supabase-extensions";
 
 /**
  * Save an order to Supabase

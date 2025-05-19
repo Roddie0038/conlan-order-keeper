@@ -5,7 +5,7 @@ import { usePlant } from "@/contexts/PlantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { OrderData } from "@/types/webhook.types"; // Import the OrderData type
+import type { OrderData } from "@/types/supabase-extensions";
 
 interface SubmitMTOOrderProps {
   formData: MTOFormData;
@@ -152,7 +152,12 @@ export const useSubmitMTOOrder = ({
         timestamp: new Date().toISOString(),
         type: "MTO",
         plant: plant,
-        crossDock: "No" as "Yes" | "No"
+        crossDock: "No" as "Yes" | "No",
+        
+        // MTO-specific fields
+        casingGrade: formData.casingGrade,
+        tireSize: finalTireSize,
+        tireTreadNeeded: formData.tireTreadNeeded
       };
       
       // Save to Supabase with appropriate type information

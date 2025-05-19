@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,6 +5,7 @@ import { usePlant } from "@/contexts/PlantContext";
 import { processOrder } from "@/services/orderSubmission/processOrder";
 import { processWebhook } from "@/services/orderSubmission/processWebhook";
 import { storeCompletedOrders } from "@/services/orderSubmission/storeStorage";
+import type { OrderData } from "@/types/supabase-extensions";
 
 export type OrderSummary = {
   id: string;

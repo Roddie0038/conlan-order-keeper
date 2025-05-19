@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -8,6 +7,7 @@ import { OrderSummary } from "../types";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
+import type { OrderData } from "@/types/supabase-extensions";
 
 export function useOrderFormSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +32,7 @@ export function useOrderFormSubmit() {
 
     try {
       // Format the orders for submission
-      const formattedOrders = selectedOrders.map((order) => {
+      const formattedOrders: OrderData[] = selectedOrders.map((order) => {
         // Find the store manager email from storeData
         const storeNumber = order.store.match(/\d+$/)?.[0] || "";
         const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
