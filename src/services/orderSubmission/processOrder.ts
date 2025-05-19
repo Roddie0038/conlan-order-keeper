@@ -41,8 +41,8 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Create a new object with only the fields needed for submission
   const submissionOrder: OrderData = {
     id: order.id,
+    yourName: orderWithPlant.yourName || orderWithPlant.name, // Make sure this is set
     name: orderWithPlant.name,
-    yourName: orderWithPlant.yourName,
     store: orderWithPlant.store,
     productNumber: orderWithPlant.productNumber,
     description: orderWithPlant.description,
@@ -61,7 +61,9 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   };
   
   console.log("🔍 SUBMIT - Using sheets service with order:", submissionOrder);
-  const result = await submitToGoogleSheets(submissionOrder);
+  
+  // Use type assertion to avoid type conflicts between different OrderData definitions
+  const result = await submitToGoogleSheets(submissionOrder as any);
   console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
   
   // Save the order to Supabase

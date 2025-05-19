@@ -1,21 +1,17 @@
-
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { submitToWebhook } from './webhook/utils';
 import { submitToOrdersWebhook } from './webhook/orderWebhook';
 import { submitToWheelOrdersWebhook } from './webhook/wheelWebhook';
 import { submitToMTOOrdersWebhook } from './webhook/mtoWebhook';
-import { 
-  OrderType, 
-  OrderData, 
-  MTOOrderData,
-  WEBHOOK_URLS
-} from './webhook/config';
+import { OrderType, MTOOrderData } from './webhook/config';
+import type { OrderData } from '@/types/supabase-extensions';
 
-export type { OrderType, OrderData, MTOOrderData };
+export type { OrderType, MTOOrderData };
+export type { OrderData };
 
 // Type guard to check if the data is an OrderData (with CrossDock fields)
 function isOrderData(data: OrderData | MTOOrderData): data is OrderData {
-  return 'yourName' in data && !('casingGrade' in data);
+  return 'yourName' in data || 'name' in data;
 }
 
 // Type guard to check if the data is an MTOOrderData
