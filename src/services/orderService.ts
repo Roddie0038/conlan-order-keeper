@@ -32,15 +32,21 @@ export const saveOrderToSupabase = async (order: OrderData) => {
       targetTable = 'wheel_orders';
     }
 
-    // Format data for consistency - removing any non-table fields
+    // Format data for consistency - mapping front-end field names to database column names
     const formattedOrder = {
       ...order,
       name: order.yourName || order.name, // Ensure name is set
       timestamp: order.timestamp || new Date().toISOString(), // Ensure timestamp is set
+      
+      // Ensure cross dock fields use the correct column names
+      cross_dock: order.cross_dock || order.crossDock,
+      cross_dock_destination: order.cross_dock_destination || order.crossDockDestination,
+      cross_dock_receiver_number: order.cross_dock_receiver_number || order.receiverNo,
+      cross_dock_eta_date: order.cross_dock_eta_date || order.etaDate,
     };
     
     // Remove any fields that don't belong in the database schema
-    const { _nocache, ...cleanOrder } = formattedOrder as any;
+    const { _nocache, crossDock, crossDockDestination, receiverNo, etaDate, ...cleanOrder } = formattedOrder as any;
     
     console.log(`🔍 ORDER SERVICE - Inserting into ${targetTable} table with data:`, cleanOrder);
     

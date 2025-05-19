@@ -1,4 +1,3 @@
-
 import { Database as OriginalDatabase } from "@/integrations/supabase/types";
 import { CrossDockFields } from "./cross-dock.types";
 
@@ -11,9 +10,11 @@ export interface BaseOrderData {
   quantity?: number | string;
   scheduleArrival?: string;
   notes?: string;
-  email?: string;
+  // Support both frontend and database field naming conventions
   crossDock?: "Yes" | "No";
+  cross_dock?: "Yes" | "No";
   crossDockDestination?: string;
+  cross_dock_destination?: string;
   timestamp?: string;
   type?: string;
   plant?: string;
@@ -28,10 +29,14 @@ export interface OrderData extends BaseOrderData {
   
   // Additional fields specific to cross-dock orders
   crossDockFrom?: string;
+  cross_dock_from?: string;
   crossDockDest?: string;
+  cross_dock_dest?: string;
   destinationManagerEmail?: string;
   receiverNo?: string;
+  cross_dock_receiver_number?: string;
   etaDate?: string;
+  cross_dock_eta_date?: string;
   
   // Additional fields for MTO orders
   casingGrade?: string[];
@@ -46,6 +51,9 @@ export interface OrderData extends BaseOrderData {
   wheelSize?: string;
   wheelColor?: string;
   qtyWheels?: string | number;
+  
+  // Support for email field
+  email?: string;
 }
 
 // Extend the original Database type to include our new inventory_documents table

@@ -34,7 +34,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     name: order.yourName || order.name || "Unknown", // Ensure name is set
     email: storeManagerEmail, // Ensure email is set with the manager's email
     dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
-    crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", // Ensure crossDock is correctly typed
+    cross_dock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", // Map to Supabase column name
     timestamp: new Date().toISOString(), // Add timestamp to fix TS error
     // Add manager email fields for webhook compatibility
     managerEmail: storeManagerEmail,
@@ -52,10 +52,11 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     quantity: String(orderWithPlant.quantity), // Convert to string to match OrderData type
     scheduleArrival: orderWithPlant.scheduleArrival,
     notes: orderWithPlant.notes,
-    crossDock: orderWithPlant.crossDock,
-    crossDockDestination: orderWithPlant.crossDockDestination,
-    receiverNo: orderWithPlant.receiverNo,
-    etaDate: orderWithPlant.etaDate,
+    // Map crossDock and related fields to the correct column names expected by Supabase
+    cross_dock: orderWithPlant.cross_dock,
+    cross_dock_destination: orderWithPlant.crossDockDestination || null,
+    cross_dock_receiver_number: orderWithPlant.receiverNo || null,
+    cross_dock_eta_date: orderWithPlant.etaDate || null,
     dateReceived: orderWithPlant.dateReceived,
     email: orderWithPlant.email,
     plant: orderWithPlant.plant,

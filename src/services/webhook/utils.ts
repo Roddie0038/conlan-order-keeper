@@ -28,8 +28,15 @@ export const prepareWebhookData = (data: any) => {
   // Check if scheduleArrival is a weekday name and preserve it
   const isWeekdayName = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Will Call Pick Up)$/i.test(data.scheduleArrival);
   
-  return {
+  // Map fields to the correct database column names
+  const mappedData = {
     ...data,
+    // Convert crossDock to cross_dock for Supabase compatibility if needed
+    cross_dock: data.cross_dock || data.crossDock,
+    cross_dock_destination: data.cross_dock_destination || data.crossDockDestination,
+    cross_dock_receiver_number: data.cross_dock_receiver_number || data.receiverNo,
+    cross_dock_eta_date: data.cross_dock_eta_date || data.etaDate,
+    
     // Only format dateReceived, leave scheduleArrival as is if it's a weekday name
     dateReceived: data.dateReceived ? formatDate(data.dateReceived) : formatDate(new Date().toISOString()),
     timestamp: new Date().toISOString(),
@@ -45,6 +52,8 @@ export const prepareWebhookData = (data: any) => {
     // Add timestamp to avoid caching
     _nocache: Date.now()
   };
+
+  return mappedData;
 };
 
 /**
