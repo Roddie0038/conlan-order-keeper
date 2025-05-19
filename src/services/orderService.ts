@@ -32,20 +32,22 @@ export const saveOrderToSupabase = async (order: OrderData) => {
       targetTable = 'wheel_orders';
     }
 
-    // Format data for consistency
+    // Format data for consistency - removing any non-table fields
     const formattedOrder = {
       ...order,
       name: order.yourName || order.name, // Ensure name is set
       timestamp: order.timestamp || new Date().toISOString(), // Ensure timestamp is set
-      _nocache: undefined // Remove the nocache parameter before saving to Supabase
     };
     
-    console.log(`🔍 ORDER SERVICE - Inserting into ${targetTable} table with data:`, formattedOrder);
+    // Remove any fields that don't belong in the database schema
+    const { _nocache, ...cleanOrder } = formattedOrder as any;
+    
+    console.log(`🔍 ORDER SERVICE - Inserting into ${targetTable} table with data:`, cleanOrder);
     
     // Force a network request by disabling cache
     const { data, error } = await supabase
-      .from(targetTable)
-      .insert(formattedOrder)
+      .from(targetTable as any)
+      .insert(cleanOrder)
       .select()
       .single();
       

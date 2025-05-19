@@ -37,6 +37,9 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("🔍 SHEETS - Plant webhook for selected plant:", PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]);
   
   try {
+    // Add a debug log to trace data before submission
+    console.log("🔍 SHEETS - Full data being submitted:", JSON.stringify(data, null, 2));
+    
     const results = [];
     
     // For crossDock="Yes" orders, ensure we have the destination manager email

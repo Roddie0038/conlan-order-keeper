@@ -36,12 +36,12 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
     crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", // Ensure crossDock is correctly typed
     timestamp: new Date().toISOString(), // Add timestamp to fix TS error
-    // Add these properties to match what the webhook expects
-    managersEmail: storeManagerEmail,
-    managerEmail: storeManagerEmail
+    // Add manager email fields for webhook compatibility
+    managerEmail: storeManagerEmail,
+    managersEmail: storeManagerEmail
   };
 
-  // Create a new object with only the fields needed for submission
+  // Create a new object with only the fields needed for submission to Supabase
   const submissionOrder: OrderData = {
     id: order.id,
     yourName: orderWithPlant.yourName || orderWithPlant.name, // Make sure this is set
@@ -61,9 +61,6 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     plant: orderWithPlant.plant,
     type: orderWithPlant.type,
     timestamp: orderWithPlant.timestamp,
-    // Add these properties to match what the webhook expects
-    managersEmail: storeManagerEmail,
-    managerEmail: storeManagerEmail
   };
   
   console.log("🔍 SUBMIT - Using sheets service with order:", submissionOrder);
@@ -71,13 +68,20 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Force the network request by adding a random parameter to avoid caching
   try {
     console.log("🔍 SUBMIT - Beginning webhook submission at:", new Date().toISOString());
-    // Use type assertion to avoid type conflicts between different OrderData definitions
-    const result = await submitToGoogleSheets({...submissionOrder, _nocache: Date.now()} as any);
+    
+    // Create a copy with cache-busting parameter that will be removed before saving to Supabase
+    const webhookData = {
+      ...submissionOrder,
+      _nocache: Date.now()
+    };
+    
+    // Submit to Google Sheets with cache-busting
+    const result = await submitToGoogleSheets(webhookData as any);
     console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
     
-    // Save the order to Supabase
+    // Save the order to Supabase (without the nocache parameter)
     console.log("🔍 SUBMIT - Saving order to Supabase:", submissionOrder);
-    const { data, error } = await saveOrderToSupabase({...submissionOrder, _nocache: Date.now()});
+    const { data, error } = await saveOrderToSupabase(submissionOrder);
     
     if (error) {
       console.error("❌ SUBMIT - Error saving to Supabase:", error);

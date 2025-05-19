@@ -33,7 +33,7 @@ export const prepareWebhookData = (data: any) => {
     // Only format dateReceived, leave scheduleArrival as is if it's a weekday name
     dateReceived: data.dateReceived ? formatDate(data.dateReceived) : formatDate(new Date().toISOString()),
     timestamp: new Date().toISOString(),
-    orderId: crypto.randomUUID(), // Ensure a unique ID for each webhook submission
+    orderId: data.id || crypto.randomUUID(), // Use existing ID or create a new one
     triggered_from: window.location.origin,
     // Ensure manager's email is included with the consistent property name
     managersEmail: data.managerEmail || data.managersEmail || data.email,
@@ -65,7 +65,8 @@ export const submitToWebhook = async (url: string, data: any) => {
     console.log("🔍 WEBHOOK - Schedule Arrival value being sent:", formattedData.scheduleArrival);
 
     // Add a random query parameter to ensure the request is not cached
-    const urlWithNoCacheParam = `${url}${url.includes('?') ? '&' : '?'}nocache=${Date.now()}`;
+    const cacheBuster = Math.random().toString(36).substring(2);
+    const urlWithNoCacheParam = `${url}${url.includes('?') ? '&' : '?'}nocache=${Date.now()}&cachebuster=${cacheBuster}`;
     console.log("🔍 WEBHOOK - Using URL with cache-busting:", urlWithNoCacheParam);
 
     const response = await fetch(urlWithNoCacheParam, {
