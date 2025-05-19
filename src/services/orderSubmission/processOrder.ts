@@ -1,3 +1,4 @@
+
 import { OrderSummary } from "@/hooks/useOrderSubmission";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
@@ -39,7 +40,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
 
   // Create a new object with only the fields needed for submission
   const submissionOrder: OrderData = {
-    id: orderWithPlant.id,
+    id: order.id,
     name: orderWithPlant.name,
     yourName: orderWithPlant.yourName,
     store: orderWithPlant.store,

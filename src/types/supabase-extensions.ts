@@ -21,6 +21,11 @@ export interface BaseOrderData {
 
 // Export OrderData type to be used across the application
 export interface OrderData extends BaseOrderData {
+  // Add the missing properties to fix TypeScript errors
+  id?: string;
+  yourName?: string;
+  dateReceived?: string;
+  
   // Additional fields specific to cross-dock orders
   crossDockFrom?: string;
   crossDockDest?: string;
