@@ -1,3 +1,4 @@
+
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { CrossDockFields } from '@/types/cross-dock.types';
 import type { OrderData as SupabaseOrderData } from '@/types/supabase-extensions';
@@ -36,6 +37,7 @@ export interface BaseOrderData {
   managerEmail?: string; // Add both formats to ensure compatibility
   plant: string;
   destinationManagerEmail?: string; // Added for cross dock orders
+  email?: string; // Added for compatibility with OrderData from supabase-extensions
 }
 
 // Use the OrderData type from supabase-extensions to ensure consistency
@@ -51,4 +53,5 @@ export interface MTOOrderData extends BaseOrderData {
   quantity: string;
   scheduleArrival: string;
   notes: string;
+  email?: string; // Add for consistency with other types
 }

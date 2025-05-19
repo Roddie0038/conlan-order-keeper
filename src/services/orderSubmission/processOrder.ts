@@ -35,7 +35,10 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     email: storeManagerEmail, // Ensure email is set with the manager's email
     dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
     crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", // Ensure crossDock is correctly typed
-    timestamp: new Date().toISOString() // Add timestamp to fix TS error
+    timestamp: new Date().toISOString(), // Add timestamp to fix TS error
+    // Add these properties to match what the webhook expects
+    managersEmail: storeManagerEmail,
+    managerEmail: storeManagerEmail
   };
 
   // Create a new object with only the fields needed for submission
@@ -57,25 +60,35 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     email: orderWithPlant.email,
     plant: orderWithPlant.plant,
     type: orderWithPlant.type,
-    timestamp: orderWithPlant.timestamp
+    timestamp: orderWithPlant.timestamp,
+    // Add these properties to match what the webhook expects
+    managersEmail: storeManagerEmail,
+    managerEmail: storeManagerEmail
   };
   
   console.log("🔍 SUBMIT - Using sheets service with order:", submissionOrder);
   
-  // Use type assertion to avoid type conflicts between different OrderData definitions
-  const result = await submitToGoogleSheets(submissionOrder as any);
-  console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
-  
-  // Save the order to Supabase
-  console.log("🔍 SUBMIT - Saving order to Supabase:", submissionOrder);
-  const { data, error } = await saveOrderToSupabase(submissionOrder);
-  
-  if (error) {
-    console.error("❌ SUBMIT - Error saving to Supabase:", error);
+  // Force the network request by adding a random parameter to avoid caching
+  try {
+    console.log("🔍 SUBMIT - Beginning webhook submission at:", new Date().toISOString());
+    // Use type assertion to avoid type conflicts between different OrderData definitions
+    const result = await submitToGoogleSheets({...submissionOrder, _nocache: Date.now()} as any);
+    console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
+    
+    // Save the order to Supabase
+    console.log("🔍 SUBMIT - Saving order to Supabase:", submissionOrder);
+    const { data, error } = await saveOrderToSupabase({...submissionOrder, _nocache: Date.now()});
+    
+    if (error) {
+      console.error("❌ SUBMIT - Error saving to Supabase:", error);
+      throw error;
+    } else {
+      console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
+    }
+    
+    return orderWithPlant;
+  } catch (error) {
+    console.error("❌ SUBMIT - Error in processOrder:", error);
     throw error;
-  } else {
-    console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
   }
-  
-  return orderWithPlant;
 };

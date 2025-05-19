@@ -33,15 +33,17 @@ export const prepareWebhookData = (data: any) => {
     // Only format dateReceived, leave scheduleArrival as is if it's a weekday name
     dateReceived: data.dateReceived ? formatDate(data.dateReceived) : formatDate(new Date().toISOString()),
     timestamp: new Date().toISOString(),
-    orderId: crypto.randomUUID(),
+    orderId: crypto.randomUUID(), // Ensure a unique ID for each webhook submission
     triggered_from: window.location.origin,
     // Ensure manager's email is included with the consistent property name
-    managersEmail: data.managerEmail || data.managersEmail,
-    managerEmail: data.managerEmail || data.managersEmail,
+    managersEmail: data.managerEmail || data.managersEmail || data.email,
+    managerEmail: data.managerEmail || data.managersEmail || data.email,
     // Join multiple casing grades into a comma-separated string if it's an array
     casingGrade: Array.isArray(data.casingGrade) ? data.casingGrade.join(', ') : data.casingGrade,
     // Preserve weekday names for scheduleArrival
-    scheduleArrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival || data.dateReceived)
+    scheduleArrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival || data.dateReceived),
+    // Add timestamp to avoid caching
+    _nocache: Date.now()
   };
 };
 
@@ -62,10 +64,17 @@ export const submitToWebhook = async (url: string, data: any) => {
     console.log("🔍 WEBHOOK - Using webhook URL:", url);
     console.log("🔍 WEBHOOK - Schedule Arrival value being sent:", formattedData.scheduleArrival);
 
-    const response = await fetch(url, {
+    // Add a random query parameter to ensure the request is not cached
+    const urlWithNoCacheParam = `${url}${url.includes('?') ? '&' : '?'}nocache=${Date.now()}`;
+    console.log("🔍 WEBHOOK - Using URL with cache-busting:", urlWithNoCacheParam);
+
+    const response = await fetch(urlWithNoCacheParam, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
       },
       mode: "no-cors", // Keep no-cors mode for CORS handling
       body: JSON.stringify(formattedData),

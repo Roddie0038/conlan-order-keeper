@@ -1,9 +1,10 @@
+
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { submitToWebhook } from './webhook/utils';
 import { submitToOrdersWebhook } from './webhook/orderWebhook';
 import { submitToWheelOrdersWebhook } from './webhook/wheelWebhook';
 import { submitToMTOOrdersWebhook } from './webhook/mtoWebhook';
-import { OrderType, MTOOrderData } from './webhook/config';
+import { OrderType, MTOOrderData, WEBHOOK_URLS } from './webhook/config';
 import type { OrderData } from '@/types/supabase-extensions';
 
 export type { OrderType, MTOOrderData };
@@ -21,7 +22,13 @@ function isMTOOrderData(data: OrderData | MTOOrderData): data is MTOOrderData {
 
 export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("🔍 SHEETS - Submitting to webhooks:", data);
-  console.log("🔍 SHEETS - Manager's email in submitToGoogleSheets:", data.managersEmail || data.managerEmail);
+  // Use type safety for accessing optional properties
+  console.log("🔍 SHEETS - Manager's email in submitToGoogleSheets:", 
+    'email' in data ? data.email : (
+      'managerEmail' in data ? (data as any).managerEmail : 
+      'managersEmail' in data ? (data as any).managersEmail : 'No email found'
+    )
+  );
   console.log("🔍 SHEETS - Order type:", data.type);
   
   const plant = data.plant || "Grand Prairie 97";
@@ -34,15 +41,15 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     
     // For crossDock="Yes" orders, ensure we have the destination manager email
     // Only check this for OrderData types, not MTOOrderData
-    if (isOrderData(data) && data.crossDock === "Yes" && data.crossDockDestination && !data.destinationManagerEmail) {
+    if (isOrderData(data) && data.crossDock === "Yes" && data.crossDockDestination && !('destinationManagerEmail' in data)) {
       // Import directly here to avoid circular dependency
       const { getManagerEmail } = await import('@/components/order-form/formConfig');
-      data.destinationManagerEmail = getManagerEmail(data.crossDockDestination);
-      console.log("🔍 ROUTING - Added destinationManagerEmail:", data.destinationManagerEmail);
+      (data as any).destinationManagerEmail = getManagerEmail(data.crossDockDestination);
+      console.log("🔍 ROUTING - Added destinationManagerEmail:", (data as any).destinationManagerEmail);
     }
     
     // Special case: Admin submitted orders (use admin webhook if available)
-    if (data.type === 'ADMIN' || ('isAdmin' in data && data.isAdmin === true)) {
+    if (data.type === 'ADMIN' || ('isAdmin' in data && (data as any).isAdmin === true)) {
       console.log("🔍 ROUTING - Processing ADMIN order");
       
       const adminWebhookUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.adminOrders;
