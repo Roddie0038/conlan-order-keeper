@@ -13,6 +13,7 @@ export interface BaseOrderData {
   // Support both frontend and database field naming conventions
   crossDock?: "Yes" | "No";
   cross_dock?: "Yes" | "No";
+  cross_dock_type?: "Yes" | "No"; // Added to match database column
   crossDockDestination?: string;
   cross_dock_destination?: string;
   timestamp?: string;
@@ -54,6 +55,12 @@ export interface OrderData extends BaseOrderData {
   
   // Support for email field
   email?: string;
+  managerEmail?: string;
+  managersEmail?: string;
+  
+  // Database specific fields
+  status?: string;
+  status_updated_at?: string;
 }
 
 // Extend the original Database type to include our new inventory_documents table

@@ -34,7 +34,12 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     name: order.yourName || order.name || "Unknown", // Ensure name is set
     email: storeManagerEmail, // Ensure email is set with the manager's email
     dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
-    cross_dock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", // Map to Supabase column name
+    // Map frontend field names to database column names
+    cross_dock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", 
+    cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", // Add this field for the database
+    cross_dock_destination: order.crossDockDestination || null,
+    cross_dock_receiver_number: order.receiverNo || null,
+    cross_dock_eta_date: order.etaDate || null,
     timestamp: new Date().toISOString(), // Add timestamp to fix TS error
     // Add manager email fields for webhook compatibility
     managerEmail: storeManagerEmail,
@@ -54,9 +59,10 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     notes: orderWithPlant.notes,
     // Map crossDock and related fields to the correct column names expected by Supabase
     cross_dock: orderWithPlant.cross_dock,
-    cross_dock_destination: orderWithPlant.crossDockDestination || null,
-    cross_dock_receiver_number: orderWithPlant.receiverNo || null,
-    cross_dock_eta_date: orderWithPlant.etaDate || null,
+    cross_dock_type: orderWithPlant.cross_dock_type,
+    cross_dock_destination: orderWithPlant.cross_dock_destination,
+    cross_dock_receiver_number: orderWithPlant.cross_dock_receiver_number,
+    cross_dock_eta_date: orderWithPlant.cross_dock_eta_date,
     dateReceived: orderWithPlant.dateReceived,
     email: orderWithPlant.email,
     plant: orderWithPlant.plant,

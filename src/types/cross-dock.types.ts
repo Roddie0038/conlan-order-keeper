@@ -13,6 +13,7 @@ export interface CrossDockFields {
   crossDockConfirmation?: boolean; // Added for confirmation checkbox
   
   // Database column naming convention
+  cross_dock_type?: "Yes" | "No"; // Match the database column name
   cross_dock?: "Yes" | "No";
   cross_dock_destination?: string;
   cross_dock_receiver_number?: string;
