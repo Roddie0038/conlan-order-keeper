@@ -69,7 +69,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
 
       const result = await submitToGoogleSheets(submissionData);
       
-      // Save to Supabase - Updated to include crossDock with correct type
+      // Save to Supabase with appropriate type information
       await saveOrderToSupabase({
         name: formData.yourName,
         store: formData.storeName,
@@ -82,7 +82,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         timestamp: new Date().toISOString(),
         type: "WHEEL_POWDER_COATING",
         plant: plant, // Add the plant field
-        crossDock: "No" as "Yes" | "No" // Added explicit type casting to match the union type
+        crossDock: "No" as "Yes" | "No" // Added explicit type casting
       });
       
       if (result.status === 'success' || result.status === 'partial_success') {

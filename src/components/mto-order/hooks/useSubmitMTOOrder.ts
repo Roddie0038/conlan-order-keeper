@@ -139,7 +139,7 @@ export const useSubmitMTOOrder = ({
       console.log("Sending order data to webhook:", orderData);
       const result = await submitToGoogleSheets(orderData);
       
-      // Save to Supabase - Updated to include crossDock with correct type
+      // Save to Supabase with appropriate type information
       await saveOrderToSupabase({
         name: formData.name,
         store: formData.store,
@@ -152,7 +152,7 @@ export const useSubmitMTOOrder = ({
         timestamp: new Date().toISOString(),
         type: "MTO",
         plant: plant, // Add the plant field
-        crossDock: "No" as "Yes" | "No" // Added explicit type casting to match the union type
+        crossDock: "No" as "Yes" | "No" // Added explicit type casting
       });
       
       if (result.status === 'success' || result.status === 'partial_success') {
