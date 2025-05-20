@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { OrderData } from "@/types/supabase-extensions";
 
@@ -34,8 +33,8 @@ export const saveOrderToSupabase = async (order: OrderData) => {
 
     // Format data for Supabase - convert frontend field names to database column names
     const formattedOrder = {
-      // Base fields
-      id: order.id,
+      // For the id field, use numeric ID for orders table, keep UUID for other tables
+      ...(targetTable === 'orders' ? {} : { id: order.id }),
       name: order.yourName || order.name,
       store: order.store,
       product_number: order.productNumber,

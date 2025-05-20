@@ -124,9 +124,12 @@ export const useSubmitMTOOrder = ({
       const plant = getPlantForStore(formData.store);
       console.log(`Determined plant '${plant}' for store: ${formData.store}`);
       
+      // Generate a UUID for the order
+      const orderId = crypto.randomUUID();
+      
       // Data for Google Sheets webhook (using frontend naming convention)
       const orderData = {
-        id: crypto.randomUUID(),
+        id: orderId,
         ...formData,
         tireSize: finalTireSize,
         type: 'MTO' as const,
@@ -143,7 +146,7 @@ export const useSubmitMTOOrder = ({
       
       // Create an order object for Supabase using the correct field names
       const supabaseOrder: OrderData = {
-        id: orderData.id,
+        id: orderData.id, // Include UUID for MTO orders
         name: formData.name,
         store: formData.store,
         productNumber: formData.productNumber, // Use camelCase for OrderData type
