@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { OrderData } from "@/types/supabase-extensions";
 
@@ -52,7 +53,7 @@ export const saveOrderToSupabase = async (order: OrderData) => {
       cross_dock_destination: order.crossDockDestination || order.cross_dock_destination || null,
       cross_dock_receiver_number: order.receiverNo || order.cross_dock_receiver_number || null,
       cross_dock_eta_date: order.etaDate || order.cross_dock_eta_date || null,
-      destination_manager_email: order.destinationManagerEmail || null,
+      destination_manager_email: order.destinationManagerEmail || order.destination_manager_email || null,
       
       // Status fields
       status: order.status || "pending",

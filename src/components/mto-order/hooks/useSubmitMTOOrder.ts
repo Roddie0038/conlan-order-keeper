@@ -6,6 +6,7 @@ import { usePlant } from "@/contexts/PlantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { formatDateForSupabase } from "@/utils/dateTime";
 import type { OrderData } from "@/types/supabase-extensions";
 
 interface SubmitMTOOrderProps {
@@ -127,6 +128,9 @@ export const useSubmitMTOOrder = ({
       // Generate a UUID for the order
       const orderId = crypto.randomUUID();
       
+      // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
+      const formattedTimestamp = formatDateForSupabase(new Date());
+      
       // Data for Google Sheets webhook (using frontend naming convention)
       const orderData = {
         id: orderId,
@@ -138,7 +142,7 @@ export const useSubmitMTOOrder = ({
         triggered_from: window.location.origin,
         plant: plant,
         store: formData.store,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString() // Keep ISO format for Google Sheets
       };
 
       console.log("Sending order data to webhook:", orderData);
@@ -155,7 +159,7 @@ export const useSubmitMTOOrder = ({
         scheduleArrival: formData.scheduleArrival || "",
         notes: formData.notes || "",
         email: managersEmail,
-        timestamp: new Date().toISOString(),
+        timestamp: formattedTimestamp, // Use formatted timestamp for Supabase
         type: "MTO",
         plant: plant,
         

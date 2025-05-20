@@ -6,6 +6,7 @@ import { storeData } from "@/config/storeData";
 import { OrderType } from "@/services/webhook/config";
 import { getPlantForStore } from "@/utils/plantMapping";
 import type { OrderData } from "@/types/supabase-extensions";
+import { formatDateForSupabase } from "@/utils/dateTime";
 
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage
@@ -26,6 +27,17 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const plant = getPlantForStore(order.store);
   console.log(`🔍 SUBMIT - Determined plant '${plant}' for store: ${order.store}`);
   
+  // Get destination manager email for cross dock orders
+  let destinationManagerEmail = "";
+  if (order.crossDock === "Yes" && order.crossDockDestination) {
+    const destStoreNumber = order.crossDockDestination.match(/\d+$/)?.[0] || "";
+    const destStore = storeData.find(s => s.storeNumber === destStoreNumber);
+    destinationManagerEmail = destStore?.managerEmails || "";
+  }
+  
+  // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
+  const formattedTimestamp = formatDateForSupabase(new Date());
+  
   // Ensure proper plant information is included
   const orderWithPlant = {
     ...order,
@@ -41,13 +53,17 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     receiverNo: order.receiverNo || null,
     etaDate: order.etaDate || null,
     
+    // Include destination manager email for cross-dock orders
+    destinationManagerEmail: destinationManagerEmail,
+    
     // Also include database column names for Supabase
     cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
     cross_dock_destination: order.crossDockDestination || null,
     cross_dock_receiver_number: order.receiverNo || null,
     cross_dock_eta_date: order.etaDate || null,
+    destination_manager_email: destinationManagerEmail,
     
-    timestamp: new Date().toISOString(), // Add timestamp to fix TS error
+    timestamp: formattedTimestamp, // Use formatted timestamp
     // Add manager email fields for webhook compatibility
     managerEmail: storeManagerEmail,
     managersEmail: storeManagerEmail
@@ -71,12 +87,13 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     cross_dock_destination: orderWithPlant.cross_dock_destination,
     cross_dock_receiver_number: orderWithPlant.cross_dock_receiver_number,
     cross_dock_eta_date: orderWithPlant.cross_dock_eta_date,
+    destination_manager_email: orderWithPlant.destination_manager_email, // Include destination manager email
     
     dateReceived: orderWithPlant.dateReceived,
     email: orderWithPlant.email,
     plant: orderWithPlant.plant,
     type: orderWithPlant.type,
-    timestamp: orderWithPlant.timestamp,
+    timestamp: orderWithPlant.timestamp, // Use the formatted timestamp
   };
   
   console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
