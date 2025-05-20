@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,37 +57,8 @@ export function useOrderSubmission() {
     console.log("🔍 SUBMIT - Selected plant:", selectedPlant);
     
     try {
-      // Admin test mode notification
-      if (isAdmin && !testMode) {
-        toast({
-          title: "Admin Test Mode",
-          description: "Order submission processed in test mode - no notifications will be sent."
-        });
-        
-        console.log("🔍 SUBMIT - Admin test mode active, not sending notifications");
-        
-        // Store in local storage but don't trigger webhooks
-        const timestamp = new Date().toLocaleString();
-        const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-        
-        const adminTestOrders = selectedOrders.map(order => ({
-          ...order,
-          id: order.id,
-          timestamp: timestamp,
-          testMode: true
-        }));
-        
-        localStorage.setItem('completedOrders', JSON.stringify([...completedOrders, ...adminTestOrders]));
-        
-        // Call success callback
-        onSuccess(selectedOrders);
-        
-        setIsSubmitting(false);
-        return;
-      }
-
       console.log("🔍 SUBMIT - Processing orders with notifications");
-      // Normal submission process
+      // Submit all orders with notifications enabled
       const processedOrders: OrderSummary[] = [];
       
       for (const order of selectedOrders) {
@@ -94,10 +66,10 @@ export function useOrderSubmission() {
           const processedOrder = await processOrder(order, selectedPlant);
           processedOrders.push(processedOrder);
           
-          // Handle webhook submission for admin users
+          // Always process webhook for all orders regardless of admin status
           await processWebhook(
             processedOrder, 
-            testMode, 
+            true, // Always send notifications (testMode=true)
             isAdmin, 
             selectedPlant, 
             PLANT_WEBHOOKS

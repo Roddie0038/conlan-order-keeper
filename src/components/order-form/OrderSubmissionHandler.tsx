@@ -18,8 +18,9 @@ export function OrderSubmissionHandler({
   const { user } = useAuth();
   const { selectedPlant } = usePlant();
   const isAdmin = user?.isAdmin || false;
-  // Always set testMode to true - notifications always enabled
-  const [testMode, setTestMode] = useState(true);
+  
+  // Always enable notifications - testMode is always true
+  const [testMode] = useState(true);
 
   // Use our custom submission hook
   const { isSubmitting, handleSubmitOrders } = useOrderSubmission();
@@ -50,7 +51,7 @@ export function OrderSubmissionHandler({
         />
         
         <div className="flex items-center gap-4">
-          {/* AdminTestModeToggle removed - notifications always enabled */}
+          {/* Notifications are always enabled - AdminTestModeToggle removed */}
           
           <OrderSubmitButton 
             isSubmitting={isSubmitting}

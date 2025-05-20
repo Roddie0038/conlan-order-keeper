@@ -22,16 +22,9 @@ export const processWebhook = async (
   
   console.log("🔍 SUBMIT - Admin user submitting order to plant:", selectedPlant);
   
-  let webhookUrl;
-  if (testMode) {
-    // Use the plant-specific webhook for test mode
-    webhookUrl = plantWebhooks[selectedPlant]?.transferRequests;
-    console.log("🔍 SUBMIT - Admin in test mode, using plant-specific webhook:", webhookUrl);
-  } else {
-    // Use the admin-specific webhook for production mode
-    webhookUrl = plantWebhooks[selectedPlant]?.adminOrders;
-    console.log("🔍 SUBMIT - Admin in production mode, using admin webhook:", webhookUrl);
-  }
+  // Always use the plant-specific webhook for sending notifications
+  const webhookUrl = plantWebhooks[selectedPlant]?.transferRequests;
+  console.log("🔍 SUBMIT - Admin using plant-specific webhook:", webhookUrl);
   
   if (webhookUrl) {
     console.log("🔍 SUBMIT - Sending to webhook:", webhookUrl);
