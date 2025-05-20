@@ -61,23 +61,25 @@ export function useFetchOrders(initialPageSize = 10) {
     setError(null);
     
     try {
-      let query = supabase.from("orders").select("*", { count: "exact" });
+      // First, get the total count of records
+      let countQuery = supabase
+        .from("orders")
+        .select("*", { count: "exact" });
       
       // If not admin, filter by store
       if (user && !user.isAdmin && user.store) {
-        query = query.eq("store", user.store);
+        countQuery = countQuery.eq("store", user.store);
         console.log("🔍 ORDERS - Filtering orders for store:", user.store);
       }
       
-      // First, get the total count of records
-      const countResponse = await query.count();
+      const { count: totalCount, error: countError } = await countQuery;
       
-      if (countResponse.error) {
-        throw countResponse.error;
+      if (countError) {
+        throw countError;
       }
       
-      const totalCount = countResponse.count || 0;
-      const totalPages = Math.ceil(totalCount / pageSize);
+      const calculatedTotalCount = totalCount || 0;
+      const totalPages = Math.ceil(calculatedTotalCount / pageSize);
       
       // Calculate the range for pagination
       const from = (page - 1) * pageSize;
@@ -104,7 +106,7 @@ export function useFetchOrders(initialPageSize = 10) {
       setPagination({
         page,
         pageSize,
-        totalCount,
+        totalCount: calculatedTotalCount,
         totalPages
       });
     } catch (err) {
@@ -143,8 +145,12 @@ export function useFetchOrders(initialPageSize = 10) {
         }, (payload) => {
           console.log('Real-time update:', payload);
           
+          // Extract store from payload if it exists
+          const payloadStore = payload.new && typeof payload.new === 'object' ? 
+            (payload.new as { store?: string }).store : undefined;
+          
           // For non-admins, only refresh if the update is for their store
-          if (!user.isAdmin && payload.new && payload.new.store !== user.store) {
+          if (!user.isAdmin && payloadStore && payloadStore !== user.store) {
             console.log("Skipping refresh - update not relevant to current store");
             return;
           }
