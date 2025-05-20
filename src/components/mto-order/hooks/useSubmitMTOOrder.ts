@@ -141,15 +141,15 @@ export const useSubmitMTOOrder = ({
       console.log("Sending order data to webhook:", orderData);
       const result = await submitToGoogleSheets(orderData);
       
-      // Create an order object for Supabase using database column names
+      // Create an order object for Supabase using the correct field names
       const supabaseOrder: OrderData = {
         id: orderData.id,
         name: formData.name,
         store: formData.store,
-        product_number: formData.productNumber,
+        productNumber: formData.productNumber, // Use camelCase for OrderData type
         description: `MTO: ${finalTireSize}, ${formData.tireTreadNeeded}, Grade: ${formData.casingGrade.join(',')}`,
         quantity: formData.quantity,
-        schedule_arrival: formData.scheduleArrival || "",
+        scheduleArrival: formData.scheduleArrival || "",
         notes: formData.notes || "",
         email: managersEmail,
         timestamp: new Date().toISOString(),
