@@ -8,21 +8,11 @@ interface AdminTestModeToggleProps {
   onToggleTestMode: (checked: boolean) => void;
 }
 
+// This component is now hidden but maintains compatibility with existing code
 export function AdminTestModeToggle({ 
   testMode, 
   onToggleTestMode 
 }: AdminTestModeToggleProps) {
-  return (
-    <div className="flex items-center">
-      <Checkbox
-        id="testMode"
-        checked={testMode}
-        onCheckedChange={(checked) => onToggleTestMode(checked as boolean)}
-        className="mr-2"
-      />
-      <Label htmlFor="testMode" className="text-sm">
-        Enable notifications (live mode)
-      </Label>
-    </div>
-  );
+  // Component is now empty (hidden) but still accepts the same props
+  return null;
 }

@@ -1,4 +1,3 @@
-
 import { submitToWebhook } from './utils';
 import { WEBHOOK_URLS } from './config';
 import { formatDate } from './utils';
@@ -35,7 +34,7 @@ export const submitToOrdersWebhook = async (data: any) => {
     
     // Map the data to the strict type for webhook payload
     // This is for Google Sheets webhook - keep the frontend naming convention
-    const mappedData: CrossDockWebhookPayload = {
+    const mappedData = {
       name: data.yourName || data.name || "",
       store: data.store || "",
       product_number: data.productNumber || "",
@@ -48,19 +47,24 @@ export const submitToOrdersWebhook = async (data: any) => {
       cross_dock: data.crossDock?.toLowerCase() === "yes" ? "Yes" : "No",
       order_source: "web_app", // Add source for tracking purposes
       order_type: "TRANSFER", // Explicitly mark the order type
+    } as CrossDockWebhookPayload;
+
+    // Add timestamp separately since it's not part of the type definition
+    const webhookPayload = {
+      ...mappedData,
       timestamp: formattedTimestamp, // Include the formatted timestamp
     };
     
     // Only add cross dock specific fields when crossDock is "Yes"
     if (data.crossDock?.toLowerCase() === "yes") {
-      mappedData.cross_dock_from = data.store || "";
-      mappedData.cross_dock_dest = crossDockDestination || data.crossDockDestination || "";
-      mappedData.destination_manager_email = data.destinationManagerEmail || data.destination_manager_email || "";
-      mappedData.receiver_no = data.receiverNo || "";
-      mappedData.eta_date = data.etaDate ? formatDate(data.etaDate) : "";
+      webhookPayload.cross_dock_from = data.store || "";
+      webhookPayload.cross_dock_dest = crossDockDestination || data.crossDockDestination || "";
+      webhookPayload.destination_manager_email = data.destinationManagerEmail || data.destination_manager_email || "";
+      webhookPayload.receiver_no = data.receiverNo || "";
+      webhookPayload.eta_date = data.etaDate ? formatDate(data.etaDate) : "";
     }
 
-    console.log("🔍 ORDER WEBHOOK - Sending mapped data to Orders webhook:", mappedData);
+    console.log("🔍 ORDER WEBHOOK - Sending mapped data to Orders webhook:", webhookPayload);
     console.log("🔍 ORDER WEBHOOK - Using Orders webhook URL:", WEBHOOK_URLS.ORDERS);
 
     // Submit to Google Sheets webhook
@@ -70,7 +74,7 @@ export const submitToOrdersWebhook = async (data: any) => {
         "Content-Type": "application/json",
       },
       mode: "no-cors", // Use no-cors to avoid CORS issues
-      body: JSON.stringify(mappedData),
+      body: JSON.stringify(webhookPayload),
     });
 
     console.log("🔍 ORDER WEBHOOK - Successfully triggered Orders Google Sheets webhook");

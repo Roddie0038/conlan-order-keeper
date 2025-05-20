@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { useOrderSubmission, OrderSummary } from "@/hooks/useOrderSubmission";
 import { OrderCountSummary } from "./OrderCountSummary";
-import { AdminTestModeToggle } from "./AdminTestModeToggle";
 import { OrderSubmitButton } from "./OrderSubmitButton";
 
 interface OrderSubmissionHandlerProps {
@@ -19,7 +18,8 @@ export function OrderSubmissionHandler({
   const { user } = useAuth();
   const { selectedPlant } = usePlant();
   const isAdmin = user?.isAdmin || false;
-  const [testMode, setTestMode] = useState(false);
+  // Always set testMode to true - notifications always enabled
+  const [testMode, setTestMode] = useState(true);
 
   // Use our custom submission hook
   const { isSubmitting, handleSubmitOrders } = useOrderSubmission();
@@ -37,11 +37,6 @@ export function OrderSubmissionHandler({
     handleSubmitOrders(selectedOrders, testMode, handleSubmissionSuccess);
   };
   
-  // Toggle test mode handler
-  const handleToggleTestMode = (checked: boolean) => {
-    setTestMode(checked);
-  };
-  
   if (orderSummaries.length === 0) {
     return null;
   }
@@ -55,12 +50,7 @@ export function OrderSubmissionHandler({
         />
         
         <div className="flex items-center gap-4">
-          {isAdmin && (
-            <AdminTestModeToggle 
-              testMode={testMode} 
-              onToggleTestMode={handleToggleTestMode} 
-            />
-          )}
+          {/* AdminTestModeToggle removed - notifications always enabled */}
           
           <OrderSubmitButton 
             isSubmitting={isSubmitting}
