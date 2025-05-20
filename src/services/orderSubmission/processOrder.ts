@@ -23,9 +23,15 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
   const storeManagerEmail = matchedStore?.managerEmails || "";
   
-  // Determine correct plant based on store
+  // Determine correct plant based on store - this is critical for cross-platform routing
   const plant = getPlantForStore(order.store);
   console.log(`🔍 SUBMIT - Determined plant '${plant}' for store: ${order.store}`);
+  
+  // Validate plant determination
+  if (!plant) {
+    console.warn(`⚠️ SUBMIT - Could not determine plant for store: ${order.store}`);
+    console.warn(`⚠️ SUBMIT - Defaulting to selected plant: ${selectedPlant}`);
+  }
   
   // Get destination manager email for cross dock orders
   let destinationManagerEmail = "";
@@ -57,10 +63,10 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
   const formattedTimestamp = formatDateForSupabase(new Date());
   
-  // Ensure proper plant information is included
+  // Ensure proper plant information is included for cross-platform routing
   const orderWithPlant = {
     ...order,
-    plant: plant, // Use the determined plant instead of selectedPlant
+    plant: plant || selectedPlant, // Use the determined plant, fall back to selectedPlant if needed
     type: 'TRANSFER' as OrderType, // Cast to OrderType to fix the TypeScript error
     name: order.yourName || order.name || "Unknown", // Ensure name is set
     email: storeManagerEmail, // Ensure email is set with the manager's email
@@ -110,7 +116,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     
     dateReceived: orderWithPlant.dateReceived,
     email: orderWithPlant.email,
-    plant: orderWithPlant.plant,
+    plant: orderWithPlant.plant, // Ensure plant is always set for cross-platform routing
     type: orderWithPlant.type,
     timestamp: orderWithPlant.timestamp, // Use the formatted timestamp
   };
@@ -139,7 +145,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       console.error("❌ SUBMIT - Error saving to Supabase:", error);
       throw error;
     } else {
-      console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
+      console.log("✅ SUBMIT - Successfully saved to Supabase with plant:", data?.plant);
     }
     
     return orderWithPlant;

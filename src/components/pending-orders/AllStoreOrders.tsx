@@ -6,6 +6,7 @@ import { useState } from "react";
 import { OrdersFilters } from "./OrdersFilters";
 import { OrdersTable } from "./OrdersTable";
 import { OrdersEmptyState } from "./OrdersEmptyState";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function AllStoreOrders() {
   const { orders, loading, error, pagination, goToPage, setPageSize } = useFetchOrders(10);
@@ -13,6 +14,7 @@ export function AllStoreOrders() {
   const [filterStore, setFilterStore] = useState<string>("all");
   const [sortField, setSortField] = useState<keyof OrderRecord>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const { user } = useAuth();
 
   if (loading) {
     return (
@@ -33,11 +35,19 @@ export function AllStoreOrders() {
   }
 
   // Get unique list of stores for the filter
-  const uniqueStores = [...new Set(orders.map(order => order.store))];
+  // For non-admin users, only include their own store
+  const uniqueStores = user?.isAdmin 
+    ? [...new Set(orders.map(order => order.store))]
+    : [user?.store].filter(Boolean) as string[];
 
   // Filter and sort orders
   const filteredOrders = orders
     .filter(order => {
+      // Non-admin users can only see their own store's orders (already filtered in useFetchOrders)
+      if (!user?.isAdmin && order.store !== user?.store) {
+        return false;
+      }
+      
       const matchesSearch = 
         (order.product_number?.toLowerCase().includes(searchTerm.toLowerCase())) || 
         (order.description?.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -76,10 +86,15 @@ export function AllStoreOrders() {
         : (bValue < aValue ? -1 : 1);
     });
 
+  // Customize title based on user role
+  const cardTitle = user?.isAdmin 
+    ? "All Store Orders" 
+    : `Orders for ${user?.store || "Your Store"}`;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>All Store Orders</CardTitle>
+        <CardTitle>{cardTitle}</CardTitle>
       </CardHeader>
       <CardContent>
         <OrdersFilters 
