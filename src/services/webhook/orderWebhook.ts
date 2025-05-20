@@ -1,4 +1,3 @@
-
 import { submitToWebhook } from './utils';
 import { WEBHOOK_URLS } from './config';
 import { formatDate } from './utils';
@@ -20,6 +19,7 @@ export const submitToOrdersWebhook = async (data: any) => {
     const isWeekdayName = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Will Call Pick Up)$/i.test(data.scheduleArrival);
     
     // Map the data to the strict type for webhook payload
+    // This is for Google Sheets webhook - keep the frontend naming convention
     const mappedData: CrossDockWebhookPayload = {
       name: data.yourName || data.name || "",
       store: data.store || "",

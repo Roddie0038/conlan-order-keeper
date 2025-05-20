@@ -32,36 +32,40 @@ export const saveOrderToSupabase = async (order: OrderData) => {
       targetTable = 'wheel_orders';
     }
 
-    // Format data for consistency - mapping front-end field names to database column names
+    // Format data for Supabase - convert frontend field names to database column names
     const formattedOrder = {
-      ...order,
-      name: order.yourName || order.name, // Ensure name is set
-      timestamp: order.timestamp || new Date().toISOString(), // Ensure timestamp is set
+      // Base fields
+      id: order.id,
+      name: order.yourName || order.name,
+      store: order.store,
+      product_number: order.productNumber,
+      description: order.description,
+      quantity: order.quantity,
+      schedule_arrival: order.scheduleArrival,
+      notes: order.notes,
+      email: order.email || order.managerEmail || order.managersEmail,
+      timestamp: order.timestamp || new Date().toISOString(),
+      plant: order.plant,
+      order_type: order.type,
       
-      // Ensure cross dock fields use the correct column names
-      cross_dock: order.cross_dock || order.crossDock,
-      cross_dock_type: order.cross_dock_type || order.crossDock, // Add this field explicitly
-      cross_dock_destination: order.cross_dock_destination || order.crossDockDestination,
-      cross_dock_receiver_number: order.cross_dock_receiver_number || order.receiverNo,
-      cross_dock_eta_date: order.cross_dock_eta_date || order.etaDate,
+      // Cross-dock specific fields - use database column names
+      cross_dock_type: order.crossDock || order.cross_dock || order.cross_dock_type || "No",
+      cross_dock_destination: order.crossDockDestination || order.cross_dock_destination || null,
+      cross_dock_receiver_number: order.receiverNo || order.cross_dock_receiver_number || null,
+      cross_dock_eta_date: order.etaDate || order.cross_dock_eta_date || null,
+      destination_manager_email: order.destinationManagerEmail || null,
+      
+      // Status fields
+      status: order.status || "pending",
+      status_updated_at: new Date().toISOString(),
     };
     
-    // Remove any fields that don't belong in the database schema
-    const { 
-      _nocache, 
-      crossDock, 
-      crossDockDestination, 
-      receiverNo, 
-      etaDate,
-      ...cleanOrder 
-    } = formattedOrder as any;
-    
-    console.log(`🔍 ORDER SERVICE - Inserting into ${targetTable} table with data:`, cleanOrder);
+    console.log(`🔍 ORDER SERVICE - Inserting into ${targetTable} table with formatted data:`, formattedOrder);
     
     // Force a network request by disabling cache
     const { data, error } = await supabase
       .from(targetTable as any)
-      .insert(cleanOrder)
+      .insert(formattedOrder)
       .select()
       .single();
       

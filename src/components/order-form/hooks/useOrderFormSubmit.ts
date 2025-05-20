@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -38,21 +39,30 @@ export function useOrderFormSubmit() {
         const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
         const storeManagerEmail = matchedStore?.managerEmails || "";
         
+        // Use proper Supabase database column names
         return {
           yourName: order.yourName,
           name: order.yourName, // Explicitly set name to yourName for better identification
           store: order.store,
           dateReceived: order.dateReceived,
-          productNumber: order.productNumber,
+          product_number: order.productNumber,
           description: order.description,
           quantity: order.quantity,
-          scheduleArrival: order.scheduleArrival,
+          schedule_arrival: order.scheduleArrival,
           notes: order.notes,
+          
+          // Cross dock fields - both formats
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
+          // Database column names
+          cross_dock_type: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
+          cross_dock_destination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
+          
+          // Additional fields
           email: storeManagerEmail, // Set email to the store manager's email
           plant: selectedPlant,
-          timestamp: new Date().toISOString(), // Will be reformatted in saveOrderToSupabase
+          timestamp: new Date().toISOString(),
+          type: "TRANSFER",
           userId: user ? user.username || "anonymous" : "anonymous",
           userEmail: user ? user.store || "anonymous" : "anonymous",
         };

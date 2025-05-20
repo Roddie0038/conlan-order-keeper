@@ -1,3 +1,4 @@
+
 import { MTOFormData } from "../mto-form-config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -123,6 +124,7 @@ export const useSubmitMTOOrder = ({
       const plant = getPlantForStore(formData.store);
       console.log(`Determined plant '${plant}' for store: ${formData.store}`);
       
+      // Data for Google Sheets webhook (using frontend naming convention)
       const orderData = {
         id: crypto.randomUUID(),
         ...formData,
@@ -139,20 +141,23 @@ export const useSubmitMTOOrder = ({
       console.log("Sending order data to webhook:", orderData);
       const result = await submitToGoogleSheets(orderData);
       
-      // Create an order object that matches the OrderData type
+      // Create an order object for Supabase using database column names
       const supabaseOrder: OrderData = {
+        id: orderData.id,
         name: formData.name,
         store: formData.store,
-        productNumber: formData.productNumber,
+        product_number: formData.productNumber,
         description: `MTO: ${finalTireSize}, ${formData.tireTreadNeeded}, Grade: ${formData.casingGrade.join(',')}`,
         quantity: formData.quantity,
-        scheduleArrival: formData.scheduleArrival || "",
+        schedule_arrival: formData.scheduleArrival || "",
         notes: formData.notes || "",
         email: managersEmail,
         timestamp: new Date().toISOString(),
         type: "MTO",
         plant: plant,
-        crossDock: "No" as "Yes" | "No",
+        
+        // Cross dock fields in database format
+        cross_dock_type: "No" as "Yes" | "No",
         
         // MTO-specific fields
         casingGrade: formData.casingGrade,

@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for webhook submissions
  */
@@ -31,7 +30,14 @@ export const prepareWebhookData = (data: any) => {
   // Map fields to the correct database column names
   const mappedData = {
     ...data,
-    // Convert crossDock to both cross_dock and cross_dock_type for Supabase compatibility
+    // Keep both formats for maximum compatibility
+    // Frontend format (for Google Sheets/Zapier)
+    crossDock: data.crossDock || "No",
+    crossDockDestination: data.crossDockDestination,
+    receiverNo: data.receiverNo,
+    etaDate: data.etaDate,
+    
+    // Database format (for Supabase)
     cross_dock: data.cross_dock || data.crossDock || "No",
     cross_dock_type: data.cross_dock_type || data.crossDock || "No",
     cross_dock_destination: data.cross_dock_destination || data.crossDockDestination,

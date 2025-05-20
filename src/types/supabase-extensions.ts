@@ -1,3 +1,4 @@
+
 import { Database as OriginalDatabase } from "@/integrations/supabase/types";
 import { CrossDockFields } from "./cross-dock.types";
 
@@ -13,7 +14,7 @@ export interface BaseOrderData {
   // Support both frontend and database field naming conventions
   crossDock?: "Yes" | "No";
   cross_dock?: "Yes" | "No";
-  cross_dock_type?: "Yes" | "No"; // Added to match database column
+  cross_dock_type?: "Yes" | "No"; // Database column name
   crossDockDestination?: string;
   cross_dock_destination?: string;
   timestamp?: string;
@@ -34,6 +35,7 @@ export interface OrderData extends BaseOrderData {
   crossDockDest?: string;
   cross_dock_dest?: string;
   destinationManagerEmail?: string;
+  destination_manager_email?: string;
   receiverNo?: string;
   cross_dock_receiver_number?: string;
   etaDate?: string;
