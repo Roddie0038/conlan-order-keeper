@@ -29,10 +29,29 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   
   // Get destination manager email for cross dock orders
   let destinationManagerEmail = "";
+  let formattedCrossDockDestination = order.crossDockDestination || "";
+  
   if (order.crossDock === "Yes" && order.crossDockDestination) {
-    const destStoreNumber = order.crossDockDestination.match(/\d+$/)?.[0] || "";
+    // Check if crossDockDestination already contains store name
+    if (!/\s/.test(order.crossDockDestination) && /^\d+$/.test(order.crossDockDestination.trim())) {
+      // If it only contains a number, we need to find the full store name
+      const destStoreNumber = order.crossDockDestination.trim();
+      const destStore = storeData.find(s => s.storeNumber === destStoreNumber);
+      
+      if (destStore) {
+        // Use the full store name with number from storeData
+        formattedCrossDockDestination = destStore.name;
+        console.log(`🔍 SUBMIT - Formatted cross dock destination: ${formattedCrossDockDestination}`);
+      } else {
+        console.warn(`🔍 SUBMIT - Could not find store with number ${destStoreNumber}, using original value`);
+      }
+    }
+    
+    // Get the destination manager email
+    const destStoreNumber = formattedCrossDockDestination.match(/\d+$/)?.[0] || "";
     const destStore = storeData.find(s => s.storeNumber === destStoreNumber);
     destinationManagerEmail = destStore?.managerEmails || "";
+    console.log(`🔍 SUBMIT - Destination manager email: ${destinationManagerEmail}`);
   }
   
   // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
@@ -49,7 +68,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     
     // Keep the frontend field names for Google Sheets/Zapier
     crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", 
-    crossDockDestination: order.crossDockDestination || null,
+    crossDockDestination: formattedCrossDockDestination, // Use the formatted destination
     receiverNo: order.receiverNo || null,
     etaDate: order.etaDate || null,
     
@@ -58,7 +77,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     
     // Also include database column names for Supabase
     cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
-    cross_dock_destination: order.crossDockDestination || null,
+    cross_dock_destination: formattedCrossDockDestination, // Use the formatted destination
     cross_dock_receiver_number: order.receiverNo || null,
     cross_dock_eta_date: order.etaDate || null,
     destination_manager_email: destinationManagerEmail,

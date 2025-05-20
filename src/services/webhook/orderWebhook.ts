@@ -1,7 +1,9 @@
+
 import { submitToWebhook } from './utils';
 import { WEBHOOK_URLS } from './config';
 import { formatDate } from './utils';
 import { CrossDockWebhookPayload } from '@/types/webhook.types';
+import { formatDateForSheets } from '@/utils/dateTime';
 
 export const submitToOrdersWebhook = async (data: any) => {
   try {
@@ -18,6 +20,19 @@ export const submitToOrdersWebhook = async (data: any) => {
     // Check if scheduleArrival is a weekday name
     const isWeekdayName = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Will Call Pick Up)$/i.test(data.scheduleArrival);
     
+    // Ensure cross dock destination has full store name
+    let crossDockDestination = data.crossDockDestination || '';
+    if (crossDockDestination && !crossDockDestination.includes(' ') && /^\d+$/.test(crossDockDestination.trim())) {
+      console.warn("🔍 ORDER WEBHOOK - Cross dock destination needs formatting:", crossDockDestination);
+      
+      // Try to find the store name based on the store number
+      // This is just a placeholder - the actual store name should come from the form submission
+      crossDockDestination = `Store ${crossDockDestination}`;
+    }
+    
+    // Format timestamp for Google Sheets in MM/DD/YYYY hh:mm AM/PM format
+    const formattedTimestamp = formatDateForSheets(new Date());
+    
     // Map the data to the strict type for webhook payload
     // This is for Google Sheets webhook - keep the frontend naming convention
     const mappedData: CrossDockWebhookPayload = {
@@ -29,17 +44,18 @@ export const submitToOrdersWebhook = async (data: any) => {
       // Preserve weekday name for schedule_arrival
       schedule_arrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival ? formatDate(data.scheduleArrival) : ""),
       notes: data.notes || "",
-      email: data.managersEmail || data.managerEmail || "",
+      email: data.managersEmail || data.managerEmail || data.email || "",
       cross_dock: data.crossDock?.toLowerCase() === "yes" ? "Yes" : "No",
       order_source: "web_app", // Add source for tracking purposes
-      order_type: "TRANSFER" // Explicitly mark the order type
+      order_type: "TRANSFER", // Explicitly mark the order type
+      timestamp: formattedTimestamp, // Include the formatted timestamp
     };
     
     // Only add cross dock specific fields when crossDock is "Yes"
     if (data.crossDock?.toLowerCase() === "yes") {
       mappedData.cross_dock_from = data.store || "";
-      mappedData.cross_dock_dest = data.crossDockDestination || "";
-      mappedData.destination_manager_email = data.destinationManagerEmail || "";
+      mappedData.cross_dock_dest = crossDockDestination || data.crossDockDestination || "";
+      mappedData.destination_manager_email = data.destinationManagerEmail || data.destination_manager_email || "";
       mappedData.receiver_no = data.receiverNo || "";
       mappedData.eta_date = data.etaDate ? formatDate(data.etaDate) : "";
     }

@@ -142,7 +142,7 @@ export const useSubmitMTOOrder = ({
         triggered_from: window.location.origin,
         plant: plant,
         store: formData.store,
-        timestamp: new Date().toISOString() // Keep ISO format for Google Sheets
+        timestamp: formattedTimestamp // Use the formatted timestamp
       };
 
       console.log("Sending order data to webhook:", orderData);

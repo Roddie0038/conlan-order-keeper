@@ -1,6 +1,9 @@
+
 /**
  * Utility functions for webhook submissions
  */
+
+import { formatDateForSheets } from "@/utils/dateTime";
 
 /**
  * Formats a date string to YYYY-MM-DD format
@@ -27,35 +30,57 @@ export const prepareWebhookData = (data: any) => {
   // Check if scheduleArrival is a weekday name and preserve it
   const isWeekdayName = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Will Call Pick Up)$/i.test(data.scheduleArrival);
   
+  // Format timestamp for Google Sheets in MM/DD/YYYY hh:mm AM/PM format
+  const formattedTimestamp = formatDateForSheets(new Date());
+
+  // Ensure cross dock destination has full store name
+  let crossDockDestination = data.crossDockDestination || data.cross_dock_destination || '';
+  if (crossDockDestination && !crossDockDestination.includes(' ')) {
+    // If it's just a number, it's missing the store name - this is a fallback
+    // Ideally, this should be properly formatted before reaching this point
+    console.warn("Cross dock destination is missing store name:", crossDockDestination);
+    crossDockDestination = `Store ${crossDockDestination}`;
+  }
+  
   // Map fields to the correct database column names
   const mappedData = {
     ...data,
-    // Keep both formats for maximum compatibility
     // Frontend format (for Google Sheets/Zapier)
     crossDock: data.crossDock || "No",
-    crossDockDestination: data.crossDockDestination,
+    crossDockDestination: crossDockDestination,
     receiverNo: data.receiverNo,
     etaDate: data.etaDate,
     
     // Database format (for Supabase)
     cross_dock: data.cross_dock || data.crossDock || "No",
     cross_dock_type: data.cross_dock_type || data.crossDock || "No",
-    cross_dock_destination: data.cross_dock_destination || data.crossDockDestination,
+    cross_dock_destination: crossDockDestination,
     cross_dock_receiver_number: data.cross_dock_receiver_number || data.receiverNo,
     cross_dock_eta_date: data.cross_dock_eta_date || data.etaDate,
     
+    // Google Sheets webhook format (snake_case as expected by the GS script)
+    cross_dock_dest: crossDockDestination,
+    
     // Only format dateReceived, leave scheduleArrival as is if it's a weekday name
     dateReceived: data.dateReceived ? formatDate(data.dateReceived) : formatDate(new Date().toISOString()),
-    timestamp: new Date().toISOString(),
+    timestamp: formattedTimestamp, // Use formatted timestamp for both Supabase and Sheets
     orderId: data.id || crypto.randomUUID(), // Use existing ID or create a new one
     triggered_from: window.location.origin,
-    // Ensure manager's email is included with the consistent property name
+    
+    // Ensure manager's email is included with the consistent property names
     managersEmail: data.managerEmail || data.managersEmail || data.email,
     managerEmail: data.managerEmail || data.managersEmail || data.email,
+    email: data.managerEmail || data.managersEmail || data.email,
+    
+    // Ensure destination manager email is included
+    destination_manager_email: data.destinationManagerEmail || data.destination_manager_email || '',
+    
     // Join multiple casing grades into a comma-separated string if it's an array
     casingGrade: Array.isArray(data.casingGrade) ? data.casingGrade.join(', ') : data.casingGrade,
+    
     // Preserve weekday names for scheduleArrival
     scheduleArrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival || data.dateReceived),
+    
     // Add timestamp to avoid caching
     _nocache: Date.now()
   };
@@ -79,6 +104,9 @@ export const submitToWebhook = async (url: string, data: any) => {
     console.log("🔍 WEBHOOK - Sending formatted data to webhook:", formattedData);
     console.log("🔍 WEBHOOK - Using webhook URL:", url);
     console.log("🔍 WEBHOOK - Schedule Arrival value being sent:", formattedData.scheduleArrival);
+    console.log("🔍 WEBHOOK - Cross Dock Destination value being sent:", formattedData.cross_dock_dest);
+    console.log("🔍 WEBHOOK - Destination Manager Email being sent:", formattedData.destination_manager_email);
+    console.log("🔍 WEBHOOK - Timestamp format being sent:", formattedData.timestamp);
 
     // Add a random query parameter to ensure the request is not cached
     const cacheBuster = Math.random().toString(36).substring(2);
