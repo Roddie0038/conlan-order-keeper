@@ -1,4 +1,3 @@
-
 import { MTOFormData } from "../mto-form-config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { submitToGoogleSheets } from "@/services/sheets";
@@ -8,6 +7,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import type { OrderData } from "@/types/supabase-extensions";
+import { supabase } from "@/integrations/supabase/extended-client";
 
 interface SubmitMTOOrderProps {
   formData: MTOFormData;
