@@ -66,7 +66,9 @@ export type Database = {
           completed: boolean | null
           completed_at: string | null
           cross_dock_form_link: string | null
+          description: string | null
           destination_manager_email: string | null
+          email: string | null
           email_message: string | null
           have_casings: boolean | null
           id: string
@@ -76,6 +78,7 @@ export type Database = {
           notes: string | null
           order_completion_link: string | null
           order_type: string | null
+          plant: string | null
           product_number: string | null
           projected_delivery: string | null
           quantity: number | null
@@ -90,13 +93,16 @@ export type Database = {
           tire_size: string | null
           tread: string | null
           tread_in_inventory: boolean | null
+          type: string | null
         }
         Insert: {
           casing_grade?: string | null
           completed?: boolean | null
           completed_at?: string | null
           cross_dock_form_link?: string | null
+          description?: string | null
           destination_manager_email?: string | null
+          email?: string | null
           email_message?: string | null
           have_casings?: boolean | null
           id?: string
@@ -106,6 +112,7 @@ export type Database = {
           notes?: string | null
           order_completion_link?: string | null
           order_type?: string | null
+          plant?: string | null
           product_number?: string | null
           projected_delivery?: string | null
           quantity?: number | null
@@ -120,13 +127,16 @@ export type Database = {
           tire_size?: string | null
           tread?: string | null
           tread_in_inventory?: boolean | null
+          type?: string | null
         }
         Update: {
           casing_grade?: string | null
           completed?: boolean | null
           completed_at?: string | null
           cross_dock_form_link?: string | null
+          description?: string | null
           destination_manager_email?: string | null
+          email?: string | null
           email_message?: string | null
           have_casings?: boolean | null
           id?: string
@@ -136,6 +146,7 @@ export type Database = {
           notes?: string | null
           order_completion_link?: string | null
           order_type?: string | null
+          plant?: string | null
           product_number?: string | null
           projected_delivery?: string | null
           quantity?: number | null
@@ -150,6 +161,7 @@ export type Database = {
           tire_size?: string | null
           tread?: string | null
           tread_in_inventory?: boolean | null
+          type?: string | null
         }
         Relationships: []
       }
@@ -295,19 +307,30 @@ export type Database = {
         Row: {
           completed: boolean | null
           completed_at: string | null
+          cross_dock_destination: string | null
+          cross_dock_eta_date: string | null
           cross_dock_form_link: string | null
+          cross_dock_receiver_number: string | null
+          cross_dock_type: string | null
+          description: string | null
           desired_color: string | null
           destination_manager_email: string | null
           due_date: string | null
+          email: string | null
           email_message: string | null
           hand_holes: number | null
           id: string
           name: string | null
           notes: string | null
           order_type: string | null
+          plant: string | null
+          product_number: string | null
           quantity: number | null
           received_at: string | null
+          schedule_arrival: string | null
           send_email_trigger: boolean | null
+          status: string | null
+          status_updated_at: string | null
           store: string | null
           timestamp: string | null
           wheel_material: string | null
@@ -319,19 +342,30 @@ export type Database = {
         Insert: {
           completed?: boolean | null
           completed_at?: string | null
+          cross_dock_destination?: string | null
+          cross_dock_eta_date?: string | null
           cross_dock_form_link?: string | null
+          cross_dock_receiver_number?: string | null
+          cross_dock_type?: string | null
+          description?: string | null
           desired_color?: string | null
           destination_manager_email?: string | null
           due_date?: string | null
+          email?: string | null
           email_message?: string | null
           hand_holes?: number | null
           id?: string
           name?: string | null
           notes?: string | null
           order_type?: string | null
+          plant?: string | null
+          product_number?: string | null
           quantity?: number | null
           received_at?: string | null
+          schedule_arrival?: string | null
           send_email_trigger?: boolean | null
+          status?: string | null
+          status_updated_at?: string | null
           store?: string | null
           timestamp?: string | null
           wheel_material?: string | null
@@ -343,19 +377,30 @@ export type Database = {
         Update: {
           completed?: boolean | null
           completed_at?: string | null
+          cross_dock_destination?: string | null
+          cross_dock_eta_date?: string | null
           cross_dock_form_link?: string | null
+          cross_dock_receiver_number?: string | null
+          cross_dock_type?: string | null
+          description?: string | null
           desired_color?: string | null
           destination_manager_email?: string | null
           due_date?: string | null
+          email?: string | null
           email_message?: string | null
           hand_holes?: number | null
           id?: string
           name?: string | null
           notes?: string | null
           order_type?: string | null
+          plant?: string | null
+          product_number?: string | null
           quantity?: number | null
           received_at?: string | null
+          schedule_arrival?: string | null
           send_email_trigger?: boolean | null
+          status?: string | null
+          status_updated_at?: string | null
           store?: string | null
           timestamp?: string | null
           wheel_material?: string | null

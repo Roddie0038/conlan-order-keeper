@@ -18,6 +18,7 @@ import AdminInventory from "./pages/AdminInventory";
 import AdminOrders from "./pages/AdminOrders";
 import WheelOrder from "./pages/WheelOrder";
 import OrderManagement from "./pages/OrderManagement";
+import ApprovedTreads from "./pages/ApprovedTreads";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,6 +111,14 @@ function App() {
                   element={
                     <ProtectedRoute showNav={false}>
                       <WheelOrder />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/approved-treads"
+                  element={
+                    <ProtectedRoute showNav={false}>
+                      <ApprovedTreads />
                     </ProtectedRoute>
                   }
                 />

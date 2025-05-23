@@ -1,6 +1,7 @@
 
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
+import { ApprovedTreadsCard } from "./ApprovedTreadsCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { DeploymentControls } from "@/components/admin/DeploymentControls";
 
@@ -82,7 +83,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       path: "/admin-orders",
       color: "",
       borderColor: "border-amber-400",
-      delay: 0.6,
+      delay: 0.7,
       size: "col-span-1",
       highlight: true,
       hideTitle: true,
@@ -97,6 +98,9 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         {menuItems.map((item) => (
           <MenuCard key={item.title} item={item} loaded={loaded} />
         ))}
+        
+        {/* Approved Treads Card */}
+        <ApprovedTreadsCard loaded={loaded} delay={0.6} />
       </div>
       
       {user?.username === 'Conlan97' && (
