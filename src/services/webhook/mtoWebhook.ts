@@ -24,6 +24,7 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
     const haveCasings = casingGrade && casingGrade.length > 0 ? "Yes" : "No";
     
     // Map the data to the format expected by the MTO Orders webhook
+    // Only include fields that exist in the mto_orders table
     const mappedData = {
       store: data.store || "",
       date_received: formatDate(new Date().toISOString()),

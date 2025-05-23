@@ -294,59 +294,74 @@ export type Database = {
       wheel_orders: {
         Row: {
           completed: boolean | null
+          completed_at: string | null
           cross_dock_form_link: string | null
           desired_color: string | null
           destination_manager_email: string | null
+          due_date: string | null
           email_message: string | null
           hand_holes: number | null
           id: string
           name: string | null
+          notes: string | null
           order_type: string | null
           quantity: number | null
+          received_at: string | null
           send_email_trigger: boolean | null
           store: string | null
           timestamp: string | null
           wheel_material: string | null
           wheel_size: string | null
           wheel_type: string | null
+          wheels_received: boolean | null
           work_order_link: string | null
         }
         Insert: {
           completed?: boolean | null
+          completed_at?: string | null
           cross_dock_form_link?: string | null
           desired_color?: string | null
           destination_manager_email?: string | null
+          due_date?: string | null
           email_message?: string | null
           hand_holes?: number | null
           id?: string
           name?: string | null
+          notes?: string | null
           order_type?: string | null
           quantity?: number | null
+          received_at?: string | null
           send_email_trigger?: boolean | null
           store?: string | null
           timestamp?: string | null
           wheel_material?: string | null
           wheel_size?: string | null
           wheel_type?: string | null
+          wheels_received?: boolean | null
           work_order_link?: string | null
         }
         Update: {
           completed?: boolean | null
+          completed_at?: string | null
           cross_dock_form_link?: string | null
           desired_color?: string | null
           destination_manager_email?: string | null
+          due_date?: string | null
           email_message?: string | null
           hand_holes?: number | null
           id?: string
           name?: string | null
+          notes?: string | null
           order_type?: string | null
           quantity?: number | null
+          received_at?: string | null
           send_email_trigger?: boolean | null
           store?: string | null
           timestamp?: string | null
           wheel_material?: string | null
           wheel_size?: string | null
           wheel_type?: string | null
+          wheels_received?: boolean | null
           work_order_link?: string | null
         }
         Relationships: []

@@ -1,4 +1,3 @@
-
 import { OrderSummary } from "@/hooks/useOrderSubmission";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
@@ -81,7 +80,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     // Include destination manager email for cross-dock orders
     destinationManagerEmail: destinationManagerEmail,
     
-    // Also include database column names for Supabase
+    // Also include database column names for regular orders (not MTO)
     cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
     cross_dock_destination: formattedCrossDockDestination, // Use the formatted destination
     cross_dock_receiver_number: order.receiverNo || null,
@@ -95,7 +94,8 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   };
 
   // Create a new object formatted specifically for Supabase submission
-  const supabaseOrder: OrderData = {
+  // Only include relevant fields based on order type
+  let supabaseOrder: any = {
     // For regular orders, don't include the UUID id field
     ...(orderWithPlant.type !== 'TRANSFER' ? { id: order.id } : {}),
     name: orderWithPlant.name,
@@ -106,20 +106,24 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     quantity: String(orderWithPlant.quantity), // Convert to string to match OrderData type
     scheduleArrival: orderWithPlant.scheduleArrival,
     notes: orderWithPlant.notes,
-    
-    // Use database column names for Supabase
-    cross_dock_type: orderWithPlant.cross_dock_type,
-    cross_dock_destination: orderWithPlant.cross_dock_destination,
-    cross_dock_receiver_number: orderWithPlant.cross_dock_receiver_number,
-    cross_dock_eta_date: orderWithPlant.cross_dock_eta_date,
-    destination_manager_email: orderWithPlant.destination_manager_email, // Include destination manager email
-    
     dateReceived: orderWithPlant.dateReceived,
     email: orderWithPlant.email,
     plant: orderWithPlant.plant, // Ensure plant is always set for cross-platform routing
     type: orderWithPlant.type,
     timestamp: orderWithPlant.timestamp, // Use the formatted timestamp
   };
+  
+  // Only add cross dock fields for regular orders (not MTO)
+  if (orderWithPlant.type === 'TRANSFER') {
+    supabaseOrder = {
+      ...supabaseOrder,
+      cross_dock_type: orderWithPlant.cross_dock_type,
+      cross_dock_destination: orderWithPlant.cross_dock_destination,
+      cross_dock_receiver_number: orderWithPlant.cross_dock_receiver_number,
+      cross_dock_eta_date: orderWithPlant.cross_dock_eta_date,
+      destination_manager_email: orderWithPlant.destination_manager_email
+    };
+  }
   
   console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
   
@@ -139,7 +143,13 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     
     // Save the order to Supabase using the properly formatted data
     console.log("🔍 SUBMIT - Saving order to Supabase:", supabaseOrder);
-    const { data, error } = await saveOrderToSupabase(supabaseOrder);
+    
+    // Use the appropriate table based on order type
+    const tableName = orderWithPlant.type === 'MTO' ? 'mto_orders' : 'orders';
+    
+    const { data, error } = await supabase
+      .from(tableName)
+      .insert(supabaseOrder);
     
     if (error) {
       console.error("❌ SUBMIT - Error saving to Supabase:", error);

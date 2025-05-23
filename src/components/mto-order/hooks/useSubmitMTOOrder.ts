@@ -141,39 +141,51 @@ export const useSubmitMTOOrder = ({
         managerEmail: managersEmail,
         triggered_from: window.location.origin,
         plant: plant,
-        store: formData.store,
         timestamp: formattedTimestamp // Use the formatted timestamp
       };
 
       console.log("Sending order data to webhook:", orderData);
       const result = await submitToGoogleSheets(orderData);
       
-      // Create an order object for Supabase using the correct field names
-      const supabaseOrder: OrderData = {
-        id: orderData.id, // Include UUID for MTO orders
+      // Create an order object for Supabase using only fields that exist in the mto_orders table
+      const supabaseOrder = {
+        id: orderData.id,
         name: formData.name,
         store: formData.store,
-        productNumber: formData.productNumber, // Use camelCase for OrderData type
+        product_number: formData.productNumber,
         description: `MTO: ${finalTireSize}, ${formData.tireTreadNeeded}, Grade: ${formData.casingGrade.join(',')}`,
         quantity: formData.quantity,
-        scheduleArrival: formData.scheduleArrival || "",
         notes: formData.notes || "",
         email: managersEmail,
-        timestamp: formattedTimestamp, // Use formatted timestamp for Supabase
+        timestamp: formattedTimestamp, 
         type: "MTO",
         plant: plant,
+        order_type: "MTO",
+        status: "pending",
         
-        // Cross dock fields in database format
-        cross_dock_type: "No" as "Yes" | "No",
+        // MTO-specific fields that exist in the mto_orders table
+        casing_grade: formData.casingGrade.join(','),
+        tire_size: finalTireSize,
+        tread: formData.tireTreadNeeded,
+        projected_delivery: formData.scheduleArrival || null,
         
-        // MTO-specific fields
-        casingGrade: formData.casingGrade,
-        tireSize: finalTireSize,
-        tireTreadNeeded: formData.tireTreadNeeded
+        // Boolean fields with default values
+        have_casings: formData.casingGrade.length > 0,
+        tread_in_inventory: false,
+        completed: false,
+        send_invoice: false,
+        send_email_trigger: false
       };
       
-      // Save to Supabase with appropriate type information
-      await saveOrderToSupabase(supabaseOrder);
+      // Save to Supabase with appropriate fields
+      const { data, error } = await supabase
+        .from('mto_orders')
+        .insert(supabaseOrder);
+      
+      if (error) {
+        console.error("Error submitting MTO order to Supabase:", error);
+        throw new Error(`Failed to save order to database: ${error.message}`);
+      }
       
       if (result.status === 'success' || result.status === 'partial_success') {
         const existingOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');
