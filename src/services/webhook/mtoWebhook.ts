@@ -33,7 +33,7 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       casing_grade: casingGrade,
       tire_size: data.tireSize || data.customTireSize || "",
       tread: data.tireTreadNeeded || "",
-      quantity: data.quantity || 0,
+      quantity: typeof data.quantity === 'string' ? parseInt(data.quantity, 10) : data.quantity || 0,
       notes: data.notes || "",
       have_casings: haveCasings,
       projected_delivery: data.scheduleArrival ? formatDate(data.scheduleArrival) : formatDate(new Date().toISOString()),

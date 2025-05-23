@@ -154,7 +154,7 @@ export const useSubmitMTOOrder = ({
         store: formData.store,
         product_number: formData.productNumber,
         description: `MTO: ${finalTireSize}, ${formData.tireTreadNeeded}, Grade: ${formData.casingGrade.join(',')}`,
-        quantity: formData.quantity,
+        quantity: parseInt(formData.quantity, 10), // Convert string to number for Supabase
         notes: formData.notes || "",
         email: managersEmail,
         timestamp: formattedTimestamp, 

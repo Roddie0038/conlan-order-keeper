@@ -156,7 +156,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       console.error("❌ SUBMIT - Error saving to Supabase:", error);
       throw error;
     } else {
-      console.log("✅ SUBMIT - Successfully saved to Supabase with plant:", data?.plant);
+      console.log("✅ SUBMIT - Successfully saved to Supabase:", data ? 'with data' : 'no data returned');
     }
     
     return orderWithPlant;
