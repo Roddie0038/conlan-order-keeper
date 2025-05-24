@@ -9,36 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      inventory_documents: {
+      approved_treads: {
         Row: {
-          date: string
-          description: string | null
-          file_name: string | null
-          file_path: string | null
-          file_size: string | null
+          category: string | null
+          created_at: string
+          display_order: number
           id: string
-          title: string
-          type: string
+          is_active: boolean
+          notes: string | null
+          status: string | null
+          tread_code: string
+          updated_at: string
         }
         Insert: {
-          date?: string
-          description?: string | null
-          file_name?: string | null
-          file_path?: string | null
-          file_size?: string | null
+          category?: string | null
+          created_at?: string
+          display_order?: number
           id?: string
-          title: string
-          type: string
+          is_active?: boolean
+          notes?: string | null
+          status?: string | null
+          tread_code: string
+          updated_at?: string
         }
         Update: {
-          date?: string
-          description?: string | null
-          file_name?: string | null
-          file_path?: string | null
-          file_size?: string | null
+          category?: string | null
+          created_at?: string
+          display_order?: number
           id?: string
-          title?: string
-          type?: string
+          is_active?: boolean
+          notes?: string | null
+          status?: string | null
+          tread_code?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -162,27 +165,6 @@ export type Database = {
           tread?: string | null
           tread_in_inventory?: boolean | null
           type?: string | null
-        }
-        Relationships: []
-      }
-      order_history: {
-        Row: {
-          archived_at: string | null
-          id: string
-          original_data: Json | null
-          source_table: string | null
-        }
-        Insert: {
-          archived_at?: string | null
-          id?: string
-          original_data?: Json | null
-          source_table?: string | null
-        }
-        Update: {
-          archived_at?: string | null
-          id?: string
-          original_data?: Json | null
-          source_table?: string | null
         }
         Relationships: []
       }
