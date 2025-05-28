@@ -8,6 +8,7 @@ import { OrderSummary } from "../types";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
+import { getPlantForStore } from "@/utils/plantMapping";
 import type { OrderData } from "@/types/supabase-extensions";
 
 export function useOrderFormSubmit() {
@@ -39,6 +40,9 @@ export function useOrderFormSubmit() {
         const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
         const storeManagerEmail = matchedStore?.managerEmails || "";
         
+        // Determine plant based on store
+        const plant = getPlantForStore(order.store);
+        
         // Use proper Supabase database column names
         return {
           yourName: order.yourName,
@@ -60,9 +64,10 @@ export function useOrderFormSubmit() {
           
           // Additional fields
           email: storeManagerEmail, // Set email to the store manager's email
-          plant: selectedPlant,
+          plant: plant, // Use plant determined from store
           timestamp: new Date().toISOString(),
           type: "TRANSFER",
+          status: "open", // Default status
           userId: user ? user.username || "anonymous" : "anonymous",
           userEmail: user ? user.store || "anonymous" : "anonymous",
         };

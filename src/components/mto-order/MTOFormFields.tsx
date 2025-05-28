@@ -1,3 +1,4 @@
+
 import { FormField } from "../order-form/FormField";
 import { stores } from "../order-form/formConfig";
 import { casingGrades, tireSizes, scheduleOptions, MTOFormData } from "./mto-form-config";
@@ -5,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { getPlantForStore } from "@/utils/plantMapping";
 
 interface MTOFormFieldsProps {
   formData: MTOFormData;
@@ -23,6 +25,9 @@ export const MTOFormFields = ({
     const updatedGrades = checked ? [...formData.casingGrade, grade] : formData.casingGrade.filter(g => g !== grade);
     onChange("casingGrade", updatedGrades);
   };
+
+  // Calculate plant based on selected store
+  const plant = formData.store ? getPlantForStore(formData.store) : "";
   
   // Store Information Fields
   const renderStoreFields = () => (
@@ -50,6 +55,15 @@ export const MTOFormFields = ({
           required 
         />
       )}
+
+      {/* Plant Field - Read-only, auto-fills based on store */}
+      <FormField 
+        label="Plant" 
+        value={plant || ""} 
+        onChange={() => {}} 
+        disabled={true} 
+        placeholder="Plant will be automatically assigned" 
+      />
 
       <FormField 
         label="Timestamp" 

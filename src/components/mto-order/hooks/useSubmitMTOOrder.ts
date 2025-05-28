@@ -1,213 +1,102 @@
-import { MTOFormData } from "../mto-form-config";
-import { getManagerEmail } from "@/components/order-form/formConfig";
+
 import { submitToGoogleSheets } from "@/services/sheets";
-import { usePlant } from "@/contexts/PlantContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { saveOrderToSupabase } from "@/services/orderService";
+import { WEBHOOK_URLS } from "@/services/webhook/config";
+import { getManagerEmail } from "../mto-form-config";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { formatDateForSupabase } from "@/utils/dateTime";
 import type { OrderData } from "@/types/supabase-extensions";
-import { supabase } from "@/integrations/supabase/extended-client";
 
-interface SubmitMTOOrderProps {
-  formData: MTOFormData;
-  setIsSubmitting: (value: boolean) => void;
-  resetForm: () => void;
-  toast: any;
-}
-
-export const useSubmitMTOOrder = ({ 
-  formData, 
-  setIsSubmitting, 
-  resetForm,
-  toast 
-}: SubmitMTOOrderProps) => {
-  const { selectedPlant } = usePlant();
-  const { user } = useAuth();
-  
+export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate required fields
-    if (!formData.store) {
-      toast({
-        title: "Missing Store",
-        description: "Please select a store.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // If user is not admin, they can only submit orders for their store
-    if (!user?.isAdmin && formData.store !== user?.store) {
-      toast({
-        title: "Unauthorized",
-        description: "You can only submit orders for your own store.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.name) {
-      toast({
-        title: "Missing Name",
-        description: "Please enter your name.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.productNumber) {
-      toast({
-        title: "Missing Product Number",
-        description: "Please enter a product number.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (formData.casingGrade.length === 0) {
-      toast({
-        title: "Missing Casing Grade",
-        description: "Please select at least one casing grade.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.tireSize) {
-      toast({
-        title: "Missing Tire Size",
-        description: "Please select a tire size.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (formData.tireSize === 'custom' && !formData.customTireSize) {
-      toast({
-        title: "Missing Custom Tire Size",
-        description: "Please enter your custom tire size.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.tireTreadNeeded) {
-      toast({
-        title: "Missing Tire Tread",
-        description: "Please enter the tire tread needed.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.quantity) {
-      toast({
-        title: "Missing Quantity",
-        description: "Please enter a quantity.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setIsSubmitting(true);
-    console.log("Submitting MTO order to webhooks");
+
+    // Validation
+    if (!formData.store || !formData.name || !formData.productNumber || 
+        !formData.tireSize || !formData.tireTreadNeeded || !formData.quantity || 
+        formData.casingGrade.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      const finalTireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
+      console.log("🔍 MTO FORM - Starting MTO submission");
       
-      // Get the manager's email for the selected store
-      const managersEmail = getManagerEmail(formData.store);
-      console.log("Manager email for store:", formData.store, "is:", managersEmail);
-      
-      // Determine plant based on store
+      // Get manager email and plant
+      const managerEmail = getManagerEmail(formData.store);
       const plant = getPlantForStore(formData.store);
-      console.log(`Determined plant '${plant}' for store: ${formData.store}`);
       
-      // Generate a UUID for the order
-      const orderId = crypto.randomUUID();
-      
-      // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
-      const formattedTimestamp = formatDateForSupabase(new Date());
-      
-      // Data for Google Sheets webhook (using frontend naming convention)
-      const orderData = {
-        id: orderId,
-        ...formData,
-        tireSize: finalTireSize,
-        type: 'MTO' as const,
-        managersEmail,
-        managerEmail: managersEmail,
-        triggered_from: window.location.origin,
+      console.log("🔍 MTO FORM - Manager email:", managerEmail);
+      console.log("🔍 MTO FORM - Plant:", plant);
+
+      const submissionData = {
+        timestamp: formData.timestamp,
+        name: formData.name,
+        store: formData.store,
+        productNumber: formData.productNumber,
+        casingGrade: formData.casingGrade.join(", "),
+        tireSize: formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize,
+        tireTreadNeeded: formData.tireTreadNeeded,
+        quantity: formData.quantity,
+        notes: formData.notes,
+        managerEmail: managerEmail,
         plant: plant,
-        timestamp: formattedTimestamp // Use the formatted timestamp
+        status: "open",
+        type: "MTO"
       };
 
-      console.log("Sending order data to webhook:", orderData);
-      const result = await submitToGoogleSheets(orderData);
-      
-      // Create an order object for Supabase using only fields that exist in the mto_orders table
-      const supabaseOrder = {
-        id: orderData.id,
+      console.log("🔍 MTO FORM - Submission data:", submissionData);
+      console.log("🔍 MTO FORM - Target webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
+
+      // Submit to Google Sheets
+      const result = await submitToGoogleSheets(submissionData);
+      console.log("🔍 MTO FORM - Google Sheets result:", result);
+
+      // Prepare data for Supabase
+      const supabaseOrder: OrderData = {
         name: formData.name,
         store: formData.store,
         product_number: formData.productNumber,
-        description: `MTO: ${finalTireSize}, ${formData.tireTreadNeeded}, Grade: ${formData.casingGrade.join(',')}`,
-        quantity: parseInt(formData.quantity, 10), // Convert string to number for Supabase
-        notes: formData.notes || "",
-        email: managersEmail,
-        timestamp: formattedTimestamp, 
-        type: "MTO",
+        description: `MTO - ${formData.tireTreadNeeded} - ${formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize}`,
+        quantity: parseInt(formData.quantity) || 0,
+        schedule_arrival: "TBD",
+        notes: formData.notes,
+        email: managerEmail,
         plant: plant,
-        order_type: "MTO",
-        status: "pending",
+        timestamp: new Date().toISOString(),
+        type: "MTO",
+        status: "open",
+        crossDock: "No" as "Yes" | "No",
         
-        // MTO-specific fields that exist in the mto_orders table
-        casing_grade: formData.casingGrade.join(','),
-        tire_size: finalTireSize,
-        tread: formData.tireTreadNeeded,
-        projected_delivery: formData.scheduleArrival || null,
-        
-        // Boolean fields with default values
-        have_casings: formData.casingGrade.length > 0,
-        tread_in_inventory: false,
-        completed: false,
-        send_invoice: false,
-        send_email_trigger: false
+        // MTO-specific fields (these will be stored in the extended data)
+        casing_grade: formData.casingGrade.join(", "),
+        tire_size: formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize,
+        tread: formData.tireTreadNeeded
       };
-      
-      // Save to Supabase with appropriate fields
-      const { data, error } = await supabase
-        .from('mto_orders')
-        .insert(supabaseOrder);
-      
-      if (error) {
-        console.error("Error submitting MTO order to Supabase:", error);
-        throw new Error(`Failed to save order to database: ${error.message}`);
-      }
-      
-      if (result.status === 'success' || result.status === 'partial_success') {
-        const existingOrders = JSON.parse(localStorage.getItem('mtoOrders') || '[]');
-        existingOrders.push(orderData);
-        localStorage.setItem('mtoOrders', JSON.stringify(existingOrders));
-        
-        console.log("MTO order submitted successfully");
-        
-        toast({
-          title: "Order Submitted Successfully",
-          description: "Your MTO order has been submitted.",
-        });
 
+      // Save to Supabase
+      await saveOrderToSupabase(supabaseOrder);
+      console.log("🔍 MTO FORM - Saved to Supabase successfully");
+
+      if (result.status === 'success' || result.status === 'partial_success') {
+        toast({
+          title: "MTO Order Submitted",
+          description: "Your MTO order has been submitted successfully.",
+        });
         resetForm();
       } else {
-        throw new Error("Failed to submit order");
+        throw new Error("Failed to submit MTO order");
       }
     } catch (error) {
-      console.error("Error submitting MTO order:", error);
+      console.error("❌ MTO FORM - Error submitting MTO order:", error);
       toast({
         title: "Error",
-        description: "Failed to submit order. Please try again.",
+        description: "There was a problem submitting your MTO order. Please try again.",
         variant: "destructive",
       });
     } finally {
