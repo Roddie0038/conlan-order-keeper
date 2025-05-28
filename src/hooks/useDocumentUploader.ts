@@ -8,15 +8,21 @@ export interface DocumentMetadata {
   type: string;
 }
 
-export function useDocumentUploader() {
+interface UseDocumentUploaderProps {
+  onFormSubmitted?: () => void;
+}
+
+export function useDocumentUploader({ onFormSubmitted }: UseDocumentUploaderProps = {}) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const uploadDocument = async (file: File, metadata: DocumentMetadata) => {
+  const uploadDocument = async (values: { file: File; title: string; description: string; type: string }) => {
     setUploading(true);
     setUploadProgress(0);
 
     try {
+      const { file, ...metadata } = values;
+      
       // Since we don't have storage set up yet, this is a placeholder
       // This would be implemented when storage bucket and documents table are created
       console.log('Document upload would be implemented here', { file, metadata });
@@ -27,16 +33,14 @@ export function useDocumentUploader() {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      return {
-        id: crypto.randomUUID(),
-        file_path: `documents/${file.name}`,
-        file_size: file.size,
-        ...metadata,
-        date: new Date().toISOString(),
-      };
+      if (onFormSubmitted) {
+        onFormSubmitted();
+      }
+      
+      return true;
     } catch (error) {
       console.error('Error uploading document:', error);
-      throw new Error('Failed to upload document');
+      return false;
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -47,5 +51,6 @@ export function useDocumentUploader() {
     uploadDocument,
     uploading,
     uploadProgress,
+    isSubmitting: uploading, // Add isSubmitting alias for consistency
   };
 }

@@ -10,6 +10,7 @@ export interface Document {
   date: string;
   file_path: string;
   file_size: number;
+  file_name?: string; // Add the missing file_name property
 }
 
 export function useDocuments() {
@@ -76,5 +77,6 @@ export function useDocuments() {
     uploadDocument,
     deleteDocument,
     refetch: fetchDocuments,
+    refreshDocuments: fetchDocuments, // Add the missing refreshDocuments method
   };
 }

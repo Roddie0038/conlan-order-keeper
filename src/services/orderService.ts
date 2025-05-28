@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { OrderData } from "@/types/supabase-extensions";
 
@@ -13,14 +12,14 @@ export const saveOrderToSupabase = async (order: OrderData) => {
   
   try {
     // Ensure we have the required fields
-    if (!order.store || !order.productNumber) {
+    if (!order.store || !order.product_number) {
       console.error("❌ ORDER SERVICE - Missing required fields:", { 
         hasStore: !!order.store, 
-        hasProductNumber: !!order.productNumber
+        hasProductNumber: !!order.product_number
       });
       return { 
         data: null, 
-        error: new Error("Missing required fields: store and productNumber are required") 
+        error: new Error("Missing required fields: store and product_number are required") 
       };
     }
     
@@ -38,10 +37,10 @@ export const saveOrderToSupabase = async (order: OrderData) => {
       ...(targetTable === 'orders' ? {} : { id: order.id }),
       name: order.yourName || order.name,
       store: order.store,
-      product_number: order.productNumber,
+      product_number: order.product_number,
       description: order.description,
       quantity: order.quantity,
-      schedule_arrival: order.scheduleArrival,
+      schedule_arrival: order.schedule_arrival,
       notes: order.notes,
       email: order.email || order.managerEmail || order.managersEmail,
       timestamp: order.timestamp || new Date().toISOString(),
@@ -49,7 +48,7 @@ export const saveOrderToSupabase = async (order: OrderData) => {
       order_type: order.type,
       
       // Cross-dock specific fields - use database column names
-      cross_dock_type: order.crossDock || order.cross_dock || order.cross_dock_type || "No",
+      cross_dock_type: order.crossDock || order.cross_dock_type || "No",
       cross_dock_destination: order.crossDockDestination || order.cross_dock_destination || null,
       cross_dock_receiver_number: order.receiverNo || order.cross_dock_receiver_number || null,
       cross_dock_eta_date: order.etaDate || order.cross_dock_eta_date || null,

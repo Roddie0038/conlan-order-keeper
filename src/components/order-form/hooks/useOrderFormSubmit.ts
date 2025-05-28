@@ -45,9 +45,9 @@ export function useOrderFormSubmit() {
           name: order.yourName, // Explicitly set name to yourName for better identification
           store: order.store,
           dateReceived: order.dateReceived,
-          product_number: order.productNumber,
+          product_number: order.productNumber, // Use correct property name
           description: order.description,
-          quantity: order.quantity,
+          quantity: parseInt(order.quantity.toString()) || 0, // Ensure number type
           schedule_arrival: order.scheduleArrival,
           notes: order.notes,
           

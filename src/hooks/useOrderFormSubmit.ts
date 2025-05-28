@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -45,10 +46,10 @@ export function useOrderFormSubmit() {
         return {
           name: order.yourName,
           store: order.store,
-          productNumber: order.productNumber,
+          product_number: order.productNumber, // Use correct property name
           description: order.description,
-          quantity: order.quantity,
-          scheduleArrival: order.scheduleArrival,
+          quantity: parseInt(order.quantity.toString()) || 0, // Ensure number type
+          schedule_arrival: order.scheduleArrival,
           notes: order.notes,
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
