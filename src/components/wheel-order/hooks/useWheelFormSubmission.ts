@@ -59,6 +59,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         managerEmail: managerEmail,
         email: managerEmail,
         plant: plant,
+        status: "open",
         qtyWheels: formData.qtyWheels,
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
@@ -87,6 +88,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         timestamp: new Date().toISOString(),
         type: "WHEEL_POWDER_COATING",
         plant: plant,
+        status: "open",
         crossDock: "No" as "Yes" | "No",
         
         // Wheel-specific fields
