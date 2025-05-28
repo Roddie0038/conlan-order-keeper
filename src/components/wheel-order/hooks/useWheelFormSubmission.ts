@@ -41,19 +41,23 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       console.log(`🔍 WHEEL FORM - Determined plant '${plant}' for store: ${formData.storeName}`);
       
       const submissionData = {
+        name: formData.yourName,
         yourName: formData.yourName,
         store: formData.storeName,
         storeId: formData.storeId,
         dateReceived: formData.dateReceived,
         type: "WHEEL_POWDER_COATING" as const,
+        product_number: "WHEEL-COATING",
         productNumber: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
-        quantity: formData.qtyWheels,
+        quantity: parseInt(formData.qtyWheels) || 0,
         scheduleArrival: formData.scheduleArrival || formData.dateReceived,
+        schedule_arrival: formData.scheduleArrival || formData.dateReceived,
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
         crossDock: "No" as "Yes" | "No",
         managersEmail: managerEmail,
         managerEmail: managerEmail,
+        email: managerEmail,
         plant: plant,
         qtyWheels: formData.qtyWheels,
         customerName: formData.customerName,
@@ -74,9 +78,9 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       const supabaseOrder: OrderData = {
         name: formData.yourName,
         store: formData.storeName,
-        product_number: "WHEEL-COATING", // Use correct property name
+        product_number: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
-        quantity: parseInt(formData.qtyWheels) || 0, // Ensure number type
+        quantity: parseInt(formData.qtyWheels) || 0,
         schedule_arrival: formData.scheduleArrival || formData.dateReceived,
         notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
         email: managerEmail,

@@ -9,8 +9,9 @@ export const documentFormSchema = z.object({
   type: z.string().min(1, {
     message: "Please select a document type.",
   }),
-  file: z.instanceof(File).optional(),
+  file: z.instanceof(File, {
+    message: "Please select a file to upload.",
+  }),
 });
 
 export type DocumentFormValues = z.infer<typeof documentFormSchema>;
-

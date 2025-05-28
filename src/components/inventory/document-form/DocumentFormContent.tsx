@@ -15,7 +15,7 @@ interface DocumentFormContentProps {
 }
 
 export function DocumentFormContent({ onFormSubmitted }: DocumentFormContentProps) {
-  const { uploadDocument, isSubmitting } = useDocumentUploader({ onFormSubmitted });
+  const { uploadDocument, uploading } = useDocumentUploader({ onFormSubmitted });
   
   const form = useForm<DocumentFormValues>({
     resolver: zodResolver(documentFormSchema),
@@ -27,7 +27,19 @@ export function DocumentFormContent({ onFormSubmitted }: DocumentFormContentProp
   });
 
   const onSubmit = async (values: DocumentFormValues) => {
-    const success = await uploadDocument(values);
+    // Ensure file exists before calling uploadDocument
+    if (!values.file) {
+      form.setError("file", { message: "Please select a file to upload" });
+      return;
+    }
+
+    const success = await uploadDocument({
+      file: values.file,
+      title: values.title,
+      description: values.description || "",
+      type: values.type,
+    });
+    
     if (success) {
       form.reset();
     }
@@ -42,14 +54,14 @@ export function DocumentFormContent({ onFormSubmitted }: DocumentFormContentProp
         </div>
         
         <DescriptionField control={form.control} />
-        <FileField control={form.control} isSubmitting={isSubmitting} />
+        <FileField control={form.control} isSubmitting={uploading} />
         
         <Button 
           type="submit" 
           className="w-full md:w-auto" 
-          disabled={isSubmitting}
+          disabled={uploading}
         >
-          {isSubmitting ? "Uploading..." : "Upload Document"}
+          {uploading ? "Uploading..." : "Upload Document"}
         </Button>
       </form>
     </Form>
