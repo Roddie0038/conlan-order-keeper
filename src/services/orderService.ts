@@ -1,13 +1,16 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { OrderData, MTOOrderData } from "@/types/supabase-extensions";
+import { mapOrderToSupabase } from "@/utils/mapOrderToSupabase";
+import { mapMTOToSupabase } from "@/utils/mapMTOToSupabase";
 
 /**
- * Save an order to Supabase
+ * Save an order to Supabase using proper field mapping
  * 
  * @param order The order data to save
+ * @param user User information for mapping
  * @returns A promise resolving to the saved order or an error
  */
-export const saveOrderToSupabase = async (order: OrderData | MTOOrderData) => {
+export const saveOrderToSupabase = async (order: OrderData | MTOOrderData, user?: any) => {
   console.log("🔍 ORDER SERVICE - Saving order to Supabase:", order);
   
   try {
@@ -23,41 +26,16 @@ export const saveOrderToSupabase = async (order: OrderData | MTOOrderData) => {
       };
     }
     
-    // Convert the order type based on the type field
+    // Determine target table and map data appropriately
     let targetTable = 'orders';
-    if (order.type === 'MTO' || order.type === 'mto') {
-      targetTable = 'mto_orders';
-    } else if (order.type === 'WHEEL_POWDER_COATING') {
-      targetTable = 'wheel_orders';
-    }
-
-    // Since we're now using camelCase throughout, we only need to map to database snake_case columns
     let formattedOrder: any;
     
-    if (targetTable === 'mto_orders') {
-      // Handle MTO-specific fields - map camelCase to snake_case for database
-      const mtoOrder = order as MTOOrderData;
-      formattedOrder = {
-        id: mtoOrder.id,
-        name: mtoOrder.name,
-        store: mtoOrder.store,
-        product_number: mtoOrder.productNumber,
-        casing_grade: mtoOrder.casingGrade,
-        tire_size: mtoOrder.tireSize,
-        tread: mtoOrder.tread || mtoOrder.tireTreadNeeded,
-        quantity: mtoOrder.quantity,
-        notes: mtoOrder.notes,
-        email: mtoOrder.email || mtoOrder.managerEmail,
-        plant: mtoOrder.plant,
-        timestamp: mtoOrder.timestamp || new Date().toISOString(),
-        order_type: mtoOrder.orderType || 'MTO',
-        type: mtoOrder.type || 'MTO',
-        status: mtoOrder.status || "pending",
-        status_updated_at: new Date().toISOString(),
-        description: mtoOrder.description,
-      };
-    } else if (targetTable === 'wheel_orders') {
-      // Handle wheel orders - mapping camelCase to snake_case for database
+    if (order.type === 'MTO' || order.type === 'mto') {
+      targetTable = 'mto_orders';
+      formattedOrder = mapMTOToSupabase(order, user);
+    } else if (order.type === 'WHEEL_POWDER_COATING') {
+      targetTable = 'wheel_orders';
+      // Use existing mapping for wheel orders since they already work
       formattedOrder = {
         id: order.id,
         name: (order as OrderData).yourName || order.name,
@@ -71,50 +49,23 @@ export const saveOrderToSupabase = async (order: OrderData | MTOOrderData) => {
         timestamp: order.timestamp || new Date().toISOString(),
         plant: order.plant,
         ordertype: order.type,
-        
-        // Cross-dock specific fields - use database column names
         crossdocktype: (order as OrderData).crossDock || "No",
         crossdockdestination: (order as OrderData).crossDockDestination || null,
-        
-        // Wheel-specific fields - map camelCase to snake_case
         wheelmaterial: (order as OrderData).wheelMaterial,
         wheeltype: (order as OrderData).wheelType,
         handholes: (order as OrderData).handHoles,
         wheelsize: (order as OrderData).wheelSize,
         desiredcolor: (order as OrderData).wheelColor,
-        
-        // Status fields
         status: order.status || "pending",
         statusupdatedat: new Date().toISOString(),
       };
     } else {
-      // Handle regular orders - map camelCase to snake_case for database
-      formattedOrder = {
-        name: (order as OrderData).yourName || order.name,
-        store: order.store,
-        product_number: order.productNumber,
-        description: (order as OrderData).description,
-        quantity: order.quantity,
-        schedule_arrival: (order as OrderData).scheduleArrival,
-        notes: order.notes,
-        email: order.email,
-        timestamp: order.timestamp || new Date().toISOString(),
-        plant: order.plant,
-        order_type: order.type,
-        
-        // Cross-dock specific fields - use database column names
-        cross_dock_type: (order as OrderData).crossDock || "No",
-        cross_dock_destination: (order as OrderData).crossDockDestination || null,
-        
-        // Status fields
-        status: order.status || "pending",
-        status_updated_at: new Date().toISOString(),
-      };
+      // Regular transfer orders
+      formattedOrder = mapOrderToSupabase(order, user);
     }
     
     console.log(`🔍 ORDER SERVICE - Inserting into ${targetTable} table with formatted data:`, formattedOrder);
     
-    // Force a network request by disabling cache
     const { data, error } = await supabase
       .from(targetTable as any)
       .insert(formattedOrder)

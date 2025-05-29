@@ -5,13 +5,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
-import { WEBHOOK_URLS } from "@/services/webhook/config";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { getPlantForStore } from "@/utils/plantMapping";
 import type { MTOOrderData } from "@/types/supabase-extensions";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
+  const { user } = useAuth();
+  const { selectedPlant } = usePlant();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -41,11 +43,11 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       console.log("🔍 MTO FORM - Manager email:", managerEmail);
       console.log("🔍 MTO FORM - Plant:", plant);
 
-      // ✅ FOR SUPABASE - Using camelCase field names to match MTOOrderData interface
-      const supabaseOrder: MTOOrderData = {
+      // Create order data in camelCase (internal format)
+      const mtoOrderData: MTOOrderData = {
         name: formData.name,
         store: formData.store,
-        productNumber: formData.productNumber, // Changed from product_number
+        productNumber: formData.productNumber,
         casingGrade: formData.casingGrade.join(", "),
         tireSize: tireSize,
         tread: formData.tireTreadNeeded,
@@ -62,16 +64,15 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`,
       };
 
-      console.log("🔍 MTO FORM - Submission data:", supabaseOrder);
-      console.log("🔍 MTO FORM - Target webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
+      console.log("🔍 MTO FORM - Submission data:", mtoOrderData);
 
-      // Submit to Google Sheets using the same MTOOrderData structure
-      const result = await submitToGoogleSheets(supabaseOrder);
-      console.log("🔍 MTO FORM - Google Sheets result:", result);
-
-      // Save to Supabase
-      await saveOrderToSupabase(supabaseOrder);
+      // Submit to Supabase (uses mapMTOToSupabase internally for snake_case)
+      await saveOrderToSupabase(mtoOrderData, user);
       console.log("🔍 MTO FORM - Saved to Supabase successfully");
+
+      // Submit to Google Sheets (uses mapMTOToGoogleSheets internally for camelCase)
+      const result = await submitToGoogleSheets(mtoOrderData, user);
+      console.log("🔍 MTO FORM - Google Sheets result:", result);
 
       if (result.status === 'success' || result.status === 'partial_success') {
         toast({

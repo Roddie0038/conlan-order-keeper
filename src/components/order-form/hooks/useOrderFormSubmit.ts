@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { OrderFormValues } from "../order-form-schema";
 import { OrderSummary } from "../types";
 import { saveOrderToSupabase } from "@/services/orderService";
+import { submitToGoogleSheets } from "@/services/sheets";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
 import { getPlantForStore } from "@/utils/plantMapping";
@@ -33,46 +34,38 @@ export function useOrderFormSubmit() {
     setIsSubmitting(true);
 
     try {
-      // Format the orders for submission - Using camelCase field names
-      const formattedOrders: OrderData[] = selectedOrders.map((order) => {
+      // Process each order with dual mapping strategy
+      for (const order of selectedOrders) {
         // Find the store manager email from storeData
         const storeNumber = order.store.match(/\d+$/)?.[0] || "";
         const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
         const storeManagerEmail = matchedStore?.managerEmails || "";
         
-        // Determine plant based on store
+        // Determine the plant based on the store
         const plant = getPlantForStore(order.store);
         
-        // Use camelCase field names to match OrderData interface
-        return {
-          yourName: order.yourName,
+        // Create the order data in camelCase (internal format)
+        const orderData: OrderData = {
           name: order.yourName,
           store: order.store,
-          dateReceived: order.dateReceived,
-          productNumber: order.productNumber, // Changed from product_number
+          productNumber: order.productNumber,
           description: order.description,
           quantity: parseInt(order.quantity.toString()) || 0,
-          scheduleArrival: order.scheduleArrival, // Changed from schedule_arrival
+          scheduleArrival: order.scheduleArrival,
           notes: order.notes,
-          
-          // Cross dock fields using camelCase
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
-          
-          // Additional fields
           email: storeManagerEmail,
           plant: plant,
           timestamp: new Date().toISOString(),
-          type: "TRANSFER",
-          status: "open",
-          userId: user ? user.username || "anonymous" : "anonymous",
-          userEmail: user ? user.store || "anonymous" : "anonymous",
+          type: "TRANSFER"
         };
-      });
 
-      // Submit each order to Supabase
-      for (const order of formattedOrders) {
-        await saveOrderToSupabase(order);
+        // Submit to Supabase (uses mapOrderToSupabase internally for snake_case)
+        await saveOrderToSupabase(orderData, user);
+        
+        // Submit to Google Sheets (uses mapOrderToGoogleSheets internally for camelCase)
+        await submitToGoogleSheets(orderData, user);
       }
 
       toast({

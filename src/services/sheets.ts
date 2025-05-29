@@ -6,125 +6,83 @@ import { submitToWheelOrdersWebhook } from './webhook/wheelWebhook';
 import { submitToMTOOrdersWebhook } from './webhook/mtoWebhook';
 import { OrderType, MTOOrderData, WEBHOOK_URLS } from './webhook/config';
 import type { OrderData } from '@/types/supabase-extensions';
+import { mapOrderToGoogleSheets } from '@/utils/mapOrderToGoogleSheets';
+import { mapMTOToGoogleSheets } from '@/utils/mapMTOToGoogleSheets';
 
 export type { OrderType, MTOOrderData };
 export type { OrderData };
 
-export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
+export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?: any) => {
   console.log("🔍 SHEETS - Submitting to webhooks:", data);
   console.log("🔍 SHEETS - Manager's email in submitToGoogleSheets:", data.email);
   console.log("🔍 SHEETS - Order type:", data.type);
   
   const plant = data.plant || "Grand Prairie 97";
   console.log("🔍 SHEETS - Selected plant for webhook submission:", plant);
-  console.log("🔍 SHEETS - All plant webhooks:", PLANT_WEBHOOKS);
-  console.log("🔍 SHEETS - Plant webhook for selected plant:", PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]);
   
   try {
-    // Add a debug log to trace data before submission
-    console.log("🔍 SHEETS - Full data being submitted:", JSON.stringify(data, null, 2));
+    // Map data to Google Sheets format (camelCase)
+    let sheetsPayload: any;
+    
+    if (data.type === 'MTO') {
+      sheetsPayload = mapMTOToGoogleSheets(data, user);
+    } else {
+      sheetsPayload = mapOrderToGoogleSheets(data, user);
+    }
+    
+    console.log("🔍 SHEETS - Mapped payload for Google Sheets:", sheetsPayload);
     
     const results = [];
     
     // For crossDock="Yes" orders, ensure we have the destination manager email
-    // Only check this for OrderData types (which have crossDock field)
-    if ('crossDock' in data && data.crossDock === "Yes" && 'crossDockDestination' in data && data.crossDockDestination && !('destinationManagerEmail' in data)) {
-      // Import directly here to avoid circular dependency
+    if ('crossDock' in sheetsPayload && sheetsPayload.crossDock === "Yes" && sheetsPayload.crossDockDestination && !sheetsPayload.destinationManagerEmail) {
       const { getManagerEmail } = await import('@/components/order-form/formConfig');
-      (data as any).destinationManagerEmail = getManagerEmail(data.crossDockDestination);
-      console.log("🔍 ROUTING - Added destinationManagerEmail:", (data as any).destinationManagerEmail);
+      sheetsPayload.destinationManagerEmail = getManagerEmail(sheetsPayload.crossDockDestination);
+      console.log("🔍 ROUTING - Added destinationManagerEmail:", sheetsPayload.destinationManagerEmail);
     }
     
-    // Special case: Admin submitted orders (use admin webhook if available)
-    if (data.type === 'ADMIN' || ('isAdmin' in data && (data as any).isAdmin === true)) {
-      console.log("🔍 ROUTING - Processing ADMIN order");
-      
-      const adminWebhookUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.adminOrders;
-      if (adminWebhookUrl) {
-        console.log("🔍 ROUTING - Using admin webhook URL:", adminWebhookUrl);
-        const adminResult = await submitToWebhook(adminWebhookUrl, {
-          ...data,
-          type: 'ADMIN',
-          admin_submission: true
-        });
-        console.log("🔍 ROUTING - Admin webhook result:", adminResult);
-        results.push(adminResult);
-      } else {
-        console.log("⚠️ ROUTING - No admin webhook URL found, falling back to standard routing");
-      }
-    }
-    
-    // Determine which type of order it is and submit to appropriate webhooks
-    else if (data.type === 'MTO') {
+    // Route based on order type
+    if (data.type === 'MTO') {
       console.log("🔍 ROUTING - Processing MTO order");
       
-      // Send to the plant-specific MTO webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.mtoOrders;
       if (plantUrl) {
         console.log("🔍 ROUTING - Using plant-specific MTO webhook URL:", plantUrl);
-        const plantWebhookResult = await submitToWebhook(plantUrl, data);
+        const plantWebhookResult = await submitToWebhook(plantUrl, sheetsPayload);
         results.push(plantWebhookResult);
-      } else {
-        console.log("⚠️ ROUTING - No plant-specific MTO webhook URL found for plant:", plant);
       }
       
-      // Send to the new MTO Orders webhook
       console.log("🔍 ROUTING - Sending to MTO Orders Google Sheet webhook");
-      const mtoOrdersResult = await submitToMTOOrdersWebhook(data);
+      const mtoOrdersResult = await submitToMTOOrdersWebhook(sheetsPayload);
       results.push(mtoOrdersResult);
-      
-      console.log("🔍 ROUTING - MTO order processed completely");
     } 
     else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
       console.log("🔍 ROUTING - Processing WHEEL order");
-      console.log("🔍 ROUTING - Wheel order detected because:", {
-        typeIsWheel: data.type === 'WHEEL_POWDER_COATING',
-        hasQtyWheels: 'qtyWheels' in data && Boolean(data.qtyWheels)
-      });
       
-      // Always ensure type is set to WHEEL_POWDER_COATING for consistency
-      data.type = 'WHEEL_POWDER_COATING';
-      
-      // Send to the plant-specific Wheel Orders webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.wheelOrders;
       if (plantUrl) {
         console.log("🔍 ROUTING - Using plant-specific Wheel webhook URL:", plantUrl);
-        const plantWebhookResult = await submitToWebhook(plantUrl, data);
+        const plantWebhookResult = await submitToWebhook(plantUrl, sheetsPayload);
         results.push(plantWebhookResult);
-      } else {
-        console.log("⚠️ ROUTING - No plant-specific Wheel webhook URL found for plant:", plant);
       }
       
-      // Send to the Wheel Orders webhook
       console.log("🔍 ROUTING - Sending to Wheel Orders Google Sheet webhook");
-      const wheelOrdersResult = await submitToWheelOrdersWebhook(data);
+      const wheelOrdersResult = await submitToWheelOrdersWebhook(sheetsPayload);
       results.push(wheelOrdersResult);
-      
-      console.log("🔍 ROUTING - Wheel order processed completely");
     }
     else {
       console.log("🔍 ROUTING - Processing regular TRANSFER order");
-      console.log("🔍 ROUTING - Using updated webhook URL for transfer orders");
       
-      // Send to the plant-specific webhook
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.transferRequests;
       if (plantUrl) {
         console.log("🔍 ROUTING - Using plant-specific Transfer webhook URL:", plantUrl);
-        console.log("🔍 ROUTING - Plant URL for transferRequests:", plantUrl);
-        const plantWebhookResult = await submitToWebhook(plantUrl, data);
+        const plantWebhookResult = await submitToWebhook(plantUrl, sheetsPayload);
         results.push(plantWebhookResult);
-        console.log("🔍 ROUTING - Plant webhook submission result:", plantWebhookResult);
-      } else {
-        console.error("❌ ROUTING - No plant-specific webhook URL found for:", plant);
       }
       
-      // Send to the new Orders webhook
       console.log("🔍 ROUTING - Sending to Orders Google Sheet webhook");
-      const ordersResult = await submitToOrdersWebhook(data);
+      const ordersResult = await submitToOrdersWebhook(sheetsPayload);
       results.push(ordersResult);
-      console.log("🔍 ROUTING - Orders webhook submission result:", ordersResult);
-      
-      console.log("🔍 ROUTING - Transfer order processed completely");
     }
     
     // Check if at least one webhook succeeded
