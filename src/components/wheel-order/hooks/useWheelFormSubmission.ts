@@ -12,6 +12,23 @@ import { useWheelFormValidation } from "./useWheelFormValidation";
 import { getPlantForStore } from "@/utils/plantMapping";
 import type { OrderData } from "@/types/supabase-extensions";
 
+// Helper function to format dates as MM/DD/YYYY hh:mm AM/PM
+const formatTimestamp = (dateString: string): string => {
+  const date = new Date(dateString);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  
+  let hours = date.getHours();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // Convert 0 to 12
+  
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+  return `${month}/${day}/${year} ${hours}:${minutes} ${ampm}`;
+};
+
 export function useWheelFormSubmission(formData: WheelFormData, managerEmail: string) {
   const { user } = useAuth();
   const { selectedPlant } = usePlant();
@@ -33,44 +50,78 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       console.log("🔍 WHEEL FORM - Preparing wheel order submission");
       console.log("🔍 WHEEL FORM - Verifying webhook URL from config:");
       console.log("🔍 WHEEL FORM - Target webhook URL will be:", WEBHOOK_URLS.WHEEL_ORDERS);
-      console.log("🔍 WHEEL FORM - Expected URL: https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
-      console.log("🔍 WHEEL FORM - URLs match?", WEBHOOK_URLS.WHEEL_ORDERS === "https://script.google.com/macros/s/AKfycbw_PHHn33ELTWnvQHG49VWew18L11EKaF0nHbMFLZvT2C_CNOLs-smLd4aHNxDF7CIEQA/exec");
       
       // Determine plant based on store
       const plant = getPlantForStore(formData.storeName);
       console.log(`🔍 WHEEL FORM - Determined plant '${plant}' for store: ${formData.storeName}`);
       
+      // Format timestamps properly
+      const currentTimestamp = formatTimestamp(new Date().toISOString());
+      const formattedScheduleArrival = formData.scheduleArrival ? formatTimestamp(formData.scheduleArrival) : formatTimestamp(formData.dateReceived);
+      const formattedReceivedAt = formatTimestamp(formData.dateReceived);
+      
       const submissionData = {
+        // Core fields
         name: formData.yourName,
-        yourName: formData.yourName,
         store: formData.storeName,
+        plant: plant,
+        email: managerEmail,
+        
+        // Wheel-specific fields as top-level keys
+        customer_name: formData.customerName,
+        quantity: parseInt(formData.qtyWheels) || 0,
+        wheel_material: formData.wheelMaterial,
+        wheel_type: formData.wheelType,
+        hand_holes: parseInt(formData.handHoles) || 0,
+        wheel_size: formData.wheelSize,
+        desired_color: formData.wheelColor,
+        
+        // Order metadata
+        product_number: "WHEEL-COATING",
+        order_type: "WHEEL_POWDER_COATING",
+        type: "WHEEL_POWDER_COATING" as const,
+        
+        // Status and workflow fields
+        wheels_received: "No", // Default value
+        completed: "No", // Default value
+        work_order_link: "", // Empty by default
+        send_email_trigger: "Yes", // Trigger email notifications
+        
+        // Cross dock fields (empty for wheel orders)
+        destination_manager_email: "",
+        email_message: "",
+        cross_dock_form_link: "",
+        cross_dock_destination: "",
+        cross_dock_eta_date: "",
+        cross_dock_receiver_number: "",
+        cross_dock_type: "No",
+        crossDock: "No" as "Yes" | "No",
+        
+        // Description and notes
+        description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
+        notes: "", // Keep notes empty, don't embed structured data
+        
+        // Dates and timestamps (properly formatted)
+        due_date: formattedScheduleArrival,
+        schedule_arrival: formattedScheduleArrival,
+        scheduleArrival: formattedScheduleArrival, // Keep for backward compatibility
+        status: "open",
+        status_updated_at: currentTimestamp,
+        received_at: formattedReceivedAt,
+        completed_at: "", // Empty until completed
+        timestamp: currentTimestamp,
+        
+        // Additional fields for compatibility
+        yourName: formData.yourName,
         storeId: formData.storeId,
         dateReceived: formData.dateReceived,
-        type: "WHEEL_POWDER_COATING" as const,
-        product_number: "WHEEL-COATING",
-        productNumber: "WHEEL-COATING",
-        description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
-        quantity: parseInt(formData.qtyWheels) || 0,
-        scheduleArrival: formData.scheduleArrival || formData.dateReceived,
-        schedule_arrival: formData.scheduleArrival || formData.dateReceived,
-        notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
-        crossDock: "No" as "Yes" | "No",
         managersEmail: managerEmail,
         managerEmail: managerEmail,
-        email: managerEmail,
-        plant: plant,
-        status: "open",
+        productNumber: "WHEEL-COATING",
         qtyWheels: formData.qtyWheels,
-        customerName: formData.customerName,
-        wheelMaterial: formData.wheelMaterial,
-        wheelType: formData.wheelType,
-        handHoles: formData.handHoles,
-        wheelSize: formData.wheelSize,
-        wheelColor: formData.wheelColor,
-        timestamp: new Date().toISOString(),
+        wheelColor: formData.wheelColor, // Keep for backward compatibility
       };
 
-      console.log("🔍 WHEEL FORM - Submitting raw schedule arrival:", submissionData.scheduleArrival);
       console.log("🔍 WHEEL FORM - Full submission data:", JSON.stringify(submissionData, null, 2));
 
       const result = await submitToGoogleSheets(submissionData);
@@ -82,10 +133,10 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         product_number: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
         quantity: parseInt(formData.qtyWheels) || 0,
-        schedule_arrival: formData.scheduleArrival || formData.dateReceived,
-        notes: `Customer: ${formData.customerName}, Material: ${formData.wheelMaterial}, Type: ${formData.wheelType}, Hand Holes: ${formData.handHoles}`,
+        schedule_arrival: formattedScheduleArrival,
+        notes: "", // Keep notes empty as requested
         email: managerEmail,
-        timestamp: new Date().toISOString(),
+        timestamp: currentTimestamp,
         type: "WHEEL_POWDER_COATING",
         plant: plant,
         status: "open",
