@@ -1,4 +1,3 @@
-
 import type { Database } from "@/integrations/supabase/types";
 
 // Define OrderData interface for backward compatibility
@@ -62,6 +61,7 @@ export interface MTOOrderData {
   status?: string;
   type?: string;
   order_type?: string;
+  description: string; // Made required to match OrderData
   
   // Additional MTO-specific fields to match database schema
   tire_tread_needed?: string;
@@ -82,7 +82,6 @@ export interface MTOOrderData {
   destination_manager_email?: string;
   order_completion_link?: string;
   invoice_number?: string;
-  description?: string;
 }
 
 export interface ExtendedDatabase extends Database {

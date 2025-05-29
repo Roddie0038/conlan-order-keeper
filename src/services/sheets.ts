@@ -10,25 +10,9 @@ import type { OrderData } from '@/types/supabase-extensions';
 export type { OrderType, MTOOrderData };
 export type { OrderData };
 
-// Type guard to check if the data is an OrderData (with CrossDock fields)
-function isOrderData(data: OrderData | MTOOrderData): data is OrderData {
-  return 'yourName' in data || 'name' in data;
-}
-
-// Type guard to check if the data is an MTOOrderData
-function isMTOOrderData(data: OrderData | MTOOrderData): data is MTOOrderData {
-  return 'casingGrade' in data;
-}
-
 export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
   console.log("🔍 SHEETS - Submitting to webhooks:", data);
-  // Use type safety for accessing optional properties
-  console.log("🔍 SHEETS - Manager's email in submitToGoogleSheets:", 
-    'email' in data ? data.email : (
-      'managerEmail' in data ? (data as any).managerEmail : 
-      'managersEmail' in data ? (data as any).managersEmail : 'No email found'
-    )
-  );
+  console.log("🔍 SHEETS - Manager's email in submitToGoogleSheets:", data.email);
   console.log("🔍 SHEETS - Order type:", data.type);
   
   const plant = data.plant || "Grand Prairie 97";
@@ -43,8 +27,8 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData) => {
     const results = [];
     
     // For crossDock="Yes" orders, ensure we have the destination manager email
-    // Only check this for OrderData types, not MTOOrderData
-    if (isOrderData(data) && data.crossDock === "Yes" && data.crossDockDestination && !('destinationManagerEmail' in data)) {
+    // Only check this for OrderData types (which have crossDock field)
+    if ('crossDock' in data && data.crossDock === "Yes" && 'crossDockDestination' in data && data.crossDockDestination && !('destinationManagerEmail' in data)) {
       // Import directly here to avoid circular dependency
       const { getManagerEmail } = await import('@/components/order-form/formConfig');
       (data as any).destinationManagerEmail = getManagerEmail(data.crossDockDestination);

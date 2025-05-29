@@ -1,7 +1,7 @@
 
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { CrossDockFields } from '@/types/cross-dock.types';
-import type { OrderData as SupabaseOrderData } from '@/types/supabase-extensions';
+import type { OrderData as SupabaseOrderData, MTOOrderData as SupabaseMTOOrderData } from '@/types/supabase-extensions';
 
 // Webhook URLs for Google Apps Script
 export const WEBHOOK_URLS = {
@@ -43,15 +43,5 @@ export interface BaseOrderData {
 // Use the OrderData type from supabase-extensions to ensure consistency
 export type { SupabaseOrderData as OrderData };
 
-// Keep MTOOrderData separate since it has a different structure
-export interface MTOOrderData extends BaseOrderData {
-  name: string;
-  productNumber: string;
-  casingGrade: string[];  // String array for casing grades
-  tireSize: string;
-  tireTreadNeeded: string;
-  quantity: string;
-  scheduleArrival: string;
-  notes: string;
-  email?: string; // Add for consistency with other types
-}
+// Use the MTOOrderData type from supabase-extensions for consistency
+export type { SupabaseMTOOrderData as MTOOrderData };
