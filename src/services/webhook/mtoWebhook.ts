@@ -15,7 +15,7 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       return false;
     }
     
-    // Send the supabaseOrder object directly (already in snake_case)
+    // Map the data to the exact format required by Google Sheets
     const mappedData = {
       store: data.store || "",
       name: data.name || "",
@@ -25,8 +25,11 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       tread: data.tread || data.tire_tread_needed || "",
       quantity: typeof data.quantity === 'string' ? parseInt(data.quantity, 10) : data.quantity || 0,
       notes: data.notes || "",
-      email: data.email || "",
-      submitted_by: data.name || ""
+      have_casings: data.casing_grade && data.casing_grade.length > 0 ? "Yes" : "No",
+      projected_delivery: data.schedule_arrival ? formatDate(data.schedule_arrival) : formatDate(new Date().toISOString()),
+      tread_inventory: "To Be Determined",
+      submitted_by: data.name || "",
+      email: data.email || ""
     };
 
     console.log("🔍 MTO WEBHOOK - Sending mapped data to MTO Orders webhook:", mappedData);
