@@ -21,11 +21,9 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
     // Determine if they have casings based on the casing grade field
     const haveCasings = casingGrade && casingGrade.length > 0 ? "Yes" : "No";
     
-    // Map the data to the format expected by the MTO Orders webhook
-    // Use snake_case field names that actually exist in the data
+    // Map the data to the exact format required by Google Sheets (all snake_case)
     const mappedData = {
       store: data.store || "",
-      date_received: formatDate(new Date().toISOString()),
       name: data.name || "",
       product_number: data.product_number || "",
       casing_grade: casingGrade,
@@ -37,9 +35,7 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       projected_delivery: data.schedule_arrival ? formatDate(data.schedule_arrival) : formatDate(new Date().toISOString()),
       tread_inventory: "To Be Determined", // Default value
       submitted_by: data.name || "",
-      email: data.email || "",
-      order_source: "web_app", // Add source for tracking purposes
-      order_type: "MTO" // Explicitly mark the order type
+      email: data.email || ""
     };
 
     console.log("🔍 MTO WEBHOOK - Sending mapped data to MTO Orders webhook:", mappedData);
@@ -50,7 +46,7 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       headers: {
         "Content-Type": "application/json",
       },
-      mode: "no-cors", // Use no-cors to avoid CORS issues
+      mode: "cors", // Changed from no-cors to cors as required
       body: JSON.stringify(mappedData),
     });
 
