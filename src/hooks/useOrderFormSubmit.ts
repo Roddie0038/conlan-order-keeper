@@ -33,7 +33,7 @@ export function useOrderFormSubmit() {
     setIsSubmitting(true);
 
     try {
-      // Format the orders for submission
+      // Format the orders for submission - Using camelCase field names
       const formattedOrders: OrderData[] = selectedOrders.map((order) => {
         // Find the store manager email from storeData
         const storeNumber = order.store.match(/\d+$/)?.[0] || "";
@@ -46,10 +46,10 @@ export function useOrderFormSubmit() {
         return {
           name: order.yourName,
           store: order.store,
-          product_number: order.productNumber, // Use correct property name
+          productNumber: order.productNumber, // Changed from product_number
           description: order.description,
-          quantity: parseInt(order.quantity.toString()) || 0, // Ensure number type
-          schedule_arrival: order.scheduleArrival,
+          quantity: parseInt(order.quantity.toString()) || 0,
+          scheduleArrival: order.scheduleArrival, // Changed from schedule_arrival  
           notes: order.notes,
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",

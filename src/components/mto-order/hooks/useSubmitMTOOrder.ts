@@ -1,7 +1,12 @@
 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePlant } from "@/contexts/PlantContext";
+import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
-import { saveOrderToSupabase } from "@/services/orderService";
 import { WEBHOOK_URLS } from "@/services/webhook/config";
+import { saveOrderToSupabase } from "@/services/orderService";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { getPlantForStore } from "@/utils/plantMapping";
 import type { MTOOrderData } from "@/types/supabase-extensions";
@@ -36,23 +41,23 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       console.log("🔍 MTO FORM - Manager email:", managerEmail);
       console.log("🔍 MTO FORM - Plant:", plant);
 
-      // ✅ FOR SUPABASE (snake_case only, matches MTOOrderData)
+      // ✅ FOR SUPABASE - Using camelCase field names to match MTOOrderData interface
       const supabaseOrder: MTOOrderData = {
         name: formData.name,
         store: formData.store,
-        product_number: formData.productNumber,
-        casing_grade: formData.casingGrade.join(", "),
-        tire_size: tireSize,
+        productNumber: formData.productNumber, // Changed from product_number
+        casingGrade: formData.casingGrade.join(", "),
+        tireSize: tireSize,
         tread: formData.tireTreadNeeded,
-        tire_tread_needed: formData.tireTreadNeeded,
+        tireTreadNeeded: formData.tireTreadNeeded,
         quantity: parseInt(formData.quantity) || 0,
         notes: formData.notes || "",
         email: managerEmail,
-        manager_email: managerEmail,
+        managerEmail: managerEmail,
         plant: plant,
         timestamp: timestamp,
         type: "MTO",
-        order_type: "MTO",
+        orderType: "MTO",
         status: "open",
         description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`,
       };

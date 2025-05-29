@@ -33,7 +33,7 @@ export function useOrderFormSubmit() {
     setIsSubmitting(true);
 
     try {
-      // Format the orders for submission
+      // Format the orders for submission - Using camelCase field names
       const formattedOrders: OrderData[] = selectedOrders.map((order) => {
         // Find the store manager email from storeData
         const storeNumber = order.store.match(/\d+$/)?.[0] || "";
@@ -43,31 +43,28 @@ export function useOrderFormSubmit() {
         // Determine plant based on store
         const plant = getPlantForStore(order.store);
         
-        // Use proper Supabase database column names
+        // Use camelCase field names to match OrderData interface
         return {
           yourName: order.yourName,
-          name: order.yourName, // Explicitly set name to yourName for better identification
+          name: order.yourName,
           store: order.store,
           dateReceived: order.dateReceived,
-          product_number: order.productNumber, // Use correct property name
+          productNumber: order.productNumber, // Changed from product_number
           description: order.description,
-          quantity: parseInt(order.quantity.toString()) || 0, // Ensure number type
-          schedule_arrival: order.scheduleArrival,
+          quantity: parseInt(order.quantity.toString()) || 0,
+          scheduleArrival: order.scheduleArrival, // Changed from schedule_arrival
           notes: order.notes,
           
-          // Cross dock fields - both formats
+          // Cross dock fields using camelCase
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
-          // Database column names
-          cross_dock_type: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
-          cross_dock_destination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
           
           // Additional fields
-          email: storeManagerEmail, // Set email to the store manager's email
-          plant: plant, // Use plant determined from store
+          email: storeManagerEmail,
+          plant: plant,
           timestamp: new Date().toISOString(),
           type: "TRANSFER",
-          status: "open", // Default status
+          status: "open",
           userId: user ? user.username || "anonymous" : "anonymous",
           userEmail: user ? user.store || "anonymous" : "anonymous",
         };

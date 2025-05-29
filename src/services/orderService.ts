@@ -31,11 +31,11 @@ export const saveOrderToSupabase = async (order: OrderData | MTOOrderData) => {
       targetTable = 'wheel_orders';
     }
 
-    // Format data for Supabase - convert frontend field names to database column names
+    // Since we're now using camelCase throughout, we only need to map to database snake_case columns
     let formattedOrder: any;
     
     if (targetTable === 'mto_orders') {
-      // Handle MTO-specific fields
+      // Handle MTO-specific fields - map camelCase to snake_case for database
       const mtoOrder = order as MTOOrderData;
       formattedOrder = {
         id: mtoOrder.id,
@@ -54,23 +54,6 @@ export const saveOrderToSupabase = async (order: OrderData | MTOOrderData) => {
         type: mtoOrder.type || 'MTO',
         status: mtoOrder.status || "pending",
         status_updated_at: new Date().toISOString(),
-        
-        // Additional MTO fields
-        have_casings: mtoOrder.haveCasings || false,
-        tread_in_inventory: mtoOrder.treadInInventory || false,
-        projected_delivery: mtoOrder.projectedDelivery,
-        completed: mtoOrder.completed || false,
-        send_invoice: mtoOrder.sendInvoice || false,
-        send_email_trigger: mtoOrder.sendEmailTrigger || false,
-        ready_to_ship_at: mtoOrder.readyToShipAt,
-        in_transit_at: mtoOrder.inTransitAt,
-        received_at: mtoOrder.receivedAt,
-        completed_at: mtoOrder.completedAt,
-        cross_dock_form_link: mtoOrder.crossDockFormLink,
-        email_message: mtoOrder.emailMessage,
-        destination_manager_email: mtoOrder.destinationManagerEmail,
-        order_completion_link: mtoOrder.orderCompletionLink,
-        invoice_number: mtoOrder.invoiceNumber,
         description: mtoOrder.description,
       };
     } else if (targetTable === 'wheel_orders') {
@@ -84,17 +67,14 @@ export const saveOrderToSupabase = async (order: OrderData | MTOOrderData) => {
         quantity: order.quantity,
         schedulearrival: (order as OrderData).scheduleArrival,
         notes: order.notes,
-        email: order.email || (order as OrderData).managerEmail || (order as OrderData).managersEmail,
+        email: order.email,
         timestamp: order.timestamp || new Date().toISOString(),
         plant: order.plant,
         ordertype: order.type,
         
         // Cross-dock specific fields - use database column names
-        crossdocktype: (order as OrderData).crossDock || (order as OrderData).crossDockType || "No",
+        crossdocktype: (order as OrderData).crossDock || "No",
         crossdockdestination: (order as OrderData).crossDockDestination || null,
-        crossdockreceivernumber: (order as OrderData).receiverNo || (order as OrderData).crossDockReceiverNumber || null,
-        crossdocketadate: (order as OrderData).etaDate || (order as OrderData).crossDockEtaDate || null,
-        destinationmanageremail: (order as OrderData).destinationManagerEmail || null,
         
         // Wheel-specific fields - map camelCase to snake_case
         wheelmaterial: (order as OrderData).wheelMaterial,
@@ -108,9 +88,8 @@ export const saveOrderToSupabase = async (order: OrderData | MTOOrderData) => {
         statusupdatedat: new Date().toISOString(),
       };
     } else {
-      // Handle regular orders
+      // Handle regular orders - map camelCase to snake_case for database
       formattedOrder = {
-        // For the id field, use numeric ID for orders table
         name: (order as OrderData).yourName || order.name,
         store: order.store,
         product_number: order.productNumber,
@@ -118,17 +97,14 @@ export const saveOrderToSupabase = async (order: OrderData | MTOOrderData) => {
         quantity: order.quantity,
         schedule_arrival: (order as OrderData).scheduleArrival,
         notes: order.notes,
-        email: order.email || (order as OrderData).managerEmail || (order as OrderData).managersEmail,
+        email: order.email,
         timestamp: order.timestamp || new Date().toISOString(),
         plant: order.plant,
         order_type: order.type,
         
         // Cross-dock specific fields - use database column names
-        cross_dock_type: (order as OrderData).crossDock || (order as OrderData).crossDockType || "No",
+        cross_dock_type: (order as OrderData).crossDock || "No",
         cross_dock_destination: (order as OrderData).crossDockDestination || null,
-        cross_dock_receiver_number: (order as OrderData).receiverNo || (order as OrderData).crossDockReceiverNumber || null,
-        cross_dock_eta_date: (order as OrderData).etaDate || (order as OrderData).crossDockEtaDate || null,
-        destination_manager_email: (order as OrderData).destinationManagerEmail || null,
         
         // Status fields
         status: order.status || "pending",
