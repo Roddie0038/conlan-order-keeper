@@ -60,6 +60,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       const formattedScheduleArrival = formData.scheduleArrival ? formatTimestamp(formData.scheduleArrival) : formatTimestamp(formData.dateReceived);
       const formattedReceivedAt = formatTimestamp(formData.dateReceived);
       
+      // Create webhook submission data for Google Sheets
       const submissionData = {
         // Core fields
         name: formData.yourName,
@@ -82,10 +83,10 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         type: "WHEEL_POWDER_COATING" as const,
         
         // Status and workflow fields
-        wheels_received: "No", // Default value
-        completed: "No", // Default value
-        work_order_link: "", // Empty by default
-        send_email_trigger: "Yes", // Trigger email notifications
+        wheels_received: "No",
+        completed: "No",
+        work_order_link: "",
+        send_email_trigger: "Yes",
         
         // Cross dock fields (empty for wheel orders)
         destination_manager_email: "",
@@ -99,16 +100,16 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         
         // Description and notes
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
-        notes: "", // Keep notes empty, don't embed structured data
+        notes: "",
         
         // Dates and timestamps (properly formatted)
         due_date: formattedScheduleArrival,
         schedule_arrival: formattedScheduleArrival,
-        scheduleArrival: formattedScheduleArrival, // Keep for backward compatibility
+        scheduleArrival: formattedScheduleArrival,
         status: "open",
         status_updated_at: currentTimestamp,
         received_at: formattedReceivedAt,
-        completed_at: "", // Empty until completed
+        completed_at: "",
         timestamp: currentTimestamp,
         
         // Additional fields for compatibility
@@ -119,14 +120,14 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         managerEmail: managerEmail,
         productNumber: "WHEEL-COATING",
         qtyWheels: formData.qtyWheels,
-        wheelColor: formData.wheelColor, // Keep for backward compatibility
+        wheelColor: formData.wheelColor,
       };
 
       console.log("🔍 WHEEL FORM - Full submission data:", JSON.stringify(submissionData, null, 2));
 
       const result = await submitToGoogleSheets(submissionData);
       
-      // Create an order object that matches the OrderData type
+      // Create a separate, clean Supabase order object that matches OrderData interface
       const supabaseOrder: OrderData = {
         name: formData.yourName,
         store: formData.storeName,
@@ -134,13 +135,14 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
         quantity: parseInt(formData.qtyWheels) || 0,
         schedule_arrival: formattedScheduleArrival,
-        notes: "", // Keep notes empty as requested
+        notes: "",
         email: managerEmail,
         timestamp: currentTimestamp,
         type: "WHEEL_POWDER_COATING",
         plant: plant,
         status: "open",
         crossDock: "No" as "Yes" | "No",
+        cross_dock_type: "No" as "Yes" | "No",
         
         // Wheel-specific fields
         customerName: formData.customerName,
@@ -152,7 +154,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         qtyWheels: formData.qtyWheels
       };
       
-      // Save to Supabase with appropriate type information
+      // Save to Supabase with properly typed data
       await saveOrderToSupabase(supabaseOrder);
       
       if (result.status === 'success' || result.status === 'partial_success') {
