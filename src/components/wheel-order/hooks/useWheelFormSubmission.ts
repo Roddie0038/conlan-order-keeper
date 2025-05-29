@@ -77,21 +77,14 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         crossDock: "No" as const,
         cross_dock_type: "No" as const,
         
-        // Wheel-specific fields as top-level properties
+        // Wheel-specific fields using camelCase to match OrderData interface
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
         wheelType: formData.wheelType,
         handHoles: formData.handHoles,
         wheelSize: formData.wheelSize,
         wheelColor: formData.wheelColor,
-        qtyWheels: formData.qtyWheels,
-        
-        // Additional wheel-specific fields for Supabase storage
-        wheel_material: formData.wheelMaterial,
-        wheel_type: formData.wheelType,
-        wheel_size: formData.wheelSize,
-        hand_holes: parseInt(formData.handHoles) || 0,
-        desired_color: formData.wheelColor
+        qtyWheels: formData.qtyWheels
       };
 
       console.log("🔍 WHEEL FORM - Supabase order data:", JSON.stringify(supabaseOrder, null, 2));
