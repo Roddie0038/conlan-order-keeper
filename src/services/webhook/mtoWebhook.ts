@@ -15,31 +15,29 @@ export const submitToMTOOrdersWebhook = async (data: any) => {
       return false;
     }
     
-    // Format casing grade - convert array to string if needed
-    const casingGrade = Array.isArray(data.casingGrade) 
-      ? data.casingGrade.join(', ') 
-      : data.casingGrade || "";
+    // Use the correct snake_case field names from MTOOrderData
+    const casingGrade = data.casing_grade || "";
     
-    // Determine if they have casings based on the selected casing grades
+    // Determine if they have casings based on the casing grade field
     const haveCasings = casingGrade && casingGrade.length > 0 ? "Yes" : "No";
     
     // Map the data to the format expected by the MTO Orders webhook
-    // Only include fields that exist in the mto_orders table
+    // Use snake_case field names that actually exist in the data
     const mappedData = {
       store: data.store || "",
       date_received: formatDate(new Date().toISOString()),
-      name: data.yourName || data.name || "",
-      product_number: data.productNumber || "",
+      name: data.name || "",
+      product_number: data.product_number || "",
       casing_grade: casingGrade,
-      tire_size: data.tireSize || data.customTireSize || "",
-      tread: data.tireTreadNeeded || "",
+      tire_size: data.tire_size || "",
+      tread: data.tread || data.tire_tread_needed || "",
       quantity: typeof data.quantity === 'string' ? parseInt(data.quantity, 10) : data.quantity || 0,
       notes: data.notes || "",
       have_casings: haveCasings,
-      projected_delivery: data.scheduleArrival ? formatDate(data.scheduleArrival) : formatDate(new Date().toISOString()),
+      projected_delivery: data.schedule_arrival ? formatDate(data.schedule_arrival) : formatDate(new Date().toISOString()),
       tread_inventory: "To Be Determined", // Default value
-      submitted_by: data.yourName || data.name || "",
-      email: data.managersEmail || data.managerEmail || "",
+      submitted_by: data.name || "",
+      email: data.email || "",
       order_source: "web_app", // Add source for tracking purposes
       order_type: "MTO" // Explicitly mark the order type
     };
