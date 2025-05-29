@@ -288,108 +288,108 @@ export type Database = {
       wheel_orders: {
         Row: {
           completed: boolean | null
-          completed_at: string | null
-          cross_dock_destination: string | null
-          cross_dock_eta_date: string | null
-          cross_dock_form_link: string | null
-          cross_dock_receiver_number: string | null
-          cross_dock_type: string | null
+          completedat: string | null
+          crossdockdestination: string | null
+          crossdocketadate: string | null
+          crossdockformlink: string | null
+          crossdockreceivernumber: string | null
+          crossdocktype: string | null
           description: string | null
-          desired_color: string | null
-          destination_manager_email: string | null
-          due_date: string | null
+          desiredcolor: string | null
+          destinationmanageremail: string | null
+          duedate: string | null
           email: string | null
-          email_message: string | null
-          hand_holes: number | null
+          emailmessage: string | null
+          handholes: number | null
           id: string
           name: string | null
           notes: string | null
-          order_type: string | null
+          ordertype: string | null
           plant: string | null
-          product_number: string | null
+          productnumber: string | null
           quantity: number | null
-          received_at: string | null
-          schedule_arrival: string | null
-          send_email_trigger: boolean | null
+          receivedat: string | null
+          schedulearrival: string | null
+          sendemailtrigger: boolean | null
           status: string | null
-          status_updated_at: string | null
+          statusupdatedat: string | null
           store: string | null
           timestamp: string | null
-          wheel_material: string | null
-          wheel_size: string | null
-          wheel_type: string | null
-          wheels_received: boolean | null
-          work_order_link: string | null
+          wheelmaterial: string | null
+          wheelsize: string | null
+          wheelsreceived: boolean | null
+          wheeltype: string | null
+          workorderlink: string | null
         }
         Insert: {
           completed?: boolean | null
-          completed_at?: string | null
-          cross_dock_destination?: string | null
-          cross_dock_eta_date?: string | null
-          cross_dock_form_link?: string | null
-          cross_dock_receiver_number?: string | null
-          cross_dock_type?: string | null
+          completedat?: string | null
+          crossdockdestination?: string | null
+          crossdocketadate?: string | null
+          crossdockformlink?: string | null
+          crossdockreceivernumber?: string | null
+          crossdocktype?: string | null
           description?: string | null
-          desired_color?: string | null
-          destination_manager_email?: string | null
-          due_date?: string | null
+          desiredcolor?: string | null
+          destinationmanageremail?: string | null
+          duedate?: string | null
           email?: string | null
-          email_message?: string | null
-          hand_holes?: number | null
+          emailmessage?: string | null
+          handholes?: number | null
           id?: string
           name?: string | null
           notes?: string | null
-          order_type?: string | null
+          ordertype?: string | null
           plant?: string | null
-          product_number?: string | null
+          productnumber?: string | null
           quantity?: number | null
-          received_at?: string | null
-          schedule_arrival?: string | null
-          send_email_trigger?: boolean | null
+          receivedat?: string | null
+          schedulearrival?: string | null
+          sendemailtrigger?: boolean | null
           status?: string | null
-          status_updated_at?: string | null
+          statusupdatedat?: string | null
           store?: string | null
           timestamp?: string | null
-          wheel_material?: string | null
-          wheel_size?: string | null
-          wheel_type?: string | null
-          wheels_received?: boolean | null
-          work_order_link?: string | null
+          wheelmaterial?: string | null
+          wheelsize?: string | null
+          wheelsreceived?: boolean | null
+          wheeltype?: string | null
+          workorderlink?: string | null
         }
         Update: {
           completed?: boolean | null
-          completed_at?: string | null
-          cross_dock_destination?: string | null
-          cross_dock_eta_date?: string | null
-          cross_dock_form_link?: string | null
-          cross_dock_receiver_number?: string | null
-          cross_dock_type?: string | null
+          completedat?: string | null
+          crossdockdestination?: string | null
+          crossdocketadate?: string | null
+          crossdockformlink?: string | null
+          crossdockreceivernumber?: string | null
+          crossdocktype?: string | null
           description?: string | null
-          desired_color?: string | null
-          destination_manager_email?: string | null
-          due_date?: string | null
+          desiredcolor?: string | null
+          destinationmanageremail?: string | null
+          duedate?: string | null
           email?: string | null
-          email_message?: string | null
-          hand_holes?: number | null
+          emailmessage?: string | null
+          handholes?: number | null
           id?: string
           name?: string | null
           notes?: string | null
-          order_type?: string | null
+          ordertype?: string | null
           plant?: string | null
-          product_number?: string | null
+          productnumber?: string | null
           quantity?: number | null
-          received_at?: string | null
-          schedule_arrival?: string | null
-          send_email_trigger?: boolean | null
+          receivedat?: string | null
+          schedulearrival?: string | null
+          sendemailtrigger?: boolean | null
           status?: string | null
-          status_updated_at?: string | null
+          statusupdatedat?: string | null
           store?: string | null
           timestamp?: string | null
-          wheel_material?: string | null
-          wheel_size?: string | null
-          wheel_type?: string | null
-          wheels_received?: boolean | null
-          work_order_link?: string | null
+          wheelmaterial?: string | null
+          wheelsize?: string | null
+          wheelsreceived?: boolean | null
+          wheeltype?: string | null
+          workorderlink?: string | null
         }
         Relationships: []
       }

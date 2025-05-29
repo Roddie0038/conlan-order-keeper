@@ -60,14 +60,14 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       const formattedScheduleArrival = formData.scheduleArrival ? formatTimestamp(formData.scheduleArrival) : formatTimestamp(formData.dateReceived);
       const formattedReceivedAt = formatTimestamp(formData.dateReceived);
       
-      // Create a clean Supabase order object that matches OrderData interface
+      // Create a clean Supabase order object that matches OrderData interface with camelCase fields
       const supabaseOrder: OrderData = {
         name: formData.yourName,
         store: formData.storeName,
-        product_number: "WHEEL-COATING",
+        productNumber: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
         quantity: parseInt(formData.qtyWheels) || 0,
-        schedule_arrival: formattedScheduleArrival,
+        scheduleArrival: formattedScheduleArrival,
         notes: "",
         email: managerEmail,
         timestamp: currentTimestamp,
@@ -75,9 +75,9 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         plant: plant,
         status: "open",
         crossDock: "No" as const,
-        cross_dock_type: "No" as const,
+        crossDockType: "No" as const,
         
-        // Wheel-specific fields using camelCase to match OrderData interface
+        // Wheel-specific fields using camelCase to match updated Supabase schema
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
         wheelType: formData.wheelType,
