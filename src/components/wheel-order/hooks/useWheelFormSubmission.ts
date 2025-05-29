@@ -60,74 +60,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       const formattedScheduleArrival = formData.scheduleArrival ? formatTimestamp(formData.scheduleArrival) : formatTimestamp(formData.dateReceived);
       const formattedReceivedAt = formatTimestamp(formData.dateReceived);
       
-      // Create webhook submission data for Google Sheets
-      const submissionData = {
-        // Core fields
-        name: formData.yourName,
-        store: formData.storeName,
-        plant: plant,
-        email: managerEmail,
-        
-        // Wheel-specific fields as top-level keys
-        customer_name: formData.customerName,
-        quantity: parseInt(formData.qtyWheels) || 0,
-        wheel_material: formData.wheelMaterial,
-        wheel_type: formData.wheelType,
-        hand_holes: parseInt(formData.handHoles) || 0,
-        wheel_size: formData.wheelSize,
-        desired_color: formData.wheelColor,
-        
-        // Order metadata
-        product_number: "WHEEL-COATING",
-        order_type: "WHEEL_POWDER_COATING",
-        type: "WHEEL_POWDER_COATING" as const,
-        
-        // Status and workflow fields
-        wheels_received: "No",
-        completed: "No",
-        work_order_link: "",
-        send_email_trigger: "Yes",
-        
-        // Cross dock fields (empty for wheel orders)
-        destination_manager_email: "",
-        email_message: "",
-        cross_dock_form_link: "",
-        cross_dock_destination: "",
-        cross_dock_eta_date: "",
-        cross_dock_receiver_number: "",
-        cross_dock_type: "No",
-        crossDock: "No" as "Yes" | "No",
-        
-        // Description and notes
-        description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
-        notes: "",
-        
-        // Dates and timestamps (properly formatted)
-        due_date: formattedScheduleArrival,
-        schedule_arrival: formattedScheduleArrival,
-        scheduleArrival: formattedScheduleArrival,
-        status: "open",
-        status_updated_at: currentTimestamp,
-        received_at: formattedReceivedAt,
-        completed_at: "",
-        timestamp: currentTimestamp,
-        
-        // Additional fields for compatibility
-        yourName: formData.yourName,
-        storeId: formData.storeId,
-        dateReceived: formData.dateReceived,
-        managersEmail: managerEmail,
-        managerEmail: managerEmail,
-        productNumber: "WHEEL-COATING",
-        qtyWheels: formData.qtyWheels,
-        wheelColor: formData.wheelColor,
-      };
-
-      console.log("🔍 WHEEL FORM - Full submission data:", JSON.stringify(submissionData, null, 2));
-
-      const result = await submitToGoogleSheets(submissionData);
-      
-      // Create a separate, clean Supabase order object that matches OrderData interface
+      // Create a clean Supabase order object that matches OrderData interface
       const supabaseOrder: OrderData = {
         name: formData.yourName,
         store: formData.storeName,
@@ -141,8 +74,8 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         type: "WHEEL_POWDER_COATING",
         plant: plant,
         status: "open",
-        crossDock: "No" as "Yes" | "No",
-        cross_dock_type: "No" as "Yes" | "No",
+        crossDock: "No" as const,
+        cross_dock_type: "No" as const,
         
         // Wheel-specific fields
         customerName: formData.customerName,
@@ -153,6 +86,10 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         wheelColor: formData.wheelColor,
         qtyWheels: formData.qtyWheels
       };
+
+      console.log("🔍 WHEEL FORM - Supabase order data:", JSON.stringify(supabaseOrder, null, 2));
+
+      const result = await submitToGoogleSheets(supabaseOrder);
       
       // Save to Supabase with properly typed data
       await saveOrderToSupabase(supabaseOrder);
@@ -160,7 +97,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       if (result.status === 'success' || result.status === 'partial_success') {
         const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
         existingOrders.push({
-          ...submissionData,
+          ...supabaseOrder,
           id: crypto.randomUUID()
         });
         localStorage.setItem('wheelOrders', JSON.stringify(existingOrders));
