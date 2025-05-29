@@ -2,7 +2,7 @@
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { WEBHOOK_URLS } from "@/services/webhook/config";
-import { getManagerEmail } from "../mto-form-config";
+import { getManagerEmail } from "@/components/order-form/formConfig";
 import { getPlantForStore } from "@/utils/plantMapping";
 import type { OrderData } from "@/types/supabase-extensions";
 
@@ -57,7 +57,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       const result = await submitToGoogleSheets(submissionData);
       console.log("🔍 MTO FORM - Google Sheets result:", result);
 
-      // Prepare data for Supabase
+      // Prepare data for Supabase with correct field names
       const supabaseOrder: OrderData = {
         name: formData.name,
         store: formData.store,
