@@ -4,7 +4,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { WEBHOOK_URLS } from "@/services/webhook/config";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { getPlantForStore } from "@/utils/plantMapping";
-import type { OrderData } from "@/types/supabase-extensions";
+import type { MTOOrderData } from "@/types/supabase-extensions";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,25 +58,24 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       console.log("🔍 MTO FORM - Google Sheets result:", result);
 
       // Prepare data for Supabase with correct field names
-      const supabaseOrder: OrderData = {
+      const supabaseOrder: MTOOrderData = {
         name: formData.name,
         store: formData.store,
         product_number: formData.productNumber,
-        description: `MTO - ${formData.tireTreadNeeded} - ${formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize}`,
+        casing_grade: formData.casingGrade.join(", "),
+        tire_size: formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize,
+        tread: formData.tireTreadNeeded,
+        tire_tread_needed: formData.tireTreadNeeded,
         quantity: parseInt(formData.quantity) || 0,
-        schedule_arrival: "TBD",
-        notes: formData.notes,
+        notes: formData.notes || "",
         email: managerEmail,
+        manager_email: managerEmail,
         plant: plant,
         timestamp: new Date().toISOString(),
         type: "MTO",
+        order_type: "MTO",
         status: "open",
-        crossDock: "No" as "Yes" | "No",
-        
-        // MTO-specific fields (these will be stored in the extended data)
-        casing_grade: formData.casingGrade.join(", "),
-        tire_size: formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize,
-        tread: formData.tireTreadNeeded
+        description: `MTO - ${formData.tireTreadNeeded} - ${formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize}`,
       };
 
       // Save to Supabase

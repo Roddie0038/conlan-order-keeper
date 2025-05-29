@@ -45,6 +45,46 @@ export interface OrderData {
   qtyWheels?: string;
 }
 
+// Define MTOOrderData interface for MTO orders
+export interface MTOOrderData {
+  id?: string;
+  timestamp?: string;
+  name: string;
+  store: string;
+  product_number: string;
+  casing_grade: string;
+  tire_size: string;
+  tread?: string;
+  quantity: number;
+  notes?: string;
+  email?: string;
+  plant?: string;
+  status?: string;
+  type?: string;
+  order_type?: string;
+  
+  // Additional MTO-specific fields to match database schema
+  tire_tread_needed?: string;
+  manager_email?: string;
+  have_casings?: boolean;
+  tread_in_inventory?: boolean;
+  projected_delivery?: string;
+  completed?: boolean;
+  send_invoice?: boolean;
+  send_email_trigger?: boolean;
+  status_updated_at?: string;
+  ready_to_ship_at?: string;
+  in_transit_at?: string;
+  received_at?: string;
+  completed_at?: string;
+  cross_dock_form_link?: string;
+  email_message?: string;
+  destination_manager_email?: string;
+  order_completion_link?: string;
+  invoice_number?: string;
+  description?: string;
+}
+
 export interface ExtendedDatabase extends Database {
   public: Database['public'] & {
     Tables: Database['public']['Tables'] & {

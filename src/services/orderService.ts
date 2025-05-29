@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { OrderData } from "@/types/supabase-extensions";
+import type { OrderData, MTOOrderData } from "@/types/supabase-extensions";
 
 /**
  * Save an order to Supabase
@@ -7,7 +7,7 @@ import type { OrderData } from "@/types/supabase-extensions";
  * @param order The order data to save
  * @returns A promise resolving to the saved order or an error
  */
-export const saveOrderToSupabase = async (order: OrderData) => {
+export const saveOrderToSupabase = async (order: OrderData | MTOOrderData) => {
   console.log("🔍 ORDER SERVICE - Saving order to Supabase:", order);
   
   try {
@@ -25,39 +25,84 @@ export const saveOrderToSupabase = async (order: OrderData) => {
     
     // Convert the order type based on the type field
     let targetTable = 'orders';
-    if (order.type === 'MTO') {
+    if (order.type === 'MTO' || order.type === 'mto') {
       targetTable = 'mto_orders';
     } else if (order.type === 'WHEEL_POWDER_COATING') {
       targetTable = 'wheel_orders';
     }
 
     // Format data for Supabase - convert frontend field names to database column names
-    const formattedOrder = {
-      // For the id field, use numeric ID for orders table, keep UUID for other tables
-      ...(targetTable === 'orders' ? {} : { id: order.id }),
-      name: order.yourName || order.name,
-      store: order.store,
-      product_number: order.product_number,
-      description: order.description,
-      quantity: order.quantity,
-      schedule_arrival: order.schedule_arrival,
-      notes: order.notes,
-      email: order.email || order.managerEmail || order.managersEmail,
-      timestamp: order.timestamp || new Date().toISOString(),
-      plant: order.plant,
-      order_type: order.type,
-      
-      // Cross-dock specific fields - use database column names
-      cross_dock_type: order.crossDock || order.cross_dock_type || "No",
-      cross_dock_destination: order.crossDockDestination || order.cross_dock_destination || null,
-      cross_dock_receiver_number: order.receiverNo || order.cross_dock_receiver_number || null,
-      cross_dock_eta_date: order.etaDate || order.cross_dock_eta_date || null,
-      destination_manager_email: order.destinationManagerEmail || order.destination_manager_email || null,
-      
-      // Status fields
-      status: order.status || "pending",
-      status_updated_at: new Date().toISOString(),
-    };
+    let formattedOrder: any;
+    
+    if (targetTable === 'mto_orders') {
+      // Handle MTO-specific fields
+      const mtoOrder = order as MTOOrderData;
+      formattedOrder = {
+        // For the id field, use UUID for MTO orders
+        id: mtoOrder.id,
+        name: mtoOrder.name,
+        store: mtoOrder.store,
+        product_number: mtoOrder.product_number,
+        casing_grade: mtoOrder.casing_grade,
+        tire_size: mtoOrder.tire_size,
+        tread: mtoOrder.tread || mtoOrder.tire_tread_needed,
+        quantity: mtoOrder.quantity,
+        notes: mtoOrder.notes,
+        email: mtoOrder.email || mtoOrder.manager_email,
+        plant: mtoOrder.plant,
+        timestamp: mtoOrder.timestamp || new Date().toISOString(),
+        order_type: mtoOrder.order_type || 'MTO',
+        type: mtoOrder.type || 'MTO',
+        status: mtoOrder.status || "pending",
+        status_updated_at: new Date().toISOString(),
+        
+        // Additional MTO fields
+        have_casings: mtoOrder.have_casings || false,
+        tread_in_inventory: mtoOrder.tread_in_inventory || false,
+        projected_delivery: mtoOrder.projected_delivery,
+        completed: mtoOrder.completed || false,
+        send_invoice: mtoOrder.send_invoice || false,
+        send_email_trigger: mtoOrder.send_email_trigger || false,
+        ready_to_ship_at: mtoOrder.ready_to_ship_at,
+        in_transit_at: mtoOrder.in_transit_at,
+        received_at: mtoOrder.received_at,
+        completed_at: mtoOrder.completed_at,
+        cross_dock_form_link: mtoOrder.cross_dock_form_link,
+        email_message: mtoOrder.email_message,
+        destination_manager_email: mtoOrder.destination_manager_email,
+        order_completion_link: mtoOrder.order_completion_link,
+        invoice_number: mtoOrder.invoice_number,
+        description: mtoOrder.description,
+      };
+    } else {
+      // Handle regular orders and wheel orders
+      formattedOrder = {
+        // For the id field, use numeric ID for orders table, keep UUID for other tables
+        ...(targetTable === 'orders' ? {} : { id: order.id }),
+        name: (order as OrderData).yourName || order.name,
+        store: order.store,
+        product_number: order.product_number,
+        description: (order as OrderData).description,
+        quantity: order.quantity,
+        schedule_arrival: (order as OrderData).schedule_arrival,
+        notes: order.notes,
+        email: order.email || (order as OrderData).managerEmail || (order as OrderData).managersEmail,
+        timestamp: order.timestamp || new Date().toISOString(),
+        plant: order.plant,
+        order_type: order.type,
+        
+        // Cross-dock specific fields - use database column names
+        cross_dock_type: (order as OrderData).crossDock || (order as OrderData).cross_dock_type || "No",
+        cross_dock_destination: (order as OrderData).crossDockDestination || (order as OrderData).cross_dock_destination || null,
+        cross_dock_receiver_number: (order as OrderData).receiverNo || (order as OrderData).cross_dock_receiver_number || null,
+        cross_dock_eta_date: (order as OrderData).etaDate || (order as OrderData).cross_dock_eta_date || null,
+        destination_manager_email: (order as OrderData).destinationManagerEmail || (order as OrderData).destination_manager_email || null,
+        
+        // Status fields
+        status: order.status || "pending",
+        status_updated_at: new Date().toISOString(),
+      };
+    }
     
     console.log(`🔍 ORDER SERVICE - Inserting into ${targetTable} table with formatted data:`, formattedOrder);
     
