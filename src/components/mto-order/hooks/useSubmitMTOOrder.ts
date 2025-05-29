@@ -30,17 +30,20 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       // Get manager email and plant
       const managerEmail = getManagerEmail(formData.store);
       const plant = getPlantForStore(formData.store);
+      const tireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
+      const timestamp = new Date().toISOString();
       
       console.log("🔍 MTO FORM - Manager email:", managerEmail);
       console.log("🔍 MTO FORM - Plant:", plant);
 
+      // ✅ FOR GOOGLE SHEETS (camelCase is fine)
       const submissionData = {
         timestamp: formData.timestamp,
         name: formData.name,
         store: formData.store,
         productNumber: formData.productNumber,
         casingGrade: formData.casingGrade.join(", "),
-        tireSize: formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize,
+        tireSize,
         tireTreadNeeded: formData.tireTreadNeeded,
         quantity: formData.quantity,
         notes: formData.notes,
@@ -57,13 +60,13 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       const result = await submitToGoogleSheets(submissionData);
       console.log("🔍 MTO FORM - Google Sheets result:", result);
 
-      // Prepare data for Supabase with correct field names
+      // ✅ FOR SUPABASE (snake_case only, matches MTOOrderData)
       const supabaseOrder: MTOOrderData = {
         name: formData.name,
         store: formData.store,
         product_number: formData.productNumber,
         casing_grade: formData.casingGrade.join(", "),
-        tire_size: formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize,
+        tire_size: tireSize,
         tread: formData.tireTreadNeeded,
         tire_tread_needed: formData.tireTreadNeeded,
         quantity: parseInt(formData.quantity) || 0,
@@ -71,11 +74,11 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         email: managerEmail,
         manager_email: managerEmail,
         plant: plant,
-        timestamp: new Date().toISOString(),
+        timestamp: timestamp,
         type: "MTO",
         order_type: "MTO",
         status: "open",
-        description: `MTO - ${formData.tireTreadNeeded} - ${formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize}`,
+        description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`,
       };
 
       // Save to Supabase
