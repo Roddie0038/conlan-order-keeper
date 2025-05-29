@@ -36,30 +36,6 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       console.log("🔍 MTO FORM - Manager email:", managerEmail);
       console.log("🔍 MTO FORM - Plant:", plant);
 
-      // ✅ FOR GOOGLE SHEETS (camelCase is fine)
-      const submissionData = {
-        timestamp: formData.timestamp,
-        name: formData.name,
-        store: formData.store,
-        productNumber: formData.productNumber,
-        casingGrade: formData.casingGrade.join(", "),
-        tireSize,
-        tireTreadNeeded: formData.tireTreadNeeded,
-        quantity: formData.quantity,
-        notes: formData.notes,
-        managerEmail: managerEmail,
-        plant: plant,
-        status: "open",
-        type: "MTO"
-      };
-
-      console.log("🔍 MTO FORM - Submission data:", submissionData);
-      console.log("🔍 MTO FORM - Target webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
-
-      // Submit to Google Sheets
-      const result = await submitToGoogleSheets(submissionData);
-      console.log("🔍 MTO FORM - Google Sheets result:", result);
-
       // ✅ FOR SUPABASE (snake_case only, matches MTOOrderData)
       const supabaseOrder: MTOOrderData = {
         name: formData.name,
@@ -80,6 +56,13 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         status: "open",
         description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`,
       };
+
+      console.log("🔍 MTO FORM - Submission data:", supabaseOrder);
+      console.log("🔍 MTO FORM - Target webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
+
+      // Submit to Google Sheets using the same MTOOrderData structure
+      const result = await submitToGoogleSheets(supabaseOrder);
+      console.log("🔍 MTO FORM - Google Sheets result:", result);
 
       // Save to Supabase
       await saveOrderToSupabase(supabaseOrder);
