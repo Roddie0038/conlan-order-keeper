@@ -9,8 +9,8 @@ export const WEBHOOK_URLS = {
   ORDERS: "https://script.google.com/macros/s/AKfycbzKqcxF0lJaplxHS65J_YeOqwE8R528wqmdakeGK07uxAFCMId_44l58zro7DXVRXLUbw/exec",
   // Wheel Orders
   WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycby787MsaPsVc9A-lV9UmFagAsvwSezy7StjoX1Cxm2cb43HTSJnv7OBu7lCrRmLvUrY3w/exec",
-  // MTO Orders
-  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbwWSU8hJCZkg3m3ASQQOcrhLnBu4mu7pbgdzYy-wk5yx81kBSp8o8xR534BP7iiqBsMVQ/exec",
+  // MTO Orders - Updated to new Web App version
+  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbwOQ3Ldtp3L7YB2-UQ8nIMunpKY9FtCnvhySayJiKd1kw9b6z1fX0SiTszGrx4iNB6jMA/exec",
   // Admin Orders
   ADMIN_ORDERS: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
 };
