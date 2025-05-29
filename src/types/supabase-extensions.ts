@@ -1,3 +1,4 @@
+
 import type { Database } from "@/integrations/supabase/types";
 
 // Define OrderData interface for backward compatibility
@@ -7,17 +8,16 @@ export interface OrderData {
   name: string;
   store: string;
   dateReceived?: string;
-  product_number: string;
+  productNumber: string;
   description: string;
   quantity: number; // Ensure this is number, not string
-  schedule_arrival?: string;
+  scheduleArrival?: string;
   notes?: string;
   crossDock?: "Yes" | "No";
   crossDockDestination?: string;
-  cross_dock_type?: "Yes" | "No";
-  cross_dock_destination?: string;
-  cross_dock_receiver_number?: string;
-  cross_dock_eta_date?: string;
+  crossDockType?: "Yes" | "No";
+  crossDockReceiverNumber?: string;
+  crossDockEtaDate?: string;
   email?: string;
   plant?: string;
   timestamp?: string;
@@ -30,15 +30,14 @@ export interface OrderData {
   managerEmail?: string;
   managersEmail?: string;
   destinationManagerEmail?: string;
-  destination_manager_email?: string;
   receiverNo?: string;
   etaDate?: string;
   
-  // Wheel-specific fields
+  // Wheel-specific fields - using camelCase to match Supabase schema
   customerName?: string;
   wheelMaterial?: string;
   wheelType?: string;
-  handHoles?: string;
+  handHoles?: number; // Changed to number to match schema
   wheelSize?: string;
   wheelColor?: string;
   qtyWheels?: string;
@@ -50,9 +49,9 @@ export interface MTOOrderData {
   timestamp?: string;
   name: string;
   store: string;
-  product_number: string;
-  casing_grade: string;
-  tire_size: string;
+  productNumber: string;
+  casingGrade: string;
+  tireSize: string;
   tread?: string;
   quantity: number;
   notes?: string;
@@ -60,28 +59,28 @@ export interface MTOOrderData {
   plant?: string;
   status?: string;
   type?: string;
-  order_type?: string;
+  orderType?: string;
   description: string; // Made required to match OrderData
   
   // Additional MTO-specific fields to match database schema
-  tire_tread_needed?: string;
-  manager_email?: string;
-  have_casings?: boolean;
-  tread_in_inventory?: boolean;
-  projected_delivery?: string;
+  tireTreadNeeded?: string;
+  managerEmail?: string;
+  haveCasings?: boolean;
+  treadInInventory?: boolean;
+  projectedDelivery?: string;
   completed?: boolean;
-  send_invoice?: boolean;
-  send_email_trigger?: boolean;
-  status_updated_at?: string;
-  ready_to_ship_at?: string;
-  in_transit_at?: string;
-  received_at?: string;
-  completed_at?: string;
-  cross_dock_form_link?: string;
-  email_message?: string;
-  destination_manager_email?: string;
-  order_completion_link?: string;
-  invoice_number?: string;
+  sendInvoice?: boolean;
+  sendEmailTrigger?: boolean;
+  statusUpdatedAt?: string;
+  readyToShipAt?: string;
+  inTransitAt?: string;
+  receivedAt?: string;
+  completedAt?: string;
+  crossDockFormLink?: string;
+  emailMessage?: string;
+  destinationManagerEmail?: string;
+  orderCompletionLink?: string;
+  invoiceNumber?: string;
 }
 
 export interface ExtendedDatabase extends Database {

@@ -81,7 +81,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
         wheelType: formData.wheelType,
-        handHoles: formData.handHoles,
+        handHoles: parseInt(formData.handHoles) || 0, // Convert to number
         wheelSize: formData.wheelSize,
         wheelColor: formData.wheelColor,
         qtyWheels: formData.qtyWheels
