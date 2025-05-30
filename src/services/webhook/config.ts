@@ -3,23 +3,23 @@ import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { CrossDockFields } from '@/types/cross-dock.types';
 import type { OrderData as SupabaseOrderData, MTOOrderData as SupabaseMTOOrderData } from '@/types/supabase-extensions';
 
-// Webhook URLs for Google Apps Script - CORRECTED ROUTING
+// Webhook URLs for Google Apps Script - UPDATED WITH NEW URLS
 export const WEBHOOK_URLS = {
-  // Store Transfer Request Orders
-  ORDERS: "https://script.google.com/macros/s/AKfycbzKqcxF0lJaplxHS65J_YeOqwE8R528wqmdakeGK07uxAFCMId_44l58zro7DXVRXLUbw/exec",
-  // Wheel Orders
-  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycby787MsaPsVc9A-lV9UmFagAsvwSezy7StjoX1Cxm2cb43HTSJnv7OBu7lCrRmLvUrY3w/exec",
-  // MTO Orders - CORRECTED URL
-  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbwxP6FanfvmNNRt1W0GKQAZnz7Uzq8JkXCymWBaS1rOKi_o3_gvY38dobiih4EC-OjlCw/exec",
+  // Store Transfer Request Orders - UPDATED URL
+  ORDERS: "https://script.google.com/macros/s/AKfycbzRiNPeiZMpBX7pT0dlqBTmGge7rtDzzaFMSVQ9xKplXZiaJST7x1fWL1_YxEQhu_JdJA/exec",
+  // Wheel Orders - UPDATED URL
+  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycby8tJGqMLTC5co0BbYNUcnrHsOBbwkT0s87yqiH5RYI6DuznND6q9ag5ua1Je5WzPqaqA/exec",
+  // MTO Orders - UPDATED URL
+  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbzq-5X1dFQf5HK3xYZuWNIEySXRscipdTjjpVwB3mCxOoav4czK3GXdJpsGrCeRfqZulQ/exec",
   // Admin Orders
   ADMIN_ORDERS: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
 };
 
 // Log webhook URLs on initial load for verification
-console.log("🔍 CONFIG - Corrected Webhook URLs configuration loaded:");
+console.log("🔍 CONFIG - UPDATED Webhook URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS (Transfer) URL:", WEBHOOK_URLS.ORDERS);
 console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
-console.log("🔍 CONFIG - MTO_ORDERS URL (CORRECTED):", WEBHOOK_URLS.MTO_ORDERS);
+console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
 console.log("🔍 CONFIG - ADMIN_ORDERS URL:", WEBHOOK_URLS.ADMIN_ORDERS);
 
 // Define plant type
