@@ -14,7 +14,7 @@ export function mapMTOToSupabase(form: any, user: any): any {
     plant: user?.assignedPlant || form.plant || '',
     order_type: 'MTO',
     type: 'MTO',
-    status: 'pending', // FIXED: Ensure this matches the exact constraint values
+    status: 'open', // FIXED: Changed from "pending" to "open" to match Supabase constraint
     status_updated_at: new Date().toISOString(),
     description: form.description || `MTO - ${form.tireTreadNeeded || form.tread} - ${form.tireSize}`
   };
