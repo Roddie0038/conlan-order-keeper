@@ -34,7 +34,7 @@ export function useOrderFormSubmit() {
     setIsSubmitting(true);
 
     try {
-      // Process each order with dual mapping strategy
+      // Process each order with proper type detection and dual mapping strategy
       for (const order of selectedOrders) {
         // Find the store manager email from storeData
         const storeNumber = order.store.match(/\d+$/)?.[0] || "";
@@ -44,7 +44,21 @@ export function useOrderFormSubmit() {
         // Determine the plant based on the store
         const plant = getPlantForStore(order.store);
         
-        // Create the order data in camelCase (internal format)
+        // CRITICAL FIX: Determine order type based on order properties
+        let orderType = "TRANSFER"; // Default to TRANSFER
+        
+        // Check if it's a wheel order
+        if ('qtyWheels' in order && order.qtyWheels) {
+          orderType = "WHEEL_POWDER_COATING";
+        }
+        // Check if it's explicitly marked as MTO
+        else if (order.type === 'MTO' || ('casingGrade' in order && order.casingGrade)) {
+          orderType = "MTO";
+        }
+        
+        console.log("🔍 ORDER FORM SUBMIT - Determined order type:", orderType, "for order:", order);
+        
+        // Create the order data in camelCase (internal format) with correct type
         const orderData: OrderData = {
           name: order.yourName,
           store: order.store,
@@ -58,8 +72,10 @@ export function useOrderFormSubmit() {
           email: storeManagerEmail,
           plant: plant,
           timestamp: new Date().toISOString(),
-          type: "TRANSFER"
+          type: orderType // Use the determined order type for correct routing
         };
+
+        console.log("🔍 ORDER FORM SUBMIT - Submitting with type:", orderType);
 
         // Submit to Supabase (uses mapOrderToSupabase internally for snake_case)
         await saveOrderToSupabase(orderData, user);

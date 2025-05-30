@@ -33,6 +33,20 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     console.warn(`⚠️ SUBMIT - Defaulting to selected plant: ${selectedPlant}`);
   }
   
+  // CRITICAL FIX: Determine order type based on order properties
+  let orderType: OrderType = "TRANSFER"; // Default to TRANSFER
+  
+  // Check if it's a wheel order
+  if ('qtyWheels' in order && order.qtyWheels) {
+    orderType = "WHEEL_POWDER_COATING";
+  }
+  // Check if it's explicitly marked as MTO
+  else if (order.type === 'MTO' || ('casingGrade' in order && order.casingGrade)) {
+    orderType = "MTO";
+  }
+  
+  console.log("🔍 SUBMIT - Determined order type:", orderType, "for order:", order.id);
+  
   // Get destination manager email for cross dock orders
   let destinationManagerEmail = "";
   let formattedCrossDockDestination = order.crossDockDestination || "";
@@ -63,70 +77,61 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
   const formattedTimestamp = formatDateForSupabase(new Date());
   
-  // Ensure proper plant information is included for cross-platform routing
-  const orderWithPlant = {
+  // Create Google Sheets payload (camelCase format)
+  const googleSheetsPayload = {
     ...order,
-    plant: plant || selectedPlant, // Use the determined plant, fall back to selectedPlant if needed
-    type: 'TRANSFER' as OrderType, // Cast to OrderType to fix the TypeScript error
-    name: order.yourName || order.name || "Unknown", // Ensure name is set
-    email: storeManagerEmail, // Ensure email is set with the manager's email
-    dateReceived: order.dateReceived || new Date().toISOString(), // Add dateReceived
+    plant: plant || selectedPlant,
+    type: orderType, // Use the determined order type for proper routing
+    name: order.yourName || order.name || "Unknown",
+    email: storeManagerEmail,
     
-    // Keep the frontend field names for Google Sheets/Zapier
+    // Keep the frontend field names for Google Sheets/Zapier (camelCase)
     crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", 
-    crossDockDestination: formattedCrossDockDestination, // Use the formatted destination
+    crossDockDestination: formattedCrossDockDestination,
     receiverNo: order.receiverNo || null,
     etaDate: order.etaDate || null,
     
     // Include destination manager email for cross-dock orders
     destinationManagerEmail: destinationManagerEmail,
     
-    // Also include database column names for regular orders (not MTO)
-    cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
-    cross_dock_destination: formattedCrossDockDestination, // Use the formatted destination
-    cross_dock_receiver_number: order.receiverNo || null,
-    cross_dock_eta_date: order.etaDate || null,
-    destination_manager_email: destinationManagerEmail,
-    
-    timestamp: formattedTimestamp, // Use formatted timestamp
+    timestamp: formattedTimestamp,
     // Add manager email fields for webhook compatibility
     managerEmail: storeManagerEmail,
     managersEmail: storeManagerEmail
   };
 
-  // Create a new object formatted specifically for Supabase submission
-  // Only include relevant fields based on order type
+  // Create Supabase payload (snake_case format) - CRITICAL FIX: Remove dateReceived
   let supabaseOrder: any = {
-    // For regular orders, don't include the UUID id field
-    ...(orderWithPlant.type !== 'TRANSFER' ? { id: order.id } : {}),
-    name: orderWithPlant.name,
-    yourName: orderWithPlant.yourName || orderWithPlant.name,
-    store: orderWithPlant.store,
-    productNumber: orderWithPlant.productNumber,
-    description: orderWithPlant.description,
-    quantity: String(orderWithPlant.quantity), // Convert to string to match OrderData type
-    scheduleArrival: orderWithPlant.scheduleArrival,
-    notes: orderWithPlant.notes,
-    dateReceived: orderWithPlant.dateReceived,
-    email: orderWithPlant.email,
-    plant: orderWithPlant.plant, // Ensure plant is always set for cross-platform routing
-    type: orderWithPlant.type,
-    timestamp: orderWithPlant.timestamp, // Use the formatted timestamp
+    name: order.yourName || order.name || "Unknown",
+    store: order.store,
+    product_number: order.productNumber, // snake_case for Supabase
+    description: order.description,
+    quantity: parseInt(order.quantity?.toString() || "0") || 0,
+    schedule_arrival: order.scheduleArrival, // snake_case for Supabase
+    notes: order.notes,
+    email: storeManagerEmail,
+    plant: plant || selectedPlant,
+    order_type: orderType,
+    timestamp: formattedTimestamp, // Use formatted timestamp - NO dateReceived
+    status: 'pending',
+    status_updated_at: new Date().toISOString()
   };
   
-  // Only add cross dock fields for regular orders (not MTO)
-  if (orderWithPlant.type === 'TRANSFER') {
+  // Only add cross dock fields for regular transfer orders (not MTO/Wheel)
+  if (orderType === 'TRANSFER') {
     supabaseOrder = {
       ...supabaseOrder,
-      cross_dock_type: orderWithPlant.cross_dock_type,
-      cross_dock_destination: orderWithPlant.cross_dock_destination,
-      cross_dock_receiver_number: orderWithPlant.cross_dock_receiver_number,
-      cross_dock_eta_date: orderWithPlant.cross_dock_eta_date,
-      destination_manager_email: orderWithPlant.destination_manager_email
+      cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
+      cross_dock_destination: formattedCrossDockDestination,
+      cross_dock_receiver_number: order.receiverNo || null,
+      cross_dock_eta_date: order.etaDate || null,
+      destination_manager_email: destinationManagerEmail
     };
   }
   
-  console.log("🔍 SUBMIT - Using sheets service with order:", orderWithPlant);
+  console.log("🔍 SUBMIT - Using sheets service with order type:", orderType);
+  console.log("🔍 SUBMIT - Google Sheets payload:", googleSheetsPayload);
+  console.log("🔍 SUBMIT - Supabase payload (NO dateReceived):", supabaseOrder);
   
   // Force the network request by adding a random parameter to avoid caching
   try {
@@ -134,19 +139,20 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     
     // Create a copy with cache-busting parameter for Google Sheets
     const webhookData = {
-      ...orderWithPlant,
+      ...googleSheetsPayload,
       _nocache: Date.now()
     };
     
-    // Submit to Google Sheets with cache-busting (using frontend field names)
+    // Submit to Google Sheets with cache-busting (using camelCase field names and correct type)
     const result = await submitToGoogleSheets(webhookData as any);
     console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
     
-    // Save the order to Supabase using the properly formatted data
-    console.log("🔍 SUBMIT - Saving order to Supabase:", supabaseOrder);
+    // Save the order to Supabase using the properly formatted data (snake_case, NO dateReceived)
+    console.log("🔍 SUBMIT - Saving order to Supabase with type:", orderType);
     
     // Use the appropriate table based on order type
-    const tableName = orderWithPlant.type === 'MTO' ? 'mto_orders' : 'orders';
+    const tableName = orderType === 'MTO' ? 'mto_orders' : orderType === 'WHEEL_POWDER_COATING' ? 'wheel_orders' : 'orders';
+    console.log("🔍 SUBMIT - Using table:", tableName);
     
     const { data, error } = await supabase
       .from(tableName)
@@ -159,7 +165,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       console.log("✅ SUBMIT - Successfully saved to Supabase:", data ? 'with data' : 'no data returned');
     }
     
-    return orderWithPlant;
+    return googleSheetsPayload;
   } catch (error) {
     console.error("❌ SUBMIT - Error in processOrder:", error);
     throw error;
