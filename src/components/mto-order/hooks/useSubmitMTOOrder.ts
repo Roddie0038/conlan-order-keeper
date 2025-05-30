@@ -60,7 +60,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         timestamp: timestamp,
         type: "MTO",
         orderType: "MTO",
-        status: "open",
+        status: "pending", // FIXED: Changed from "open" to "pending" to match Supabase constraint
         description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`,
       };
 
