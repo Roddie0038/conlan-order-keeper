@@ -16,6 +16,10 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
   console.log("🔍 SHEETS - Submitting to webhooks:", data);
   console.log("🔍 SHEETS - Manager's email in submitToGoogleSheets:", data.email);
   console.log("🔍 SHEETS - Order type:", data.type);
+  console.log("🔍 SHEETS - WEBHOOK ROUTING VERIFICATION:");
+  console.log("🔍 SHEETS - Transfer URL:", WEBHOOK_URLS.ORDERS);
+  console.log("🔍 SHEETS - MTO URL:", WEBHOOK_URLS.MTO_ORDERS);
+  console.log("🔍 SHEETS - Wheel URL:", WEBHOOK_URLS.WHEEL_ORDERS);
   
   const plant = data.plant || "Grand Prairie 97";
   console.log("🔍 SHEETS - Selected plant for webhook submission:", plant);
@@ -26,8 +30,10 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
     
     if (data.type === 'MTO') {
       sheetsPayload = mapMTOToGoogleSheets(data, user);
+      console.log("🔍 SHEETS - Using MTO mapping for Google Sheets (camelCase)");
     } else {
       sheetsPayload = mapOrderToGoogleSheets(data, user);
+      console.log("🔍 SHEETS - Using Order mapping for Google Sheets (camelCase)");
     }
     
     console.log("🔍 SHEETS - Mapped payload for Google Sheets:", sheetsPayload);
@@ -41,9 +47,10 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
       console.log("🔍 ROUTING - Added destinationManagerEmail:", sheetsPayload.destinationManagerEmail);
     }
     
-    // Route based on order type
+    // Route based on order type with CORRECTED URLs
     if (data.type === 'MTO') {
       console.log("🔍 ROUTING - Processing MTO order");
+      console.log("🔍 ROUTING - Will use CORRECTED MTO webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.mtoOrders;
       if (plantUrl) {
@@ -52,12 +59,13 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
         results.push(plantWebhookResult);
       }
       
-      console.log("🔍 ROUTING - Sending to MTO Orders Google Sheet webhook");
+      console.log("🔍 ROUTING - Sending to CORRECTED MTO Orders Google Sheet webhook");
       const mtoOrdersResult = await submitToMTOOrdersWebhook(sheetsPayload);
       results.push(mtoOrdersResult);
     } 
     else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
       console.log("🔍 ROUTING - Processing WHEEL order");
+      console.log("🔍 ROUTING - Will use Wheel webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.wheelOrders;
       if (plantUrl) {
@@ -72,6 +80,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
     }
     else {
       console.log("🔍 ROUTING - Processing regular TRANSFER order");
+      console.log("🔍 ROUTING - Will use Transfer webhook URL:", WEBHOOK_URLS.ORDERS);
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.transferRequests;
       if (plantUrl) {
@@ -80,7 +89,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
         results.push(plantWebhookResult);
       }
       
-      console.log("🔍 ROUTING - Sending to Orders Google Sheet webhook");
+      console.log("🔍 ROUTING - Sending to Transfer Orders Google Sheet webhook");
       const ordersResult = await submitToOrdersWebhook(sheetsPayload);
       results.push(ordersResult);
     }
