@@ -47,10 +47,10 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
       console.log("🔍 ROUTING - Added destinationManagerEmail:", sheetsPayload.destinationManagerEmail);
     }
     
-    // Route based on order type with CORRECTED URLs
+    // CORRECTED ROUTING LOGIC - Route based on order type with CORRECT URLs
     if (data.type === 'MTO') {
-      console.log("🔍 ROUTING - Processing MTO order");
-      console.log("🔍 ROUTING - Will use CORRECTED MTO webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
+      console.log("🔍 ROUTING - Processing MTO order - will use MTO webhook");
+      console.log("🔍 ROUTING - MTO webhook URL:", WEBHOOK_URLS.MTO_ORDERS);
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.mtoOrders;
       if (plantUrl) {
@@ -59,13 +59,13 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
         results.push(plantWebhookResult);
       }
       
-      console.log("🔍 ROUTING - Sending to CORRECTED MTO Orders Google Sheet webhook");
+      console.log("🔍 ROUTING - Sending to MTO Orders Google Sheet webhook");
       const mtoOrdersResult = await submitToMTOOrdersWebhook(sheetsPayload);
       results.push(mtoOrdersResult);
     } 
     else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
-      console.log("🔍 ROUTING - Processing WHEEL order");
-      console.log("🔍 ROUTING - Will use Wheel webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
+      console.log("🔍 ROUTING - Processing WHEEL order - will use WHEEL webhook");
+      console.log("🔍 ROUTING - Wheel webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.wheelOrders;
       if (plantUrl) {
@@ -79,8 +79,10 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
       results.push(wheelOrdersResult);
     }
     else {
-      console.log("🔍 ROUTING - Processing regular TRANSFER order");
-      console.log("🔍 ROUTING - Will use Transfer webhook URL:", WEBHOOK_URLS.ORDERS);
+      // This is the CRITICAL FIX - Transfer orders (default case) should go to Transfer webhook
+      console.log("🔍 ROUTING - Processing TRANSFER order - will use TRANSFER webhook");
+      console.log("🔍 ROUTING - Transfer webhook URL:", WEBHOOK_URLS.ORDERS);
+      console.log("🔍 ROUTING - VERIFICATION: This should NOT be the MTO URL");
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.transferRequests;
       if (plantUrl) {
@@ -89,7 +91,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
         results.push(plantWebhookResult);
       }
       
-      console.log("🔍 ROUTING - Sending to Transfer Orders Google Sheet webhook");
+      console.log("🔍 ROUTING - Sending to Transfer Orders Google Sheet webhook (NOT MTO)");
       const ordersResult = await submitToOrdersWebhook(sheetsPayload);
       results.push(ordersResult);
     }

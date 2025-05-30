@@ -43,20 +43,34 @@ export function useOrderFormSubmit() {
         // Determine the plant based on the store
         const plant = getPlantForStore(order.store);
         
+        // Determine order type based on order properties
+        let orderType = "TRANSFER"; // Default to TRANSFER
+        
+        // Check if it's a wheel order
+        if ('qtyWheels' in order && order.qtyWheels) {
+          orderType = "WHEEL_POWDER_COATING";
+        }
+        // Check if it's explicitly marked as MTO
+        else if (order.type === 'MTO' || ('casingGrade' in order && order.casingGrade)) {
+          orderType = "MTO";
+        }
+        
+        console.log("🔍 ORDER SUBMIT - Determined order type:", orderType, "for order:", order);
+        
         return {
           name: order.yourName,
           store: order.store,
-          productNumber: order.productNumber, // Changed from product_number
+          productNumber: order.productNumber,
           description: order.description,
           quantity: parseInt(order.quantity.toString()) || 0,
-          scheduleArrival: order.scheduleArrival, // Changed from schedule_arrival  
+          scheduleArrival: order.scheduleArrival,
           notes: order.notes,
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
           email: storeManagerEmail,
           plant: plant,
           timestamp: new Date().toISOString(),
-          type: "TRANSFER"
+          type: orderType // Use the determined order type
         };
       });
 

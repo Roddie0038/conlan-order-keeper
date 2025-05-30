@@ -21,5 +21,6 @@ export function mapOrderToSupabase(form: any, user: any): any {
     status: 'pending',
     plant: user?.assignedPlant || form.plant || '',
     status_updated_at: new Date().toISOString()
+    // Removed dateReceived field as it doesn't exist in the orders table schema
   };
 }
