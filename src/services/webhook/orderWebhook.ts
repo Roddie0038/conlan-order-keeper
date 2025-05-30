@@ -1,7 +1,7 @@
+
 import { submitToWebhook } from './utils';
 import { WEBHOOK_URLS } from './config';
 import { formatDate } from './utils';
-import { CrossDockWebhookPayload } from '@/types/webhook.types';
 import { formatDateForSheets } from '@/utils/dateTime';
 
 export const submitToOrdersWebhook = async (data: any) => {
@@ -32,39 +32,32 @@ export const submitToOrdersWebhook = async (data: any) => {
     // Format timestamp for Google Sheets in MM/DD/YYYY hh:mm AM/PM format
     const formattedTimestamp = formatDateForSheets(new Date());
     
-    // Map the data to the strict type for webhook payload
-    // This is for Google Sheets webhook - keep the camelCase naming convention
-    const mappedData = {
+    // Create camelCase payload for Google Sheets (no type casting)
+    const googleSheetsPayload: any = {
       name: data.yourName || data.name || "",
       store: data.store || "",
       productNumber: data.productNumber || "",
       description: data.description || "",
       quantity: Number(data.quantity) || 0,
-      // Preserve weekday name for scheduleArrival
       scheduleArrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival ? formatDate(data.scheduleArrival) : ""),
       notes: data.notes || "",
       email: data.managersEmail || data.managerEmail || data.email || "",
       crossDock: data.crossDock?.toLowerCase() === "yes" ? "Yes" : "No",
-      orderSource: "web_app", // Add source for tracking purposes
-      orderType: "TRANSFER", // Explicitly mark the order type
-    } as CrossDockWebhookPayload;
-
-    // Add timestamp separately since it's not part of the type definition
-    const webhookPayload = {
-      ...mappedData,
-      timestamp: formattedTimestamp, // Include the formatted timestamp
+      orderSource: "web_app",
+      orderType: "TRANSFER",
+      timestamp: formattedTimestamp
     };
     
     // Only add cross dock specific fields when crossDock is "Yes"
-    if (data.crossDock?.toLowerCase() === "yes") {
-      webhookPayload.crossDockFrom = data.store || "";
-      webhookPayload.crossDockDest = crossDockDestination || data.crossDockDestination || "";
-      webhookPayload.destinationManagerEmail = data.destinationManagerEmail || data.destination_manager_email || "";
-      webhookPayload.receiverNo = data.receiverNo || "";
-      webhookPayload.etaDate = data.etaDate ? formatDate(data.etaDate) : "";
+    if (googleSheetsPayload.crossDock === "Yes") {
+      googleSheetsPayload.crossDockFrom = data.store || "";
+      googleSheetsPayload.crossDockDest = crossDockDestination || data.crossDockDestination || "";
+      googleSheetsPayload.destinationManagerEmail = data.destinationManagerEmail || data.destination_manager_email || "";
+      googleSheetsPayload.receiverNo = data.receiverNo || "";
+      googleSheetsPayload.etaDate = data.etaDate ? formatDate(data.etaDate) : "";
     }
 
-    console.log("🔍 ORDER WEBHOOK - Sending mapped data (camelCase for Sheets) to Transfer webhook:", webhookPayload);
+    console.log("🔍 ORDER WEBHOOK - Sending camelCase data to Transfer webhook:", googleSheetsPayload);
 
     // Submit to Google Sheets webhook
     const googleSheetsResponse = await fetch(WEBHOOK_URLS.ORDERS, {
@@ -73,7 +66,7 @@ export const submitToOrdersWebhook = async (data: any) => {
         "Content-Type": "application/json",
       },
       mode: "no-cors", // Use no-cors to avoid CORS issues
-      body: JSON.stringify(webhookPayload),
+      body: JSON.stringify(googleSheetsPayload),
     });
 
     console.log("🔍 ORDER WEBHOOK - Successfully triggered CORRECTED Transfer Orders Google Sheets webhook");
