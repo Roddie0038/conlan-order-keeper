@@ -6,9 +6,9 @@ import type { OrderData as SupabaseOrderData, MTOOrderData as SupabaseMTOOrderDa
 // Webhook URLs for Google Apps Script - CORRECTED WEBHOOK ROUTING
 export const WEBHOOK_URLS = {
   // Transfer Request Orders - CORRECTED URL for Orders Tab (Transfer New Orders)
-  ORDERS: "https://script.google.com/macros/s/AKfycbzzmndIqoWTGGl5tLCdDwcIdAMnzIxpJCAfA-LZeDQleZG15-UbK42eHA6cRkgcr8CG_Q/exec",
+  ORDERS: "https://script.google.com/macros/s/AKfycbxQPqBQwA0IIMN3_LH_FgYY1jU5FMP1U0Z8RtMFSAjH_Kz-5IsKa5xNDpVxMfbN2zIA/exec",
   // Wheel Orders - CORRECTED URL for Stores Wheel Orders Tab
-  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbxQPqBQwA0IIMN3_LH_FgYY1jU5FMP1U0Z8RtMFSAjH_Kz-5IsKa5xNDpVxMfbN2zIA/exec",
+  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbzzmndIqoWTGGl5tLCdDwcIdAMnzIxpJCAfA-LZeDQleZG15-UbK42eHA6cRkgcr8CG_Q/exec",
   // MTO Orders - UPDATED URL for MTO'S Tab
   MTO_ORDERS: "https://script.google.com/macros/s/AKfycbx9pgfa8FSVcatTgLcDzeeVcB56h2LdAPD4w51Y41uOOuFWgavdgGAFg1LcFGp7AEdtxA/exec",
   // Admin Orders
