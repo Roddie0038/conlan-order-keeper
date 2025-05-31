@@ -16,30 +16,24 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       return false;
     }
     
-    // Extract the store number from the store name (e.g., "Fort Worth 22" -> "22")
-    const storeMatch = data.store?.match(/\d+/);
-    const storeNumber = storeMatch ? storeMatch[0] : "";
-    
-    // Map the data to the format expected by the Wheel Orders webhook
+    // Map the data to the NEW required format for Google Sheets
     const mappedData = {
       store_location_number: data.store || "",
       name: data.yourName || data.name || "",
       date_received: data.dateReceived ? formatDate(data.dateReceived) : formatDate(new Date().toISOString()),
-      quantity: data.qtyWheels || data.quantity || 0,
+      quantity: parseInt(data.qtyWheels || data.quantity || "0", 10),
       customer_name: data.customerName || "",
       wheel_material: data.wheelMaterial || "",
       wheel_type: data.wheelType || "",
-      hand_holes: data.handHoles || 0,
+      hand_holes: data.handHoles || "",
       wheel_size: data.wheelSize || "",
       desired_color: data.wheelColor || "",
       email: data.managersEmail || data.managerEmail || "",
-      store_colors: "", // This could be populated if available
-      order_source: "web_app", // Add source for tracking purposes
-      order_type: "WHEEL_POWDER_COATING" // Explicitly mark the order type
+      store_colors: "" // This could be populated if available in the future
     };
 
     // Log exactly what we're sending and to which URL
-    console.log("🔍 WHEEL ORDER WEBHOOK - Sending mapped data:", JSON.stringify(mappedData, null, 2));
+    console.log("🔍 WHEEL ORDER WEBHOOK - Sending NEW FORMAT data:", JSON.stringify(mappedData, null, 2));
     console.log("🔍 WHEEL ORDER WEBHOOK - Using Wheel Orders webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
     
     // Verify it's a wheel order by checking the required wheel-specific fields
@@ -63,7 +57,7 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       body: JSON.stringify(mappedData),
     });
 
-    console.log("✅ Successfully triggered Wheel Orders webhook");
+    console.log("✅ Successfully triggered Wheel Orders webhook with NEW FORMAT");
     return true;
   } catch (error) {
     console.error("❌ Error triggering Wheel Orders webhook:", error);
