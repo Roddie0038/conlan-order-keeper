@@ -16,7 +16,7 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       return false;
     }
     
-    // Map the data to the NEW required format for Google Sheets
+    // Map the data to the EXACT required format for Google Sheets
     const mappedData = {
       store_location_number: data.store || "",
       name: data.yourName || data.name || "",
@@ -25,15 +25,15 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       customer_name: data.customerName || "",
       wheel_material: data.wheelMaterial || "",
       wheel_type: data.wheelType || "",
-      hand_holes: data.handHoles || "",
+      hand_holes: String(data.handHoles || ""), // Ensure it's always a string
       wheel_size: data.wheelSize || "",
       desired_color: data.wheelColor || "",
       email: data.managersEmail || data.managerEmail || "",
-      store_colors: "" // This could be populated if available in the future
+      store_colors: data.storeColors || "Yellow" // Default to "Yellow" if not provided
     };
 
     // Log exactly what we're sending and to which URL
-    console.log("🔍 WHEEL ORDER WEBHOOK - Sending NEW FORMAT data:", JSON.stringify(mappedData, null, 2));
+    console.log("🔍 WHEEL ORDER WEBHOOK - Sending EXACT FORMAT data:", JSON.stringify(mappedData, null, 2));
     console.log("🔍 WHEEL ORDER WEBHOOK - Using Wheel Orders webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
     
     // Verify it's a wheel order by checking the required wheel-specific fields
@@ -57,7 +57,7 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       body: JSON.stringify(mappedData),
     });
 
-    console.log("✅ Successfully triggered Wheel Orders webhook with NEW FORMAT");
+    console.log("✅ Successfully triggered Wheel Orders webhook with EXACT FORMAT");
     return true;
   } catch (error) {
     console.error("❌ Error triggering Wheel Orders webhook:", error);
