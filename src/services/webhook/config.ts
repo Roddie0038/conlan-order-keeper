@@ -5,8 +5,8 @@ import type { OrderData as SupabaseOrderData, MTOOrderData as SupabaseMTOOrderDa
 
 // Webhook URLs for Google Apps Script - LATEST DEPLOYMENT URLS
 export const WEBHOOK_URLS = {
-  // Store Transfer Request Orders - LATEST URL
-  ORDERS: "https://script.google.com/macros/s/AKfycbzRiNPeiZMpBX7pT0dlqBTmGge7rtDzzaFMSVQ9xKplXZiaJST7x1fWL1_YxEQhu_JdJA/exec",
+  // Store Transfer Request Orders - NEW UPDATED URL
+  ORDERS: "https://script.google.com/macros/s/AKfycbxkPvEW3-p7oW5XkILhPi6iqRgb-iIdShltY32QK6iklX7KYwZoKJGYmJiPqboLw2Dc7A/exec",
   // Wheel Orders - LATEST URL
   WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbwj_PJIypALIR3EzighgJRngLPqU8vp06tXWwSYUk5NuAtlFU-nTsqurKTQl95vtmX6Ng/exec",
   // MTO Orders - LATEST URL
@@ -16,7 +16,7 @@ export const WEBHOOK_URLS = {
 };
 
 // Log webhook URLs on initial load for verification
-console.log("🔍 CONFIG - LATEST Webhook URLs configuration loaded:");
+console.log("🔍 CONFIG - UPDATED Webhook URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS (Transfer) URL:", WEBHOOK_URLS.ORDERS);
 console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
 console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
