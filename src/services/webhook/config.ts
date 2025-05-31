@@ -3,12 +3,12 @@ import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { CrossDockFields } from '@/types/cross-dock.types';
 import type { OrderData as SupabaseOrderData, MTOOrderData as SupabaseMTOOrderData } from '@/types/supabase-extensions';
 
-// Webhook URLs for Google Apps Script - UPDATED GOOGLE SHEETS URLS
+// Webhook URLs for Google Apps Script - CORRECTED WEBHOOK ROUTING
 export const WEBHOOK_URLS = {
-  // Transfer Request Orders - UPDATED URL for Orders Tab
-  ORDERS: "https://script.google.com/macros/s/AKfycbxQPqBQwA0IIMN3_LH_FgYY1jU5FMP1U0Z8RtMFSAjH_Kz-5IsKa5xNDpVxMfbN2zIA/exec",
-  // Wheel Orders - UPDATED URL for Stores Wheel Orders Tab
-  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbzzmndIqoWTGGl5tLCdDwcIdAMnzIxpJCAfA-LZeDQleZG15-UbK42eHA6cRkgcr8CG_Q/exec",
+  // Transfer Request Orders - CORRECTED URL for Orders Tab (Transfer New Orders)
+  ORDERS: "https://script.google.com/macros/s/AKfycbzzmndIqoWTGGl5tLCdDwcIdAMnzIxpJCAfA-LZeDQleZG15-UbK42eHA6cRkgcr8CG_Q/exec",
+  // Wheel Orders - CORRECTED URL for Stores Wheel Orders Tab
+  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbxQPqBQwA0IIMN3_LH_FgYY1jU5FMP1U0Z8RtMFSAjH_Kz-5IsKa5xNDpVxMfbN2zIA/exec",
   // MTO Orders - UPDATED URL for MTO'S Tab
   MTO_ORDERS: "https://script.google.com/macros/s/AKfycbx9pgfa8FSVcatTgLcDzeeVcB56h2LdAPD4w51Y41uOOuFWgavdgGAFg1LcFGp7AEdtxA/exec",
   // Admin Orders
@@ -16,7 +16,7 @@ export const WEBHOOK_URLS = {
 };
 
 // Log webhook URLs on initial load for verification
-console.log("🔍 CONFIG - UPDATED GOOGLE SHEETS Webhook URLs configuration loaded:");
+console.log("🔍 CONFIG - CORRECTED WEBHOOK ROUTING - URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS (Transfer) URL:", WEBHOOK_URLS.ORDERS);
 console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
 console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
