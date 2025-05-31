@@ -29,35 +29,25 @@ export const submitToOrdersWebhook = async (data: any) => {
       crossDockDestination = `Store ${crossDockDestination}`;
     }
     
-    // Format timestamp for Google Sheets in MM/DD/YYYY hh:mm AM/PM format
-    const formattedTimestamp = formatDateForSheets(new Date());
-    
-    // Create camelCase payload for Google Sheets (no type casting)
+    // Create snake_case payload for Google Sheets as specified
     const googleSheetsPayload: any = {
+      order_type: "transfer",
       name: data.yourName || data.name || "",
       store: data.store || "",
-      productNumber: data.productNumber || "",
+      product_number: data.productNumber || "",
       description: data.description || "",
       quantity: Number(data.quantity) || 0,
-      scheduleArrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival ? formatDate(data.scheduleArrival) : ""),
+      schedule_arrival: isWeekdayName ? data.scheduleArrival : (data.scheduleArrival ? formatDate(data.scheduleArrival) : ""),
       notes: data.notes || "",
+      cross_dock: data.crossDock?.toLowerCase() === "yes" ? "yes" : "no",
+      cross_dock_dest: crossDockDestination || data.crossDockDestination || "",
       email: data.managersEmail || data.managerEmail || data.email || "",
-      crossDock: data.crossDock?.toLowerCase() === "yes" ? "Yes" : "No",
-      orderSource: "web_app",
-      orderType: "TRANSFER",
-      timestamp: formattedTimestamp
+      destination_manager_email: data.destinationManagerEmail || data.destination_manager_email || "",
+      receiver_no: data.receiverNo || "",
+      eta_date: data.etaDate ? formatDate(data.etaDate) : ""
     };
-    
-    // Only add cross dock specific fields when crossDock is "Yes"
-    if (googleSheetsPayload.crossDock === "Yes") {
-      googleSheetsPayload.crossDockFrom = data.store || "";
-      googleSheetsPayload.crossDockDest = crossDockDestination || data.crossDockDestination || "";
-      googleSheetsPayload.destinationManagerEmail = data.destinationManagerEmail || data.destination_manager_email || "";
-      googleSheetsPayload.receiverNo = data.receiverNo || "";
-      googleSheetsPayload.etaDate = data.etaDate ? formatDate(data.etaDate) : "";
-    }
 
-    console.log("🔍 ORDER WEBHOOK - Sending camelCase data to Transfer webhook:", googleSheetsPayload);
+    console.log("🔍 ORDER WEBHOOK - Sending snake_case data to Transfer webhook:", googleSheetsPayload);
 
     // Submit to Google Sheets webhook
     const googleSheetsResponse = await fetch(WEBHOOK_URLS.ORDERS, {
