@@ -5,18 +5,18 @@ import type { OrderData as SupabaseOrderData, MTOOrderData as SupabaseMTOOrderDa
 
 // Webhook URLs for Google Apps Script - LATEST DEPLOYMENT URLS
 export const WEBHOOK_URLS = {
-  // Store Transfer Request Orders - NEW UPDATED URL
-  ORDERS: "https://script.google.com/macros/s/AKfycbxkPvEW3-p7oW5XkILhPi6iqRgb-iIdShltY32QK6iklX7KYwZoKJGYmJiPqboLw2Dc7A/exec",
+  // Store Transfer Request Orders - LATEST UPDATED URL for Orders Tab
+  ORDERS: "https://script.google.com/macros/s/AKfycbxDIG8hOb0RYXW_OEggyqQPNLOjgFfVBcKx03iqsHCDEYwCixZqMwR8yA0Ic-vsPo2Nvw/exec",
   // Wheel Orders - LATEST URL
   WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbwj_PJIypALIR3EzighgJRngLPqU8vp06tXWwSYUk5NuAtlFU-nTsqurKTQl95vtmX6Ng/exec",
-  // MTO Orders - LATEST URL
-  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbzGaj_uVgZiBQikKCByRF9OIeL_d6FYtw31sicQTHrzNx2R70S8LePJzMlQTEKTldVrZQ/exec",
+  // MTO Orders - LATEST UPDATED URL for MTO'S Tab
+  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbyj5fzyTnh-D_TDB8bh2S_Xq6U5L-rIDPxQqM4sL1TtJeN3BAQPvryMTAc0LtHK4oPZWw/exec",
   // Admin Orders
   ADMIN_ORDERS: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
 };
 
 // Log webhook URLs on initial load for verification
-console.log("🔍 CONFIG - UPDATED Webhook URLs configuration loaded:");
+console.log("🔍 CONFIG - LATEST UPDATED Webhook URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS (Transfer) URL:", WEBHOOK_URLS.ORDERS);
 console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
 console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
