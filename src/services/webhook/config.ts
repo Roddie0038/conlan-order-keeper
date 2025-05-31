@@ -3,20 +3,20 @@ import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { CrossDockFields } from '@/types/cross-dock.types';
 import type { OrderData as SupabaseOrderData, MTOOrderData as SupabaseMTOOrderData } from '@/types/supabase-extensions';
 
-// Webhook URLs for Google Apps Script - UPDATED WITH NEW URLS
+// Webhook URLs for Google Apps Script - LATEST DEPLOYMENT URLS
 export const WEBHOOK_URLS = {
-  // Store Transfer Request Orders - UPDATED URL
+  // Store Transfer Request Orders - LATEST URL
   ORDERS: "https://script.google.com/macros/s/AKfycbzRiNPeiZMpBX7pT0dlqBTmGge7rtDzzaFMSVQ9xKplXZiaJST7x1fWL1_YxEQhu_JdJA/exec",
-  // Wheel Orders - UPDATED URL
-  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycby8tJGqMLTC5co0BbYNUcnrHsOBbwkT0s87yqiH5RYI6DuznND6q9ag5ua1Je5WzPqaqA/exec",
-  // MTO Orders - UPDATED URL
-  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbzq-5X1dFQf5HK3xYZuWNIEySXRscipdTjjpVwB3mCxOoav4czK3GXdJpsGrCeRfqZulQ/exec",
+  // Wheel Orders - LATEST URL
+  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbwj_PJIypALIR3EzighgJRngLPqU8vp06tXWwSYUk5NuAtlFU-nTsqurKTQl95vtmX6Ng/exec",
+  // MTO Orders - LATEST URL
+  MTO_ORDERS: "https://script.google.com/macros/s/AKfycbzGaj_uVgZiBQikKCByRF9OIeL_d6FYtw31sicQTHrzNx2R70S8LePJzMlQTEKTldVrZQ/exec",
   // Admin Orders
   ADMIN_ORDERS: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
 };
 
 // Log webhook URLs on initial load for verification
-console.log("🔍 CONFIG - UPDATED Webhook URLs configuration loaded:");
+console.log("🔍 CONFIG - LATEST Webhook URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS (Transfer) URL:", WEBHOOK_URLS.ORDERS);
 console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
 console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
