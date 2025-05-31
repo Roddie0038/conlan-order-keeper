@@ -10,6 +10,15 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
     console.log("🔍 WHEEL ORDER WEBHOOK - Has qtyWheels:", 'qtyWheels' in data);
     console.log("🔍 WHEEL ORDER WEBHOOK - Full data received:", JSON.stringify(data, null, 2));
     
+    // Log specific wheel specification fields
+    console.log("🔍 WHEEL ORDER WEBHOOK - Wheel specifications check:", {
+      wheelMaterial: data.wheelMaterial,
+      wheelType: data.wheelType,
+      handHoles: data.handHoles,
+      wheelSize: data.wheelSize,
+      wheelColor: data.wheelColor
+    });
+    
     // Verify this is actually a wheel order
     if (data.type !== 'WHEEL_POWDER_COATING' && !('qtyWheels' in data && data.qtyWheels)) {
       console.error("❌ WHEEL ORDER WEBHOOK - Incorrect order type sent to wheel webhook:", data.type);
@@ -18,24 +27,33 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
     }
     
     // Map the data to the EXACT required format for Google Sheets
-    // Fix field mapping to match frontend form field names
+    // CRITICAL FIX: Ensure all field mappings are correct
     const mappedData = {
       store_location_number: data.store || "",
       name: data.yourName || data.name || "",
       date_received: data.dateReceived ? formatDate(data.dateReceived) : formatDate(new Date().toISOString()),
       quantity: parseInt(data.qtyWheels || data.quantity || "0", 10),
       customer_name: data.customerName || "",
-      wheel_material: data.wheelMaterial || "", // Fixed: use correct field name
-      wheel_type: data.wheelType || "", // Fixed: use correct field name
-      hand_holes: String(data.handHoles || ""), // Fixed: ensure string and correct field name
-      wheel_size: data.wheelSize || "", // Fixed: use correct field name
-      desired_color: data.wheelColor || "", // Fixed: use correct field name
+      wheel_material: data.wheelMaterial || "",
+      wheel_type: data.wheelType || "",
+      hand_holes: String(data.handHoles || ""),
+      wheel_size: data.wheelSize || "",
+      desired_color: data.wheelColor || "",
       email: data.managersEmail || data.managerEmail || data.email || "",
-      store_colors: data.storeColors || "Yellow" // Default to "Yellow" if not provided
+      store_colors: data.storeColors || "Yellow"
     };
 
-    // Log exactly what we're sending and to which URL
+    // CRITICAL: Log exactly what we're sending and validate all fields are present
     console.log("🔍 WHEEL ORDER WEBHOOK - Sending EXACT FORMAT data:", JSON.stringify(mappedData, null, 2));
+    console.log("🔍 WHEEL ORDER WEBHOOK - Field validation:", {
+      hasWheelMaterial: !!mappedData.wheel_material,
+      hasWheelType: !!mappedData.wheel_type,
+      hasHandHoles: !!mappedData.hand_holes,
+      hasWheelSize: !!mappedData.wheel_size,
+      hasDesiredColor: !!mappedData.desired_color,
+      hasCustomerName: !!mappedData.customer_name,
+      hasQuantity: !!mappedData.quantity
+    });
     console.log("🔍 WHEEL ORDER WEBHOOK - Using Wheel Orders webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
     
     // Verify it's a wheel order by checking the required wheel-specific fields

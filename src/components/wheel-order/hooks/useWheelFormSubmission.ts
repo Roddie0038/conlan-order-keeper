@@ -48,6 +48,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
 
     try {
       console.log("🔍 WHEEL FORM - Preparing wheel order submission");
+      console.log("🔍 WHEEL FORM - Form data before submission:", JSON.stringify(formData, null, 2));
       console.log("🔍 WHEEL FORM - Verifying webhook URL from config:");
       console.log("🔍 WHEEL FORM - Target webhook URL will be:", WEBHOOK_URLS.WHEEL_ORDERS);
       
@@ -60,7 +61,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       const formattedScheduleArrival = formData.scheduleArrival ? formatTimestamp(formData.scheduleArrival) : formatTimestamp(formData.dateReceived);
       const formattedReceivedAt = formatTimestamp(formData.dateReceived);
       
-      // Create a clean Supabase order object that matches OrderData interface with camelCase fields
+      // Create the order data with EXACT field names that the webhook expects
       const supabaseOrder: OrderData = {
         name: formData.yourName,
         store: formData.storeName,
@@ -77,17 +78,42 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         crossDock: "No" as const,
         crossDockType: "No" as const,
         
-        // Wheel-specific fields using camelCase to match updated Supabase schema
+        // CRITICAL FIX: Ensure all wheel specification fields are included
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
         wheelType: formData.wheelType,
-        handHoles: parseInt(formData.handHoles) || 0, // Convert to number
+        handHoles: parseInt(formData.handHoles) || 0,
         wheelSize: formData.wheelSize,
         wheelColor: formData.wheelColor,
-        qtyWheels: formData.qtyWheels
+        qtyWheels: formData.qtyWheels,
+        
+        // Additional fields for webhook processing
+        yourName: formData.yourName,
+        dateReceived: formData.dateReceived,
+        managersEmail: managerEmail,
+        storeColors: "Yellow" // Default store color
       };
 
-      console.log("🔍 WHEEL FORM - Supabase order data:", JSON.stringify(supabaseOrder, null, 2));
+      console.log("🔍 WHEEL FORM - Final order data with all wheel specs:", JSON.stringify(supabaseOrder, null, 2));
+      
+      // Validate that all critical wheel data is present before submission
+      if (!formData.wheelMaterial || !formData.wheelType || !formData.wheelSize || !formData.wheelColor || !formData.handHoles) {
+        console.error("❌ WHEEL FORM - Missing critical wheel specification data:", {
+          wheelMaterial: formData.wheelMaterial,
+          wheelType: formData.wheelType,
+          wheelSize: formData.wheelSize,
+          wheelColor: formData.wheelColor,
+          handHoles: formData.handHoles
+        });
+        
+        toast({
+          title: "Missing Wheel Specifications",
+          description: "Please fill in all wheel specification fields before submitting.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
       const result = await submitToGoogleSheets(supabaseOrder);
       
