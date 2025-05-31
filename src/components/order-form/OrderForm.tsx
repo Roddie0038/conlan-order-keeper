@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -16,6 +17,8 @@ import { toast } from "@/hooks/use-toast";
 import { getManagerEmail } from "./formConfig";
 import { getCurrentDateTime } from "@/utils/dateTime";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
+import { OrderTemplate } from "../order-templates/OrderTemplate";
+import { Card } from "@/components/ui/card";
 
 export function OrderForm() {
   const { user } = useAuth();
@@ -107,9 +110,50 @@ export function OrderForm() {
     form.handleSubmit(onSubmit)();
   };
 
+  const handleLoadTemplate = (templateData: any) => {
+    // When loading a template, set form values
+    Object.keys(templateData).forEach((key) => {
+      if (key in defaultValues) {
+        form.setValue(key as keyof typeof defaultValues, templateData[key]);
+      }
+    });
+    
+    // Ensure store is still set for non-admin users
+    if (user && user.store && !user?.isAdmin) {
+      form.setValue("store", user.store);
+      const managerEmail = getManagerEmail(user.store);
+      form.setValue("managersEmail", managerEmail || "");
+    }
+    
+    toast({
+      title: "Template Loaded",
+      description: "The template has been loaded successfully."
+    });
+  };
+
+  // Get current form data for template saving
+  const getCurrentFormData = () => {
+    return form.getValues();
+  };
+
   return (
     <OrderFormWrapper>
       <OrderFormHeader />
+      
+      {/* Order Templates Section */}
+      <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden mb-6">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 flex items-center">
+          <h2 className="text-2xl font-semibold text-white">Order Templates</h2>
+        </div>
+        
+        <div className="p-6 border-b border-gray-100">
+          <OrderTemplate 
+            type="regular" 
+            currentData={getCurrentFormData()} 
+            onLoadTemplate={handleLoadTemplate} 
+          />
+        </div>
+      </Card>
       
       <OrderFormContent 
         form={form} 
