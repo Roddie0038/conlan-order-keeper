@@ -1,6 +1,6 @@
 
 import { FormField } from "../../order-form/FormField";
-import { stores } from "../../order-form/formConfig";
+import { stores, getStoreColor } from "../../order-form/formConfig";
 import { WheelFormData } from "../types";
 import { getPlantForStore } from "@/utils/plantMapping";
 
@@ -21,6 +21,9 @@ export function ContactInformation({
 }: ContactInformationProps) {
   // Calculate plant based on selected store
   const plant = formData.storeName ? getPlantForStore(formData.storeName) : "";
+  
+  // Calculate store color based on selected store
+  const storeColor = formData.storeName ? getStoreColor(formData.storeName) : "";
 
   return (
     <div className="space-y-4">
@@ -53,6 +56,15 @@ export function ContactInformation({
         onChange={() => {}}
         disabled={true}
         placeholder="Plant will be automatically assigned"
+      />
+
+      {/* Store Colors Field - Read-only, auto-fills based on store */}
+      <FormField
+        label="Store Colors"
+        value={storeColor || ""}
+        onChange={() => {}}
+        disabled={true}
+        placeholder="Store color will be automatically assigned"
       />
       
       <FormField

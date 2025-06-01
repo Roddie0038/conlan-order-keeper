@@ -19,6 +19,7 @@ export function useWheelOrderForm() {
     wheelColor: "",
     scheduleArrival: "",
     userStore: "",  // Initialize the userStore field
+    storeColors: "",  // Initialize the storeColors field
   });
 
   const { managerEmail, handleStoreChange, user } = useWheelStoreSelection(formData, setFormData);

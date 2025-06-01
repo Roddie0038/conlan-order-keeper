@@ -13,4 +13,5 @@ export interface WheelFormData {
   wheelColor: string;
   scheduleArrival?: string;  // Added optional scheduleArrival field
   userStore?: string;  // Added to store the user's store for validation
+  storeColors?: string;  // Added store colors field
 }

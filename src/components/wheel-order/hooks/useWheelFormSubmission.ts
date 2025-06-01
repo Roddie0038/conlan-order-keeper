@@ -91,7 +91,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         yourName: formData.yourName,
         dateReceived: formData.dateReceived,
         managersEmail: managerEmail,
-        storeColors: "Yellow" // Default store color
+        storeColors: formData.storeColors || "Yellow" // FIXED: Include store colors field
       };
 
       console.log("🔍 WHEEL FORM - Final order data with all wheel specs:", JSON.stringify(supabaseOrder, null, 2));

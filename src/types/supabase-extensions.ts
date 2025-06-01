@@ -1,4 +1,3 @@
-
 import type { Database } from "@/integrations/supabase/types";
 
 // Define OrderData interface for backward compatibility
@@ -41,6 +40,9 @@ export interface OrderData {
   wheelSize?: string;
   wheelColor?: string;
   qtyWheels?: string;
+  
+  // Store colors field - FIXED: Added to resolve TypeScript error
+  storeColors?: string;
 }
 
 // Define MTOOrderData interface for MTO orders

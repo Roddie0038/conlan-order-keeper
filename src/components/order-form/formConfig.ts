@@ -1,4 +1,3 @@
-
 import { CrossDockFields } from "@/types/cross-dock.types";
 
 export const stores = [
@@ -28,12 +27,35 @@ export const storeManagerEmails: Record<string, string> = {
   "Admin": "Roderickdemarais@aol.com, Conlantire97@gmail.com"
 };
 
+// Store to color mapping for wheel orders
+export const storeColors: Record<string, string> = {
+  "22": "Yellow",
+  "27": "Yellow", 
+  "28": "Yellow",
+  "29": "Yellow",
+  "30": "Yellow",
+  "32": "Yellow",
+  "33": "Yellow",
+  "35": "Yellow",
+  "36": "Yellow",
+  "39": "Yellow",
+  "Admin": "Yellow"
+};
+
 // Export the getManagerEmail function to be used by other components
 export const getManagerEmail = (store: string) => {
   if (store === "Admin") return storeManagerEmails["Admin"];
   const match = store.match(/\d+$/);
   const storeNumber = match ? match[0] : '';
   return storeManagerEmails[storeNumber] || '';
+};
+
+// Export the getStoreColor function for wheel orders
+export const getStoreColor = (store: string): string => {
+  if (store === "Admin") return storeColors["Admin"];
+  const match = store.match(/\d+$/);
+  const storeNumber = match ? match[0] : '';
+  return storeColors[storeNumber] || 'Yellow';
 };
 
 export const scheduleOptions = [
