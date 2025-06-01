@@ -132,7 +132,10 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         return;
       }
 
+      console.log("🔍 WHEEL FORM - CRITICAL: Calling submitToGoogleSheets for wheel order");
+      console.log("🔍 WHEEL FORM - CRITICAL: This should trigger the wheel webhook to Google Sheets");
       const result = await submitToGoogleSheets(supabaseOrder);
+      console.log("🔍 WHEEL FORM - CRITICAL: Google Sheets submission result:", result);
       
       // Save to Supabase with properly typed data
       await saveOrderToSupabase(supabaseOrder);

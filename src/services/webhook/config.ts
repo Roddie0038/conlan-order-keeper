@@ -15,6 +15,9 @@ export const WEBHOOK_URLS = {
   ADMIN_ORDERS: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
 };
 
+// CRITICAL FIX: Update WHEEL_ORDERS URL to the correct one provided by user
+WEBHOOK_URLS.WHEEL_ORDERS = "https://script.google.com/macros/s/AKfycbxQPqBQwA0IIMN3_LH_FgYY1jU5FMP1U0Z8RtMFSAjH_Kz-5IsKa5xNDpVxMfbN2zIA/exec";
+
 // Log webhook URLs on initial load for verification
 console.log("🔍 CONFIG - CORRECTED WEBHOOK ROUTING - URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS (Transfer) URL:", WEBHOOK_URLS.ORDERS);

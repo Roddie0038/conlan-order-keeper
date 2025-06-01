@@ -63,7 +63,9 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
     }
 
     console.log("🔍 WHEEL ORDER WEBHOOK - Using Wheel Orders webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
+    console.log("🔍 WHEEL ORDER WEBHOOK - CRITICAL: Making direct POST request to Google Sheets");
     
+    // CRITICAL FIX: Make direct POST request to ensure it reaches Google Sheets
     const response = await fetch(WEBHOOK_URLS.WHEEL_ORDERS, {
       method: "POST",
       headers: {
@@ -73,10 +75,11 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       body: JSON.stringify(mappedData),
     });
 
-    console.log("✅ Successfully triggered Wheel Orders webhook with complete data");
+    console.log("✅ WHEEL ORDER WEBHOOK - Successfully triggered Wheel Orders webhook with complete data");
+    console.log("✅ WHEEL ORDER WEBHOOK - POST request sent to:", WEBHOOK_URLS.WHEEL_ORDERS);
     return true;
   } catch (error) {
-    console.error("❌ Error triggering Wheel Orders webhook:", error);
+    console.error("❌ WHEEL ORDER WEBHOOK - Error triggering Wheel Orders webhook:", error);
     return false;
   }
 };

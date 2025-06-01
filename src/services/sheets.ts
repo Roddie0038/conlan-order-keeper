@@ -66,6 +66,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
     else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
       console.log("🔍 ROUTING - Processing WHEEL order - will use WHEEL webhook");
       console.log("🔍 ROUTING - Wheel webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
+      console.log("🔍 ROUTING - CRITICAL: Ensuring wheel order goes to Google Sheets");
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.wheelOrders;
       if (plantUrl) {
@@ -74,9 +75,11 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
         results.push(plantWebhookResult);
       }
       
-      console.log("🔍 ROUTING - Sending to Wheel Orders Google Sheet webhook");
+      console.log("🔍 ROUTING - CRITICAL: Sending to Wheel Orders Google Sheet webhook");
+      console.log("🔍 ROUTING - CRITICAL: Using URL:", WEBHOOK_URLS.WHEEL_ORDERS);
       const wheelOrdersResult = await submitToWheelOrdersWebhook(sheetsPayload);
       results.push(wheelOrdersResult);
+      console.log("🔍 ROUTING - CRITICAL: Wheel webhook result:", wheelOrdersResult);
     }
     else {
       // This is the CRITICAL FIX - Transfer orders (default case) should go to Transfer webhook
