@@ -18,6 +18,11 @@ interface WheelSpecificationsProps {
 }
 
 export function WheelSpecifications({ formData, onInputChange }: WheelSpecificationsProps) {
+  const handleInputChange = (name: string, value: string) => {
+    console.log(`🔍 WHEEL SPECS - Field '${name}' changed to:`, value);
+    onInputChange(name, value);
+  };
+
   return (
     <div>
       <div className="flex items-center space-x-2 mb-4 border-l-4 border-orange-500 pl-3">
@@ -33,7 +38,7 @@ export function WheelSpecifications({ formData, onInputChange }: WheelSpecificat
           </Label>
           <Select
             value={formData.wheelMaterial}
-            onValueChange={(value) => onInputChange("wheelMaterial", value)}
+            onValueChange={(value) => handleInputChange("wheelMaterial", value)}
             required
           >
             <SelectTrigger 
@@ -59,7 +64,7 @@ export function WheelSpecifications({ formData, onInputChange }: WheelSpecificat
           </Label>
           <Select
             value={formData.wheelType}
-            onValueChange={(value) => onInputChange("wheelType", value)}
+            onValueChange={(value) => handleInputChange("wheelType", value)}
             required
           >
             <SelectTrigger 
@@ -96,7 +101,7 @@ export function WheelSpecifications({ formData, onInputChange }: WheelSpecificat
             id="handHoles"
             type="number"
             value={formData.handHoles}
-            onChange={(e) => onInputChange("handHoles", e.target.value)}
+            onChange={(e) => handleInputChange("handHoles", e.target.value)}
             placeholder="Enter the number"
             className="border-gray-300 focus:border-blue-500 focus:ring-blue-200 transition-all duration-200"
             required
@@ -110,7 +115,7 @@ export function WheelSpecifications({ formData, onInputChange }: WheelSpecificat
           </Label>
           <Select
             value={formData.wheelSize}
-            onValueChange={(value) => onInputChange("wheelSize", value)}
+            onValueChange={(value) => handleInputChange("wheelSize", value)}
             required
           >
             <SelectTrigger 
@@ -136,7 +141,7 @@ export function WheelSpecifications({ formData, onInputChange }: WheelSpecificat
           </Label>
           <Select
             value={formData.wheelColor}
-            onValueChange={(value) => onInputChange("wheelColor", value)}
+            onValueChange={(value) => handleInputChange("wheelColor", value)}
             required
           >
             <SelectTrigger 

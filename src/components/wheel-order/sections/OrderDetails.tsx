@@ -10,6 +10,11 @@ interface OrderDetailsProps {
 }
 
 export function OrderDetails({ formData, onInputChange }: OrderDetailsProps) {
+  const handleInputChange = (name: string, value: string) => {
+    console.log(`🔍 ORDER DETAILS - Field '${name}' changed to:`, value);
+    onInputChange(name, value);
+  };
+
   return (
     <div>
       <div className="flex items-center space-x-2 mb-4 border-l-4 border-green-500 pl-3">
@@ -27,7 +32,7 @@ export function OrderDetails({ formData, onInputChange }: OrderDetailsProps) {
             id="qtyWheels"
             type="number"
             value={formData.qtyWheels}
-            onChange={(e) => onInputChange("qtyWheels", e.target.value)}
+            onChange={(e) => handleInputChange("qtyWheels", e.target.value)}
             placeholder="Enter quantity"
             className="border-gray-300 focus:border-blue-500 focus:ring-blue-200 transition-all duration-200"
             required
@@ -42,7 +47,7 @@ export function OrderDetails({ formData, onInputChange }: OrderDetailsProps) {
           <Input
             id="customerName"
             value={formData.customerName}
-            onChange={(e) => onInputChange("customerName", e.target.value)}
+            onChange={(e) => handleInputChange("customerName", e.target.value)}
             placeholder="Enter customer name"
             className="border-gray-300 focus:border-blue-500 focus:ring-blue-200 transition-all duration-200"
             required

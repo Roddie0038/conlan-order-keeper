@@ -6,12 +6,9 @@ import { formatDate } from './utils';
 export const submitToWheelOrdersWebhook = async (data: any) => {
   try {
     console.log("🔍 WHEEL ORDER WEBHOOK - Starting webhook submission process");
-    console.log("🔍 WHEEL ORDER WEBHOOK - Data type:", data.type);
-    console.log("🔍 WHEEL ORDER WEBHOOK - Has qtyWheels:", 'qtyWheels' in data);
-    console.log("🔍 WHEEL ORDER WEBHOOK - Full data received:", JSON.stringify(data, null, 2));
-    
-    // Log specific wheel specification fields
-    console.log("🔍 WHEEL ORDER WEBHOOK - Wheel specifications check:", {
+    console.log("🔍 WHEEL ORDER WEBHOOK - Raw data received:", JSON.stringify(data, null, 2));
+    console.log("🔍 WHEEL ORDER WEBHOOK - Critical field verification:", {
+      customerName: data.customerName,
       wheelMaterial: data.wheelMaterial,
       wheelType: data.wheelType,
       handHoles: data.handHoles,
@@ -27,7 +24,6 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
     }
     
     // Map the data to the EXACT required format for Google Sheets
-    // CRITICAL FIX: Ensure all field mappings are correct
     const mappedData = {
       store_location_number: data.store || "",
       name: data.yourName || data.name || "",
@@ -43,43 +39,41 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       store_colors: data.storeColors || "Yellow"
     };
 
-    // CRITICAL: Log exactly what we're sending and validate all fields are present
-    console.log("🔍 WHEEL ORDER WEBHOOK - Sending EXACT FORMAT data:", JSON.stringify(mappedData, null, 2));
-    console.log("🔍 WHEEL ORDER WEBHOOK - Field validation:", {
-      hasWheelMaterial: !!mappedData.wheel_material,
-      hasWheelType: !!mappedData.wheel_type,
-      hasHandHoles: !!mappedData.hand_holes,
-      hasWheelSize: !!mappedData.wheel_size,
-      hasDesiredColor: !!mappedData.desired_color,
-      hasCustomerName: !!mappedData.customer_name,
-      hasQuantity: !!mappedData.quantity
+    console.log("🔍 WHEEL ORDER WEBHOOK - Final mapped data for submission:", JSON.stringify(mappedData, null, 2));
+    console.log("🔍 WHEEL ORDER WEBHOOK - Field mapping verification:", {
+      customer_name: mappedData.customer_name,
+      wheel_material: mappedData.wheel_material,
+      wheel_type: mappedData.wheel_type,
+      hand_holes: mappedData.hand_holes,
+      wheel_size: mappedData.wheel_size,
+      desired_color: mappedData.desired_color
     });
-    console.log("🔍 WHEEL ORDER WEBHOOK - Using Wheel Orders webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
     
-    // Verify it's a wheel order by checking the required wheel-specific fields
-    if (!mappedData.desired_color || !mappedData.wheel_size || !mappedData.wheel_type) {
-      console.warn("⚠️ Missing critical wheel data. This may not be a proper wheel order:", {
+    // Verify all critical wheel data is present
+    if (!mappedData.desired_color || !mappedData.wheel_size || !mappedData.wheel_type || !mappedData.customer_name) {
+      console.error("❌ WHEEL ORDER WEBHOOK - Missing critical wheel data in mapped payload:", {
+        hasCustomerName: !!mappedData.customer_name,
         hasWheelColor: !!mappedData.desired_color,
         hasWheelSize: !!mappedData.wheel_size,
         hasWheelType: !!mappedData.wheel_type,
         hasWheelMaterial: !!mappedData.wheel_material,
         hasHandHoles: !!mappedData.hand_holes
       });
+      return false;
     }
 
-    // Log the exact URL being used for final verification
-    console.log("🔍 WHEEL ORDER WEBHOOK - Final webhook URL check:", WEBHOOK_URLS.WHEEL_ORDERS);
+    console.log("🔍 WHEEL ORDER WEBHOOK - Using Wheel Orders webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
     
     const response = await fetch(WEBHOOK_URLS.WHEEL_ORDERS, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      mode: "no-cors", // Use no-cors to avoid CORS issues
+      mode: "no-cors",
       body: JSON.stringify(mappedData),
     });
 
-    console.log("✅ Successfully triggered Wheel Orders webhook with EXACT FORMAT");
+    console.log("✅ Successfully triggered Wheel Orders webhook with complete data");
     return true;
   } catch (error) {
     console.error("❌ Error triggering Wheel Orders webhook:", error);

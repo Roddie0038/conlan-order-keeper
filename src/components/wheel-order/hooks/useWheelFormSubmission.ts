@@ -41,6 +41,8 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
     e.preventDefault();
     setIsSubmitting(true);
 
+    console.log("🔍 WHEEL FORM SUBMISSION - Raw form data received:", JSON.stringify(formData, null, 2));
+
     if (!validateForm(formData, user?.isAdmin)) {
       setIsSubmitting(false);
       return;
@@ -48,9 +50,15 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
 
     try {
       console.log("🔍 WHEEL FORM - Preparing wheel order submission");
-      console.log("🔍 WHEEL FORM - Form data before submission:", JSON.stringify(formData, null, 2));
-      console.log("🔍 WHEEL FORM - Verifying webhook URL from config:");
-      console.log("🔍 WHEEL FORM - Target webhook URL will be:", WEBHOOK_URLS.WHEEL_ORDERS);
+      console.log("🔍 WHEEL FORM - Form data verification before submission:", {
+        customerName: formData.customerName,
+        wheelMaterial: formData.wheelMaterial,
+        wheelType: formData.wheelType,
+        handHoles: formData.handHoles,
+        wheelSize: formData.wheelSize,
+        wheelColor: formData.wheelColor,
+        qtyWheels: formData.qtyWheels
+      });
       
       // Determine plant based on store
       const plant = getPlantForStore(formData.storeName);
@@ -78,27 +86,36 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         crossDock: "No" as const,
         crossDockType: "No" as const,
         
-        // CRITICAL FIX: Ensure all wheel specification fields are included
-        customerName: formData.customerName,
-        wheelMaterial: formData.wheelMaterial,
-        wheelType: formData.wheelType,
-        handHoles: parseInt(formData.handHoles) || 0,
-        wheelSize: formData.wheelSize,
-        wheelColor: formData.wheelColor,
-        qtyWheels: formData.qtyWheels,
+        // CRITICAL: Ensure all wheel specification fields are properly mapped
+        customerName: formData.customerName || "",
+        wheelMaterial: formData.wheelMaterial || "",
+        wheelType: formData.wheelType || "",
+        handHoles: parseInt(formData.handHoles || "0"),
+        wheelSize: formData.wheelSize || "",
+        wheelColor: formData.wheelColor || "",
+        qtyWheels: formData.qtyWheels || "",
         
         // Additional fields for webhook processing
         yourName: formData.yourName,
         dateReceived: formData.dateReceived,
         managersEmail: managerEmail,
-        storeColors: formData.storeColors || "Yellow" // FIXED: Include store colors field
+        storeColors: formData.storeColors || "Yellow"
       };
 
-      console.log("🔍 WHEEL FORM - Final order data with all wheel specs:", JSON.stringify(supabaseOrder, null, 2));
+      console.log("🔍 WHEEL FORM - Final order data being submitted:", JSON.stringify(supabaseOrder, null, 2));
+      console.log("🔍 WHEEL FORM - Critical fields verification:", {
+        customerName: supabaseOrder.customerName,
+        wheelMaterial: supabaseOrder.wheelMaterial,
+        wheelType: supabaseOrder.wheelType,
+        handHoles: supabaseOrder.handHoles,
+        wheelSize: supabaseOrder.wheelSize,
+        wheelColor: supabaseOrder.wheelColor
+      });
       
       // Validate that all critical wheel data is present before submission
-      if (!formData.wheelMaterial || !formData.wheelType || !formData.wheelSize || !formData.wheelColor || !formData.handHoles) {
+      if (!formData.wheelMaterial || !formData.wheelType || !formData.wheelSize || !formData.wheelColor || !formData.handHoles || !formData.customerName) {
         console.error("❌ WHEEL FORM - Missing critical wheel specification data:", {
+          customerName: formData.customerName,
           wheelMaterial: formData.wheelMaterial,
           wheelType: formData.wheelType,
           wheelSize: formData.wheelSize,
@@ -107,8 +124,8 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         });
         
         toast({
-          title: "Missing Wheel Specifications",
-          description: "Please fill in all wheel specification fields before submitting.",
+          title: "Missing Required Fields",
+          description: "Please fill in all required fields before submitting.",
           variant: "destructive",
         });
         setIsSubmitting(false);
