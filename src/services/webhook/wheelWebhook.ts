@@ -64,20 +64,21 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
     console.log("🚀 WHEEL WEBHOOK - FETCH REQUEST - URL:", WEBHOOK_URLS.WHEEL_ORDERS);
     console.log("🚀 WHEEL WEBHOOK - FETCH REQUEST - Payload:", JSON.stringify(mappedData));
     
-    // CRITICAL: Direct fetch call with detailed logging
+    // CRITICAL: Direct fetch call with detailed logging - NO no-cors mode for debugging
     const response = await fetch(WEBHOOK_URLS.WHEEL_ORDERS, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      mode: "no-cors",
       body: JSON.stringify(mappedData),
     });
 
     console.log("✅ WHEEL WEBHOOK - Fetch completed successfully");
-    console.log("✅ WHEEL WEBHOOK - Response type (no-cors mode):", response.type);
+    console.log("✅ WHEEL WEBHOOK - Response status:", response.status);
+    console.log("✅ WHEEL WEBHOOK - Response statusText:", response.statusText);
     console.log("✅ WHEEL WEBHOOK - POST request sent to Google Sheets webhook");
-    return true;
+    
+    return response.ok;
   } catch (error) {
     console.error("❌ WHEEL WEBHOOK - Error in fetch request:", error);
     console.error("❌ WHEEL WEBHOOK - URL that failed:", WEBHOOK_URLS.WHEEL_ORDERS);

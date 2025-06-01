@@ -50,11 +50,11 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
     } 
     else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
       console.log("🚀 SHEETS - ROUTING: WHEEL ORDER DETECTED - Using WHEEL webhook");
-      console.log("🚀 SHEETS - CRITICAL: Passing ORIGINAL wheel data (no generic mapping)");
+      console.log("🚀 SHEETS - CRITICAL: Passing ORIGINAL wheel data (NO generic mapping)");
       console.log("🚀 SHEETS - Original wheel data being passed:", JSON.stringify(data, null, 2));
       
-      // For wheel orders: DO NOT use generic mapping - pass original data directly
-      // This preserves all wheel-specific fields like customerName, wheelMaterial, etc.
+      // CRITICAL FIX: For wheel orders, pass the original data directly to preserve all wheel-specific fields
+      // DO NOT use mapOrderToGoogleSheets as it strips wheel-specific fields
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.wheelOrders;
       if (plantUrl) {
@@ -63,7 +63,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
         results.push(plantWebhookResult);
       }
       
-      console.log("🚀 SHEETS - CRITICAL: Calling submitToWheelOrdersWebhook with original data");
+      console.log("🚀 SHEETS - CRITICAL: Calling submitToWheelOrdersWebhook with ORIGINAL data");
       const wheelOrdersResult = await submitToWheelOrdersWebhook(data);
       console.log("🚀 SHEETS - submitToWheelOrdersWebhook returned:", wheelOrdersResult);
       results.push(wheelOrdersResult);
