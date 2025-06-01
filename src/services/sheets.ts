@@ -22,27 +22,7 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
   console.log("🔍 SHEETS - Selected plant:", plant);
   
   try {
-    // Map data to Google Sheets format (camelCase)
-    let sheetsPayload: any;
-    
-    if (data.type === 'MTO') {
-      sheetsPayload = mapMTOToGoogleSheets(data, user);
-      console.log("🔍 SHEETS - Using MTO mapping");
-    } else {
-      sheetsPayload = mapOrderToGoogleSheets(data, user);
-      console.log("🔍 SHEETS - Using Order mapping");
-    }
-    
-    console.log("🔍 SHEETS - Mapped payload:", JSON.stringify(sheetsPayload, null, 2));
-    
     const results = [];
-    
-    // For crossDock="Yes" orders, ensure we have the destination manager email
-    if ('crossDock' in sheetsPayload && sheetsPayload.crossDock === "Yes" && sheetsPayload.crossDockDestination && !sheetsPayload.destinationManagerEmail) {
-      const { getManagerEmail } = await import('@/components/order-form/formConfig');
-      sheetsPayload.destinationManagerEmail = getManagerEmail(sheetsPayload.crossDockDestination);
-      console.log("🔍 SHEETS - Added destinationManagerEmail:", sheetsPayload.destinationManagerEmail);
-    }
     
     // EXPLICIT ROUTING LOGIC
     console.log("🔍 SHEETS - ROUTING DECISION:");
@@ -53,6 +33,10 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
     
     if (data.type === 'MTO') {
       console.log("🔍 SHEETS - ROUTING: MTO Order - Using MTO webhook");
+      
+      // Map data to Google Sheets format for MTO
+      const sheetsPayload = mapMTOToGoogleSheets(data, user);
+      console.log("🔍 SHEETS - MTO mapped payload:", JSON.stringify(sheetsPayload, null, 2));
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.mtoOrders;
       if (plantUrl) {
@@ -66,23 +50,37 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
     } 
     else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
       console.log("🚀 SHEETS - ROUTING: WHEEL ORDER DETECTED - Using WHEEL webhook");
-      console.log("🚀 SHEETS - Wheel webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
-      console.log("🚀 SHEETS - About to call submitToWheelOrdersWebhook");
+      console.log("🚀 SHEETS - CRITICAL: Passing ORIGINAL wheel data (no generic mapping)");
+      console.log("🚀 SHEETS - Original wheel data being passed:", JSON.stringify(data, null, 2));
+      
+      // For wheel orders: DO NOT use generic mapping - pass original data directly
+      // This preserves all wheel-specific fields like customerName, wheelMaterial, etc.
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.wheelOrders;
       if (plantUrl) {
         console.log("🔍 SHEETS - Plant wheel webhook URL:", plantUrl);
-        const plantWebhookResult = await submitToWebhook(plantUrl, sheetsPayload);
+        const plantWebhookResult = await submitToWebhook(plantUrl, data);
         results.push(plantWebhookResult);
       }
       
-      console.log("🚀 SHEETS - CRITICAL: Calling submitToWheelOrdersWebhook now");
-      const wheelOrdersResult = await submitToWheelOrdersWebhook(sheetsPayload);
+      console.log("🚀 SHEETS - CRITICAL: Calling submitToWheelOrdersWebhook with original data");
+      const wheelOrdersResult = await submitToWheelOrdersWebhook(data);
       console.log("🚀 SHEETS - submitToWheelOrdersWebhook returned:", wheelOrdersResult);
       results.push(wheelOrdersResult);
     }
     else {
       console.log("🔍 SHEETS - ROUTING: TRANSFER Order - Using TRANSFER webhook");
+      
+      // Map data to Google Sheets format for transfer orders
+      let sheetsPayload = mapOrderToGoogleSheets(data, user);
+      console.log("🔍 SHEETS - Transfer mapped payload:", JSON.stringify(sheetsPayload, null, 2));
+      
+      // For crossDock="Yes" orders, ensure we have the destination manager email
+      if ('crossDock' in sheetsPayload && sheetsPayload.crossDock === "Yes" && sheetsPayload.crossDockDestination && !sheetsPayload.destinationManagerEmail) {
+        const { getManagerEmail } = await import('@/components/order-form/formConfig');
+        sheetsPayload.destinationManagerEmail = getManagerEmail(sheetsPayload.crossDockDestination);
+        console.log("🔍 SHEETS - Added destinationManagerEmail:", sheetsPayload.destinationManagerEmail);
+      }
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.transferRequests;
       if (plantUrl) {
