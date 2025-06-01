@@ -1,1 +1,5 @@
+
 project_id = "cdbixtaqjppvdkyfbhkz"
+
+[functions.wheel-order-webhook]
+verify_jwt = false

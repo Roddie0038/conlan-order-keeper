@@ -7,7 +7,6 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
   try {
     console.log("🚀 WHEEL WEBHOOK - ENTRY POINT - submitToWheelOrdersWebhook called");
     console.log("🚀 WHEEL WEBHOOK - Raw wheel order data received:", JSON.stringify(data, null, 2));
-    console.log("🚀 WHEEL WEBHOOK - Target URL:", WEBHOOK_URLS.WHEEL_ORDERS);
     
     // Verify this is actually a wheel order
     if (data.type !== 'WHEEL_POWDER_COATING' && !('qtyWheels' in data && data.qtyWheels)) {
@@ -59,29 +58,39 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       return false;
     }
 
-    console.log("✅ WHEEL WEBHOOK - All validation passed, making fetch request");
-    console.log("🚀 WHEEL WEBHOOK - Submitting to Google Sheets Webhook:", mappedData);
-    console.log("🚀 WHEEL WEBHOOK - FETCH REQUEST - URL:", WEBHOOK_URLS.WHEEL_ORDERS);
-    console.log("🚀 WHEEL WEBHOOK - FETCH REQUEST - Payload:", JSON.stringify(mappedData));
+    console.log("✅ WHEEL WEBHOOK - All validation passed, calling Supabase Edge Function");
+    console.log("🚀 WHEEL WEBHOOK - Using Edge Function to proxy request to Google Sheets");
     
-    // CRITICAL: Direct fetch call with detailed logging - NO no-cors mode for debugging
-    const response = await fetch(WEBHOOK_URLS.WHEEL_ORDERS, {
+    // Call our Supabase Edge Function instead of Google Apps Script directly
+    const edgeFunctionUrl = "https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/wheel-order-webhook";
+    console.log("🚀 WHEEL WEBHOOK - EDGE FUNCTION URL:", edgeFunctionUrl);
+    console.log("🚀 WHEEL WEBHOOK - EDGE FUNCTION Payload:", JSON.stringify(mappedData));
+    
+    const response = await fetch(edgeFunctionUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
       },
       body: JSON.stringify(mappedData),
     });
 
-    console.log("✅ WHEEL WEBHOOK - Fetch completed successfully");
-    console.log("✅ WHEEL WEBHOOK - Response status:", response.status);
-    console.log("✅ WHEEL WEBHOOK - Response statusText:", response.statusText);
-    console.log("✅ WHEEL WEBHOOK - POST request sent to Google Sheets webhook");
+    console.log("✅ WHEEL WEBHOOK - Edge Function response status:", response.status);
+    console.log("✅ WHEEL WEBHOOK - Edge Function response statusText:", response.statusText);
     
-    return response.ok;
+    if (response.ok) {
+      const result = await response.json();
+      console.log("✅ WHEEL WEBHOOK - Edge Function response:", result);
+      console.log("✅ WHEEL WEBHOOK - Successfully submitted wheel order via Edge Function");
+      return true;
+    } else {
+      console.error("❌ WHEEL WEBHOOK - Edge Function failed:", response.status, response.statusText);
+      return false;
+    }
+    
   } catch (error) {
-    console.error("❌ WHEEL WEBHOOK - Error in fetch request:", error);
-    console.error("❌ WHEEL WEBHOOK - URL that failed:", WEBHOOK_URLS.WHEEL_ORDERS);
+    console.error("❌ WHEEL WEBHOOK - Error calling Edge Function:", error);
+    console.error("❌ WHEEL WEBHOOK - Edge Function URL that failed:", "https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/wheel-order-webhook");
     return false;
   }
 };
