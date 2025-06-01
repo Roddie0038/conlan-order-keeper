@@ -5,16 +5,9 @@ import { formatDate } from './utils';
 
 export const submitToWheelOrdersWebhook = async (data: any) => {
   try {
-    console.log("🔍 WHEEL ORDER WEBHOOK - Starting webhook submission process");
-    console.log("🔍 WHEEL ORDER WEBHOOK - Raw data received:", JSON.stringify(data, null, 2));
-    console.log("🔍 WHEEL ORDER WEBHOOK - Critical field verification:", {
-      customerName: data.customerName,
-      wheelMaterial: data.wheelMaterial,
-      wheelType: data.wheelType,
-      handHoles: data.handHoles,
-      wheelSize: data.wheelSize,
-      wheelColor: data.wheelColor
-    });
+    console.log("🔍 WHEEL ORDER WEBHOOK - ✅ FUNCTION ENTRY - Starting webhook submission process");
+    console.log("🔍 WHEEL ORDER WEBHOOK - ✅ FUNCTION ENTRY - Raw data received:", JSON.stringify(data, null, 2));
+    console.log("🔍 WHEEL ORDER WEBHOOK - ✅ FUNCTION ENTRY - URL to use:", WEBHOOK_URLS.WHEEL_ORDERS);
     
     // Verify this is actually a wheel order
     if (data.type !== 'WHEEL_POWDER_COATING' && !('qtyWheels' in data && data.qtyWheels)) {
@@ -22,6 +15,8 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       console.error("❌ WHEEL ORDER WEBHOOK - This should not be processed as a wheel order");
       return false;
     }
+    
+    console.log("🔍 WHEEL ORDER WEBHOOK - ✅ ORDER TYPE VERIFIED - Proceeding with wheel order processing");
     
     // Map the data to the EXACT required format for Google Sheets
     const mappedData = {
@@ -39,15 +34,7 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       store_colors: data.storeColors || "Yellow"
     };
 
-    console.log("🔍 WHEEL ORDER WEBHOOK - Final mapped data for submission:", JSON.stringify(mappedData, null, 2));
-    console.log("🔍 WHEEL ORDER WEBHOOK - Field mapping verification:", {
-      customer_name: mappedData.customer_name,
-      wheel_material: mappedData.wheel_material,
-      wheel_type: mappedData.wheel_type,
-      hand_holes: mappedData.hand_holes,
-      wheel_size: mappedData.wheel_size,
-      desired_color: mappedData.desired_color
-    });
+    console.log("🔍 WHEEL ORDER WEBHOOK - ✅ DATA MAPPED - Final mapped data:", JSON.stringify(mappedData, null, 2));
     
     // Verify all critical wheel data is present
     if (!mappedData.desired_color || !mappedData.wheel_size || !mappedData.wheel_type || !mappedData.customer_name) {
@@ -62,10 +49,12 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       return false;
     }
 
-    console.log("🔍 WHEEL ORDER WEBHOOK - Using Wheel Orders webhook URL:", WEBHOOK_URLS.WHEEL_ORDERS);
-    console.log("🔍 WHEEL ORDER WEBHOOK - CRITICAL: Making direct POST request to Google Sheets");
+    console.log("🔍 WHEEL ORDER WEBHOOK - ✅ DATA VALIDATION PASSED - All critical data present");
+    console.log("🔍 WHEEL ORDER WEBHOOK - ✅ ABOUT TO MAKE FETCH REQUEST");
+    console.log("🔍 WHEEL ORDER WEBHOOK - ✅ URL:", WEBHOOK_URLS.WHEEL_ORDERS);
+    console.log("🔍 WHEEL ORDER WEBHOOK - ✅ PAYLOAD:", JSON.stringify(mappedData));
     
-    // CRITICAL FIX: Make direct POST request to ensure it reaches Google Sheets
+    // CRITICAL: Direct fetch call with detailed logging
     const response = await fetch(WEBHOOK_URLS.WHEEL_ORDERS, {
       method: "POST",
       headers: {
@@ -75,11 +64,13 @@ export const submitToWheelOrdersWebhook = async (data: any) => {
       body: JSON.stringify(mappedData),
     });
 
-    console.log("✅ WHEEL ORDER WEBHOOK - Successfully triggered Wheel Orders webhook with complete data");
-    console.log("✅ WHEEL ORDER WEBHOOK - POST request sent to:", WEBHOOK_URLS.WHEEL_ORDERS);
+    console.log("✅ WHEEL ORDER WEBHOOK - ✅ FETCH COMPLETED - Successfully sent POST request");
+    console.log("✅ WHEEL ORDER WEBHOOK - ✅ POST request sent to:", WEBHOOK_URLS.WHEEL_ORDERS);
+    console.log("✅ WHEEL ORDER WEBHOOK - ✅ Response status (no-cors mode):", response.type);
     return true;
   } catch (error) {
-    console.error("❌ WHEEL ORDER WEBHOOK - Error triggering Wheel Orders webhook:", error);
+    console.error("❌ WHEEL ORDER WEBHOOK - ❌ FETCH ERROR - Error in fetch request:", error);
+    console.error("❌ WHEEL ORDER WEBHOOK - ❌ URL that failed:", WEBHOOK_URLS.WHEEL_ORDERS);
     return false;
   }
 };

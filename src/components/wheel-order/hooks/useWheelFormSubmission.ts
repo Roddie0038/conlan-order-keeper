@@ -41,7 +41,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
     e.preventDefault();
     setIsSubmitting(true);
 
-    console.log("🔍 WHEEL FORM SUBMISSION - Raw form data received:", JSON.stringify(formData, null, 2));
+    console.log("🔍 WHEEL FORM SUBMISSION - ✅ SUBMIT TRIGGERED - Raw form data received:", JSON.stringify(formData, null, 2));
 
     if (!validateForm(formData, user?.isAdmin)) {
       setIsSubmitting(false);
@@ -49,8 +49,8 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
     }
 
     try {
-      console.log("🔍 WHEEL FORM - Preparing wheel order submission");
-      console.log("🔍 WHEEL FORM - Form data verification before submission:", {
+      console.log("🔍 WHEEL FORM - ✅ VALIDATION PASSED - Preparing wheel order submission");
+      console.log("🔍 WHEEL FORM - ✅ FORM DATA VERIFICATION before submission:", {
         customerName: formData.customerName,
         wheelMaterial: formData.wheelMaterial,
         wheelType: formData.wheelType,
@@ -62,7 +62,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       
       // Determine plant based on store
       const plant = getPlantForStore(formData.storeName);
-      console.log(`🔍 WHEEL FORM - Determined plant '${plant}' for store: ${formData.storeName}`);
+      console.log(`🔍 WHEEL FORM - ✅ PLANT DETERMINED - '${plant}' for store: ${formData.storeName}`);
       
       // Format timestamps properly
       const currentTimestamp = formatTimestamp(new Date().toISOString());
@@ -102,14 +102,16 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         storeColors: formData.storeColors || "Yellow"
       };
 
-      console.log("🔍 WHEEL FORM - Final order data being submitted:", JSON.stringify(supabaseOrder, null, 2));
-      console.log("🔍 WHEEL FORM - Critical fields verification:", {
+      console.log("🔍 WHEEL FORM - ✅ ORDER DATA CREATED - Final order data being submitted:", JSON.stringify(supabaseOrder, null, 2));
+      console.log("🔍 WHEEL FORM - ✅ CRITICAL FIELDS verification:", {
+        type: supabaseOrder.type,
         customerName: supabaseOrder.customerName,
         wheelMaterial: supabaseOrder.wheelMaterial,
         wheelType: supabaseOrder.wheelType,
         handHoles: supabaseOrder.handHoles,
         wheelSize: supabaseOrder.wheelSize,
-        wheelColor: supabaseOrder.wheelColor
+        wheelColor: supabaseOrder.wheelColor,
+        qtyWheels: supabaseOrder.qtyWheels
       });
       
       // Validate that all critical wheel data is present before submission
@@ -132,10 +134,12 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         return;
       }
 
-      console.log("🔍 WHEEL FORM - CRITICAL: Calling submitToGoogleSheets for wheel order");
-      console.log("🔍 WHEEL FORM - CRITICAL: This should trigger the wheel webhook to Google Sheets");
+      console.log("🔍 WHEEL FORM - ✅ ALL VALIDATIONS PASSED - About to call submitToGoogleSheets");
+      console.log("🔍 WHEEL FORM - ✅ CRITICAL: This should trigger the wheel webhook to Google Sheets");
+      
       const result = await submitToGoogleSheets(supabaseOrder);
-      console.log("🔍 WHEEL FORM - CRITICAL: Google Sheets submission result:", result);
+      
+      console.log("🔍 WHEEL FORM - ✅ GOOGLE SHEETS CALL COMPLETED - Result:", result);
       
       // Save to Supabase with properly typed data
       await saveOrderToSupabase(supabaseOrder);
