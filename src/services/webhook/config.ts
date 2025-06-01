@@ -3,25 +3,22 @@ import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { CrossDockFields } from '@/types/cross-dock.types';
 import type { OrderData as SupabaseOrderData, MTOOrderData as SupabaseMTOOrderData } from '@/types/supabase-extensions';
 
-// Webhook URLs for Google Apps Script - CORRECTED WEBHOOK ROUTING
+// Webhook URLs for Google Apps Script - UPDATED WHEEL ORDERS WEBHOOK
 export const WEBHOOK_URLS = {
-  // Transfer Request Orders - CORRECTED URL for Orders Tab (Transfer New Orders)
+  // Transfer Request Orders - Orders Tab (Transfer New Orders)
   ORDERS: "https://script.google.com/macros/s/AKfycbxQPqBQwA0IIMN3_LH_FgYY1jU5FMP1U0Z8RtMFSAjH_Kz-5IsKa5xNDpVxMfbN2zIA/exec",
-  // Wheel Orders - CORRECTED URL for Stores Wheel Orders Tab
-  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbzzmndIqoWTGGl5tLCdDwcIdAMnzIxpJCAfA-LZeDQleZG15-UbK42eHA6cRkgcr8CG_Q/exec",
-  // MTO Orders - UPDATED URL for MTO'S Tab
+  // Wheel Orders - CORRECTED URL for Stores Wheel Orders Tab (CONFIRMED WORKING IN POSTMAN)
+  WHEEL_ORDERS: "https://script.google.com/macros/s/AKfycbyHgFTW0pDGhZOHwUjW5zeqWebs6pXH53Ud8FFC-87bMxCNEf406j0Eu8dQvo_zAhJUEQ/exec",
+  // MTO Orders - MTO'S Tab
   MTO_ORDERS: "https://script.google.com/macros/s/AKfycbx9pgfa8FSVcatTgLcDzeeVcB56h2LdAPD4w51Y41uOOuFWgavdgGAFg1LcFGp7AEdtxA/exec",
   // Admin Orders
   ADMIN_ORDERS: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
 };
 
-// CRITICAL FIX: Update WHEEL_ORDERS URL to the correct one provided by user
-WEBHOOK_URLS.WHEEL_ORDERS = "https://script.google.com/macros/s/AKfycbxQPqBQwA0IIMN3_LH_FgYY1jU5FMP1U0Z8RtMFSAjH_Kz-5IsKa5xNDpVxMfbN2zIA/exec";
-
 // Log webhook URLs on initial load for verification
-console.log("🔍 CONFIG - CORRECTED WEBHOOK ROUTING - URLs configuration loaded:");
+console.log("🔍 CONFIG - WEBHOOK ROUTING - URLs configuration loaded:");
 console.log("🔍 CONFIG - ORDERS (Transfer) URL:", WEBHOOK_URLS.ORDERS);
-console.log("🔍 CONFIG - WHEEL_ORDERS URL:", WEBHOOK_URLS.WHEEL_ORDERS); 
+console.log("🔍 CONFIG - WHEEL_ORDERS URL (UPDATED):", WEBHOOK_URLS.WHEEL_ORDERS); 
 console.log("🔍 CONFIG - MTO_ORDERS URL:", WEBHOOK_URLS.MTO_ORDERS);
 console.log("🔍 CONFIG - ADMIN_ORDERS URL:", WEBHOOK_URLS.ADMIN_ORDERS);
 
