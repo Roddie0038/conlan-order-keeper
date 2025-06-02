@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -16,18 +18,20 @@ import MTOOrder from './pages/MTOOrder';
 import CrossDock from './pages/CrossDock';
 import WheelOrder from './pages/WheelOrder';
 import RetreadWarranty from './pages/RetreadWarranty';
+import NationalWarranty from './pages/NationalWarranty';
 import { AuthProvider } from './contexts/AuthContext';
 import { PlantProvider } from './contexts/PlantContext';
-import { QueryClient } from 'react-query';
-import NationalWarranty from './pages/NationalWarranty';
 import { Toaster } from "@/components/ui/toaster"
+
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <PlantProvider>
-          <QueryClient>
+          <QueryClientProvider client={queryClient}>
             <Toaster />
             <Routes>
               <Route path="/" element={<Index />} />
@@ -48,7 +52,7 @@ function App() {
               <Route path="/retread-warranty" element={<RetreadWarranty />} />
               <Route path="/national-warranty" element={<NationalWarranty />} />
             </Routes>
-          </QueryClient>
+          </QueryClientProvider>
         </PlantProvider>
       </AuthProvider>
     </Router>
