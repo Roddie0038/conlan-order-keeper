@@ -87,16 +87,16 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       backgroundImage: "/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png"
     },
     {
-      title: "NATIONAL WARRANTY TIRES",
+      title: "NATIONAL ACCOUNT WARRANTY FORM",
       icon: null,
       path: "/national-warranty",
       color: "",
-      borderColor: "border-purple-400",
+      borderColor: "border-yellow-500",
       delay: 0.7,
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/2d66f9b9-bc58-4d2f-bab0-d1141b72e69d.png"
+      backgroundImage: "/lovable-uploads/52ff146d-0e5f-4a8c-80f2-b26621c00cce.png"
     }
   ];
   
