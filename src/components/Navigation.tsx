@@ -22,7 +22,7 @@ export function Navigation() {
 
   const links: NavLink[] = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4 mr-2" /> },
-    { href: "/pending-orders", label: "New Order", icon: <ShoppingCart className="w-4 h-4 mr-2" /> },
+    { href: "/", label: "New Order", icon: <ShoppingCart className="w-4 h-4 mr-2" /> },
     { href: "/order-management", label: "Order Management", icon: <ClipboardList className="w-4 h-4 mr-2" /> },
     { href: "/mto-order", label: "MTO Orders" },
     { href: "/cross-dock", label: "Cross Dock Paperwork" },

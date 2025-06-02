@@ -76,22 +76,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("AuthProvider: Checking for saved user...");
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        console.log("AuthProvider: Found saved user:", parsedUser.store);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("AuthProvider: Error parsing saved user:", error);
+        localStorage.removeItem('user');
+      }
+    } else {
+      console.log("AuthProvider: No saved user found");
     }
     setLoading(false);
   }, []);
 
   useEffect(() => {
     if (user) {
+      console.log("AuthProvider: Saving user to localStorage:", user.store);
       localStorage.setItem('user', JSON.stringify(user));
     } else {
+      console.log("AuthProvider: Removing user from localStorage");
       localStorage.removeItem('user');
     }
   }, [user]);
 
   const login = (username: string, password: string, plant: string) => {
+    console.log("AuthProvider: Attempting login for:", username);
     const userMatch = users.find(u => u.username === username && u.password === password);
     if (userMatch) {
       const extendedUser: User = {
@@ -105,13 +118,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name: userMatch.username,
         storeName: userMatch.store
       };
+      console.log("AuthProvider: Login successful for:", extendedUser.store);
       setUser(extendedUser);
       return true;
     }
+    console.log("AuthProvider: Login failed for:", username);
     return false;
   };
 
   const logout = () => {
+    console.log("AuthProvider: Logging out user");
     setUser(null);
   };
 
