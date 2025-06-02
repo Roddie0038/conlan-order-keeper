@@ -1,5 +1,5 @@
 
-import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket } from "lucide-react";
+import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket, FileCheck } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 import { ApprovedTreadsCard } from "./ApprovedTreadsCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,6 +73,18 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       hideTitle: true,
       fullSizeImage: true,
       backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
+    },
+    {
+      title: "RETREAD WARRANTY",
+      icon: null,
+      path: "/retread-warranty",
+      color: "",
+      borderColor: "border-red-400",
+      delay: 0.6,
+      size: "col-span-1",
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png"
     }
   ];
   
@@ -83,7 +95,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       path: "/admin-orders",
       color: "",
       borderColor: "border-amber-400",
-      delay: 0.7,
+      delay: 0.8,
       size: "col-span-1",
       highlight: true,
       hideTitle: true,
@@ -100,7 +112,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         ))}
         
         {/* Approved Treads Card */}
-        <ApprovedTreadsCard loaded={loaded} delay={0.6} />
+        <ApprovedTreadsCard loaded={loaded} delay={0.7} />
       </div>
       
       {user?.username === 'Conlan97' && (

@@ -285,6 +285,93 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          header_image_url: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          header_image_url?: string | null
+          id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          header_image_url?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      warranty_orders: {
+        Row: {
+          condition: string | null
+          created_at: string
+          customer_name: string | null
+          date_submitted: string | null
+          dot_number: string | null
+          email: string | null
+          id: string
+          invoice_url: string | null
+          name: string | null
+          notes: string | null
+          photo_urls: string[] | null
+          plant: string
+          status: string
+          store: string | null
+          tire_size: string | null
+          tire_type: string | null
+          updated_at: string
+          user_id: string | null
+          work_order: string | null
+        }
+        Insert: {
+          condition?: string | null
+          created_at?: string
+          customer_name?: string | null
+          date_submitted?: string | null
+          dot_number?: string | null
+          email?: string | null
+          id?: string
+          invoice_url?: string | null
+          name?: string | null
+          notes?: string | null
+          photo_urls?: string[] | null
+          plant: string
+          status?: string
+          store?: string | null
+          tire_size?: string | null
+          tire_type?: string | null
+          updated_at?: string
+          user_id?: string | null
+          work_order?: string | null
+        }
+        Update: {
+          condition?: string | null
+          created_at?: string
+          customer_name?: string | null
+          date_submitted?: string | null
+          dot_number?: string | null
+          email?: string | null
+          id?: string
+          invoice_url?: string | null
+          name?: string | null
+          notes?: string | null
+          photo_urls?: string[] | null
+          plant?: string
+          status?: string
+          store?: string | null
+          tire_size?: string | null
+          tire_type?: string | null
+          updated_at?: string
+          user_id?: string | null
+          work_order?: string | null
+        }
+        Relationships: []
+      }
       wheel_orders: {
         Row: {
           completed: boolean | null
