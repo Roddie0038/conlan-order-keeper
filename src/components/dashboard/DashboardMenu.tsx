@@ -85,6 +85,18 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       hideTitle: true,
       fullSizeImage: true,
       backgroundImage: "/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png"
+    },
+    {
+      title: "NATIONAL WARRANTY TIRES",
+      icon: null,
+      path: "/national-warranty",
+      color: "",
+      borderColor: "border-purple-400",
+      delay: 0.7,
+      size: "col-span-1",
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/2d66f9b9-bc58-4d2f-bab0-d1141b72e69d.png"
     }
   ];
   
@@ -95,7 +107,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       path: "/admin-orders",
       color: "",
       borderColor: "border-amber-400",
-      delay: 0.8,
+      delay: 0.9,
       size: "col-span-1",
       highlight: true,
       hideTitle: true,
@@ -112,7 +124,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         ))}
         
         {/* Approved Treads Card */}
-        <ApprovedTreadsCard loaded={loaded} delay={0.7} />
+        <ApprovedTreadsCard loaded={loaded} delay={0.8} />
       </div>
       
       {user?.username === 'Conlan97' && (

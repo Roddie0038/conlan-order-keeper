@@ -314,18 +314,29 @@ export type Database = {
           date_submitted: string | null
           dot_number: string | null
           email: string | null
+          excise_tax_collected: boolean | null
           id: string
           invoice_url: string | null
+          load_range: string | null
+          mileage_on_tire: string | null
+          model_year: string | null
           name: string | null
           notes: string | null
           photo_urls: string[] | null
           plant: string
+          purchase_date: string | null
+          replacement_product_code: string | null
+          signature_url: string | null
           status: string
           store: string | null
           tire_size: string | null
           tire_type: string | null
           updated_at: string
           user_id: string | null
+          vehicle_make: string | null
+          vin_or_unit: string | null
+          wear_percentage: string | null
+          wheel_position: string | null
           work_order: string | null
         }
         Insert: {
@@ -335,18 +346,29 @@ export type Database = {
           date_submitted?: string | null
           dot_number?: string | null
           email?: string | null
+          excise_tax_collected?: boolean | null
           id?: string
           invoice_url?: string | null
+          load_range?: string | null
+          mileage_on_tire?: string | null
+          model_year?: string | null
           name?: string | null
           notes?: string | null
           photo_urls?: string[] | null
           plant: string
+          purchase_date?: string | null
+          replacement_product_code?: string | null
+          signature_url?: string | null
           status?: string
           store?: string | null
           tire_size?: string | null
           tire_type?: string | null
           updated_at?: string
           user_id?: string | null
+          vehicle_make?: string | null
+          vin_or_unit?: string | null
+          wear_percentage?: string | null
+          wheel_position?: string | null
           work_order?: string | null
         }
         Update: {
@@ -356,18 +378,29 @@ export type Database = {
           date_submitted?: string | null
           dot_number?: string | null
           email?: string | null
+          excise_tax_collected?: boolean | null
           id?: string
           invoice_url?: string | null
+          load_range?: string | null
+          mileage_on_tire?: string | null
+          model_year?: string | null
           name?: string | null
           notes?: string | null
           photo_urls?: string[] | null
           plant?: string
+          purchase_date?: string | null
+          replacement_product_code?: string | null
+          signature_url?: string | null
           status?: string
           store?: string | null
           tire_size?: string | null
           tire_type?: string | null
           updated_at?: string
           user_id?: string | null
+          vehicle_make?: string | null
+          vin_or_unit?: string | null
+          wear_percentage?: string | null
+          wheel_position?: string | null
           work_order?: string | null
         }
         Relationships: []
