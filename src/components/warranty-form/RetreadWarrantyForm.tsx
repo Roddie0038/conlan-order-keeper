@@ -97,7 +97,7 @@ export default function RetreadWarrantyForm() {
         invoice_url: invoiceUrl,
         photo_urls: photoUrls,
         email: user?.email || "",
-        name: user?.username || "",
+        name: user?.name || "",
       });
 
       toast({ 

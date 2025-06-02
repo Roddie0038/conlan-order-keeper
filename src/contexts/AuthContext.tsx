@@ -6,12 +6,18 @@ interface User {
   store: string;
   isAdmin: boolean;
   plant?: string;
+  // New properties needed by the warranty form
+  id: string;
+  email: string;
+  name: string;
+  storeName: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string, plant: string) => boolean;
   logout: () => void;
+  loading: boolean;
 }
 
 const users = [
@@ -54,11 +60,28 @@ const users = [
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper function to generate a user ID from username
+const generateUserId = (username: string): string => {
+  return `user_${username.replace(/\s+/g, '_').toLowerCase()}`;
+};
+
+// Helper function to generate email from store name
+const generateEmail = (storeName: string, username: string): string => {
+  const cleanStoreName = storeName.replace(/\s+/g, '').toLowerCase();
+  return `${cleanStoreName}@conlantire.com`;
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -71,12 +94,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (username: string, password: string, plant: string) => {
     const userMatch = users.find(u => u.username === username && u.password === password);
     if (userMatch) {
-      setUser({ 
-        username: userMatch.username, 
-        store: userMatch.store, 
+      const extendedUser: User = {
+        username: userMatch.username,
+        store: userMatch.store,
         isAdmin: userMatch.isAdmin,
-        plant: plant
-      });
+        plant: plant,
+        // New required properties
+        id: generateUserId(userMatch.username),
+        email: generateEmail(userMatch.store, userMatch.username),
+        name: userMatch.username,
+        storeName: userMatch.store
+      };
+      setUser(extendedUser);
       return true;
     }
     return false;
@@ -87,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
