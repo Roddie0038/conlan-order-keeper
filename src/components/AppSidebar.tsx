@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -103,7 +102,7 @@ const adminItems = [
   {
     title: "Completed Orders",
     url: "/completed-orders",
-    icon: FileCheck,
+    icon: FileText,
   },
 ];
 

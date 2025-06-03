@@ -85,18 +85,6 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       hideTitle: true,
       fullSizeImage: true,
       backgroundImage: "/lovable-uploads/d9828434-70c4-4af6-9e0a-0b609fdf1264.png"
-    },
-    {
-      title: "NATIONAL ACCOUNT WARRANTY FORM",
-      icon: null,
-      path: "/national-warranty",
-      color: "",
-      borderColor: "border-yellow-500",
-      delay: 0.7,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/52ff146d-0e5f-4a8c-80f2-b26621c00cce.png"
     }
   ];
   
@@ -107,7 +95,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       path: "/admin-orders",
       color: "",
       borderColor: "border-amber-400",
-      delay: 0.9,
+      delay: 0.8,
       size: "col-span-1",
       highlight: true,
       hideTitle: true,
@@ -124,7 +112,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         ))}
         
         {/* Approved Treads Card */}
-        <ApprovedTreadsCard loaded={loaded} delay={0.8} />
+        <ApprovedTreadsCard loaded={loaded} delay={0.7} />
       </div>
       
       {user?.username === 'Conlan97' && (
