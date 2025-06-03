@@ -1,7 +1,5 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
 import { useRetreadWarrantyForm } from "@/hooks/useRetreadWarrantyForm";
 import { useWarrantySubmission } from "@/hooks/useWarrantySubmission";
 import { BasicFormFields } from "./BasicFormFields";
@@ -38,17 +36,6 @@ export default function RetreadWarrantyForm() {
       </CardHeader>
       
       <CardContent className="space-y-4 bg-white/95">
-        {/* Construction Warning */}
-        <Alert className="border-amber-500 bg-amber-50 text-amber-800">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle className="font-semibold">⚠️ Page Under Construction</AlertTitle>
-          <AlertDescription>
-            This warranty submission form is still in development and is not yet functional.<br />
-            <strong>ETA for completion:</strong> 1 week.<br />
-            Please do not submit any warranty tires at this time.
-          </AlertDescription>
-        </Alert>
-
         <HelpBanner 
           title="Need help filling out this form?"
           description="View our step-by-step guide to complete the Local Retread Warranty Form correctly."

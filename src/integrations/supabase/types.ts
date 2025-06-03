@@ -191,6 +191,9 @@ export type Database = {
           order_completion_link: string | null
           order_type: string | null
           out_of_stock: boolean | null
+          out_of_stock_eta: string | null
+          out_of_stock_items: Json | null
+          out_of_stock_notes: string | null
           plant: string | null
           product_number: string | null
           pull_sheet_link: string | null
@@ -229,6 +232,9 @@ export type Database = {
           order_completion_link?: string | null
           order_type?: string | null
           out_of_stock?: boolean | null
+          out_of_stock_eta?: string | null
+          out_of_stock_items?: Json | null
+          out_of_stock_notes?: string | null
           plant?: string | null
           product_number?: string | null
           pull_sheet_link?: string | null
@@ -267,6 +273,9 @@ export type Database = {
           order_completion_link?: string | null
           order_type?: string | null
           out_of_stock?: boolean | null
+          out_of_stock_eta?: string | null
+          out_of_stock_items?: Json | null
+          out_of_stock_notes?: string | null
           plant?: string | null
           product_number?: string | null
           pull_sheet_link?: string | null

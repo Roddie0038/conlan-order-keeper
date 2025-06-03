@@ -42,7 +42,7 @@ export const useWarrantySubmission = () => {
         ? await uploadMultipleFiles(form.photoFiles, "warranty-photos", user?.id)
         : [];
 
-      // Submit warranty claim - removed user_id to avoid UUID error
+      // Submit warranty claim
       await submitRetreadWarranty({
         plant: user?.plant || "Grand Prairie 97",
         store: user?.storeName || "",
@@ -61,7 +61,7 @@ export const useWarrantySubmission = () => {
 
       toast({ 
         title: "Success!",
-        description: "Warranty claim submitted. You will be notified once credit is processed." 
+        description: "Warranty claim submitted successfully. You will be notified once credit is processed." 
       });
       
       resetForm();
