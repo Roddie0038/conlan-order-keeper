@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Index from './pages/Index';
 import Login from './pages/Login';
@@ -19,13 +19,24 @@ import CrossDock from './pages/CrossDock';
 import WheelOrder from './pages/WheelOrder';
 import RetreadWarranty from './pages/RetreadWarranty';
 import NationalWarranty from './pages/NationalWarranty';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { PlantProvider } from './contexts/PlantContext';
 import { Toaster } from "@/components/ui/toaster"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
 
 // Create a client
 const queryClient = new QueryClient();
+
+// Home redirect component that checks authentication
+function HomeRedirect() {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  return <Navigate to={user ? "/dashboard" : "/login"} replace />;
+}
 
 function App() {
   return (
@@ -36,7 +47,8 @@ function App() {
             <Toaster />
             <ConditionalSidebar>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<HomeRedirect />} />
+                <Route path="/transfer-request" element={<Index />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pending-orders" element={<PendingOrders />} />
