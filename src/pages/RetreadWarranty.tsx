@@ -19,9 +19,28 @@ export default function RetreadWarranty() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <RetreadWarrantyForm />
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background with caution stripe pattern */}
+      <div className="absolute inset-0 bg-black">
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            background: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 20px,
+              #ff8c00 20px,
+              #ff8c00 40px
+            )`
+          }}
+        />
+      </div>
+      
+      {/* Content */}
+      <div className="relative z-10 py-8">
+        <div className="container mx-auto px-4">
+          <RetreadWarrantyForm />
+        </div>
       </div>
     </div>
   );

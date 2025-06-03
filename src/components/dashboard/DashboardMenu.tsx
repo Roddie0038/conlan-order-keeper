@@ -84,7 +84,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/fedbf726-afa3-477f-97ef-fa62b213c003.png"
+      backgroundImage: "/lovable-uploads/d9828434-70c4-4af6-9e0a-0b609fdf1264.png"
     },
     {
       title: "NATIONAL ACCOUNT WARRANTY FORM",
