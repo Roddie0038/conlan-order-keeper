@@ -50,17 +50,17 @@ export function NationalWarrantyForm() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <Card>
-        <CardHeader>
+      <Card className="shadow-xl border-2 border-yellow-400/30 bg-white/95 backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-yellow-400 to-amber-500 text-black">
           <CardTitle className="text-2xl font-bold text-center">
             National Account Warranty Tire Submission
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-black/80 font-medium">
             Submit warranty claims for National Account tires. Claims will be reviewed by the Continental Rep team.
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 bg-white/95">
           <HelpBanner 
             title="Unsure how to complete this form?"
             description="View our comprehensive step-by-step guide for the National Account Warranty Form."
@@ -148,13 +148,13 @@ export function NationalWarrantyForm() {
           </div>
 
           {/* Acknowledgment */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
             <Checkbox
               id="acknowledged"
               checked={form.acknowledged}
               onCheckedChange={(checked) => handleFieldChange("acknowledged", checked as boolean)}
             />
-            <Label htmlFor="acknowledged" className="text-sm">
+            <Label htmlFor="acknowledged" className="text-sm font-medium">
               I will not dispose of the tire until authorized by the Continental Rep. *
             </Label>
           </div>
@@ -163,7 +163,7 @@ export function NationalWarrantyForm() {
           <Button 
             onClick={handleSubmit}
             disabled={loading || !form.acknowledged}
-            className="w-full"
+            className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black font-semibold border-2 border-black/20"
             size="lg"
           >
             {loading ? "Submitting..." : "Submit National Account Warranty Claim"}
