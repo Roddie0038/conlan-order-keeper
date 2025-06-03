@@ -15,6 +15,7 @@ export interface WarrantyOrderRecord {
   condition: string;
   notes: string;
   status: string;
+  completed_at?: string; // Added completed_at field
   plant: string;
 }
 

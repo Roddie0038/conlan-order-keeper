@@ -18,6 +18,7 @@ export interface WheelOrderRecord {
   notes: string;
   status: string;
   completed: boolean;
+  completed_at?: string; // Added completed_at field
   ordertype: string;
 }
 

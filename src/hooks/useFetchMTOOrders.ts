@@ -18,6 +18,7 @@ export interface MTOOrderRecord {
   notes: string;
   status: string;
   completed: boolean;
+  completed_at?: string; // Added completed_at field
   order_type: string;
 }
 

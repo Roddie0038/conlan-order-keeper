@@ -23,6 +23,7 @@ export interface OrderRecord {
   destination_manager_email: string;
   order_type: string;
   completed: boolean;
+  completed_at?: string; // Added completed_at field
   status?: string;
   out_of_stock?: boolean;
   plant?: string;

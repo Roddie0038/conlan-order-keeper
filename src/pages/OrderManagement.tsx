@@ -30,7 +30,7 @@ interface CombinedOrder {
   status: string;
   completed: boolean;
   orderType: 'Transfer' | 'MTO' | 'Wheel' | 'Warranty';
-  completedAt?: string;
+  completedAt?: string; // Updated to use completedAt consistently
   completedBy?: string;
 }
 
@@ -69,7 +69,7 @@ export default function OrderManagement() {
         status: order.status || 'pending',
         completed: order.completed || false,
         orderType: 'Transfer',
-        completedAt: order.completed_at,
+        completedAt: order.completed_at, // Use completed_at from database
       });
     });
 
@@ -88,6 +88,7 @@ export default function OrderManagement() {
         status: order.status || 'pending',
         completed: order.completed || false,
         orderType: 'MTO',
+        completedAt: order.completed_at, // Use completed_at from database
       });
     });
 
@@ -106,6 +107,7 @@ export default function OrderManagement() {
         status: order.status || 'pending',
         completed: order.completed || false,
         orderType: 'Wheel',
+        completedAt: order.completed_at, // Use completed_at from database
       });
     });
 
@@ -124,6 +126,7 @@ export default function OrderManagement() {
         status: order.status || 'open',
         completed: order.status === 'completed',
         orderType: 'Warranty',
+        completedAt: order.completed_at, // Use completed_at from database
       });
     });
 
@@ -372,7 +375,12 @@ export default function OrderManagement() {
                       ) : (
                         sortOrders(completedOrders).map((order, index) => (
                           <TableRow key={order.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                            <TableCell>{order.completedAt ? new Date(order.completedAt).toLocaleString() : 'N/A'}</TableCell>
+                            <TableCell>
+                              {order.completedAt ? 
+                                new Date(order.completedAt).toLocaleString() : 
+                                'N/A'
+                              }
+                            </TableCell>
                             <TableCell>{order.store}</TableCell>
                             <TableCell>
                               <Badge className={`${getBadgeColor(order.orderType)} text-white`}>
