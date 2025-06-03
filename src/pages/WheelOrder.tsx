@@ -1,5 +1,4 @@
 
-import { Navigation } from "@/components/Navigation";
 import { WheelOrderForm } from "@/components/wheel-order/WheelOrderForm";
 
 export default function WheelOrder() {
@@ -13,7 +12,6 @@ export default function WheelOrder() {
         backgroundRepeat: "no-repeat"
       }}
     >
-      <Navigation />
       <div className="container mx-auto px-4 py-8">
         <WheelOrderForm />
       </div>

@@ -22,6 +22,7 @@ import NationalWarranty from './pages/NationalWarranty';
 import { AuthProvider } from './contexts/AuthContext';
 import { PlantProvider } from './contexts/PlantContext';
 import { Toaster } from "@/components/ui/toaster"
+import { ConditionalSidebar } from './components/ConditionalSidebar';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -33,25 +34,27 @@ function App() {
         <PlantProvider>
           <QueryClientProvider client={queryClient}>
             <Toaster />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/pending-orders" element={<PendingOrders />} />
-              <Route path="/all-pending-orders" element={<AllPendingOrders />} />
-              <Route path="/completed-orders" element={<CompletedOrders />} />
-              <Route path="/order-management" element={<OrderManagement />} />
-              <Route path="/admin-inventory" element={<AdminInventory />} />
-              <Route path="/admin-orders" element={<AdminOrders />} />
-              <Route path="/all-orders" element={<AllOrders />} />
-              <Route path="/approved-treads" element={<ApprovedTreads />} />
-              <Route path="/relentless-inventory" element={<RelentlessInventory />} />
-              <Route path="/mto-order" element={<MTOOrder />} />
-              <Route path="/cross-dock" element={<CrossDock />} />
-              <Route path="/wheel-order" element={<WheelOrder />} />
-              <Route path="/retread-warranty" element={<RetreadWarranty />} />
-              <Route path="/national-warranty" element={<NationalWarranty />} />
-            </Routes>
+            <ConditionalSidebar>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/pending-orders" element={<PendingOrders />} />
+                <Route path="/all-pending-orders" element={<AllPendingOrders />} />
+                <Route path="/completed-orders" element={<CompletedOrders />} />
+                <Route path="/order-management" element={<OrderManagement />} />
+                <Route path="/admin-inventory" element={<AdminInventory />} />
+                <Route path="/admin-orders" element={<AdminOrders />} />
+                <Route path="/all-orders" element={<AllOrders />} />
+                <Route path="/approved-treads" element={<ApprovedTreads />} />
+                <Route path="/relentless-inventory" element={<RelentlessInventory />} />
+                <Route path="/mto-order" element={<MTOOrder />} />
+                <Route path="/cross-dock" element={<CrossDock />} />
+                <Route path="/wheel-order" element={<WheelOrder />} />
+                <Route path="/retread-warranty" element={<RetreadWarranty />} />
+                <Route path="/national-warranty" element={<NationalWarranty />} />
+              </Routes>
+            </ConditionalSidebar>
           </QueryClientProvider>
         </PlantProvider>
       </AuthProvider>
