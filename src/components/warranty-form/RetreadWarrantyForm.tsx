@@ -5,6 +5,7 @@ import { useWarrantySubmission } from "@/hooks/useWarrantySubmission";
 import { BasicFormFields } from "./BasicFormFields";
 import { FileUploadFields } from "./FileUploadFields";
 import { AcknowledgmentSection } from "./AcknowledgmentSection";
+import { HelpBanner } from "./HelpBanner";
 
 export default function RetreadWarrantyForm() {
   const {
@@ -35,6 +36,12 @@ export default function RetreadWarrantyForm() {
       </CardHeader>
       
       <CardContent className="space-y-4">
+        <HelpBanner 
+          title="Need help filling out this form?"
+          description="View our step-by-step guide to complete the Local Retread Warranty Form correctly."
+          guideUrl="/lovable-uploads/6bf42604-5925-4802-bdef-1c34ebff45f3.png"
+        />
+        
         <BasicFormFields form={form} onChange={handleChange} />
         <FileUploadFields onFileChange={handleFileChange} />
         <AcknowledgmentSection 

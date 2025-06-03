@@ -12,6 +12,7 @@ import { NationalFormFields } from "./NationalFormFields";
 import { SignatureUploadField } from "./SignatureUploadField";
 import { FileUploadFields } from "./FileUploadFields";
 import { useNationalWarrantySubmission } from "@/hooks/useNationalWarrantySubmission";
+import { HelpBanner } from "./HelpBanner";
 
 export function NationalWarrantyForm() {
   const { user } = useAuth();
@@ -60,6 +61,12 @@ export function NationalWarrantyForm() {
         </CardHeader>
         
         <CardContent className="space-y-6">
+          <HelpBanner 
+            title="Unsure how to complete this form?"
+            description="View our comprehensive step-by-step guide for the National Account Warranty Form."
+            guideUrl="/lovable-uploads/9f63f643-3350-4807-90cc-f786a584cf45.png"
+          />
+
           {/* Store Information (Auto-filled) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
