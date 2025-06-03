@@ -42,9 +42,8 @@ export const useWarrantySubmission = () => {
         ? await uploadMultipleFiles(form.photoFiles, "warranty-photos", user?.id)
         : [];
 
-      // Submit warranty claim
+      // Submit warranty claim - removed user_id to avoid UUID error
       await submitRetreadWarranty({
-        user_id: user?.id,
         plant: user?.plant || "Grand Prairie 97",
         store: user?.storeName || "",
         tire_type: "Retread",

@@ -2,7 +2,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface RetreadWarrantyData {
-  user_id?: string;
   plant: string;
   store: string;
   tire_type: string;
@@ -19,7 +18,6 @@ export interface RetreadWarrantyData {
 }
 
 export interface NationalWarrantyData {
-  user_id?: string;
   plant: string;
   store: string;
   tire_type: string;
@@ -49,11 +47,10 @@ export const submitRetreadWarranty = async (data: RetreadWarrantyData) => {
   try {
     console.log('🚀 Submitting retread warranty claim:', data);
     
-    // Insert into warranty_orders table
+    // Insert into warranty_orders table without user_id to avoid UUID error
     const { data: warrantyOrder, error: dbError } = await supabase
       .from('warranty_orders')
       .insert({
-        user_id: data.user_id,
         plant: data.plant,
         store: data.store,
         tire_type: data.tire_type,
@@ -114,11 +111,10 @@ export const submitNationalWarranty = async (data: NationalWarrantyData) => {
   try {
     console.log('🚀 Submitting National Account warranty claim:', data);
     
-    // Insert into warranty_orders table
+    // Insert into warranty_orders table without user_id to avoid UUID error
     const { data: warrantyOrder, error: dbError } = await supabase
       .from('warranty_orders')
       .insert({
-        user_id: data.user_id,
         plant: data.plant,
         store: data.store,
         tire_type: data.tire_type,

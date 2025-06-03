@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNationalWarrantyForm } from "@/hooks/useNationalWarrantyForm";
 import { VehicleInfoFields } from "./VehicleInfoFields";
@@ -61,6 +63,17 @@ export function NationalWarrantyForm() {
         </CardHeader>
         
         <CardContent className="space-y-6 bg-white/95">
+          {/* Construction Warning */}
+          <Alert className="border-amber-500 bg-amber-50 text-amber-800">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle className="font-semibold">⚠️ Page Under Construction</AlertTitle>
+            <AlertDescription>
+              This warranty submission form is still in development and is not yet functional.<br />
+              <strong>ETA for completion:</strong> 1 week.<br />
+              Please do not submit any warranty tires at this time.
+            </AlertDescription>
+          </Alert>
+
           <HelpBanner 
             title="Unsure how to complete this form?"
             description="View our comprehensive step-by-step guide for the National Account Warranty Form."
