@@ -11,6 +11,7 @@ interface OrdersTableContentProps {
   sortDirection: 'asc' | 'desc';
   handleSort: (field: string) => void;
   showCompletedAt?: boolean;
+  onOrderClick?: (order: CombinedOrder) => void;
 }
 
 export function OrdersTableContent({
@@ -18,7 +19,8 @@ export function OrdersTableContent({
   sortField,
   sortDirection,
   handleSort,
-  showCompletedAt = false
+  showCompletedAt = false,
+  onOrderClick
 }: OrdersTableContentProps) {
   return (
     <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
@@ -57,7 +59,13 @@ export function OrdersTableContent({
             </TableRow>
           ) : (
             orders.map((order, index) => (
-              <TableRow key={order.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+              <TableRow 
+                key={order.id} 
+                className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${
+                  onOrderClick ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''
+                }`}
+                onClick={() => onOrderClick?.(order)}
+              >
                 <TableCell>
                   {showCompletedAt ? (
                     order.completedAt ? 
