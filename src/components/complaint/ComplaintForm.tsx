@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileUploader } from "@/components/inventory/FileUploader";
+import { MultipleFileUploader } from "@/components/inventory/MultipleFileUploader";
 import { CreateComplaintData } from "@/types/complaint.types";
 import { submitComplaint } from "@/services/complaintService";
 import { extractStoreNumber } from "@/utils/storeUtils";
@@ -231,8 +231,7 @@ export function ComplaintForm({ onSuccess }: ComplaintFormProps) {
 
           {/* File Upload */}
           <div>
-            <Label>Attachments</Label>
-            <FileUploader
+            <MultipleFileUploader
               onFilesSelected={setAttachments}
               acceptedFileTypes={{
                 'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
@@ -241,13 +240,9 @@ export function ComplaintForm({ onSuccess }: ComplaintFormProps) {
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
               }}
               maxFiles={5}
-              maxFileSize={10 * 1024 * 1024} // 10MB
+              maxFileSize={10 * 1024 * 1024}
+              selectedFiles={attachments}
             />
-            {attachments.length > 0 && (
-              <p className="text-sm text-gray-600 mt-2">
-                {attachments.length} file(s) selected
-              </p>
-            )}
           </div>
 
           {/* Contact Information */}

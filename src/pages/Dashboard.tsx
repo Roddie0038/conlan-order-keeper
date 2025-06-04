@@ -61,7 +61,7 @@ export default function Dashboard() {
         </div>
 
         <main>
-          <DashboardMenu loaded={loaded} />
+          <DashboardMenu />
         </main>
 
         <DashboardFooter />
