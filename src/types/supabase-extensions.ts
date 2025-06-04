@@ -1,4 +1,11 @@
+
 import type { Database } from "@/integrations/supabase/types";
+
+// Standardized Supabase insert result type
+export type SupabaseInsertResult<T> = {
+  data: T | null;
+  error: Error | null;
+};
 
 // Define OrderData interface for backward compatibility
 export interface OrderData {
@@ -84,6 +91,12 @@ export interface MTOOrderData {
   orderCompletionLink?: string;
   invoiceNumber?: string;
 }
+
+// Define specific return types for each order type
+export type MTOOrderRecord = Database['public']['Tables']['mto_orders']['Row'];
+export type TransferOrderRecord = Database['public']['Tables']['orders']['Row'];
+export type WheelOrderRecord = Database['public']['Tables']['wheel_orders']['Row'];
+export type WarrantyOrderRecord = Database['public']['Tables']['warranty_orders']['Row'];
 
 export interface ExtendedDatabase extends Database {
   public: Database['public'] & {

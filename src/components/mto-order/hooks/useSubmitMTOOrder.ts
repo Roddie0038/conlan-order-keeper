@@ -69,7 +69,12 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
 
       // Submit to Supabase (uses mapMTOToSupabase internally for snake_case)
       const savedOrder = await saveOrderToSupabase(mtoOrderData, user);
-      console.log("🔍 MTO FORM - Saved to Supabase successfully:", savedOrder);
+      
+      if (savedOrder.error) {
+        throw new Error("Failed to submit MTO order to database");
+      }
+      
+      console.log("🔍 MTO FORM - Saved to Supabase successfully:", savedOrder.data);
 
       // Submit to Google Sheets (uses mapMTOToGoogleSheets internally for camelCase)
       const result = await submitToGoogleSheets(mtoOrderData, user);
@@ -94,7 +99,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
                 },
                 body: JSON.stringify({
                   mtoData: mtoOrderData,
-                  orderId: savedOrder?.data?.id || savedOrder?.id || 'unknown',
+                  orderId: savedOrder.data?.id || 'unknown',
                   recipients: emailRecipients
                 })
               }

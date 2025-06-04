@@ -42,8 +42,8 @@ export const useWarrantySubmission = () => {
         ? await uploadMultipleFiles(form.photoFiles, "warranty-photos", user?.id)
         : [];
 
-      // Submit warranty claim
-      await submitRetreadWarranty({
+      // Submit warranty claim with standardized return type
+      const result = await submitRetreadWarranty({
         plant: user?.plant || "Grand Prairie 97",
         store: user?.storeName || "",
         tire_type: "Retread",
@@ -58,6 +58,10 @@ export const useWarrantySubmission = () => {
         email: user?.email || "",
         name: user?.name || "",
       });
+
+      if (result.error) {
+        throw result.error;
+      }
 
       toast({ 
         title: "Success!",

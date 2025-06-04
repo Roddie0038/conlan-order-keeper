@@ -1,16 +1,20 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import type { OrderData, MTOOrderData } from "@/types/supabase-extensions";
+import type { OrderData, MTOOrderData, SupabaseInsertResult, MTOOrderRecord, TransferOrderRecord, WheelOrderRecord } from "@/types/supabase-extensions";
 import { mapOrderToSupabase } from "@/utils/mapOrderToSupabase";
 import { mapMTOToSupabase } from "@/utils/mapMTOToSupabase";
 
 /**
- * Save an order to Supabase using proper field mapping
+ * Save an order to Supabase using proper field mapping with standardized return type
  * 
  * @param order The order data to save
  * @param user User information for mapping
- * @returns A promise resolving to the saved order or an error
+ * @returns A promise resolving to the standardized result structure
  */
-export const saveOrderToSupabase = async (order: OrderData | MTOOrderData, user?: any) => {
+export const saveOrderToSupabase = async (
+  order: OrderData | MTOOrderData, 
+  user?: any
+): Promise<SupabaseInsertResult<MTOOrderRecord | TransferOrderRecord | WheelOrderRecord>> => {
   console.log("🔍 ORDER SERVICE - Saving order to Supabase:", order);
   
   try {

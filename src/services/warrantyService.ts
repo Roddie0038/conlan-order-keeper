@@ -1,5 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { getWarrantyEmailRecipients } from "@/config/contactSystem";
+import type { SupabaseInsertResult, WarrantyOrderRecord } from "@/types/supabase-extensions";
 
 export interface RetreadWarrantyData {
   plant: string;
@@ -17,7 +19,7 @@ export interface RetreadWarrantyData {
   name: string;
 }
 
-export const submitRetreadWarranty = async (data: RetreadWarrantyData) => {
+export const submitRetreadWarranty = async (data: RetreadWarrantyData): Promise<SupabaseInsertResult<WarrantyOrderRecord>> => {
   try {
     console.log('🚀 Submitting retread warranty claim:', data);
     
@@ -46,7 +48,7 @@ export const submitRetreadWarranty = async (data: RetreadWarrantyData) => {
 
     if (dbError) {
       console.error('❌ Database error:', dbError);
-      throw new Error(`Database error: ${dbError.message}`);
+      return { data: null, error: new Error(`Database error: ${dbError.message}`) };
     }
 
     console.log('✅ Warranty claim saved to database:', warrantyOrder);
@@ -91,9 +93,12 @@ export const submitRetreadWarranty = async (data: RetreadWarrantyData) => {
       console.log('✅ Email notification sent successfully');
     }
 
-    return warrantyOrder;
+    return { data: warrantyOrder, error: null };
   } catch (error) {
     console.error('❌ Error submitting warranty claim:', error);
-    throw error;
+    return { 
+      data: null, 
+      error: error instanceof Error ? error : new Error("Unknown error in warranty submission") 
+    };
   }
 };
