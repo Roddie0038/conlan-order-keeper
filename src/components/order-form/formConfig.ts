@@ -1,3 +1,4 @@
+
 import { CrossDockFields } from "@/types/cross-dock.types";
 
 export const stores = [
@@ -14,7 +15,7 @@ export const stores = [
 ];
 
 export const storeManagerEmails: Record<string, string> = {
-  "22": "jmartinez@conlantire.com",
+  "22": "roderickdemarais@aol.com, rdemarais@conlantire.com", // TESTING: Updated with test emails only
   "27": "rdemarais@conlantire.com, roderickdemarais@aol.com, conlantire97@gmail.com",
   "28": "jhughes@conlantire.com, eblais@conlantire.com",
   "29": "rpetty@conlantire.com, pvallejo@conlantire.com",

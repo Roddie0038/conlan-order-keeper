@@ -1,7 +1,7 @@
 // Store data configuration - Updated with all stores including new Florida stores
 export const storeData = [
-  // Existing Grand Prairie stores (keep unchanged)
-  { storeNumber: "22", name: "Fort Worth 22", managerEmails: "jmartinez@conlantire.com" },
+  // Existing Grand Prairie stores (keep unchanged) - TESTING: Fort Worth 22 updated with test emails only
+  { storeNumber: "22", name: "Fort Worth 22", managerEmails: "roderickdemarais@aol.com, rdemarais@conlantire.com" },
   { storeNumber: "27", name: "Grand Prairie 27", managerEmails: "rdemarais@conlantire.com, roderickdemarais@aol.com, conlantire97@gmail.com" },
   { storeNumber: "28", name: "Houston 28", managerEmails: "jhughes@conlantire.com, eblais@conlantire.com" },
   { storeNumber: "29", name: "San Antonio 29", managerEmails: "rpetty@conlantire.com, pvallejo@conlantire.com" },
