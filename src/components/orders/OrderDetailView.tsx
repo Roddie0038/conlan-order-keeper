@@ -141,7 +141,7 @@ export function OrderDetailView({ order, onClose, isAdmin = false, onStatusChang
             </div>
 
             {/* Cross-Dock Information (if applicable) */}
-            {(order.cross_dock_type === "Yes" || orderType === 'cross-dock') && (
+            {order.cross_dock_type === "Yes" && (
               <div>
                 <h3 className="font-medium text-gray-700">Cross-Dock Information</h3>
                 <div className="mt-2 space-y-1 text-sm">
