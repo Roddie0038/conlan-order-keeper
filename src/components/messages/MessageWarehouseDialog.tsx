@@ -1,0 +1,101 @@
+
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Send, MessageSquare } from "lucide-react";
+
+interface MessageWarehouseDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  orderNumber: string;
+  storeName: string;
+  onSendMessage: (message: string) => Promise<boolean>;
+  sending: boolean;
+}
+
+export function MessageWarehouseDialog({
+  open,
+  onOpenChange,
+  orderNumber,
+  storeName,
+  onSendMessage,
+  sending
+}: MessageWarehouseDialogProps) {
+  const [message, setMessage] = useState("");
+
+  const handleSend = async () => {
+    if (!message.trim()) return;
+    
+    const success = await onSendMessage(message);
+    if (success) {
+      setMessage("");
+      onOpenChange(false);
+    }
+  };
+
+  const handleClose = () => {
+    setMessage("");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Message Warehouse
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Order Number</Label>
+              <div className="mt-1 p-2 bg-gray-50 rounded-md border">
+                <span className="font-medium">{orderNumber}</span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Store</Label>
+              <div className="mt-1 p-2 bg-gray-50 rounded-md border">
+                <span className="font-medium">{storeName}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <Label htmlFor="message" className="text-sm font-medium text-gray-700">
+              Message to Warehouse
+            </Label>
+            <Textarea
+              id="message"
+              placeholder="Type your message to the warehouse..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+              className="mt-1"
+              disabled={sending}
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="flex justify-end space-x-2">
+          <Button variant="ghost" onClick={handleClose} disabled={sending}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSend} 
+            disabled={!message.trim() || sending}
+            className="flex items-center gap-2"
+          >
+            <Send className="h-4 w-4" />
+            {sending ? "Sending..." : "Send Message"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
