@@ -1,125 +1,125 @@
-
-import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket, FileCheck } from "lucide-react";
-import { MenuCard, MenuItemProps } from "./MenuCard";
-import { ApprovedTreadsCard } from "./ApprovedTreadsCard";
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { DeploymentControls } from "@/components/admin/DeploymentControls";
+import { useNavigate } from "react-router-dom";
+import { FileText, Package, ClipboardList, Truck, Settings, Wrench, Shield, AlertTriangle } from "lucide-react";
 
-interface DashboardMenuProps {
-  loaded: boolean;
-}
+const menuItems = [
+  {
+    title: "Order Form",
+    description: "Submit a new tire order to the warehouse",
+    href: "/order-form",
+    icon: Package,
+    bgColor: "bg-blue-500",
+    available: true,
+  },
+  {
+    title: "Pending Orders",
+    description: "View your store's pending tire orders",
+    href: "/pending-orders",
+    icon: ClipboardList,
+    bgColor: "bg-yellow-500",
+    available: true,
+  },
+  {
+    title: "Completed Orders",
+    description: "View your store's completed tire orders",
+    href: "/completed-orders",
+    icon: Truck,
+    bgColor: "bg-green-500",
+    available: true,
+  },
+  {
+    title: "MTO Order",
+    description: "Submit a new MTO (Make To Order) request",
+    href: "/mto-order",
+    icon: Wrench,
+    bgColor: "bg-purple-500",
+    available: true,
+  },
+  {
+    title: "Wheel Order",
+    description: "Submit a new Wheel and Powder Coating order",
+    href: "/wheel-order",
+    icon: Shield,
+    bgColor: "bg-orange-500",
+    available: true,
+  },
+  {
+    title: "Order Management",
+    description: "Manage and track all orders",
+    href: "/order-management",
+    icon: Settings,
+    bgColor: "bg-gray-500",
+    available: true,
+  },
+  {
+    title: "Complaint Tracking",
+    description: "Submit and track complaints for tire transfers, retreads, and work orders",
+    href: "/complaint-tracking",
+    icon: AlertTriangle,
+    bgColor: "bg-orange-500",
+    available: true,
+  },
+];
 
-export function DashboardMenu({ loaded }: DashboardMenuProps) {
-  const { user } = useAuth();
-  
-  const menuItems: MenuItemProps[] = [
-    {
-      title: "NEW ORDER",
-      icon: null,
-      path: "/pending-orders",
-      color: "",
-      borderColor: "border-yellow-500",
-      delay: 0.1,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/a0aa8846-9b65-429e-8825-76c0574bf5b8.png"
-    },
-    {
-      title: "MTO",
-      icon: null,
-      path: "/mto-order",
-      color: "",
-      borderColor: "border-blue-400",
-      delay: 0.2,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/9f69d8f3-d46e-4cb7-9aa4-c71919921d67.png"
-    },
-    {
-      title: "ORDER MANAGEMENT",
-      icon: null,
-      path: "/order-management",
-      color: "",
-      borderColor: "border-yellow-400",
-      delay: 0.3,
-      size: "col-span-1",
-      highlight: true,
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/7f6dce61-94af-46e1-9797-99bc1808efa9.png"
-    },
-    {
-      title: "CROSS DOCK",
-      icon: null,
-      path: "/cross-dock",
-      color: "",
-      borderColor: "border-green-400",
-      delay: 0.4,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/621af873-8fbf-44ed-8587-a590c85a7b53.png"
-    },
-    {
-      title: "WHEEL REFURB ORDER",
-      icon: null,
-      path: "/wheel-order",
-      color: "",
-      borderColor: "border-[#2F9599]",
-      delay: 0.5,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/8d829cab-7b94-46fc-9281-84ee33a52d3c.png"
-    },
-    {
-      title: "RETREAD WARRANTY",
-      icon: null,
-      path: "/retread-warranty",
-      color: "",
-      borderColor: "border-red-400",
-      delay: 0.6,
-      size: "col-span-1",
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/d9828434-70c4-4af6-9e0a-0b609fdf1264.png"
-    }
-  ];
-  
-  if (user?.isAdmin) {
-    menuItems.push({
-      title: "ALL ORDERS",
-      icon: null,
-      path: "/admin-orders",
-      color: "",
-      borderColor: "border-amber-400",
-      delay: 0.8,
-      size: "col-span-1",
-      highlight: true,
-      hideTitle: true,
-      fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/d105eb33-3189-4f02-995f-dfd6eaf2b08a.png"
-    });
-  }
+export function DashboardMenu() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="container py-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {menuItems.map((item) => (
-          <MenuCard key={item.title} item={item} loaded={loaded} />
+          <Card key={item.title} className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
+            <div className={`${item.bgColor} p-6 flex items-center`}>
+              <item.icon className="h-6 w-6 text-white mr-4" />
+              <h2 className="text-2xl font-semibold text-white">{item.title}</h2>
+            </div>
+            <CardContent className="p-6">
+              <p className="text-gray-700">{item.description}</p>
+              <a href={item.href} className="block mt-4 text-blue-600 hover:underline">
+                Go to {item.title}
+              </a>
+            </CardContent>
+          </Card>
         ))}
-        
-        {/* Approved Treads Card */}
-        <ApprovedTreadsCard loaded={loaded} delay={0.7} />
       </div>
-      
-      {user?.username === 'Conlan97' && (
-        <div className="mt-10 max-w-md mx-auto">
-          <DeploymentControls />
-        </div>
-      )}
-    </>
+
+      <div className="mt-8 flex justify-between items-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Avatar>
+              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              {user?.username} ({user?.store})
+            </DropdownMenuItem>
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
   );
 }
