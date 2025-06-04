@@ -17,7 +17,19 @@ const SMTP_CONFIG = {
 };
 
 async function sendSMTPEmail(to: string[], subject: string, htmlBody: string) {
-  console.log("📧 Attempting to send Transfer email via SMTP to:", to);
+  console.log("📧 TRANSFER EMAIL - Attempting to send email via SMTP to:", to);
+  console.log("📧 TRANSFER EMAIL - SMTP Config:", {
+    host: SMTP_CONFIG.host,
+    port: SMTP_CONFIG.port,
+    user: SMTP_CONFIG.user,
+    from: SMTP_CONFIG.from,
+    hasPassword: !!SMTP_CONFIG.pass
+  });
+  
+  // Validate SMTP configuration
+  if (!SMTP_CONFIG.user || !SMTP_CONFIG.pass) {
+    throw new Error("SMTP credentials not configured. Please set SMTP_USER and SMTP_PASS environment variables.");
+  }
   
   try {
     // Create email message in RFC 5322 format
@@ -57,12 +69,17 @@ async function sendSMTPEmail(to: string[], subject: string, htmlBody: string) {
 
     // Helper function to send SMTP command
     const sendCommand = async (command: string) => {
+      console.log("📧 SMTP Command:", command.startsWith('AUTH') ? 'AUTH LOGIN' : command);
       await conn.write(encoder.encode(command + '\r\n'));
-      return await readResponse();
+      const response = await readResponse();
+      console.log("📧 SMTP Response:", response.trim());
+      return response;
     };
 
     // SMTP conversation
-    await readResponse(); // Read greeting
+    const greeting = await readResponse(); // Read greeting
+    console.log("📧 SMTP Greeting:", greeting.trim());
+    
     await sendCommand(`EHLO ${SMTP_CONFIG.host}`);
     await sendCommand('STARTTLS');
     
@@ -81,17 +98,18 @@ async function sendSMTPEmail(to: string[], subject: string, htmlBody: string) {
     await sendCommand('QUIT');
     
     conn.close();
-    console.log("✅ Transfer Email sent successfully via SMTP");
+    console.log("✅ TRANSFER EMAIL - Email sent successfully via SMTP");
     return true;
   } catch (error) {
-    console.error("❌ SMTP Transfer email sending failed:", error);
+    console.error("❌ TRANSFER EMAIL - SMTP email sending failed:", error);
     throw error;
   }
 }
 
 // Email notification for Transfer Request orders
 serve(async (req) => {
-  console.log("🚀 EDGE FUNCTION - transfer-notification called");
+  console.log("🚀 TRANSFER NOTIFICATION - Edge function called");
+  console.log("🚀 TRANSFER NOTIFICATION - Request method:", req.method);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -106,12 +124,17 @@ serve(async (req) => {
   }
 
   try {
-    const { transferData, orderId, recipients } = await req.json();
-    console.log("📧 Processing Transfer notification:", orderId);
-    console.log("📧 Recipients:", recipients);
+    const requestBody = await req.json();
+    console.log("📧 TRANSFER NOTIFICATION - Request body:", JSON.stringify(requestBody, null, 2));
+    
+    const { transferData, orderId, recipients } = requestBody;
+    
+    console.log("📧 TRANSFER NOTIFICATION - Processing order:", orderId);
+    console.log("📧 TRANSFER NOTIFICATION - Recipients:", recipients);
+    console.log("📧 TRANSFER NOTIFICATION - Transfer data:", transferData);
 
     if (!recipients || recipients.length === 0) {
-      console.log("⚠️ No email recipients provided for Transfer order:", orderId);
+      console.log("⚠️ TRANSFER NOTIFICATION - No email recipients provided for order:", orderId);
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'No recipients provided',
@@ -122,59 +145,78 @@ serve(async (req) => {
       });
     }
 
-    const emailSubject = `Transfer Request - ${transferData.store} - ${transferData.product_number || transferData.productNumber}`;
+    // Create comprehensive email subject and body
+    const emailSubject = `Order Confirmation - ${transferData.store} - ${transferData.productNumber || transferData.product_number}`;
     
     const emailBody = `
-      <h2>New Transfer Request Submitted</h2>
-      
-      <h3>Order Details:</h3>
-      <ul>
-        <li><strong>Store:</strong> ${transferData.store}</li>
-        <li><strong>Plant:</strong> ${transferData.plant}</li>
-        <li><strong>Product Number:</strong> ${transferData.product_number || transferData.productNumber}</li>
-        <li><strong>Description:</strong> ${transferData.description}</li>
-        <li><strong>Quantity:</strong> ${transferData.quantity}</li>
-        <li><strong>Schedule Arrival:</strong> ${transferData.schedule_arrival || transferData.scheduleArrival}</li>
-        <li><strong>Submitted by:</strong> ${transferData.name} (${transferData.email})</li>
-      </ul>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
+          New Order Submitted - Confirmation
+        </h2>
+        
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h3 style="color: #333; margin-top: 0;">Order Details:</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin: 8px 0;"><strong>Store:</strong> ${transferData.store}</li>
+            <li style="margin: 8px 0;"><strong>Plant:</strong> ${transferData.plant}</li>
+            <li style="margin: 8px 0;"><strong>Product Number:</strong> ${transferData.productNumber || transferData.product_number}</li>
+            <li style="margin: 8px 0;"><strong>Description:</strong> ${transferData.description}</li>
+            <li style="margin: 8px 0;"><strong>Quantity:</strong> ${transferData.quantity}</li>
+            <li style="margin: 8px 0;"><strong>Schedule Arrival:</strong> ${transferData.scheduleArrival || transferData.schedule_arrival}</li>
+            <li style="margin: 8px 0;"><strong>Submitted by:</strong> ${transferData.name} (${transferData.email})</li>
+          </ul>
+        </div>
 
-      <h3>Additional Information:</h3>
-      <p><strong>Notes:</strong> ${transferData.notes || 'None'}</p>
-      
-      ${transferData.cross_dock_type === 'Yes' || transferData.crossDock === 'Yes' ? `
-        <h3>Cross Dock Information:</h3>
-        <ul>
-          <li><strong>Destination:</strong> ${transferData.cross_dock_destination || transferData.crossDockDestination}</li>
-          <li><strong>Receiver Number:</strong> ${transferData.cross_dock_receiver_number || transferData.receiverNo || 'Not specified'}</li>
-          <li><strong>ETA Date:</strong> ${transferData.cross_dock_eta_date || transferData.etaDate || 'Not specified'}</li>
-        </ul>
-      ` : ''}
-      
-      <hr>
-      <p><em>This transfer request has been assigned ID: ${orderId}</em></p>
-      <p><em>Please review and process according to transfer procedures.</em></p>
+        <div style="background-color: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h3 style="color: #333; margin-top: 0;">Additional Information:</h3>
+          <p><strong>Notes:</strong> ${transferData.notes || 'None'}</p>
+        </div>
+        
+        ${transferData.crossDock === 'Yes' || transferData.cross_dock_type === 'Yes' ? `
+          <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
+            <h3 style="color: #856404; margin-top: 0;">Cross Dock Information:</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li style="margin: 8px 0;"><strong>Destination:</strong> ${transferData.crossDockDestination || transferData.cross_dock_destination}</li>
+              <li style="margin: 8px 0;"><strong>Receiver Number:</strong> ${transferData.receiverNo || transferData.cross_dock_receiver_number || 'Not specified'}</li>
+              <li style="margin: 8px 0;"><strong>ETA Date:</strong> ${transferData.etaDate || transferData.cross_dock_eta_date || 'Not specified'}</li>
+            </ul>
+          </div>
+        ` : ''}
+        
+        <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
+        
+        <div style="text-align: center; color: #6c757d; font-size: 14px;">
+          <p><em>This order has been assigned ID: ${orderId}</em></p>
+          <p><em>Please review and process according to company procedures.</em></p>
+          <p style="margin-top: 20px;">Conlan Tire Order Management System</p>
+        </div>
+      </div>
     `;
 
-    console.log("📧 Sending Transfer notification to:", recipients);
+    console.log("📧 TRANSFER NOTIFICATION - Sending email to:", recipients);
+    console.log("📧 TRANSFER NOTIFICATION - Email subject:", emailSubject);
     
     // Send email via SMTP
     await sendSMTPEmail(recipients, emailSubject, emailBody);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Transfer notification sent successfully',
+      message: 'Order confirmation email sent successfully',
       recipients: recipients.length,
-      orderId: orderId
+      orderId: orderId,
+      orderType: transferData.type || 'TRANSFER',
+      store: transferData.store
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error("❌ Error in transfer-notification:", error);
+    console.error("❌ TRANSFER NOTIFICATION - Error:", error);
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message 
+      error: error.message,
+      details: error.stack
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

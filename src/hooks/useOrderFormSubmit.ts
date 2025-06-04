@@ -9,6 +9,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { getTransferEmailRecipients } from "@/config/contactSystem";
 import type { OrderData } from "@/types/supabase-extensions";
 
 export function useOrderFormSubmit() {
@@ -33,8 +34,8 @@ export function useOrderFormSubmit() {
     setIsSubmitting(true);
 
     try {
-      // Format the orders for submission - Using camelCase field names
-      const formattedOrders: OrderData[] = selectedOrders.map((order) => {
+      // Process each order individually to handle emails properly
+      for (const order of selectedOrders) {
         // Find the store manager email from storeData
         const storeNumber = order.store.match(/\d+$/)?.[0] || "";
         const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
@@ -57,7 +58,8 @@ export function useOrderFormSubmit() {
         
         console.log("🔍 ORDER SUBMIT - Determined order type:", orderType, "for order:", order);
         
-        return {
+        // Format the order for submission - Using camelCase field names
+        const formattedOrder: OrderData = {
           name: order.yourName,
           store: order.store,
           productNumber: order.productNumber,
@@ -72,23 +74,75 @@ export function useOrderFormSubmit() {
           timestamp: new Date().toISOString(),
           type: orderType // Use the determined order type
         };
-      });
 
-      // Submit each order to Supabase
-      for (const order of formattedOrders) {
-        await saveOrderToSupabase(order);
+        console.log("🔍 ORDER SUBMIT - Submitting order:", formattedOrder);
+
+        // Submit to Supabase
+        const savedOrder = await saveOrderToSupabase(formattedOrder);
+        
+        if (savedOrder.error) {
+          throw new Error(`Failed to save order: ${savedOrder.error.message}`);
+        }
+
+        console.log("✅ ORDER SUBMIT - Order saved to Supabase:", savedOrder.data);
+
+        // Send confirmation email for non-Grand Prairie stores
+        if (storeNumber && !["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
+          try {
+            console.log("📧 ORDER SUBMIT - Sending confirmation email for store:", storeNumber);
+            
+            // Get email recipients based on order type
+            const emailRecipients = getTransferEmailRecipients(storeNumber);
+            console.log("📧 ORDER SUBMIT - Email recipients:", emailRecipients);
+            
+            if (emailRecipients.length > 0) {
+              // Call the transfer-notification edge function
+              const emailResponse = await fetch(
+                `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/transfer-notification`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
+                  },
+                  body: JSON.stringify({
+                    transferData: formattedOrder,
+                    orderId: savedOrder.data?.id || 'unknown',
+                    recipients: emailRecipients
+                  })
+                }
+              );
+              
+              if (emailResponse.ok) {
+                const emailResult = await emailResponse.json();
+                console.log("✅ ORDER SUBMIT - Confirmation email sent successfully:", emailResult);
+              } else {
+                const emailError = await emailResponse.text();
+                console.error("❌ ORDER SUBMIT - Email notification failed:", emailError);
+                // Don't throw here - we don't want email failures to block order submission
+              }
+            } else {
+              console.log("⚠️ ORDER SUBMIT - No email recipients found for store:", storeNumber);
+            }
+          } catch (emailError) {
+            console.error("❌ ORDER SUBMIT - Error sending confirmation email:", emailError);
+            // Log the error but don't block the order submission
+          }
+        } else {
+          console.log("ℹ️ ORDER SUBMIT - Skipping email for Grand Prairie store:", storeNumber);
+        }
       }
 
       toast({
         title: "Orders Submitted Successfully",
-        description: `${selectedOrders.length} order(s) have been submitted.`,
+        description: `${selectedOrders.length} order(s) have been submitted and confirmation emails sent.`,
       });
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      console.error("Error submitting orders:", error);
+      console.error("❌ ORDER SUBMIT - Error submitting orders:", error);
       toast({
         title: "Error Submitting Orders",
         description:
