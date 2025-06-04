@@ -30,17 +30,29 @@ export const saveOrderToSupabase = async (
       };
     }
     
-    // Determine target table and map data appropriately
-    let targetTable = 'orders';
-    let formattedOrder: any;
-    
+    // Handle MTO orders
     if (order.type === 'MTO' || order.type === 'mto') {
-      targetTable = 'mto_orders';
-      formattedOrder = mapMTOToSupabase(order, user);
-    } else if (order.type === 'WHEEL_POWDER_COATING') {
-      targetTable = 'wheel_orders';
-      // Use existing mapping for wheel orders since they already work
-      formattedOrder = {
+      const formattedOrder = mapMTOToSupabase(order, user);
+      console.log("🔍 ORDER SERVICE - Inserting into mto_orders table with formatted data:", formattedOrder);
+      
+      const { data, error } = await supabase
+        .from('mto_orders')
+        .insert(formattedOrder)
+        .select()
+        .single();
+        
+      if (error) {
+        console.error("❌ ORDER SERVICE - Error saving to mto_orders:", error);
+        return { data: null, error };
+      }
+      
+      console.log("✅ ORDER SERVICE - Successfully saved to mto_orders:", data);
+      return { data: data as MTOOrderRecord, error: null };
+    }
+    
+    // Handle Wheel orders
+    if (order.type === 'WHEEL_POWDER_COATING') {
+      const formattedOrder = {
         id: order.id,
         name: (order as OrderData).yourName || order.name,
         store: order.store,
@@ -63,26 +75,42 @@ export const saveOrderToSupabase = async (
         status: order.status || "pending",
         statusupdatedat: new Date().toISOString(),
       };
-    } else {
-      // Regular transfer orders
-      formattedOrder = mapOrderToSupabase(order, user);
+      
+      console.log("🔍 ORDER SERVICE - Inserting into wheel_orders table with formatted data:", formattedOrder);
+      
+      const { data, error } = await supabase
+        .from('wheel_orders')
+        .insert(formattedOrder)
+        .select()
+        .single();
+        
+      if (error) {
+        console.error("❌ ORDER SERVICE - Error saving to wheel_orders:", error);
+        return { data: null, error };
+      }
+      
+      console.log("✅ ORDER SERVICE - Successfully saved to wheel_orders:", data);
+      return { data: data as WheelOrderRecord, error: null };
     }
     
-    console.log(`🔍 ORDER SERVICE - Inserting into ${targetTable} table with formatted data:`, formattedOrder);
+    // Handle regular transfer orders (default case)
+    const formattedOrder = mapOrderToSupabase(order, user);
+    console.log("🔍 ORDER SERVICE - Inserting into orders table with formatted data:", formattedOrder);
     
     const { data, error } = await supabase
-      .from(targetTable as any)
+      .from('orders')
       .insert(formattedOrder)
       .select()
       .single();
       
     if (error) {
-      console.error(`❌ ORDER SERVICE - Error saving to ${targetTable}:`, error);
+      console.error("❌ ORDER SERVICE - Error saving to orders:", error);
       return { data: null, error };
     }
     
-    console.log(`✅ ORDER SERVICE - Successfully saved to ${targetTable}:`, data);
-    return { data, error: null };
+    console.log("✅ ORDER SERVICE - Successfully saved to orders:", data);
+    return { data: data as TransferOrderRecord, error: null };
+    
   } catch (error) {
     console.error("❌ ORDER SERVICE - Unexpected error in saveOrderToSupabase:", error);
     return { 
