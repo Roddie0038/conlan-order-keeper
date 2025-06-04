@@ -94,7 +94,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
                 },
                 body: JSON.stringify({
                   mtoData: mtoOrderData,
-                  orderId: savedOrder?.id || 'unknown',
+                  orderId: savedOrder?.data?.id || savedOrder?.id || 'unknown',
                   recipients: emailRecipients
                 })
               }
