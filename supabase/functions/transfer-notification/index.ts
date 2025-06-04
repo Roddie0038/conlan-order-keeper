@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -15,26 +16,8 @@ const SMTP_CONFIG = {
   from: Deno.env.get('FROM_EMAIL') || 'conlantireorders@conlanorders.com',
 };
 
-// Original Plant-specific email routing rules (for Grand Prairie 97 only)
-const PLANT_EMAIL_RULES = {
-  "Grand Prairie 97": [
-    "jesquivel@conlantire.com",
-    "jpalos@conlantire.com", 
-    "bperry@conlantire.com"
-  ],
-  "Romulus 98": [
-    "bperry@conlantire.com",
-    "chynds@conlantire.com"
-  ],
-  "Mulberry 99": [
-    "dlee@conlantire.com",
-    "wsettles@conlantire.com",
-    "bperry@conlantire.com"
-  ]
-};
-
 async function sendSMTPEmail(to: string[], subject: string, htmlBody: string) {
-  console.log("📧 Attempting to send email via SMTP to:", to);
+  console.log("📧 Attempting to send Transfer email via SMTP to:", to);
   
   try {
     // Create email message in RFC 5322 format
@@ -98,17 +81,17 @@ async function sendSMTPEmail(to: string[], subject: string, htmlBody: string) {
     await sendCommand('QUIT');
     
     conn.close();
-    console.log("✅ Email sent successfully via SMTP");
+    console.log("✅ Transfer Email sent successfully via SMTP");
     return true;
   } catch (error) {
-    console.error("❌ SMTP email sending failed:", error);
+    console.error("❌ SMTP Transfer email sending failed:", error);
     throw error;
   }
 }
 
-// Email notification for warranty claims (Local/Retread only)
+// Email notification for Transfer Request orders
 serve(async (req) => {
-  console.log("🚀 EDGE FUNCTION - warranty-notification called");
+  console.log("🚀 EDGE FUNCTION - transfer-notification called");
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -123,93 +106,72 @@ serve(async (req) => {
   }
 
   try {
-    const { warrantyData, warrantyId, customRecipients } = await req.json();
-    console.log("📧 Processing warranty notification:", warrantyId);
+    const { transferData, orderId, recipients } = await req.json();
+    console.log("📧 Processing Transfer notification:", orderId);
+    console.log("📧 Recipients:", recipients);
 
-    let recipients: string[] = [];
-    
-    // Use custom recipients if provided (new contact system)
-    if (customRecipients && customRecipients.length > 0) {
-      recipients = customRecipients;
-      console.log("📧 Using custom recipients from new contact system:", recipients);
-    } else {
-      // Fall back to original plant-based routing for Grand Prairie
-      const plant = warrantyData.plant;
-      recipients = PLANT_EMAIL_RULES[plant] || [];
-      
-      // Add the store manager who submitted the warranty to recipients
-      if (warrantyData.email && !recipients.includes(warrantyData.email)) {
-        recipients.push(warrantyData.email);
-      }
-      console.log("📧 Using original plant-based routing for:", plant, "Recipients:", recipients);
-    }
-    
-    if (recipients.length === 0) {
-      console.log("⚠️ No email recipients found for plant:", warrantyData.plant);
+    if (!recipients || recipients.length === 0) {
+      console.log("⚠️ No email recipients provided for Transfer order:", orderId);
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'No recipients configured for this plant',
-        plant: warrantyData.plant
+        message: 'No recipients provided',
+        orderId: orderId
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const emailSubject = `Retread Warranty Claim - ${warrantyData.customer_name} - ${warrantyData.work_order}`;
+    const emailSubject = `Transfer Request - ${transferData.store} - ${transferData.product_number || transferData.productNumber}`;
     
     const emailBody = `
-      <h2>New Retread Warranty Claim Submitted</h2>
+      <h2>New Transfer Request Submitted</h2>
       
-      <h3>Claim Details:</h3>
+      <h3>Order Details:</h3>
       <ul>
-        <li><strong>Customer Name:</strong> ${warrantyData.customer_name}</li>
-        <li><strong>Store:</strong> ${warrantyData.store}</li>
-        <li><strong>Plant:</strong> ${warrantyData.plant}</li>
-        <li><strong>Work Order #:</strong> ${warrantyData.work_order}</li>
-        <li><strong>DOT Number:</strong> ${warrantyData.dot_number}</li>
-        <li><strong>Tire Size:</strong> ${warrantyData.tire_size || 'Not specified'}</li>
-        <li><strong>Condition/Reason:</strong> ${warrantyData.condition}</li>
-        <li><strong>Submitted by:</strong> ${warrantyData.name} (${warrantyData.email})</li>
+        <li><strong>Store:</strong> ${transferData.store}</li>
+        <li><strong>Plant:</strong> ${transferData.plant}</li>
+        <li><strong>Product Number:</strong> ${transferData.product_number || transferData.productNumber}</li>
+        <li><strong>Description:</strong> ${transferData.description}</li>
+        <li><strong>Quantity:</strong> ${transferData.quantity}</li>
+        <li><strong>Schedule Arrival:</strong> ${transferData.schedule_arrival || transferData.scheduleArrival}</li>
+        <li><strong>Submitted by:</strong> ${transferData.name} (${transferData.email})</li>
       </ul>
 
       <h3>Additional Information:</h3>
-      <p><strong>Notes:</strong> ${warrantyData.notes || 'None'}</p>
+      <p><strong>Notes:</strong> ${transferData.notes || 'None'}</p>
       
-      <h3>Attachments:</h3>
-      <p><strong>Invoice:</strong> <a href="${warrantyData.invoice_url}">View Invoice</a></p>
-      
-      ${warrantyData.photo_urls && warrantyData.photo_urls.length > 0 ? `
-        <p><strong>Tire Photos:</strong></p>
+      ${transferData.cross_dock_type === 'Yes' || transferData.crossDock === 'Yes' ? `
+        <h3>Cross Dock Information:</h3>
         <ul>
-          ${warrantyData.photo_urls.map((url: string, index: number) => 
-            `<li><a href="${url}">Photo ${index + 1}</a></li>`
-          ).join('')}
+          <li><strong>Destination:</strong> ${transferData.cross_dock_destination || transferData.crossDockDestination}</li>
+          <li><strong>Receiver Number:</strong> ${transferData.cross_dock_receiver_number || transferData.receiverNo || 'Not specified'}</li>
+          <li><strong>ETA Date:</strong> ${transferData.cross_dock_eta_date || transferData.etaDate || 'Not specified'}</li>
         </ul>
-      ` : '<p><strong>Tire Photos:</strong> None uploaded</p>'}
-
+      ` : ''}
+      
       <hr>
-      <p><em>This warranty claim has been assigned ID: ${warrantyId}</em></p>
-      <p><em>Please review and process within 2 weeks as per Local Book policy.</em></p>
+      <p><em>This transfer request has been assigned ID: ${orderId}</em></p>
+      <p><em>Please review and process according to transfer procedures.</em></p>
     `;
 
-    console.log("📧 Sending warranty notification to:", recipients);
+    console.log("📧 Sending Transfer notification to:", recipients);
     
     // Send email via SMTP
     await sendSMTPEmail(recipients, emailSubject, emailBody);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Warranty notification sent successfully',
+      message: 'Transfer notification sent successfully',
       recipients: recipients.length,
-      plant: warrantyData.plant
+      orderId: orderId
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error("❌ Error in warranty-notification:", error);
+    console.error("❌ Error in transfer-notification:", error);
     return new Response(JSON.stringify({ 
       success: false, 
       error: error.message 

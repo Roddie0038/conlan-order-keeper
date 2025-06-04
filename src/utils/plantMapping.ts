@@ -11,7 +11,8 @@ export const PLANT_STORE_MAP = {
   ],
   "Mulberry 99": [
     "Miami 3", "Pompano Beach 7", "Fort Myers 9", "Jacksonville 2", "Ocala 5",
-    "Tallahassee 15", "Orlando 4", "Tampa 6", "Vero Beach 21", "Sarasota 23"
+    "Tallahassee 15", "Orlando 4", "Tampa 6", "Vero Beach 21", "Sarasota 23",
+    "Mulberry Service 1", "Tampa Foam Fill 40"
   ]
 };
 
@@ -38,6 +39,14 @@ export function getPlantForStore(store: string): string | undefined {
       if (stores.some(s => s.includes(storeNumber))) {
         return plant;
       }
+    }
+  }
+
+  // For new Florida stores, map by store number
+  if (storeNumber) {
+    const floridaStoreNumbers = ["001", "002", "003", "004", "005", "006", "007", "009", "015", "023", "040"];
+    if (floridaStoreNumbers.includes(storeNumber.padStart(3, '0'))) {
+      return "Mulberry 99";
     }
   }
 

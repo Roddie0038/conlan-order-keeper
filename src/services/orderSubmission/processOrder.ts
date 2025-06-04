@@ -1,9 +1,11 @@
+
 import { OrderSummary } from "@/hooks/useOrderSubmission";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { storeData } from "@/config/storeData";
 import { OrderType } from "@/services/webhook/config";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { getTransferEmailRecipients, getRefurbishedEmailRecipients } from "@/config/contactSystem";
 import type { OrderData } from "@/types/supabase-extensions";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import { supabase } from "@/integrations/supabase/extended-client";
@@ -156,13 +158,74 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     
     const { data, error } = await supabase
       .from(tableName)
-      .insert(supabaseOrder);
+      .insert(supabaseOrder)
+      .select()
+      .single();
     
     if (error) {
       console.error("❌ SUBMIT - Error saving to Supabase:", error);
       throw error;
     } else {
-      console.log("✅ SUBMIT - Successfully saved to Supabase:", data ? 'with data' : 'no data returned');
+      console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
+    }
+    
+    // Send email notifications for non-Grand Prairie stores
+    if (storeNumber && !["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
+      let emailRecipients: string[] = [];
+      
+      if (orderType === 'TRANSFER') {
+        emailRecipients = getTransferEmailRecipients(storeNumber);
+        console.log("🔍 SUBMIT - Transfer email recipients:", emailRecipients);
+        
+        if (emailRecipients.length > 0) {
+          try {
+            await fetch(
+              `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/transfer-notification`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
+                },
+                body: JSON.stringify({
+                  transferData: googleSheetsPayload,
+                  orderId: data?.id || 'unknown',
+                  recipients: emailRecipients
+                })
+              }
+            );
+            console.log("✅ SUBMIT - Transfer email notification sent");
+          } catch (emailError) {
+            console.error("❌ SUBMIT - Error sending transfer email:", emailError);
+          }
+        }
+      } else if (orderType === 'WHEEL_POWDER_COATING') {
+        emailRecipients = getRefurbishedEmailRecipients(storeNumber);
+        console.log("🔍 SUBMIT - Refurbished email recipients:", emailRecipients);
+        
+        if (emailRecipients.length > 0) {
+          try {
+            await fetch(
+              `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/transfer-notification`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
+                },
+                body: JSON.stringify({
+                  transferData: { ...googleSheetsPayload, orderType: 'Refurbished' },
+                  orderId: data?.id || 'unknown', 
+                  recipients: emailRecipients
+                })
+              }
+            );
+            console.log("✅ SUBMIT - Refurbished email notification sent");
+          } catch (emailError) {
+            console.error("❌ SUBMIT - Error sending refurbished email:", emailError);
+          }
+        }
+      }
     }
     
     return googleSheetsPayload;
