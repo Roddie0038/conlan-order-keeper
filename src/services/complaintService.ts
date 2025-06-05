@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { uploadMultipleFiles } from "@/services/storageService";
 import { CreateComplaintData, Complaint } from "@/types/complaint.types";
@@ -40,9 +39,9 @@ export const submitComplaint = async (complaintData: CreateComplaintData): Promi
       throw new Error(`Failed to submit complaint: ${error.message}`);
     }
 
-    // Send email notification (don't fail the submission if email fails)
+    // Send email notification using the updated edge function with dynamic email routing
     try {
-      console.log("Sending complaint notification email...");
+      console.log("Sending complaint notification email with dynamic routing...");
       const emailResponse = await supabase.functions.invoke('complaint-notification', {
         body: {
           id: data.id,
@@ -64,7 +63,8 @@ export const submitComplaint = async (complaintData: CreateComplaintData): Promi
       if (emailResponse.error) {
         console.error("Email notification failed:", emailResponse.error);
       } else {
-        console.log("Email notification sent successfully");
+        console.log("Email notification sent successfully with dynamic routing");
+        console.log("Email response:", emailResponse.data);
       }
     } catch (emailError) {
       console.error("Failed to send email notification:", emailError);

@@ -129,6 +129,42 @@ export type Database = {
         }
         Relationships: []
       }
+      managers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          name: string
+          plant_code: string | null
+          role: string | null
+          store_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          plant_code?: string | null
+          role?: string | null
+          store_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          plant_code?: string | null
+          role?: string | null
+          store_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       mto_orders: {
         Row: {
           casing_grade: string | null

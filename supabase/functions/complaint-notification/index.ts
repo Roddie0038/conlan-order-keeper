@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -25,39 +26,133 @@ interface ComplaintData {
   date_submitted: string;
 }
 
-// Plant-specific email routing
-const getPlantEmails = (storeNumber: string): string[] => {
+interface Manager {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  store_number?: string;
+  plant_code: string;
+  is_active: boolean;
+}
+
+// Initialize Supabase client
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
+
+// Get plant code for store number
+const getPlantCodeForStore = (storeNumber: string): string => {
   const storeNum = parseInt(storeNumber);
   
-  // Grand Prairie 97 stores (22, 27, 28, 29, 30, 32, 33, 35, 36, 39)
+  // Grand Prairie 97 stores
   if ([22, 27, 28, 29, 30, 32, 33, 35, 36, 39].includes(storeNum)) {
-    return [
-      "nchilds@conlantire.com",
-      "manderson@conlantire.com", 
-      "gsumodobila@conlantire.com",
-      "rdemarais@conlantire.com",
-      "jesquivel@conlantire.com",
-      "jpalos@conlantire.com"
-    ];
+    return '97';
   }
   
-  // Mulberry Retread 99 stores (001, 002, 003, 004, 005, 006, 007, 009, 015, 023, 040)
+  // Mulberry 99 stores  
   if ([1, 2, 3, 4, 5, 6, 7, 9, 15, 23, 40].includes(storeNum)) {
-    return [
-      "dlee@conlantire.com",
-      "wsettles@conlantire.com",
-      "ogull@conlantire.com", 
-      "kbriglin@conlantire.com"
-    ];
+    return '99';
   }
   
-  // Romulus 98 stores (default for other stores)
-  return [
-    "bperry@conlantire.com",
-    "chynds@conlantire.com",
-    "drsanchez@conlantire.com",
-    "nohernandez@conlantire.com"
-  ];
+  // Default to Romulus 98 for other stores
+  return '98';
+};
+
+// Get complaint email recipients using Supabase
+const getComplaintEmailRecipients = async (
+  storeNumber: string,
+  submitterEmail: string
+): Promise<string[]> => {
+  try {
+    const plantCode = getPlantCodeForStore(storeNumber);
+    console.log(`Getting recipients for store ${storeNumber}, plant ${plantCode}`);
+    
+    // Get all relevant managers for the plant
+    const { data: managers, error: managersError } = await supabase
+      .from('managers')
+      .select('*')
+      .eq('plant_code', plantCode)
+      .in('role', ['warehouse_manager', 'retread_manager', 'coordinator', 'operations_manager', 'office_manager'])
+      .eq('is_active', true);
+
+    if (managersError) {
+      console.error('Error fetching managers:', managersError);
+      throw managersError;
+    }
+
+    // Get store manager
+    const { data: storeManager, error: storeError } = await supabase
+      .from('managers')
+      .select('*')
+      .eq('store_number', storeNumber)
+      .eq('role', 'store_manager')
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (storeError) {
+      console.error('Error fetching store manager:', storeError);
+    }
+    
+    // Collect all emails
+    const emails = new Set<string>();
+    
+    // Always include submitter
+    emails.add(submitterEmail);
+    
+    // Add store manager if found
+    if (storeManager) {
+      emails.add(storeManager.email);
+      console.log(`Added store manager: ${storeManager.email}`);
+    }
+    
+    // Add all plant managers
+    if (managers) {
+      managers.forEach((manager: Manager) => {
+        emails.add(manager.email);
+        console.log(`Added ${manager.role}: ${manager.email}`);
+      });
+    }
+
+    const recipients = Array.from(emails);
+    console.log(`Final recipients list: ${recipients.join(', ')}`);
+    return recipients;
+    
+  } catch (error) {
+    console.error('Error getting complaint email recipients, using fallback:', error);
+    
+    // Fallback to original hardcoded logic
+    const plantCode = getPlantCodeForStore(storeNumber);
+    const fallbackEmails = [submitterEmail];
+    
+    if (plantCode === '97') {
+      fallbackEmails.push(
+        'nchilds@conlantire.com',
+        'manderson@conlantire.com', 
+        'gsumodobila@conlantire.com',
+        'rdemarais@conlantire.com',
+        'jesquivel@conlantire.com',
+        'jpalos@conlantire.com'
+      );
+    } else if (plantCode === '99') {
+      fallbackEmails.push(
+        'dlee@conlantire.com',
+        'wsettles@conlantire.com',
+        'ogull@conlantire.com', 
+        'kbriglin@conlantire.com'
+      );
+    } else {
+      fallbackEmails.push(
+        'bperry@conlantire.com',
+        'chynds@conlantire.com',
+        'drsanchez@conlantire.com',
+        'nohernandez@conlantire.com'
+      );
+    }
+    
+    return [...new Set(fallbackEmails)];
+  }
 };
 
 const createEmailHTML = (complaint: ComplaintData): string => {
@@ -138,26 +233,19 @@ const handler = async (req: Request): Promise<Response> => {
     const complaint: ComplaintData = await req.json();
     console.log("Processing complaint notification for:", complaint.id);
 
-    // Get plant-specific emails
-    const plantEmails = getPlantEmails(complaint.store_number);
+    // Get dynamic email recipients from Supabase
+    const recipients = await getComplaintEmailRecipients(
+      complaint.store_number,
+      complaint.submitted_by_email
+    );
     
-    // Always include operations manager and submitter
-    const allRecipients = [
-      complaint.submitted_by_email, // Store manager who submitted
-      "bperry@conlantire.com", // Operations manager (always included)
-      ...plantEmails // Plant-specific recipients
-    ];
-
-    // Remove duplicates
-    const uniqueRecipients = [...new Set(allRecipients)];
-    
-    console.log("Sending complaint notification to:", uniqueRecipients);
+    console.log("Sending complaint notification to:", recipients);
 
     const emailHTML = createEmailHTML(complaint);
 
     const emailResponse = await resend.emails.send({
       from: "Conlan Tire Complaints <onboarding@resend.dev>",
-      to: uniqueRecipients,
+      to: recipients,
       subject: `New Complaint: ${complaint.complaint_type} - ${complaint.store_name}`,
       html: emailHTML,
     });
@@ -168,7 +256,8 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true, 
         message: "Complaint notification sent successfully",
-        recipients: uniqueRecipients.length
+        recipients: recipients.length,
+        recipient_emails: recipients
       }),
       {
         status: 200,
