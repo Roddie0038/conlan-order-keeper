@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MultipleFileUploader } from "./MultipleFileUploader";
 import { uploadMultipleFiles } from "@/services/storageService";
 import { supabase } from "@/integrations/supabase/client";
-import { getAllNotificationRecipients } from "@/services/managerService";
+import { getComplaintNotificationRecipients } from "@/services/managerService";
+
 interface ComplaintFormData {
   complaintType: string;
   issueType: string;
@@ -20,6 +22,7 @@ interface ComplaintFormData {
   salesPerson: string;
   attachments: File[];
 }
+
 const COMPLAINT_TYPES = [{
   value: "Tire Transfer",
   label: "Tire Transfer"
@@ -30,6 +33,7 @@ const COMPLAINT_TYPES = [{
   value: "Work Order",
   label: "Work Order"
 }];
+
 const ISSUE_TYPES = [{
   value: "Warehouse",
   label: "Warehouse"
@@ -37,13 +41,10 @@ const ISSUE_TYPES = [{
   value: "Retread",
   label: "Retread"
 }];
+
 export function ComplaintForm() {
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<ComplaintFormData>({
     complaintType: "",
@@ -55,6 +56,7 @@ export function ComplaintForm() {
     attachments: []
   });
   const [errors, setErrors] = useState<Partial<ComplaintFormData>>({});
+
   const validateForm = (): boolean => {
     const newErrors: Partial<ComplaintFormData> = {};
     if (!formData.complaintType) {
@@ -69,6 +71,7 @@ export function ComplaintForm() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
@@ -79,6 +82,7 @@ export function ComplaintForm() {
       });
       return;
     }
+
     if (!user) {
       toast({
         variant: "destructive",
@@ -87,6 +91,7 @@ export function ComplaintForm() {
       });
       return;
     }
+
     setIsSubmitting(true);
     try {
       console.log("🚀 Starting complaint submission...");
@@ -104,50 +109,52 @@ export function ComplaintForm() {
 
       // Submit complaint to database
       console.log("💾 Inserting complaint into database...");
-      const {
-        data: complaintData,
-        error: insertError
-      } = await supabase.from('complaints').insert({
-        store_number: storeNumber,
-        store_name: user.storeName,
-        sales_person: formData.salesPerson || null,
-        complaint_type: formData.complaintType,
-        work_order_number: formData.workOrderNumber || null,
-        order_id: formData.orderId || null,
-        issue_type: formData.issueType,
-        identified_concern: formData.identifiedConcern,
-        attachments: attachmentUrls,
-        status: 'Open',
-        submitted_by_name: user.name,
-        submitted_by_email: user.email,
-        date_submitted: new Date().toISOString()
-      }).select().single();
+      const { data: complaintData, error: insertError } = await supabase
+        .from('complaints')
+        .insert({
+          store_number: storeNumber,
+          store_name: user.storeName,
+          sales_person: formData.salesPerson || null,
+          complaint_type: formData.complaintType,
+          work_order_number: formData.workOrderNumber || null,
+          order_id: formData.orderId || null,
+          issue_type: formData.issueType,
+          identified_concern: formData.identifiedConcern,
+          attachments: attachmentUrls,
+          status: 'Open',
+          submitted_by_name: user.name,
+          submitted_by_email: user.email,
+          date_submitted: new Date().toISOString()
+        })
+        .select()
+        .single();
+
       if (insertError) {
         console.error("❌ Database insertion error:", insertError);
         throw insertError;
       }
       console.log("✅ Complaint inserted successfully:", complaintData.id);
 
-      // Get notification recipients
-      const recipients = await getAllNotificationRecipients(storeNumber);
+      // Get notification recipients using new function with store manager auto-inclusion
+      const recipients = await getComplaintNotificationRecipients(storeNumber, user.email);
 
       // Send email notification
       console.log("📧 Sending email notification...");
-      const {
-        error: emailError
-      } = await supabase.functions.invoke('complaint-notification', {
+      const { error: emailError } = await supabase.functions.invoke('complaint-notification', {
         body: {
           complaint: complaintData,
           recipients: recipients,
           attachmentUrls: attachmentUrls
         }
       });
+
       if (emailError) {
         console.error("❌ Email notification error:", emailError);
         // Don't throw - complaint is still submitted successfully
       } else {
         console.log("✅ Email notification sent successfully");
       }
+
       toast({
         title: "Complaint Submitted Successfully",
         description: "Your complaint has been submitted and the appropriate managers have been notified."
@@ -175,26 +182,26 @@ export function ComplaintForm() {
       setIsSubmitting(false);
     }
   };
+
   const updateFormData = (field: keyof ComplaintFormData, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: undefined
-      }));
+      setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
+
   if (!user) {
-    return <Card className="max-w-2xl mx-auto">
+    return (
+      <Card className="max-w-2xl mx-auto">
         <CardContent className="p-6">
           <p className="text-center text-gray-600">You must be logged in to submit a complaint.</p>
         </CardContent>
-      </Card>;
+      </Card>
+    );
   }
-  return <Card className="max-w-4xl mx-auto">
+
+  return (
+    <Card className="max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl">Customer Complaint Form</CardTitle>
         <CardDescription>
@@ -225,9 +232,11 @@ export function ComplaintForm() {
                   <SelectValue placeholder="Select complaint type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {COMPLAINT_TYPES.map(type => <SelectItem key={type.value} value={type.value}>
+                  {COMPLAINT_TYPES.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
                       {type.label}
-                    </SelectItem>)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {errors.complaintType && <p className="text-sm text-red-500">{errors.complaintType}</p>}
@@ -240,9 +249,11 @@ export function ComplaintForm() {
                   <SelectValue placeholder="Select issue type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ISSUE_TYPES.map(type => <SelectItem key={type.value} value={type.value}>
+                  {ISSUE_TYPES.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
                       {type.label}
-                    </SelectItem>)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {errors.issueType && <p className="text-sm text-red-500">{errors.issueType}</p>}
@@ -253,29 +264,55 @@ export function ComplaintForm() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="workOrderNumber">Work Order Number (MaddenCo)</Label>
-              <Input id="workOrderNumber" value={formData.workOrderNumber} onChange={e => updateFormData('workOrderNumber', e.target.value)} placeholder="Enter work order number" />
+              <Input 
+                id="workOrderNumber" 
+                value={formData.workOrderNumber} 
+                onChange={e => updateFormData('workOrderNumber', e.target.value)} 
+                placeholder="Enter work order number" 
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="orderId">Order ID</Label>
-              <Input id="orderId" value={formData.orderId} onChange={e => updateFormData('orderId', e.target.value)} placeholder="Enter order ID" />
+              <Input 
+                id="orderId" 
+                value={formData.orderId} 
+                onChange={e => updateFormData('orderId', e.target.value)} 
+                placeholder="Enter order ID" 
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="salesPerson">Sales Person</Label>
-              <Input id="salesPerson" value={formData.salesPerson} onChange={e => updateFormData('salesPerson', e.target.value)} placeholder="Enter sales person name" />
+              <Input 
+                id="salesPerson" 
+                value={formData.salesPerson} 
+                onChange={e => updateFormData('salesPerson', e.target.value)} 
+                placeholder="Enter sales person name" 
+              />
             </div>
           </div>
 
           {/* Identified Concern */}
           <div className="space-y-2">
             <Label htmlFor="identifiedConcern">Identified Concern *</Label>
-            <Textarea id="identifiedConcern" value={formData.identifiedConcern} onChange={e => updateFormData('identifiedConcern', e.target.value)} placeholder="Please describe the concern in detail..." rows={4} className={errors.identifiedConcern ? "border-red-500" : ""} />
+            <Textarea 
+              id="identifiedConcern" 
+              value={formData.identifiedConcern} 
+              onChange={e => updateFormData('identifiedConcern', e.target.value)} 
+              placeholder="Please describe the concern in detail..." 
+              rows={4} 
+              className={errors.identifiedConcern ? "border-red-500" : ""} 
+            />
             {errors.identifiedConcern && <p className="text-sm text-red-500">{errors.identifiedConcern}</p>}
           </div>
 
           {/* File Attachments */}
-          <MultipleFileUploader value={formData.attachments} onChange={files => updateFormData('attachments', files)} maxFiles={10} />
+          <MultipleFileUploader 
+            value={formData.attachments} 
+            onChange={files => updateFormData('attachments', files)} 
+            maxFiles={10} 
+          />
 
           {/* Submit Button */}
           <div className="flex justify-end space-x-4 pt-6">
@@ -285,5 +322,6 @@ export function ComplaintForm() {
           </div>
         </form>
       </CardContent>
-    </Card>;
+    </Card>
+  );
 }

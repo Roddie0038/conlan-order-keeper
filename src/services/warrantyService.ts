@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { getWarrantyEmailRecipients } from "@/config/contactSystem";
+import { getWarrantyNotificationRecipients } from "@/services/managerService";
 import type { SupabaseInsertResult, WarrantyOrderRecord } from "@/types/supabase-extensions";
 
 export interface RetreadWarrantyData {
@@ -53,21 +53,13 @@ export const submitRetreadWarranty = async (data: RetreadWarrantyData): Promise<
 
     console.log('✅ Warranty claim saved to database:', warrantyOrder);
 
-    // Get store number for routing
+    // Get store number for unified routing
     const storeNumber = data.store.match(/\d+$/)?.[0] || "";
+    console.log('🔍 WARRANTY - Using unified routing for store:', storeNumber);
     
-    // Use new contact system for email routing
-    let emailRecipients: string[] = [];
-    
-    if (storeNumber && !["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
-      // Use new contact system for non-Grand Prairie stores
-      emailRecipients = getWarrantyEmailRecipients(storeNumber);
-      console.log('🔍 WARRANTY - Using new contact system for store:', storeNumber, 'Recipients:', emailRecipients);
-    } else {
-      // Keep existing Grand Prairie logic unchanged
-      emailRecipients = [data.email]; // Fallback to submitter email
-      console.log('🔍 WARRANTY - Using existing Grand Prairie logic for store:', storeNumber);
-    }
+    // Use new unified contact system for all stores
+    const emailRecipients = await getWarrantyNotificationRecipients(storeNumber, data.email);
+    console.log('📧 WARRANTY - Recipients from unified system:', emailRecipients);
 
     // Trigger email notification via edge function
     const emailResponse = await fetch(
@@ -81,7 +73,7 @@ export const submitRetreadWarranty = async (data: RetreadWarrantyData): Promise<
         body: JSON.stringify({
           warrantyData: data,
           warrantyId: warrantyOrder.id,
-          customRecipients: emailRecipients.length > 0 ? emailRecipients : undefined
+          customRecipients: emailRecipients
         })
       }
     );
