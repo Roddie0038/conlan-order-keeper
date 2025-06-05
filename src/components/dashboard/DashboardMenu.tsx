@@ -1,4 +1,3 @@
-
 import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket, FileCheck, AlertTriangle } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 import { ApprovedTreadsCard } from "./ApprovedTreadsCard";
@@ -96,7 +95,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       size: "col-span-1",
       hideTitle: true,
       fullSizeImage: true,
-      backgroundImage: "/lovable-uploads/ae62768c-60e7-48f3-8e2c-4be929733313.png"
+      backgroundImage: "/lovable-uploads/79d57732-9949-4d90-812e-8581ada7c116.png"
     }
   ];
   
