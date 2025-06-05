@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Manager {
@@ -17,15 +16,15 @@ export const getPlantCodeFromStore = (storeNumber: string): string => {
   const storeNum = parseInt(storeNumber);
   
   if (storeNum >= 22 && storeNum <= 39) {
-    return "Grand Prairie 97";
+    return "97";
   } else if (storeNum >= 2 && storeNum <= 23) {
-    return "Mulberry 99";
+    return "99";
   } else if (storeNum >= 8 && storeNum <= 98) {
-    return "Romulus 98";
+    return "98";
   }
   
   // Default fallback
-  return "Grand Prairie 97";
+  return "97";
 };
 
 export const getManagersByPlantCode = async (plantCode: string): Promise<Manager[]> => {
