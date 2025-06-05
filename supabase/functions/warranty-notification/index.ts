@@ -1,95 +1,10 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { corsHeaders } from "../_shared/cors.ts";
+import { sendEmail } from "../_shared/mailer.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// SMTP configuration using environment variables
-const SMTP_CONFIG = {
-  host: Deno.env.get('SMTP_HOST') || 'smtp.zoho.com',
-  port: parseInt(Deno.env.get('SMTP_PORT') || '587'),
-  user: Deno.env.get('SMTP_USER') || '',
-  pass: Deno.env.get('SMTP_PASS') || '',
-  from: Deno.env.get('FROM_EMAIL') || 'conlantireorders@conlanorders.com',
-};
-
-async function sendSMTPEmail(to: string[], subject: string, htmlBody: string) {
-  console.log("📧 Attempting to send email via SMTP to:", to);
-  
-  try {
-    // Create email message in RFC 5322 format
-    const boundary = `boundary_${Date.now()}`;
-    const emailContent = [
-      `From: ${SMTP_CONFIG.from}`,
-      `To: ${to.join(', ')}`,
-      `Subject: ${subject}`,
-      `MIME-Version: 1.0`,
-      `Content-Type: multipart/alternative; boundary="${boundary}"`,
-      ``,
-      `--${boundary}`,
-      `Content-Type: text/html; charset=UTF-8`,
-      `Content-Transfer-Encoding: 7bit`,
-      ``,
-      htmlBody,
-      ``,
-      `--${boundary}--`
-    ].join('\r\n');
-
-    // Connect to SMTP server and send email
-    const conn = await Deno.connect({
-      hostname: SMTP_CONFIG.host,
-      port: SMTP_CONFIG.port,
-    });
-
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
-
-    // Helper function to read SMTP response
-    const readResponse = async () => {
-      const buffer = new Uint8Array(1024);
-      const n = await conn.read(buffer);
-      if (n === null) return '';
-      return decoder.decode(buffer.subarray(0, n));
-    };
-
-    // Helper function to send SMTP command
-    const sendCommand = async (command: string) => {
-      await conn.write(encoder.encode(command + '\r\n'));
-      return await readResponse();
-    };
-
-    // SMTP conversation
-    await readResponse(); // Read greeting
-    await sendCommand(`EHLO ${SMTP_CONFIG.host}`);
-    await sendCommand('STARTTLS');
-    
-    await sendCommand(`AUTH LOGIN`);
-    await sendCommand(btoa(SMTP_CONFIG.user));
-    await sendCommand(btoa(SMTP_CONFIG.pass));
-    await sendCommand(`MAIL FROM:<${SMTP_CONFIG.from}>`);
-    
-    for (const recipient of to) {
-      await sendCommand(`RCPT TO:<${recipient}>`);
-    }
-    
-    await sendCommand('DATA');
-    await conn.write(encoder.encode(emailContent + '\r\n.\r\n'));
-    await readResponse();
-    await sendCommand('QUIT');
-    
-    conn.close();
-    console.log("✅ Email sent successfully via SMTP");
-    return true;
-  } catch (error) {
-    console.error("❌ SMTP email sending failed:", error);
-    throw error;
-  }
-}
-
-// Email notification for warranty claims using unified routing
+// Email notification for warranty claims using unified mailer
 serve(async (req) => {
   console.log("🚀 EDGE FUNCTION - warranty-notification called");
   
@@ -190,10 +105,27 @@ serve(async (req) => {
       </div>
     `;
 
-    console.log("📧 Sending warranty notification to:", recipients);
+    console.log("📧 Sending warranty notification via mailer to:", recipients);
     
-    // Send email via SMTP
-    await sendSMTPEmail(recipients, emailSubject, emailBody);
+    // Send email via centralized mailer
+    const emailResponse = await sendEmail({
+      to: recipients,
+      subject: emailSubject,
+      html: emailBody
+    });
+
+    if (!emailResponse.success) {
+      console.error("❌ Mailer failed:", emailResponse.error);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: `Failed to send email: ${emailResponse.error}` 
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log("✅ Warranty notification sent successfully via mailer");
 
     return new Response(JSON.stringify({ 
       success: true, 
