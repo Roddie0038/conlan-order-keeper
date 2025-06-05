@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -17,6 +18,7 @@ import MTOOrder from './pages/MTOOrder';
 import CrossDock from './pages/CrossDock';
 import WheelOrder from './pages/WheelOrder';
 import RetreadWarranty from './pages/RetreadWarranty';
+import ComplaintTracking from './pages/ComplaintTracking';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { PlantProvider } from './contexts/PlantContext';
 import { Toaster } from "@/components/ui/toaster"
@@ -62,6 +64,7 @@ function App() {
                 <Route path="/cross-dock" element={<CrossDock />} />
                 <Route path="/wheel-order" element={<WheelOrder />} />
                 <Route path="/retread-warranty" element={<RetreadWarranty />} />
+                <Route path="/complaint-tracking" element={<ComplaintTracking />} />
               </Routes>
             </ConditionalSidebar>
           </QueryClientProvider>

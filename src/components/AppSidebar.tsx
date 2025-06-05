@@ -24,7 +24,8 @@ import {
   Building,
   Truck,
   RotateCcw,
-  Search
+  Search,
+  AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -64,6 +65,11 @@ const navigationItems = [
     title: "Warranty: Local Retread Form",
     url: "/retread-warranty",
     icon: Shield,
+  },
+  {
+    title: "Customer Complaint Form",
+    url: "/complaint-tracking",
+    icon: AlertTriangle,
   },
   {
     title: "Approved Tire Tread List",
