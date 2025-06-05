@@ -40,6 +40,37 @@ export const submitComplaint = async (complaintData: CreateComplaintData): Promi
       throw new Error(`Failed to submit complaint: ${error.message}`);
     }
 
+    // Send email notification (don't fail the submission if email fails)
+    try {
+      console.log("Sending complaint notification email...");
+      const emailResponse = await supabase.functions.invoke('complaint-notification', {
+        body: {
+          id: data.id,
+          store_number: data.store_number,
+          store_name: data.store_name,
+          sales_person: data.sales_person,
+          complaint_type: data.complaint_type,
+          work_order_number: data.work_order_number,
+          order_id: data.order_id,
+          issue_type: data.issue_type,
+          identified_concern: data.identified_concern,
+          attachments: data.attachments,
+          submitted_by_name: data.submitted_by_name,
+          submitted_by_email: data.submitted_by_email,
+          date_submitted: data.date_submitted,
+        }
+      });
+      
+      if (emailResponse.error) {
+        console.error("Email notification failed:", emailResponse.error);
+      } else {
+        console.log("Email notification sent successfully");
+      }
+    } catch (emailError) {
+      console.error("Failed to send email notification:", emailError);
+      // Don't fail the complaint submission if email fails
+    }
+
     return { data: data as Complaint, error: null };
   } catch (error) {
     console.error('Error submitting complaint:', error);
