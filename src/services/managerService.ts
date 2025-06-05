@@ -13,6 +13,32 @@ export interface Manager {
   updated_at: string;
 }
 
+// Type guard to validate manager role
+const isValidManagerRole = (role: any): role is Manager['role'] => {
+  const validRoles = ['store_manager', 'warehouse_manager', 'retread_manager', 'coordinator', 'operations_manager', 'office_manager'];
+  return validRoles.includes(role);
+};
+
+// Helper function to validate and convert database records to Manager objects
+const validateManager = (record: any): Manager | null => {
+  if (!record || !isValidManagerRole(record.role)) {
+    console.warn('Invalid manager role found:', record?.role);
+    return null;
+  }
+  
+  return {
+    id: record.id,
+    name: record.name,
+    email: record.email,
+    role: record.role,
+    store_number: record.store_number,
+    plant_code: record.plant_code,
+    is_active: record.is_active,
+    created_at: record.created_at,
+    updated_at: record.updated_at,
+  };
+};
+
 /**
  * Get managers by plant code and roles
  */
@@ -33,7 +59,14 @@ export const getManagersByPlantAndRoles = async (
       return [];
     }
 
-    return data || [];
+    if (!data) return [];
+
+    // Validate and filter the results
+    const validManagers = data
+      .map(validateManager)
+      .filter((manager): manager is Manager => manager !== null);
+
+    return validManagers;
   } catch (error) {
     console.error('Error in getManagersByPlantAndRoles:', error);
     return [];
@@ -58,7 +91,7 @@ export const getStoreManager = async (storeNumber: string): Promise<Manager | nu
       return null;
     }
 
-    return data;
+    return validateManager(data);
   } catch (error) {
     console.error('Error in getStoreManager:', error);
     return null;
@@ -177,7 +210,14 @@ export const getAllManagers = async (): Promise<Manager[]> => {
       return [];
     }
 
-    return data || [];
+    if (!data) return [];
+
+    // Validate and filter the results
+    const validManagers = data
+      .map(validateManager)
+      .filter((manager): manager is Manager => manager !== null);
+
+    return validManagers;
   } catch (error) {
     console.error('Error in getAllManagers:', error);
     return [];
@@ -187,11 +227,21 @@ export const getAllManagers = async (): Promise<Manager[]> => {
 /**
  * Create or update a manager
  */
-export const upsertManager = async (manager: Partial<Manager>): Promise<Manager | null> => {
+export const upsertManager = async (manager: Omit<Manager, 'id' | 'created_at' | 'updated_at'>): Promise<Manager | null> => {
   try {
+    // Ensure we have all required fields for upsert
+    const managerData = {
+      name: manager.name,
+      email: manager.email,
+      role: manager.role,
+      store_number: manager.store_number || null,
+      plant_code: manager.plant_code,
+      is_active: manager.is_active,
+    };
+
     const { data, error } = await supabase
       .from('managers')
-      .upsert(manager)
+      .upsert(managerData)
       .select()
       .single();
 
@@ -200,7 +250,7 @@ export const upsertManager = async (manager: Partial<Manager>): Promise<Manager 
       return null;
     }
 
-    return data;
+    return validateManager(data);
   } catch (error) {
     console.error('Error in upsertManager:', error);
     return null;
