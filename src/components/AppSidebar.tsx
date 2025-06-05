@@ -18,7 +18,6 @@ import {
   FileText, 
   Disc, 
   Shield, 
-  FileCheck, 
   List, 
   Settings, 
   LogOut,
@@ -65,11 +64,6 @@ const navigationItems = [
     title: "Warranty: Local Retread Form",
     url: "/retread-warranty",
     icon: Shield,
-  },
-  {
-    title: "Warranty: National Account Form",
-    url: "/national-warranty",
-    icon: FileCheck,
   },
   {
     title: "Approved Tire Tread List",

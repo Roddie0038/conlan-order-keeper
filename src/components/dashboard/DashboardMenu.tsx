@@ -1,5 +1,5 @@
 
-import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket, FileCheck } from "lucide-react";
+import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket, FileCheck, AlertTriangle } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 import { ApprovedTreadsCard } from "./ApprovedTreadsCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -85,6 +85,18 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       hideTitle: true,
       fullSizeImage: true,
       backgroundImage: "/lovable-uploads/d9828434-70c4-4af6-9e0a-0b609fdf1264.png"
+    },
+    {
+      title: "CUSTOMER COMPLAINT FORM",
+      icon: null,
+      path: "/complaint-tracking",
+      color: "",
+      borderColor: "border-orange-500",
+      delay: 0.8,
+      size: "col-span-1",
+      hideTitle: true,
+      fullSizeImage: true,
+      backgroundImage: "/lovable-uploads/ae62768c-60e7-48f3-8e2c-4be929733313.png"
     }
   ];
   
@@ -95,7 +107,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       path: "/admin-orders",
       color: "",
       borderColor: "border-amber-400",
-      delay: 0.8,
+      delay: 0.9,
       size: "col-span-1",
       highlight: true,
       hideTitle: true,
@@ -106,7 +118,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         {menuItems.map((item) => (
           <MenuCard key={item.title} item={item} loaded={loaded} />
         ))}

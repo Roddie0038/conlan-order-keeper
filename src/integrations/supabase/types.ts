@@ -45,6 +45,72 @@ export type Database = {
         }
         Relationships: []
       }
+      complaints: {
+        Row: {
+          admin_responder: string | null
+          admin_response: string | null
+          attachments: string[] | null
+          complaint_type: string
+          created_at: string | null
+          date_submitted: string | null
+          id: string
+          identified_concern: string
+          issue_type: string
+          order_id: string | null
+          resolved_at: string | null
+          sales_person: string | null
+          status: string | null
+          store_name: string
+          store_number: string
+          submitted_by_email: string
+          submitted_by_name: string
+          updated_at: string | null
+          work_order_number: string | null
+        }
+        Insert: {
+          admin_responder?: string | null
+          admin_response?: string | null
+          attachments?: string[] | null
+          complaint_type: string
+          created_at?: string | null
+          date_submitted?: string | null
+          id?: string
+          identified_concern: string
+          issue_type: string
+          order_id?: string | null
+          resolved_at?: string | null
+          sales_person?: string | null
+          status?: string | null
+          store_name: string
+          store_number: string
+          submitted_by_email: string
+          submitted_by_name: string
+          updated_at?: string | null
+          work_order_number?: string | null
+        }
+        Update: {
+          admin_responder?: string | null
+          admin_response?: string | null
+          attachments?: string[] | null
+          complaint_type?: string
+          created_at?: string | null
+          date_submitted?: string | null
+          id?: string
+          identified_concern?: string
+          issue_type?: string
+          order_id?: string | null
+          resolved_at?: string | null
+          sales_person?: string | null
+          status?: string | null
+          store_name?: string
+          store_number?: string
+          submitted_by_email?: string
+          submitted_by_name?: string
+          updated_at?: string | null
+          work_order_number?: string | null
+        }
+        Relationships: []
+      }
       inventory_items: {
         Row: {
           description: string
@@ -60,6 +126,42 @@ export type Database = {
           description?: string
           product_number?: string
           quantity?: number
+        }
+        Relationships: []
+      }
+      managers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          name: string
+          plant_code: string | null
+          role: string | null
+          store_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          plant_code?: string | null
+          role?: string | null
+          store_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          plant_code?: string | null
+          role?: string | null
+          store_number?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
