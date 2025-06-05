@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -25,7 +26,8 @@ import {
   Truck,
   RotateCcw,
   Search,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -75,6 +77,15 @@ const navigationItems = [
     title: "Approved Tire Tread List",
     url: "/approved-treads",
     icon: List,
+  },
+];
+
+// Add My Complaints for non-admin users
+const storeUserItems = [
+  {
+    title: "My Complaints",
+    url: "/my-complaints",
+    icon: MessageSquare,
   },
 ];
 
@@ -166,6 +177,31 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Store User Navigation */}
+        {user && !user.isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-blue-100 font-semibold">My Account</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {storeUserItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={location.pathname === item.url}
+                      className="text-blue-100 hover:bg-blue-500/30 hover:text-white data-[active=true]:bg-blue-500/50 data-[active=true]:text-white rounded-lg transition-all duration-200 backdrop-blur-sm border border-transparent hover:border-blue-400/30"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Admin Navigation */}
         {user?.isAdmin && (

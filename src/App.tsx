@@ -19,6 +19,7 @@ import CrossDock from './pages/CrossDock';
 import WheelOrder from './pages/WheelOrder';
 import RetreadWarranty from './pages/RetreadWarranty';
 import ComplaintTracking from './pages/ComplaintTracking';
+import MyComplaints from './pages/MyComplaints';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { PlantProvider } from './contexts/PlantContext';
 import { Toaster } from "@/components/ui/toaster"
@@ -65,6 +66,7 @@ function App() {
                 <Route path="/wheel-order" element={<WheelOrder />} />
                 <Route path="/retread-warranty" element={<RetreadWarranty />} />
                 <Route path="/complaint-tracking" element={<ComplaintTracking />} />
+                <Route path="/my-complaints" element={<MyComplaints />} />
               </Routes>
             </ConditionalSidebar>
           </QueryClientProvider>
