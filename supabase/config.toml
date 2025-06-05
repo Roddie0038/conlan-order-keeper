@@ -9,6 +9,3 @@ verify_jwt = false
 
 [functions.transfer-notification]
 verify_jwt = false
-
-[functions.complaint-notification]
-verify_jwt = false
