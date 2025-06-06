@@ -1,6 +1,6 @@
 
 // Contact system for email routing across all stores and plants
-// Excludes Grand Prairie 97 which is already configured
+// Updated to include Grand Prairie stores
 
 export interface Contact {
   name: string;
@@ -11,8 +11,81 @@ export interface Contact {
   store?: string;
 }
 
-// Store Manager mappings for all non-Grand Prairie stores
+// Store Manager mappings for all stores including Grand Prairie
 export const STORE_MANAGERS: Record<string, Contact> = {
+  // Grand Prairie stores - using fallback email for now
+  "22": {
+    name: "Fort Worth Manager",
+    email: "conlantire97@gmail.com",
+    role: "store_manager",
+    region: "Texas",
+    store: "Fort Worth 22"
+  },
+  "27": {
+    name: "Grand Prairie Manager",
+    email: "conlantire97@gmail.com", 
+    role: "store_manager",
+    region: "Texas",
+    store: "Grand Prairie 27"
+  },
+  "28": {
+    name: "Houston Manager",
+    email: "conlantire97@gmail.com",
+    role: "store_manager",
+    region: "Texas", 
+    store: "Houston 28"
+  },
+  "29": {
+    name: "San Antonio Manager",
+    email: "conlantire97@gmail.com",
+    role: "store_manager",
+    region: "Texas",
+    store: "San Antonio 29"
+  },
+  "30": {
+    name: "OKC Manager",
+    email: "conlantire97@gmail.com",
+    role: "store_manager",
+    region: "Oklahoma",
+    store: "OKC 30"
+  },
+  "32": {
+    name: "Little Rock Manager",
+    email: "conlantire97@gmail.com",
+    role: "store_manager",
+    region: "Arkansas",
+    store: "Little Rock 32"
+  },
+  "33": {
+    name: "Kansas Manager",
+    email: "conlantire97@gmail.com",
+    role: "store_manager",
+    region: "Kansas",
+    store: "Kansas 33"
+  },
+  "35": {
+    name: "Laredo Manager",
+    email: "conlantire97@gmail.com",
+    role: "store_manager",
+    region: "Texas",
+    store: "Laredo 35"
+  },
+  "36": {
+    name: "Tulsa Manager",
+    email: "conlantire97@gmail.com",
+    role: "store_manager",
+    region: "Oklahoma",
+    store: "Tulsa 36"
+  },
+  "39": {
+    name: "Austin Manager",
+    email: "conlantire97@gmail.com",
+    role: "store_manager",
+    region: "Texas",
+    store: "Austin 39"
+  },
+  
+  // Florida stores
   "007": {
     name: "Joe Riggins",
     email: "jriggins@conlantire.com",
@@ -94,6 +167,36 @@ export const STORE_MANAGERS: Record<string, Contact> = {
 
 // Regional and Plant personnel
 export const PLANT_PERSONNEL: Record<string, Contact[]> = {
+  "Grand Prairie 97": [
+    {
+      name: "Gabriel Sumodobila",
+      email: "gsumodobila@conlantire.com",
+      role: "plant_manager",
+      plant: "Grand Prairie 97",
+      region: "Texas"
+    },
+    {
+      name: "Jesus Esquivel",
+      email: "jesquivel@conlantire.com",
+      role: "retread_manager",
+      plant: "Grand Prairie 97",
+      region: "Texas"
+    },
+    {
+      name: "John Palos",
+      email: "jpalos@conlantire.com",
+      role: "retread_manager",
+      plant: "Grand Prairie 97",
+      region: "Texas"
+    },
+    {
+      name: "Brett Perry",
+      email: "bperry@conlantire.com",
+      role: "warehouse_manager",
+      plant: "Grand Prairie 97",
+      region: "Texas"
+    }
+  ],
   "Mulberry 99": [
     {
       name: "David Lee",
@@ -163,8 +266,20 @@ export const PLANT_PERSONNEL: Record<string, Contact[]> = {
   ]
 };
 
-// Store to Plant mapping (excluding Grand Prairie stores)
+// Store to Plant mapping (updated to include Grand Prairie stores)
 export const STORE_TO_PLANT_MAP: Record<string, string> = {
+  // Grand Prairie stores -> Grand Prairie 97
+  "22": "Grand Prairie 97", // Fort Worth
+  "27": "Grand Prairie 97", // Grand Prairie
+  "28": "Grand Prairie 97", // Houston
+  "29": "Grand Prairie 97", // San Antonio
+  "30": "Grand Prairie 97", // OKC
+  "32": "Grand Prairie 97", // Little Rock
+  "33": "Grand Prairie 97", // Kansas
+  "35": "Grand Prairie 97", // Laredo
+  "36": "Grand Prairie 97", // Tulsa
+  "39": "Grand Prairie 97", // Austin
+  
   // South FL stores -> Mulberry 99
   "003": "Mulberry 99", // Miami
   "007": "Mulberry 99", // Pompano Beach
@@ -181,12 +296,23 @@ export const STORE_TO_PLANT_MAP: Record<string, string> = {
   "006": "Mulberry 99", // Tampa
   "023": "Mulberry 99", // Sarasota
   "040": "Mulberry 99", // Tampa Foam Fill
-  
-  // Midwest stores -> Romulus 98 (none currently listed, but ready for future)
 };
 
-// Store to Region mapping
+// Store to Region mapping (updated to include Grand Prairie stores)
 export const STORE_TO_REGION_MAP: Record<string, string> = {
+  // Grand Prairie region stores
+  "22": "Texas", // Fort Worth
+  "27": "Texas", // Grand Prairie
+  "28": "Texas", // Houston
+  "29": "Texas", // San Antonio
+  "30": "Oklahoma", // OKC
+  "32": "Arkansas", // Little Rock
+  "33": "Kansas", // Kansas
+  "35": "Texas", // Laredo
+  "36": "Oklahoma", // Tulsa
+  "39": "Texas", // Austin
+  
+  // Florida stores
   "003": "South FL", // Miami
   "007": "South FL", // Pompano Beach  
   "009": "South FL", // Fort Myers

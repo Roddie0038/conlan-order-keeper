@@ -86,17 +86,32 @@ export function useOrderFormSubmit() {
 
         console.log("✅ ORDER SUBMIT - Order saved to Supabase:", savedOrder.data);
 
-        // Send confirmation email for non-Grand Prairie stores
-        if (storeNumber && !["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
+        // Send confirmation email for ALL stores (removed Grand Prairie exclusion)
+        if (storeNumber) {
           try {
             console.log("📧 ORDER SUBMIT - Sending confirmation email for store:", storeNumber);
             
             // Get email recipients based on order type
-            const emailRecipients = getTransferEmailRecipients(storeNumber);
+            let emailRecipients: string[] = [];
+            
+            // For Grand Prairie stores, use fallback email if no specific recipients configured
+            if (["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
+              emailRecipients = getTransferEmailRecipients(storeNumber);
+              
+              // If no recipients found for Grand Prairie stores, use fallback
+              if (emailRecipients.length === 0) {
+                emailRecipients = ["conlantire97@gmail.com"];
+                console.log("📧 ORDER SUBMIT - Using fallback email for Grand Prairie store:", storeNumber);
+              }
+            } else {
+              // For other stores, use the contact system
+              emailRecipients = getTransferEmailRecipients(storeNumber);
+            }
+            
             console.log("📧 ORDER SUBMIT - Email recipients:", emailRecipients);
             
             if (emailRecipients.length > 0) {
-              // Call the transfer-notification edge function
+              // Call the transfer-notification edge function (now using Resend)
               const emailResponse = await fetch(
                 `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/transfer-notification`,
                 {
@@ -128,8 +143,6 @@ export function useOrderFormSubmit() {
             console.error("❌ ORDER SUBMIT - Error sending confirmation email:", emailError);
             // Log the error but don't block the order submission
           }
-        } else {
-          console.log("ℹ️ ORDER SUBMIT - Skipping email for Grand Prairie store:", storeNumber);
         }
       }
 
