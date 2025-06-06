@@ -86,27 +86,13 @@ export function useOrderFormSubmit() {
 
         console.log("✅ ORDER SUBMIT - Order saved to Supabase:", savedOrder.data);
 
-        // Send confirmation email for ALL stores (removed Grand Prairie exclusion)
+        // Send confirmation email for ALL stores
         if (storeNumber) {
           try {
             console.log("📧 ORDER SUBMIT - Sending confirmation email for store:", storeNumber);
             
             // Get email recipients based on order type
-            let emailRecipients: string[] = [];
-            
-            // For Grand Prairie stores, use fallback email if no specific recipients configured
-            if (["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
-              emailRecipients = getTransferEmailRecipients(storeNumber);
-              
-              // If no recipients found for Grand Prairie stores, use fallback
-              if (emailRecipients.length === 0) {
-                emailRecipients = ["conlantire97@gmail.com"];
-                console.log("📧 ORDER SUBMIT - Using fallback email for Grand Prairie store:", storeNumber);
-              }
-            } else {
-              // For other stores, use the contact system
-              emailRecipients = getTransferEmailRecipients(storeNumber);
-            }
+            const emailRecipients = getTransferEmailRecipients(storeNumber);
             
             console.log("📧 ORDER SUBMIT - Email recipients:", emailRecipients);
             

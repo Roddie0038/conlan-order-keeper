@@ -1,4 +1,3 @@
-
 import { OrderSummary } from "@/hooks/useOrderSubmission";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
@@ -169,24 +168,12 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
     }
     
-    // Send email notifications for ALL stores (removed Grand Prairie exclusion)
+    // Send email notifications for ALL stores
     if (storeNumber) {
       let emailRecipients: string[] = [];
       
       if (orderType === 'TRANSFER') {
-        // For Grand Prairie stores, use fallback email if no specific recipients configured
-        if (["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
-          emailRecipients = getTransferEmailRecipients(storeNumber);
-          
-          // If no recipients found for Grand Prairie stores, use fallback
-          if (emailRecipients.length === 0) {
-            emailRecipients = ["conlantire97@gmail.com"];
-            console.log("📧 SUBMIT - Using fallback email for Grand Prairie store:", storeNumber);
-          }
-        } else {
-          // For other stores, use the contact system
-          emailRecipients = getTransferEmailRecipients(storeNumber);
-        }
+        emailRecipients = getTransferEmailRecipients(storeNumber);
         
         console.log("📧 SUBMIT - Transfer email recipients:", emailRecipients);
         
@@ -221,19 +208,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
           }
         }
       } else if (orderType === 'WHEEL_POWDER_COATING') {
-        // For Grand Prairie stores, use fallback email if no specific recipients configured
-        if (["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
-          emailRecipients = getRefurbishedEmailRecipients(storeNumber);
-          
-          // If no recipients found for Grand Prairie stores, use fallback
-          if (emailRecipients.length === 0) {
-            emailRecipients = ["conlantire97@gmail.com"];
-            console.log("📧 SUBMIT - Using fallback email for Grand Prairie wheel order:", storeNumber);
-          }
-        } else {
-          // For other stores, use the contact system
-          emailRecipients = getRefurbishedEmailRecipients(storeNumber);
-        }
+        emailRecipients = getRefurbishedEmailRecipients(storeNumber);
         
         console.log("📧 SUBMIT - Refurbished email recipients:", emailRecipients);
         

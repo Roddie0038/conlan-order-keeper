@@ -1,4 +1,3 @@
-
 import { CrossDockFields } from "@/types/cross-dock.types";
 
 export const stores = [
@@ -15,8 +14,8 @@ export const stores = [
 ];
 
 export const storeManagerEmails: Record<string, string> = {
-  "22": "roderickdemarais@aol.com, rdemarais@conlantire.com", // TESTING: Updated with test emails only
-  "27": "rdemarais@conlantire.com, roderickdemarais@aol.com, conlantire97@gmail.com",
+  "22": "roderickdemarais@aol.com, rdemarais@conlantire.com",
+  "27": "rdemarais@conlantire.com, roderickdemarais@aol.com",
   "28": "jhughes@conlantire.com, eblais@conlantire.com",
   "29": "rpetty@conlantire.com, pvallejo@conlantire.com",
   "30": "dbaumgardner@conlantire.com, bhunt@conlantire.com",
@@ -25,7 +24,7 @@ export const storeManagerEmails: Record<string, string> = {
   "35": "lguerra@conlantire.com, hgamez@conlantire.com",
   "36": "rjohnson@conlantire.com, kbrown@conlantire.com",
   "39": "borozco@conlantire.com",
-  "Admin": "Roderickdemarais@aol.com, Conlantire97@gmail.com"
+  "Admin": "Roderickdemarais@aol.com"
 };
 
 // Store to color mapping for wheel orders

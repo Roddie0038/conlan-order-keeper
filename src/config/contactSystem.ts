@@ -1,4 +1,3 @@
-
 // Contact system for email routing across all stores and plants
 // Updated to include Grand Prairie stores
 
@@ -13,73 +12,73 @@ export interface Contact {
 
 // Store Manager mappings for all stores including Grand Prairie
 export const STORE_MANAGERS: Record<string, Contact> = {
-  // Grand Prairie stores - using fallback email for now
+  // Grand Prairie stores - Updated with proper emails
   "22": {
     name: "Fort Worth Manager",
-    email: "conlantire97@gmail.com",
+    email: "roderickdemarais@aol.com",
     role: "store_manager",
     region: "Texas",
     store: "Fort Worth 22"
   },
   "27": {
     name: "Grand Prairie Manager",
-    email: "conlantire97@gmail.com", 
+    email: "rdemarais@conlantire.com", 
     role: "store_manager",
     region: "Texas",
     store: "Grand Prairie 27"
   },
   "28": {
     name: "Houston Manager",
-    email: "conlantire97@gmail.com",
+    email: "jhughes@conlantire.com",
     role: "store_manager",
     region: "Texas", 
     store: "Houston 28"
   },
   "29": {
     name: "San Antonio Manager",
-    email: "conlantire97@gmail.com",
+    email: "rpetty@conlantire.com",
     role: "store_manager",
     region: "Texas",
     store: "San Antonio 29"
   },
   "30": {
     name: "OKC Manager",
-    email: "conlantire97@gmail.com",
+    email: "dbaumgardner@conlantire.com",
     role: "store_manager",
     region: "Oklahoma",
     store: "OKC 30"
   },
   "32": {
     name: "Little Rock Manager",
-    email: "conlantire97@gmail.com",
+    email: "jmilliken@conlantire.com",
     role: "store_manager",
     region: "Arkansas",
     store: "Little Rock 32"
   },
   "33": {
     name: "Kansas Manager",
-    email: "conlantire97@gmail.com",
+    email: "rjohnson@conlantire.com",
     role: "store_manager",
     region: "Kansas",
     store: "Kansas 33"
   },
   "35": {
     name: "Laredo Manager",
-    email: "conlantire97@gmail.com",
+    email: "lguerra@conlantire.com",
     role: "store_manager",
     region: "Texas",
     store: "Laredo 35"
   },
   "36": {
     name: "Tulsa Manager",
-    email: "conlantire97@gmail.com",
+    email: "rjohnson@conlantire.com",
     role: "store_manager",
     region: "Oklahoma",
     store: "Tulsa 36"
   },
   "39": {
     name: "Austin Manager",
-    email: "conlantire97@gmail.com",
+    email: "borozco@conlantire.com",
     role: "store_manager",
     region: "Texas",
     store: "Austin 39"
@@ -171,7 +170,14 @@ export const PLANT_PERSONNEL: Record<string, Contact[]> = {
     {
       name: "Gabriel Sumodobila",
       email: "gsumodobila@conlantire.com",
-      role: "plant_manager",
+      role: "warehouse_manager",
+      plant: "Grand Prairie 97",
+      region: "Texas"
+    },
+    {
+      name: "Gerardo Moreno",
+      email: "gmoreno@conlantire.com",
+      role: "coordinator",
       plant: "Grand Prairie 97",
       region: "Texas"
     },
@@ -192,7 +198,7 @@ export const PLANT_PERSONNEL: Record<string, Contact[]> = {
     {
       name: "Brett Perry",
       email: "bperry@conlantire.com",
-      role: "warehouse_manager",
+      role: "plant_manager",
       plant: "Grand Prairie 97",
       region: "Texas"
     }
@@ -412,7 +418,7 @@ export function getMTOEmailRecipients(storeNumber: string): string[] {
 
 /**
  * Get all email recipients for Transfer Requests  
- * Recipients: Store Manager + Plant Warehouse Manager
+ * Recipients: Store Manager + Plant Warehouse Manager + Plant Warehouse Coordinator
  */
 export function getTransferEmailRecipients(storeNumber: string): string[] {
   const emails: string[] = [];
@@ -423,11 +429,14 @@ export function getTransferEmailRecipients(storeNumber: string): string[] {
     emails.push(storeManagerEmail);
   }
   
-  // Get plant warehouse manager
+  // Get plant warehouse manager and coordinator
   const plant = getPlantForStoreNumber(storeNumber);
   if (plant) {
     const warehouseManagers = getPlantPersonnel(plant, 'warehouse_manager');
+    const coordinators = getPlantPersonnel(plant, 'coordinator');
+    
     warehouseManagers.forEach(manager => emails.push(manager.email));
+    coordinators.forEach(coordinator => emails.push(coordinator.email));
   }
   
   return [...new Set(emails)]; // Remove duplicates
@@ -435,7 +444,7 @@ export function getTransferEmailRecipients(storeNumber: string): string[] {
 
 /**
  * Get all email recipients for Refurbished Orders
- * Recipients: Store Manager + Plant Warehouse Manager  
+ * Recipients: Store Manager + Plant Warehouse Manager + Plant Warehouse Coordinator
  */
 export function getRefurbishedEmailRecipients(storeNumber: string): string[] {
   // Same as transfer requests
