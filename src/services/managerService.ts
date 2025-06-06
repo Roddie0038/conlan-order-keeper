@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Manager {
@@ -11,19 +12,18 @@ export interface Manager {
 }
 
 export const getPlantCodeFromStore = (storeNumber: string): string => {
-  // Extract plant code from store number
-  // This maps to the plant codes in your system
+  // Extract plant code from store number mapping
   const storeNum = parseInt(storeNumber);
   
   if (storeNum >= 22 && storeNum <= 39) {
-    return "97";
+    return "97"; // Grand Prairie plant
   } else if (storeNum >= 2 && storeNum <= 23) {
-    return "99";
+    return "99"; // Mulberry plant
   } else if (storeNum >= 8 && storeNum <= 98) {
-    return "98";
+    return "98"; // Romulus plant
   }
   
-  // Default fallback
+  // Default fallback to Grand Prairie
   return "97";
 };
 
@@ -36,7 +36,7 @@ export const getManagersByPlantCode = async (plantCode: string): Promise<Manager
       .select('*')
       .eq('plant_code', plantCode)
       .eq('is_active', true)
-      .in('role', ['warehouse_manager', 'retread_manager', 'coordinator', 'office_manager', 'operations_manager']);
+      .in('role', ['plant_manager', 'retread_manager', 'operations_manager', 'warehouse_manager', 'office_manager', 'coordinator']);
 
     if (error) {
       console.error('❌ Error fetching managers:', error);
@@ -56,10 +56,10 @@ export const getComplaintNotificationRecipients = async (storeNumber: string, st
     const plantCode = getPlantCodeFromStore(storeNumber);
     const managers = await getManagersByPlantCode(plantCode);
     
-    // Always include bperry@conlantire.com as fallback
+    // Always include Brett Perry as fallback
     const emails = ['bperry@conlantire.com'];
     
-    // Add manager emails
+    // Add manager emails based on their roles
     managers.forEach(manager => {
       if (manager.email && !emails.includes(manager.email)) {
         emails.push(manager.email);
@@ -90,17 +90,17 @@ export const getWarrantyNotificationRecipients = async (storeNumber: string, sto
       .select('*')
       .eq('plant_code', plantCode)
       .eq('is_active', true)
-      .in('role', ['warehouse_manager', 'retread_manager', 'coordinator', 'office_manager', 'operations_manager', 'plant_manager']);
+      .in('role', ['plant_manager', 'retread_manager', 'operations_manager', 'warehouse_manager', 'office_manager', 'coordinator']);
 
     if (error) {
       console.error('❌ Error fetching warranty managers:', error);
       throw error;
     }
 
-    // Always include bperry@conlantire.com as fallback
+    // Always include Brett Perry as fallback
     const emails = ['bperry@conlantire.com'];
     
-    // Add manager emails
+    // Add manager emails prioritizing retread and plant managers for warranties
     data?.forEach(manager => {
       if (manager.email && !emails.includes(manager.email)) {
         emails.push(manager.email);
