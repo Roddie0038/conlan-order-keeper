@@ -1,4 +1,3 @@
-
 // Contact system for email routing across all stores and plants
 // Updated to include Grand Prairie stores
 
@@ -169,8 +168,15 @@ export const STORE_MANAGERS: Record<string, Contact> = {
 export const PLANT_PERSONNEL: Record<string, Contact[]> = {
   "Grand Prairie 97": [
     {
-      name: "Gabriel Sumodobila",
-      email: "gsumodobila@conlantire.com",
+      name: "Nathan Childs",
+      email: "nchilds@conlantire.com",
+      role: "warehouse_manager",
+      plant: "Grand Prairie 97",
+      region: "Texas"
+    },
+    {
+      name: "Roderick Demarais",
+      email: "rdemarais@conlantire.com",
       role: "warehouse_manager",
       plant: "Grand Prairie 97",
       region: "Texas"
