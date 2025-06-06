@@ -4,9 +4,42 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { sendEmail } from "../_shared/mailer.ts";
 
-// Email notification for warranty claims using unified mailer
+// Plant Manager mapping by plant code
+const PLANT_MANAGER_MAP: Record<string, string> = {
+  '97': 'gsumodobila@conlantire.com', // Gabriel Sumodobila - Grand Prairie
+  '98': 'bperry@conlantire.com',      // Brody Perry - Romulus  
+  '99': 'dlee@conlantire.com',        // David Lee - Mulberry
+};
+
+// Active Retread Managers (all plants)
+const RETREAD_MANAGERS = [
+  'jesquivel@conlantire.com',  // Jesus Esquivel - Grand Prairie
+  'jpalos@conlantire.com',     // John Palos - Grand Prairie
+  'wsettles@conlantire.com',   // Wayne Settles - Mulberry
+  'cperez@conlantire.com',     // Carlos Perez - Mulberry
+  'chynds@conlantire.com',     // Cameron Hynds - Romulus
+];
+
+// Function to determine plant code from store number
+function getPlantCodeFromStore(storeNumber: string): string {
+  const storeNum = parseInt(storeNumber);
+  
+  if (storeNum >= 22 && storeNum <= 39) {
+    return "97"; // Grand Prairie plant
+  } else if ([1, 2, 3, 4, 5, 6, 7, 9, 15, 23, 40].includes(storeNum)) {
+    return "99"; // Mulberry plant
+  } else if (storeNum >= 8 && storeNum <= 18) {
+    return "98"; // Romulus plant
+  }
+  
+  // Default fallback to Grand Prairie
+  return "97";
+}
+
+// Email notification for warranty claims with correct recipient routing
 serve(async (req) => {
-  console.log("🚀 EDGE FUNCTION - warranty-notification called");
+  console.log("🚀 WARRANTY NOTIFICATION - Edge function called");
+  console.log("🚀 WARRANTY NOTIFICATION - Request method:", req.method);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -22,25 +55,55 @@ serve(async (req) => {
 
   try {
     const { warrantyData, warrantyId, customRecipients } = await req.json();
-    console.log("📧 Processing warranty notification:", warrantyId);
+    console.log("📧 WARRANTY NOTIFICATION - Processing warranty:", warrantyId);
+    console.log("📧 WARRANTY NOTIFICATION - Warranty data:", warrantyData);
 
-    let recipients: string[] = [];
+    // Build recipient list for WARRANTY TIRE ORDERS ONLY
+    const recipients: string[] = [];
     
-    // Use unified routing system via customRecipients (from getWarrantyNotificationRecipients)
-    if (customRecipients && customRecipients.length > 0) {
-      recipients = customRecipients;
-      console.log("📧 Using unified routing system. Recipients:", recipients);
+    // Extract store number from store name
+    const storeNumber = warrantyData.store.match(/\d+$/)?.[0] || "";
+    console.log("📧 WARRANTY NOTIFICATION - Store number:", storeNumber);
+    
+    if (storeNumber) {
+      // 1. Always include Brad Perry for WARRANTY orders
+      recipients.push('bperry@conlantire.com');
+      console.log("📧 WARRANTY NOTIFICATION - Added Brad Perry for warranty order");
+      
+      // 2. Include all Retread Managers
+      recipients.push(...RETREAD_MANAGERS);
+      console.log("📧 WARRANTY NOTIFICATION - Added retread managers:", RETREAD_MANAGERS);
+      
+      // 3. Determine and add Plant Manager based on store's plant
+      const plantCode = getPlantCodeFromStore(storeNumber);
+      const plantManagerEmail = PLANT_MANAGER_MAP[plantCode];
+      
+      if (plantManagerEmail && !recipients.includes(plantManagerEmail)) {
+        recipients.push(plantManagerEmail);
+        console.log("📧 WARRANTY NOTIFICATION - Added plant manager:", plantManagerEmail, "for plant:", plantCode);
+      }
+      
+      // 4. Add submitting store manager
+      if (warrantyData.email && !recipients.includes(warrantyData.email)) {
+        recipients.push(warrantyData.email);
+        console.log("📧 WARRANTY NOTIFICATION - Added submitting store manager:", warrantyData.email);
+      }
     } else {
-      // Fallback to submitter email only if no recipients found
-      recipients = [warrantyData.email];
-      console.log("⚠️ No recipients found via unified system, using fallback:", recipients);
+      console.warn("⚠️ WARRANTY NOTIFICATION - Could not determine store number, using fallback recipients");
+      // Fallback: Brad Perry + submitting manager only
+      recipients.push('bperry@conlantire.com');
+      if (warrantyData.email) recipients.push(warrantyData.email);
     }
     
-    if (recipients.length === 0) {
-      console.log("⚠️ No email recipients found for warranty:", warrantyData.store);
+    // Remove duplicates
+    const uniqueRecipients = [...new Set(recipients)];
+    console.log("📧 WARRANTY NOTIFICATION - Final recipient list:", uniqueRecipients);
+    
+    if (uniqueRecipients.length === 0) {
+      console.log("⚠️ WARRANTY NOTIFICATION - No email recipients found");
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'No recipients configured for this store',
+        message: 'No recipients configured',
         store: warrantyData.store
       }), {
         status: 200,
@@ -105,17 +168,18 @@ serve(async (req) => {
       </div>
     `;
 
-    console.log("📧 Sending warranty notification via mailer to:", recipients);
+    console.log("📧 WARRANTY NOTIFICATION - Sending email via mailer to:", uniqueRecipients);
+    console.log("📧 WARRANTY NOTIFICATION - Email subject:", emailSubject);
     
     // Send email via centralized mailer
     const emailResponse = await sendEmail({
-      to: recipients,
+      to: uniqueRecipients,
       subject: emailSubject,
       html: emailBody
     });
 
     if (!emailResponse.success) {
-      console.error("❌ Mailer failed:", emailResponse.error);
+      console.error("❌ WARRANTY NOTIFICATION - Mailer failed:", emailResponse.error);
       return new Response(JSON.stringify({ 
         success: false, 
         error: `Failed to send email: ${emailResponse.error}` 
@@ -125,20 +189,23 @@ serve(async (req) => {
       });
     }
 
-    console.log("✅ Warranty notification sent successfully via mailer");
+    console.log("✅ WARRANTY NOTIFICATION - Email sent successfully via mailer");
 
     return new Response(JSON.stringify({ 
       success: true, 
       message: 'Warranty notification sent successfully',
-      recipients: recipients.length,
-      store: warrantyData.store
+      recipients: uniqueRecipients.length,
+      store: warrantyData.store,
+      warrantyId: warrantyId,
+      plantCode: storeNumber ? getPlantCodeFromStore(storeNumber) : 'unknown',
+      finalRecipients: uniqueRecipients
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error("❌ Error in warranty-notification:", error);
+    console.error("❌ WARRANTY NOTIFICATION - Error:", error);
     return new Response(JSON.stringify({ 
       success: false, 
       error: error.message 

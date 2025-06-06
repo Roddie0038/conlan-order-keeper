@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { getWarrantyNotificationRecipients } from "@/services/managerService";
 import type { SupabaseInsertResult, WarrantyOrderRecord } from "@/types/supabase-extensions";
 
 export interface RetreadWarrantyData {
@@ -21,7 +20,7 @@ export interface RetreadWarrantyData {
 
 export const submitRetreadWarranty = async (data: RetreadWarrantyData): Promise<SupabaseInsertResult<WarrantyOrderRecord>> => {
   try {
-    console.log('🚀 Submitting retread warranty claim:', data);
+    console.log('🚀 WARRANTY SERVICE - Submitting retread warranty claim:', data);
     
     // Insert into warranty_orders table
     const { data: warrantyOrder, error: dbError } = await supabase
@@ -47,21 +46,18 @@ export const submitRetreadWarranty = async (data: RetreadWarrantyData): Promise<
       .single();
 
     if (dbError) {
-      console.error('❌ Database error:', dbError);
+      console.error('❌ WARRANTY SERVICE - Database error:', dbError);
       return { data: null, error: new Error(`Database error: ${dbError.message}`) };
     }
 
-    console.log('✅ Warranty claim saved to database:', warrantyOrder);
+    console.log('✅ WARRANTY SERVICE - Warranty claim saved to database:', warrantyOrder);
 
-    // Get store number for unified routing
+    // Extract store number for proper routing
     const storeNumber = data.store.match(/\d+$/)?.[0] || "";
-    console.log('🔍 WARRANTY - Using unified routing for store:', storeNumber);
+    console.log('📧 WARRANTY SERVICE - Store number extracted:', storeNumber);
     
-    // Use new unified contact system for all stores
-    const emailRecipients = await getWarrantyNotificationRecipients(storeNumber, data.email);
-    console.log('📧 WARRANTY - Recipients from unified system:', emailRecipients);
-
-    // Trigger email notification via edge function
+    // Trigger warranty-specific email notification via edge function
+    console.log('📧 WARRANTY SERVICE - Calling warranty-notification edge function');
     const emailResponse = await fetch(
       `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/warranty-notification`,
       {
@@ -72,22 +68,23 @@ export const submitRetreadWarranty = async (data: RetreadWarrantyData): Promise<
         },
         body: JSON.stringify({
           warrantyData: data,
-          warrantyId: warrantyOrder.id,
-          customRecipients: emailRecipients
+          warrantyId: warrantyOrder.id
         })
       }
     );
 
     if (!emailResponse.ok) {
-      console.error('❌ Email notification failed:', await emailResponse.text());
+      const emailError = await emailResponse.text();
+      console.error('❌ WARRANTY SERVICE - Email notification failed:', emailError);
       // Don't throw error here - warranty was saved successfully
     } else {
-      console.log('✅ Email notification sent successfully');
+      const emailResult = await emailResponse.json();
+      console.log('✅ WARRANTY SERVICE - Email notification sent successfully:', emailResult);
     }
 
     return { data: warrantyOrder, error: null };
   } catch (error) {
-    console.error('❌ Error submitting warranty claim:', error);
+    console.error('❌ WARRANTY SERVICE - Error submitting warranty claim:', error);
     return { 
       data: null, 
       error: error instanceof Error ? error : new Error("Unknown error in warranty submission") 
