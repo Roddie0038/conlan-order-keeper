@@ -1,10 +1,11 @@
+
 // Contact system for email routing across all stores and plants
 // Updated to include Grand Prairie stores
 
 export interface Contact {
   name: string;
   email: string;
-  role: 'store_manager' | 'warehouse_manager' | 'retread_manager' | 'coordinator' | 'plant_manager';
+  role: 'store_manager' | 'warehouse_manager' | 'retread_manager' | 'warehouse_coordinator' | 'plant_manager';
   region?: string;
   plant?: string;
   store?: string;
@@ -177,7 +178,7 @@ export const PLANT_PERSONNEL: Record<string, Contact[]> = {
     {
       name: "Gerardo Moreno",
       email: "gmoreno@conlantire.com",
-      role: "coordinator",
+      role: "warehouse_coordinator",
       plant: "Grand Prairie 97",
       region: "Texas"
     },
@@ -235,14 +236,14 @@ export const PLANT_PERSONNEL: Record<string, Contact[]> = {
     {
       name: "Eddie Washington",
       email: "ewashington@conlantire.com",
-      role: "coordinator",
+      role: "warehouse_coordinator",
       plant: "Mulberry 99",
       region: "Central FL"
     },
     {
       name: "K. Briglin",
       email: "kbriglin@conlantire.com",
-      role: "coordinator",
+      role: "warehouse_coordinator",
       plant: "Mulberry 99", 
       region: "Central FL"
     }
@@ -364,7 +365,7 @@ export function getPlantPersonnel(plant: string, role: Contact['role']): Contact
 
 /**
  * Get all email recipients for warranty submissions
- * Recipients: Store Manager + Regional Retread Managers + Regional Coordinators
+ * Recipients: Store Manager + Regional Retread Managers + Regional Warehouse Coordinators
  */
 export function getWarrantyEmailRecipients(storeNumber: string): string[] {
   const emails: string[] = [];
@@ -375,14 +376,14 @@ export function getWarrantyEmailRecipients(storeNumber: string): string[] {
     emails.push(storeManagerEmail);
   }
   
-  // Get plant and add retread managers + coordinators
+  // Get plant and add retread managers + warehouse coordinators
   const plant = getPlantForStoreNumber(storeNumber);
   if (plant) {
     const retreadManagers = getPlantPersonnel(plant, 'retread_manager');
-    const coordinators = getPlantPersonnel(plant, 'coordinator');
+    const warehouseCoordinators = getPlantPersonnel(plant, 'warehouse_coordinator');
     
     retreadManagers.forEach(manager => emails.push(manager.email));
-    coordinators.forEach(coordinator => emails.push(coordinator.email));
+    warehouseCoordinators.forEach(coordinator => emails.push(coordinator.email));
   }
   
   return [...new Set(emails)]; // Remove duplicates
@@ -390,7 +391,7 @@ export function getWarrantyEmailRecipients(storeNumber: string): string[] {
 
 /**
  * Get all email recipients for MTO orders
- * Recipients: Store Manager + Plant Warehouse Manager + Plant Retread Managers + Regional Coordinators
+ * Recipients: Store Manager + Plant Warehouse Manager + Plant Retread Managers + Regional Warehouse Coordinators
  */
 export function getMTOEmailRecipients(storeNumber: string): string[] {
   const emails: string[] = [];
@@ -406,11 +407,11 @@ export function getMTOEmailRecipients(storeNumber: string): string[] {
   if (plant) {
     const warehouseManagers = getPlantPersonnel(plant, 'warehouse_manager');
     const retreadManagers = getPlantPersonnel(plant, 'retread_manager'); 
-    const coordinators = getPlantPersonnel(plant, 'coordinator');
+    const warehouseCoordinators = getPlantPersonnel(plant, 'warehouse_coordinator');
     
     warehouseManagers.forEach(manager => emails.push(manager.email));
     retreadManagers.forEach(manager => emails.push(manager.email));
-    coordinators.forEach(coordinator => emails.push(coordinator.email));
+    warehouseCoordinators.forEach(coordinator => emails.push(coordinator.email));
   }
   
   return [...new Set(emails)]; // Remove duplicates
@@ -429,14 +430,14 @@ export function getTransferEmailRecipients(storeNumber: string): string[] {
     emails.push(storeManagerEmail);
   }
   
-  // Get plant warehouse manager and coordinator
+  // Get plant warehouse manager and warehouse coordinator
   const plant = getPlantForStoreNumber(storeNumber);
   if (plant) {
     const warehouseManagers = getPlantPersonnel(plant, 'warehouse_manager');
-    const coordinators = getPlantPersonnel(plant, 'coordinator');
+    const warehouseCoordinators = getPlantPersonnel(plant, 'warehouse_coordinator');
     
     warehouseManagers.forEach(manager => emails.push(manager.email));
-    coordinators.forEach(coordinator => emails.push(coordinator.email));
+    warehouseCoordinators.forEach(coordinator => emails.push(coordinator.email));
   }
   
   return [...new Set(emails)]; // Remove duplicates
