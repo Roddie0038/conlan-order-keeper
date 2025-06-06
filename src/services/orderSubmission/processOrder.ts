@@ -169,17 +169,31 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
     }
     
-    // Send email notifications for non-Grand Prairie stores
-    if (storeNumber && !["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
+    // Send email notifications for ALL stores (removed Grand Prairie exclusion)
+    if (storeNumber) {
       let emailRecipients: string[] = [];
       
       if (orderType === 'TRANSFER') {
-        emailRecipients = getTransferEmailRecipients(storeNumber);
-        console.log("🔍 SUBMIT - Transfer email recipients:", emailRecipients);
+        // For Grand Prairie stores, use fallback email if no specific recipients configured
+        if (["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
+          emailRecipients = getTransferEmailRecipients(storeNumber);
+          
+          // If no recipients found for Grand Prairie stores, use fallback
+          if (emailRecipients.length === 0) {
+            emailRecipients = ["conlantire97@gmail.com"];
+            console.log("📧 SUBMIT - Using fallback email for Grand Prairie store:", storeNumber);
+          }
+        } else {
+          // For other stores, use the contact system
+          emailRecipients = getTransferEmailRecipients(storeNumber);
+        }
+        
+        console.log("📧 SUBMIT - Transfer email recipients:", emailRecipients);
         
         if (emailRecipients.length > 0) {
           try {
-            await fetch(
+            console.log("📧 SUBMIT - Calling transfer-notification edge function for store:", storeNumber);
+            const emailResponse = await fetch(
               `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/transfer-notification`,
               {
                 method: 'POST',
@@ -194,18 +208,39 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
                 })
               }
             );
-            console.log("✅ SUBMIT - Transfer email notification sent");
+            
+            if (emailResponse.ok) {
+              const emailResult = await emailResponse.json();
+              console.log("✅ SUBMIT - Transfer email notification sent successfully:", emailResult);
+            } else {
+              const emailError = await emailResponse.text();
+              console.error("❌ SUBMIT - Email notification failed:", emailError);
+            }
           } catch (emailError) {
             console.error("❌ SUBMIT - Error sending transfer email:", emailError);
           }
         }
       } else if (orderType === 'WHEEL_POWDER_COATING') {
-        emailRecipients = getRefurbishedEmailRecipients(storeNumber);
-        console.log("🔍 SUBMIT - Refurbished email recipients:", emailRecipients);
+        // For Grand Prairie stores, use fallback email if no specific recipients configured
+        if (["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
+          emailRecipients = getRefurbishedEmailRecipients(storeNumber);
+          
+          // If no recipients found for Grand Prairie stores, use fallback
+          if (emailRecipients.length === 0) {
+            emailRecipients = ["conlantire97@gmail.com"];
+            console.log("📧 SUBMIT - Using fallback email for Grand Prairie wheel order:", storeNumber);
+          }
+        } else {
+          // For other stores, use the contact system
+          emailRecipients = getRefurbishedEmailRecipients(storeNumber);
+        }
+        
+        console.log("📧 SUBMIT - Refurbished email recipients:", emailRecipients);
         
         if (emailRecipients.length > 0) {
           try {
-            await fetch(
+            console.log("📧 SUBMIT - Calling transfer-notification edge function for wheel order, store:", storeNumber);
+            const emailResponse = await fetch(
               `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/transfer-notification`,
               {
                 method: 'POST',
@@ -220,7 +255,14 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
                 })
               }
             );
-            console.log("✅ SUBMIT - Refurbished email notification sent");
+            
+            if (emailResponse.ok) {
+              const emailResult = await emailResponse.json();
+              console.log("✅ SUBMIT - Refurbished email notification sent successfully:", emailResult);
+            } else {
+              const emailError = await emailResponse.text();
+              console.error("❌ SUBMIT - Email notification failed:", emailError);
+            }
           } catch (emailError) {
             console.error("❌ SUBMIT - Error sending refurbished email:", emailError);
           }
