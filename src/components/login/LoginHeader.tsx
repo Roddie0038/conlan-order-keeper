@@ -6,8 +6,8 @@ export const LoginHeader = () => {
     <div className="text-center">
       <div className="flex justify-center items-center h-24 w-full mb-2 transition-all duration-300 hover:scale-105">
         <img 
-          src="/lovable-uploads/46d498f4-cb0a-44a8-9a30-33cd70d45dde.png" 
-          alt="Conlan Tire Logo" 
+          src="/lovable-uploads/52ff146d-0e5f-4a8c-80f2-b26621c00cce.png" 
+          alt="Ordering Platform Logo" 
           className="h-full object-contain drop-shadow-lg rounded-2xl animate-float" 
         />
       </div>

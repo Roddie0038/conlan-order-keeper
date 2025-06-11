@@ -165,9 +165,47 @@ export type Database = {
         }
         Relationships: []
       }
+      mto_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          notification_type: string
+          order_id: string
+          order_number: string
+          read: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          notification_type: string
+          order_id: string
+          order_number: string
+          read?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          notification_type?: string
+          order_id?: string
+          order_number?: string
+          read?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       mto_orders: {
         Row: {
           casing_grade: string | null
+          casings_eta: string | null
+          casings_in_stock: boolean | null
           completed: boolean | null
           completed_at: string | null
           cross_dock_form_link: string | null
@@ -178,30 +216,42 @@ export type Database = {
           have_casings: boolean | null
           id: string
           in_transit_at: string | null
+          inventory_last_updated: string | null
           invoice_number: string | null
+          last_shipment_date: string | null
           name: string | null
           notes: string | null
           order_completion_link: string | null
           order_type: string | null
+          pending_quantity: number | null
           plant: string | null
           product_number: string | null
           projected_delivery: string | null
           quantity: number | null
           ready_to_ship_at: string | null
           received_at: string | null
+          retread_notified_at: string | null
           send_email_trigger: boolean | null
           send_invoice: boolean | null
+          shipped_quantity: number | null
           status: string | null
           status_updated_at: string | null
           store: string | null
+          store_notified_at: string | null
           timestamp: string | null
           tire_size: string | null
           tread: string | null
+          tread_eta: string | null
           tread_in_inventory: boolean | null
+          tread_in_stock: boolean | null
           type: string | null
+          updated_by: string | null
+          warehouse_notified_at: string | null
         }
         Insert: {
           casing_grade?: string | null
+          casings_eta?: string | null
+          casings_in_stock?: boolean | null
           completed?: boolean | null
           completed_at?: string | null
           cross_dock_form_link?: string | null
@@ -212,30 +262,42 @@ export type Database = {
           have_casings?: boolean | null
           id?: string
           in_transit_at?: string | null
+          inventory_last_updated?: string | null
           invoice_number?: string | null
+          last_shipment_date?: string | null
           name?: string | null
           notes?: string | null
           order_completion_link?: string | null
           order_type?: string | null
+          pending_quantity?: number | null
           plant?: string | null
           product_number?: string | null
           projected_delivery?: string | null
           quantity?: number | null
           ready_to_ship_at?: string | null
           received_at?: string | null
+          retread_notified_at?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
+          shipped_quantity?: number | null
           status?: string | null
           status_updated_at?: string | null
           store?: string | null
+          store_notified_at?: string | null
           timestamp?: string | null
           tire_size?: string | null
           tread?: string | null
+          tread_eta?: string | null
           tread_in_inventory?: boolean | null
+          tread_in_stock?: boolean | null
           type?: string | null
+          updated_by?: string | null
+          warehouse_notified_at?: string | null
         }
         Update: {
           casing_grade?: string | null
+          casings_eta?: string | null
+          casings_in_stock?: boolean | null
           completed?: boolean | null
           completed_at?: string | null
           cross_dock_form_link?: string | null
@@ -246,27 +308,76 @@ export type Database = {
           have_casings?: boolean | null
           id?: string
           in_transit_at?: string | null
+          inventory_last_updated?: string | null
           invoice_number?: string | null
+          last_shipment_date?: string | null
           name?: string | null
           notes?: string | null
           order_completion_link?: string | null
           order_type?: string | null
+          pending_quantity?: number | null
           plant?: string | null
           product_number?: string | null
           projected_delivery?: string | null
           quantity?: number | null
           ready_to_ship_at?: string | null
           received_at?: string | null
+          retread_notified_at?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
+          shipped_quantity?: number | null
           status?: string | null
           status_updated_at?: string | null
           store?: string | null
+          store_notified_at?: string | null
           timestamp?: string | null
           tire_size?: string | null
           tread?: string | null
+          tread_eta?: string | null
           tread_in_inventory?: boolean | null
+          tread_in_stock?: boolean | null
           type?: string | null
+          updated_by?: string | null
+          warehouse_notified_at?: string | null
+        }
+        Relationships: []
+      }
+      notification_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          notification_type: string
+          order_id: string
+          order_number: string | null
+          recipient_email: string
+          recipient_role: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          notification_type: string
+          order_id: string
+          order_number?: string | null
+          recipient_email: string
+          recipient_role?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          notification_type?: string
+          order_id?: string
+          order_number?: string | null
+          recipient_email?: string
+          recipient_role?: string | null
+          sent_at?: string | null
+          status?: string | null
         }
         Relationships: []
       }
