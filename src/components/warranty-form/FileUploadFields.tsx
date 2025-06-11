@@ -11,16 +11,15 @@ export function FileUploadFields({ onFileChange }: FileUploadFieldsProps) {
     <>
       {/* Invoice Upload */}
       <div>
-        <Label htmlFor="invoiceFile">MaddenCo Sales Invoice *</Label>
+        <Label htmlFor="invoiceFile">MaddenCo Sales Invoice</Label>
         <Input
           id="invoiceFile"
           type="file"
           accept=".pdf,.png,.jpg,.jpeg"
           onChange={(e) => onFileChange(e, "invoice")}
-          required
         />
         <p className="text-sm text-muted-foreground mt-1">
-          Upload PDF or image file of the sales invoice
+          Upload PDF or image file of the sales invoice (optional)
         </p>
       </div>
 

@@ -30,12 +30,15 @@ export const useWarrantySubmission = () => {
     try {
       console.log("🚀 Starting warranty claim submission...");
       
-      // Upload invoice file
-      const invoiceUrl = await uploadFileToSupabase(
-        form.invoiceFile!, 
-        "warranty-docs", 
-        user?.id
-      );
+      // Upload invoice file if provided
+      let invoiceUrl = "";
+      if (form.invoiceFile) {
+        invoiceUrl = await uploadFileToSupabase(
+          form.invoiceFile, 
+          "warranty-docs", 
+          user?.id
+        );
+      }
       
       // Upload photo files if any
       const photoUrls = form.photoFiles.length > 0 

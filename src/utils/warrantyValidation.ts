@@ -23,10 +23,6 @@ export const validateWarrantyForm = (form: RetreadWarrantyFormData) => {
   if (!form.condition) {
     errors.push("Tire condition is required.");
   }
-  
-  if (!form.invoiceFile) {
-    errors.push("Invoice file is required.");
-  }
 
   return {
     isValid: errors.length === 0,
