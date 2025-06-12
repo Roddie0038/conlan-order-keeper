@@ -5,11 +5,14 @@ import { parseOrderType, parseSenderRole, parseSource } from "./typeGuards";
 import { sendEmailNotification } from "./emailUtils";
 
 /**
- * Send a message for an order with email integration
+ * Send a message for an order with email integration and enhanced error handling
  */
 export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ data: OrderMessage | null; error: Error | null }> => {
   try {
-    console.log("🔍 MESSAGE SERVICE - Sending order message:", messageData);
+    console.log("🔍 MESSAGE SERVICE - Sending order message:", {
+      ...messageData,
+      timestamp: new Date().toISOString()
+    });
     
     const { data, error } = await supabase
       .from('order_messages')
@@ -28,15 +31,45 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
       .single();
 
     if (error) {
-      console.error("❌ MESSAGE SERVICE - Error sending message:", error);
+      console.error("❌ MESSAGE SERVICE - Error sending message:", {
+        error,
+        messageData,
+        errorCode: error.code,
+        errorMessage: error.message,
+        errorDetails: error.details,
+        timestamp: new Date().toISOString()
+      });
+
+      // Check for specific error types
+      const isRLSError = error.message.includes('row-level security') || 
+                        error.message.includes('policy') ||
+                        error.code === 'PGRST116';
+      
+      const isPolicyError = error.message.includes('policy') && error.code === '42501';
+      
+      if (isRLSError || isPolicyError) {
+        return { 
+          data: null, 
+          error: new Error(`Access denied: Row-Level Security policy violation. Check store permissions for order ${messageData.order_id}`) 
+        };
+      }
+
       return { data: null, error: new Error(`Failed to send message: ${error.message}`) };
     }
 
-    console.log("✅ MESSAGE SERVICE - Message sent successfully:", data);
+    console.log("✅ MESSAGE SERVICE - Message sent successfully:", {
+      messageId: data?.id,
+      timestamp: new Date().toISOString()
+    });
 
     // Send email notification to recipient
     if (data) {
-      await sendEmailNotification(data as any);
+      try {
+        await sendEmailNotification(data as any);
+      } catch (emailError) {
+        console.warn("⚠️ MESSAGE SERVICE - Email notification failed but message was saved:", emailError);
+        // Don't fail the entire operation if email fails
+      }
     }
 
     // Apply type guards to ensure safe casting
@@ -49,7 +82,13 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
 
     return { data: sanitizedMessage, error: null };
   } catch (error) {
-    console.error("❌ MESSAGE SERVICE - Unexpected error:", error);
+    console.error("❌ MESSAGE SERVICE - Unexpected error:", {
+      error,
+      messageData,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+    
     return { 
       data: null, 
       error: error instanceof Error ? error : new Error("Unknown error sending message") 
@@ -96,9 +135,6 @@ export const getOrderMessages = async (orderId: string, orderType: 'orders' | 'm
   }
 };
 
-/**
- * Mark messages as read
- */
 export const markMessagesAsRead = async (messageIds: string[]): Promise<{ error: Error | null }> => {
   try {
     const { error } = await supabase
@@ -118,9 +154,6 @@ export const markMessagesAsRead = async (messageIds: string[]): Promise<{ error:
   }
 };
 
-/**
- * Get message count for an order
- */
 export const getOrderMessageCount = async (orderId: string, orderType: 'orders' | 'mto_orders' | 'wheel_orders'): Promise<{ count: number; error: Error | null }> => {
   try {
     const { count, error } = await supabase

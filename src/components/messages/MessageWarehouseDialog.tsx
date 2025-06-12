@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Send, MessageSquare } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface MessageWarehouseDialogProps {
   open: boolean;
@@ -24,14 +25,51 @@ export function MessageWarehouseDialog({
   sending
 }: MessageWarehouseDialogProps) {
   const [message, setMessage] = useState("");
+  const { toast } = useToast();
 
   const handleSend = async () => {
     if (!message.trim()) return;
     
-    const success = await onSendMessage(message);
-    if (success) {
-      setMessage("");
-      onOpenChange(false);
+    try {
+      console.log("🔍 MessageWarehouseDialog - Attempting to send message:", {
+        orderNumber,
+        storeName,
+        messageLength: message.length,
+        timestamp: new Date().toISOString()
+      });
+      
+      const success = await onSendMessage(message);
+      
+      if (success) {
+        console.log("✅ MessageWarehouseDialog - Message sent successfully");
+        setMessage("");
+        onOpenChange(false);
+        toast({
+          title: "Message Sent",
+          description: "Your message has been delivered successfully.",
+        });
+      } else {
+        console.error("❌ MessageWarehouseDialog - Message send returned false");
+        toast({
+          title: "Message Failed",
+          description: "Failed to send message. Please check your permissions and try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("❌ MessageWarehouseDialog - Message send threw error:", {
+        error,
+        orderNumber,
+        storeName,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
+      
+      toast({
+        title: "Message Failed",
+        description: "Failed to send message. Please check store access or try again.",
+        variant: "destructive",
+      });
     }
   };
 
