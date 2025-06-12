@@ -2,7 +2,7 @@
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, User, Building } from "lucide-react";
+import { MessageSquare, User, Building, Mail, Monitor } from "lucide-react";
 import type { OrderMessage } from "@/services/messageService";
 
 interface MessageThreadProps {
@@ -42,6 +42,38 @@ export function MessageThread({ messages, loading }: MessageThreadProps) {
     );
   }
 
+  const getSourceIcon = (source?: string) => {
+    switch (source) {
+      case 'email_reply':
+        return <Mail className="h-3 w-3" />;
+      case 'email_direct':
+        return <Mail className="h-3 w-3" />;
+      default:
+        return <Monitor className="h-3 w-3" />;
+    }
+  };
+
+  const getSourceLabel = (source?: string) => {
+    switch (source) {
+      case 'email_reply':
+        return 'Email Reply';
+      case 'email_direct':
+        return 'Email';
+      default:
+        return 'Platform';
+    }
+  };
+
+  const getSourceVariant = (source?: string): "default" | "secondary" | "outline" => {
+    switch (source) {
+      case 'email_reply':
+      case 'email_direct':
+        return 'outline';
+      default:
+        return 'secondary';
+    }
+  };
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -58,7 +90,7 @@ export function MessageThread({ messages, loading }: MessageThreadProps) {
             {messages.map((message) => (
               <div key={message.id} className="border-l-4 border-l-blue-200 pl-4 py-2">
                 <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {message.sender_role === 'warehouse_admin' ? (
                       <Building className="h-4 w-4 text-blue-600" />
                     ) : (
@@ -73,6 +105,21 @@ export function MessageThread({ messages, loading }: MessageThreadProps) {
                     >
                       {message.sender_role === 'warehouse_admin' ? 'Warehouse' : 'Store'}
                     </Badge>
+                    {message.source && (
+                      <Badge 
+                        variant={getSourceVariant(message.source)}
+                        className="text-xs flex items-center gap-1"
+                      >
+                        {getSourceIcon(message.source)}
+                        {getSourceLabel(message.source)}
+                      </Badge>
+                    )}
+                    {message.email_sent && (
+                      <Badge variant="outline" className="text-xs">
+                        <Mail className="h-3 w-3 mr-1" />
+                        Emailed
+                      </Badge>
+                    )}
                   </div>
                   <span className="text-xs text-gray-500">
                     {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
@@ -80,7 +127,9 @@ export function MessageThread({ messages, loading }: MessageThreadProps) {
                 </div>
                 
                 <div className="text-sm text-gray-700 bg-gray-50 rounded-md p-3">
-                  {message.message_text}
+                  {message.message_text.split('\n').map((line, index) => (
+                    <div key={index}>{line}</div>
+                  ))}
                 </div>
                 
                 {message.sender_store && (

@@ -384,39 +384,51 @@ export type Database = {
       order_messages: {
         Row: {
           created_at: string | null
+          email_sent: boolean | null
           id: string
           is_read: boolean | null
+          message_id: string | null
           message_text: string
           order_id: string
           order_type: string
+          reply_to_email_id: string | null
           sender_email: string
           sender_name: string | null
           sender_role: string
           sender_store: string | null
+          source: string | null
         }
         Insert: {
           created_at?: string | null
+          email_sent?: boolean | null
           id?: string
           is_read?: boolean | null
+          message_id?: string | null
           message_text: string
           order_id: string
           order_type: string
+          reply_to_email_id?: string | null
           sender_email: string
           sender_name?: string | null
           sender_role: string
           sender_store?: string | null
+          source?: string | null
         }
         Update: {
           created_at?: string | null
+          email_sent?: boolean | null
           id?: string
           is_read?: boolean | null
+          message_id?: string | null
           message_text?: string
           order_id?: string
           order_type?: string
+          reply_to_email_id?: string | null
           sender_email?: string
           sender_name?: string | null
           sender_role?: string
           sender_store?: string | null
+          source?: string | null
         }
         Relationships: []
       }
@@ -438,6 +450,8 @@ export type Database = {
           id: number
           in_transit_at: string | null
           invoice_number: string | null
+          manual_override_allowed: boolean | null
+          manual_override_reason: string | null
           name: string | null
           notes: string | null
           order_completion_link: string | null
@@ -454,12 +468,15 @@ export type Database = {
           received_at: string | null
           reopened_at: string | null
           reopened_reason: string | null
+          response_deadline: string | null
           schedule_arrival: string | null
           send_email_trigger: boolean | null
           send_invoice: boolean | null
           status: string | null
           status_updated_at: string | null
           store: string | null
+          store_response_date: string | null
+          store_response_status: string | null
           timestamp: string
         }
         Insert: {
@@ -479,6 +496,8 @@ export type Database = {
           id?: number
           in_transit_at?: string | null
           invoice_number?: string | null
+          manual_override_allowed?: boolean | null
+          manual_override_reason?: string | null
           name?: string | null
           notes?: string | null
           order_completion_link?: string | null
@@ -495,12 +514,15 @@ export type Database = {
           received_at?: string | null
           reopened_at?: string | null
           reopened_reason?: string | null
+          response_deadline?: string | null
           schedule_arrival?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
           status?: string | null
           status_updated_at?: string | null
           store?: string | null
+          store_response_date?: string | null
+          store_response_status?: string | null
           timestamp: string
         }
         Update: {
@@ -520,6 +542,8 @@ export type Database = {
           id?: number
           in_transit_at?: string | null
           invoice_number?: string | null
+          manual_override_allowed?: boolean | null
+          manual_override_reason?: string | null
           name?: string | null
           notes?: string | null
           order_completion_link?: string | null
@@ -536,12 +560,15 @@ export type Database = {
           received_at?: string | null
           reopened_at?: string | null
           reopened_reason?: string | null
+          response_deadline?: string | null
           schedule_arrival?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
           status?: string | null
           status_updated_at?: string | null
           store?: string | null
+          store_response_date?: string | null
+          store_response_status?: string | null
           timestamp?: string
         }
         Relationships: []
@@ -782,6 +809,10 @@ export type Database = {
       archive_order_by_invoice: {
         Args: { p_invoice: string }
         Returns: undefined
+      }
+      generate_message_id: {
+        Args: { order_id_param: string; sender_email_param: string }
+        Returns: string
       }
     }
     Enums: {
