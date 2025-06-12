@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface OrderMessage {
@@ -28,6 +29,21 @@ export interface SendMessageData {
   sender_store?: string;
   source?: 'platform' | 'email_reply' | 'email_direct';
   reply_to_email_id?: string;
+}
+
+// Type guard utilities for order_type validation
+const validOrderTypes = ["orders", "mto_orders", "wheel_orders"] as const;
+type ValidOrderType = typeof validOrderTypes[number];
+
+function isValidOrderType(value: string): value is ValidOrderType {
+  return validOrderTypes.includes(value as ValidOrderType);
+}
+
+function parseOrderType(value: string): ValidOrderType {
+  if (!isValidOrderType(value)) {
+    console.warn(`[OrderTypeGuard] Invalid order_type detected: ${value}. Defaulting to 'orders'.`);
+  }
+  return isValidOrderType(value) ? value : "orders";
 }
 
 /**
@@ -62,10 +78,16 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
 
     // Send email notification to recipient
     if (data) {
-      await sendEmailNotification(data);
+      await sendEmailNotification(data as any);
     }
 
-    return { data: data as OrderMessage, error: null };
+    // Apply type guard to ensure safe casting
+    const sanitizedMessage: OrderMessage = {
+      ...data,
+      order_type: parseOrderType(data.order_type),
+    };
+
+    return { data: sanitizedMessage, error: null };
   } catch (error) {
     console.error("❌ MESSAGE SERVICE - Unexpected error:", error);
     return { 
@@ -231,7 +253,14 @@ export const getOrderMessages = async (orderId: string, orderType: 'orders' | 'm
     }
 
     console.log("✅ MESSAGE SERVICE - Messages fetched successfully:", data?.length || 0);
-    return { data: data as OrderMessage[] || [], error: null };
+    
+    // Apply type guard to safely map messages
+    const sanitizedMessages: OrderMessage[] = (data ?? []).map(msg => ({
+      ...msg,
+      order_type: parseOrderType(msg.order_type),
+    }));
+
+    return { data: sanitizedMessages, error: null };
   } catch (error) {
     console.error("❌ MESSAGE SERVICE - Unexpected error:", error);
     return { 
