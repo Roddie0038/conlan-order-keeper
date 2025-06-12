@@ -57,6 +57,18 @@ function parseSenderRole(role: string | null): ValidSenderRole {
   return "store_manager";
 }
 
+// Type guard utilities for source validation
+const validSources = ["platform", "email_reply", "email_direct"] as const;
+type ValidSource = typeof validSources[number];
+
+function parseSource(value: string | null): ValidSource {
+  if (value && validSources.includes(value as ValidSource)) {
+    return value as ValidSource;
+  }
+  console.warn(`[SourceGuard] Invalid or null source: ${value}. Defaulting to 'platform'.`);
+  return "platform";
+}
+
 /**
  * Send a message for an order with email integration
  */
@@ -97,6 +109,7 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
       ...data,
       order_type: parseOrderType(data.order_type),
       sender_role: parseSenderRole(data.sender_role),
+      source: parseSource(data.source),
     };
 
     return { data: sanitizedMessage, error: null };
@@ -271,6 +284,7 @@ export const getOrderMessages = async (orderId: string, orderType: 'orders' | 'm
       ...msg,
       order_type: parseOrderType(msg.order_type),
       sender_role: parseSenderRole(msg.sender_role),
+      source: parseSource(msg.source),
     }));
 
     return { data: sanitizedMessages, error: null };
