@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface OrderMessage {
@@ -46,6 +45,18 @@ function parseOrderType(value: string): ValidOrderType {
   return isValidOrderType(value) ? value : "orders";
 }
 
+// Type guard utilities for sender_role validation
+const validRoles = ["store_manager", "warehouse_admin"] as const;
+type ValidSenderRole = typeof validRoles[number];
+
+function parseSenderRole(role: string | null): ValidSenderRole {
+  if (role && validRoles.includes(role as ValidSenderRole)) {
+    return role as ValidSenderRole;
+  }
+  console.warn(`[SenderRoleGuard] Invalid or null sender_role: ${role}. Defaulting to 'store_manager'.`);
+  return "store_manager";
+}
+
 /**
  * Send a message for an order with email integration
  */
@@ -81,10 +92,11 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
       await sendEmailNotification(data as any);
     }
 
-    // Apply type guard to ensure safe casting
+    // Apply type guards to ensure safe casting
     const sanitizedMessage: OrderMessage = {
       ...data,
       order_type: parseOrderType(data.order_type),
+      sender_role: parseSenderRole(data.sender_role),
     };
 
     return { data: sanitizedMessage, error: null };
@@ -254,10 +266,11 @@ export const getOrderMessages = async (orderId: string, orderType: 'orders' | 'm
 
     console.log("✅ MESSAGE SERVICE - Messages fetched successfully:", data?.length || 0);
     
-    // Apply type guard to safely map messages
+    // Apply type guards to safely map messages
     const sanitizedMessages: OrderMessage[] = (data ?? []).map(msg => ({
       ...msg,
       order_type: parseOrderType(msg.order_type),
+      sender_role: parseSenderRole(msg.sender_role),
     }));
 
     return { data: sanitizedMessages, error: null };
