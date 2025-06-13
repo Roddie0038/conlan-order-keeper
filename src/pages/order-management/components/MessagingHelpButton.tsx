@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
-import { MessagingGuideDialog } from "./MessagingGuideDialog";
+import { MessagingGuideDialog } from "@/components/shared/MessagingGuideDialog";
 
 export function MessagingHelpButton() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

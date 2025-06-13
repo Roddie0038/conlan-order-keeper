@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { X, MessageSquare } from "lucide-react";
-import { MessagingGuideDialog } from "./MessagingGuideDialog";
+import { MessagingGuideDialog } from "@/components/shared/MessagingGuideDialog";
 
 export function MessagingHelpBanner() {
   const [isDismissed, setIsDismissed] = useState(false);
