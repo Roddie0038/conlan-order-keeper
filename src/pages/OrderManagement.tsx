@@ -63,12 +63,14 @@ export default function OrderManagement() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center" style={{
-        backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        backgroundBlendMode: 'overlay'
-      }}>
-        <div className="flex items-center justify-center min-h-[400px]">
+      <div 
+        className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center relative" 
+        style={{
+          backgroundImage: 'url("/lovable-uploads/061bc791-3377-4911-8269-c0fed6642b6a.png")'
+        }}
+      >
+        <div className="absolute inset-0 bg-black/30"></div>
+        <div className="flex items-center justify-center min-h-[400px] relative z-10">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <span className="ml-2 text-lg font-medium text-white">Loading orders...</span>
         </div>
@@ -77,12 +79,14 @@ export default function OrderManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed" style={{
-      backgroundImage: 'url("/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png")',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      backgroundBlendMode: 'overlay'
-    }}>
-      <div className="container py-8">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat relative" 
+      style={{
+        backgroundImage: 'url("/lovable-uploads/061bc791-3377-4911-8269-c0fed6642b6a.png")'
+      }}
+    >
+      <div className="absolute inset-0 bg-black/30"></div>
+      <div className="container py-8 relative z-10">
         <Card className="p-6 bg-white/90 shadow-lg rounded-xl backdrop-blur-sm border border-gray-200">
           <OrderManagementHeader />
           
