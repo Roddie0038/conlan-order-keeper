@@ -28,7 +28,14 @@ export function MessageWarehouseDialog({
   const { toast } = useToast();
 
   const handleSend = async () => {
-    if (!message.trim()) return;
+    if (!message.trim()) {
+      toast({
+        title: "Message Required",
+        description: "Please enter a message before sending.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       console.log("🔍 MessageWarehouseDialog - Attempting to send message:", {
@@ -65,9 +72,17 @@ export function MessageWarehouseDialog({
         timestamp: new Date().toISOString()
       });
       
+      // Provide more specific error messaging
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const isPermissionError = errorMessage.includes('permission') || 
+                               errorMessage.includes('Access denied') ||
+                               errorMessage.includes('row-level security');
+      
       toast({
         title: "Message Failed",
-        description: "Failed to send message. Please check store access or try again.",
+        description: isPermissionError 
+          ? "Access denied. Please verify your store permissions for this order."
+          : "Failed to send message. Please try again or contact support.",
         variant: "destructive",
       });
     }
@@ -116,7 +131,11 @@ export function MessageWarehouseDialog({
               rows={4}
               className="mt-1"
               disabled={sending}
+              maxLength={1000}
             />
+            <div className="text-xs text-gray-500 mt-1">
+              {message.length}/1000 characters
+            </div>
           </div>
         </div>
 

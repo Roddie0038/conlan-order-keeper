@@ -5,35 +5,175 @@ import { parseOrderType, parseSenderRole, parseSource } from "./typeGuards";
 import { sendEmailNotification } from "./emailUtils";
 
 /**
+ * Normalize order type to match database values
+ */
+const normalizeOrderType = (orderType: string): 'orders' | 'mto_orders' | 'wheel_orders' => {
+  const normalized = orderType.toLowerCase().trim();
+  
+  if (normalized === 'transfer' || normalized === 'orders' || normalized === 'order') {
+    return 'orders';
+  }
+  if (normalized === 'mto' || normalized === 'mto_orders') {
+    return 'mto_orders';
+  }
+  if (normalized === 'wheel' || normalized === 'wheel_orders') {
+    return 'wheel_orders';
+  }
+  
+  // Default fallback
+  console.warn(`[MESSAGE] Unknown order type: ${orderType}, defaulting to 'orders'`);
+  return 'orders';
+};
+
+/**
+ * Validate and normalize order data before sending message
+ */
+const validateOrderData = async (messageData: SendMessageData): Promise<{ 
+  isValid: boolean; 
+  normalizedOrderId: string; 
+  normalizedOrderType: 'orders' | 'mto_orders' | 'wheel_orders';
+  error?: string;
+}> => {
+  const normalizedOrderType = normalizeOrderType(messageData.order_type);
+  let normalizedOrderId = messageData.order_id;
+  
+  console.log("🔍 MESSAGE VALIDATION - Input data:", {
+    originalOrderId: messageData.order_id,
+    originalOrderType: messageData.order_type,
+    normalizedOrderType,
+    senderStore: messageData.sender_store
+  });
+
+  // If order_id looks like a display name (e.g., "transfer-92"), try to find the actual database ID
+  if (normalizedOrderId.includes('-') && !normalizedOrderId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-/)) {
+    console.log("🔍 MESSAGE VALIDATION - Detecting display name format, looking up actual ID");
+    
+    try {
+      let query;
+      const idPart = normalizedOrderId.split('-')[1]; // Extract "92" from "transfer-92"
+      
+      if (normalizedOrderType === 'orders') {
+        query = supabase
+          .from('orders')
+          .select('id, store')
+          .eq('id', idPart)
+          .single();
+      } else if (normalizedOrderType === 'mto_orders') {
+        query = supabase
+          .from('mto_orders')
+          .select('id, store')
+          .eq('id', idPart)
+          .single();
+      } else if (normalizedOrderType === 'wheel_orders') {
+        query = supabase
+          .from('wheel_orders')
+          .select('id, store')
+          .eq('id', idPart)
+          .single();
+      }
+
+      if (query) {
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error("❌ MESSAGE VALIDATION - Order lookup failed:", error);
+          return {
+            isValid: false,
+            normalizedOrderId,
+            normalizedOrderType,
+            error: `Order not found: ${normalizedOrderId}`
+          };
+        }
+
+        if (data) {
+          normalizedOrderId = data.id.toString();
+          console.log("✅ MESSAGE VALIDATION - Found actual order ID:", {
+            displayId: messageData.order_id,
+            actualId: normalizedOrderId,
+            orderStore: data.store,
+            senderStore: messageData.sender_store
+          });
+
+          // Validate store match for store managers
+          if (messageData.sender_role === 'store_manager' && data.store !== messageData.sender_store) {
+            return {
+              isValid: false,
+              normalizedOrderId,
+              normalizedOrderType,
+              error: `Store mismatch: Order belongs to '${data.store}' but sender is from '${messageData.sender_store}'`
+            };
+          }
+        }
+      }
+    } catch (error) {
+      console.error("❌ MESSAGE VALIDATION - Unexpected error during ID lookup:", error);
+      return {
+        isValid: false,
+        normalizedOrderId,
+        normalizedOrderType,
+        error: `Failed to validate order: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+
+  return {
+    isValid: true,
+    normalizedOrderId,
+    normalizedOrderType
+  };
+};
+
+/**
  * Send a message for an order with email integration and enhanced error handling
  */
 export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ data: OrderMessage | null; error: Error | null }> => {
   try {
-    console.log("🔍 MESSAGE SERVICE - Sending order message:", {
+    console.log("🔍 MESSAGE SERVICE - Starting message send with raw data:", {
       ...messageData,
+      timestamp: new Date().toISOString()
+    });
+
+    // Validate and normalize the order data
+    const validation = await validateOrderData(messageData);
+    if (!validation.isValid) {
+      console.error("❌ MESSAGE SERVICE - Validation failed:", validation.error);
+      return { 
+        data: null, 
+        error: new Error(`Validation failed: ${validation.error}`) 
+      };
+    }
+
+    const normalizedData = {
+      ...messageData,
+      order_id: validation.normalizedOrderId,
+      order_type: validation.normalizedOrderType
+    };
+
+    console.log("🔍 MESSAGE SERVICE - Sending normalized message data:", {
+      ...normalizedData,
       timestamp: new Date().toISOString()
     });
     
     const { data, error } = await supabase
       .from('order_messages')
       .insert({
-        order_id: messageData.order_id,
-        order_type: messageData.order_type,
-        message_text: messageData.message_text,
-        sender_email: messageData.sender_email,
-        sender_role: messageData.sender_role,
-        sender_name: messageData.sender_name,
-        sender_store: messageData.sender_store,
-        source: messageData.source || 'platform',
-        reply_to_email_id: messageData.reply_to_email_id,
+        order_id: normalizedData.order_id,
+        order_type: normalizedData.order_type,
+        message_text: normalizedData.message_text,
+        sender_email: normalizedData.sender_email,
+        sender_role: normalizedData.sender_role,
+        sender_name: normalizedData.sender_name,
+        sender_store: normalizedData.sender_store,
+        source: normalizedData.source || 'platform',
+        reply_to_email_id: normalizedData.reply_to_email_id,
       })
       .select()
       .single();
 
     if (error) {
-      console.error("❌ MESSAGE SERVICE - Error sending message:", {
+      console.error("❌ MESSAGE SERVICE - Database insert error:", {
         error,
-        messageData,
+        normalizedData,
         errorCode: error.code,
         errorMessage: error.message,
         errorDetails: error.details,
@@ -50,7 +190,7 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
       if (isRLSError || isPolicyError) {
         return { 
           data: null, 
-          error: new Error(`Access denied: Row-Level Security policy violation. Check store permissions for order ${messageData.order_id}`) 
+          error: new Error(`Access denied: Please check store permissions for order ${normalizedData.order_id}. Your store: ${normalizedData.sender_store}`) 
         };
       }
 
@@ -59,6 +199,8 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
 
     console.log("✅ MESSAGE SERVICE - Message sent successfully:", {
       messageId: data?.id,
+      normalizedOrderId: validation.normalizedOrderId,
+      normalizedOrderType: validation.normalizedOrderType,
       timestamp: new Date().toISOString()
     });
 
@@ -101,13 +243,14 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
  */
 export const getOrderMessages = async (orderId: string, orderType: 'orders' | 'mto_orders' | 'wheel_orders'): Promise<{ data: OrderMessage[]; error: Error | null }> => {
   try {
-    console.log("🔍 MESSAGE SERVICE - Fetching messages for order:", orderId, orderType);
+    const normalizedOrderType = normalizeOrderType(orderType);
+    console.log("🔍 MESSAGE SERVICE - Fetching messages for order:", orderId, normalizedOrderType);
     
     const { data, error } = await supabase
       .from('order_messages')
       .select('*')
       .eq('order_id', orderId)
-      .eq('order_type', orderType)
+      .eq('order_type', normalizedOrderType)
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -156,11 +299,13 @@ export const markMessagesAsRead = async (messageIds: string[]): Promise<{ error:
 
 export const getOrderMessageCount = async (orderId: string, orderType: 'orders' | 'mto_orders' | 'wheel_orders'): Promise<{ count: number; error: Error | null }> => {
   try {
+    const normalizedOrderType = normalizeOrderType(orderType);
+    
     const { count, error } = await supabase
       .from('order_messages')
       .select('*', { count: 'exact', head: true })
       .eq('order_id', orderId)
-      .eq('order_type', orderType);
+      .eq('order_type', normalizedOrderType);
 
     if (error) {
       console.error("❌ MESSAGE SERVICE - Error getting message count:", error);

@@ -5,6 +5,26 @@ import { getOrderMessages, sendOrderMessage, markMessagesAsRead, getOrderMessage
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Normalize order type for consistency across the application
+ */
+const normalizeOrderType = (orderType: string): 'orders' | 'mto_orders' | 'wheel_orders' => {
+  const normalized = orderType.toLowerCase().trim();
+  
+  if (normalized === 'transfer' || normalized === 'orders' || normalized === 'order') {
+    return 'orders';
+  }
+  if (normalized === 'mto' || normalized === 'mto_orders') {
+    return 'mto_orders';
+  }
+  if (normalized === 'wheel' || normalized === 'wheel_orders') {
+    return 'wheel_orders';
+  }
+  
+  console.warn(`[HOOK] Unknown order type: ${orderType}, defaulting to 'orders'`);
+  return 'orders';
+};
+
 export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_orders' | 'wheel_orders') => {
   const [messages, setMessages] = useState<OrderMessage[]>([]);
   const [messageCount, setMessageCount] = useState(0);
@@ -12,6 +32,9 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
   const [sending, setSending] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Normalize the order type
+  const normalizedOrderType = normalizeOrderType(orderType);
 
   // Log message sending failures for debugging
   const logMessageError = async (error: any, messageData: SendMessageData) => {
@@ -30,9 +53,6 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
           email: user?.email
         }
       });
-
-      // Could optionally send to a logging service or error table here
-      // await supabase.from('message_errors').insert({ ... });
     } catch (logError) {
       console.error("Failed to log message error:", logError);
     }
@@ -44,7 +64,7 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
     
     setLoading(true);
     try {
-      const result = await getOrderMessages(orderId, orderType);
+      const result = await getOrderMessages(orderId, normalizedOrderType);
       if (result.error) {
         console.error("Error fetching messages:", result.error);
         toast({
@@ -68,7 +88,7 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
     if (!orderId) return;
     
     try {
-      const result = await getOrderMessageCount(orderId, orderType);
+      const result = await getOrderMessageCount(orderId, normalizedOrderType);
       if (!result.error) {
         setMessageCount(result.count);
       }
@@ -77,7 +97,7 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
     }
   };
 
-  // Send a new message with enhanced error handling
+  // Send a new message with enhanced error handling and validation
   const sendMessage = async (messageText: string) => {
     if (!user || !orderId || !messageText.trim()) {
       console.warn("🚨 MESSAGE SEND BLOCKED: Missing required data:", {
@@ -92,7 +112,7 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
     
     const messageData: SendMessageData = {
       order_id: orderId,
-      order_type: orderType,
+      order_type: normalizedOrderType,
       message_text: messageText.trim(),
       sender_email: user.email,
       sender_role: user.isAdmin ? 'warehouse_admin' : 'store_manager',
@@ -102,7 +122,7 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
     };
 
     try {
-      console.log("🔍 SENDING MESSAGE:", {
+      console.log("🔍 HOOK - Sending message with normalized data:", {
         ...messageData,
         timestamp: new Date().toISOString()
       });
@@ -110,13 +130,14 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
       const result = await sendOrderMessage(messageData);
       
       if (result.error) {
-        console.error("❌ MESSAGE SEND FAILED:", result.error);
+        console.error("❌ HOOK - Message send failed:", result.error);
         await logMessageError(result.error, messageData);
         
         // Provide more specific error messages based on error type
         const isRLSError = result.error.message.includes('row-level security') || 
                           result.error.message.includes('policy') ||
-                          result.error.message.includes('permission');
+                          result.error.message.includes('permission') ||
+                          result.error.message.includes('Access denied');
         
         toast({
           title: "Message Failed",
@@ -127,7 +148,7 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
         });
         return false;
       } else {
-        console.log("✅ MESSAGE SENT SUCCESSFULLY:", result.data?.id);
+        console.log("✅ HOOK - Message sent successfully:", result.data?.id);
         toast({
           title: "Message Sent",
           description: "Your message has been sent and an email notification was delivered.",
@@ -138,7 +159,7 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
         return true;
       }
     } catch (error) {
-      console.error("❌ MESSAGE SEND EXCEPTION:", error);
+      console.error("❌ HOOK - Message send exception:", error);
       await logMessageError(error, messageData);
       
       toast({
@@ -165,9 +186,9 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
 
   // Set up real-time subscription for new messages
   useEffect(() => {
-    if (!orderId || !orderType) return;
+    if (!orderId || !normalizedOrderType) return;
 
-    console.log('🔔 Setting up real-time subscription for messages:', { orderId, orderType });
+    console.log('🔔 Setting up real-time subscription for messages:', { orderId, orderType: normalizedOrderType });
 
     const channel = supabase
       .channel(`order-messages-${orderId}`)
@@ -184,7 +205,7 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
           
           if (payload.eventType === 'INSERT') {
             const newMessage = payload.new as OrderMessage;
-            if (newMessage.order_type === orderType) {
+            if (newMessage.order_type === normalizedOrderType) {
               setMessages(prev => [...prev, newMessage]);
               setMessageCount(prev => prev + 1);
               
@@ -198,7 +219,7 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedMessage = payload.new as OrderMessage;
-            if (updatedMessage.order_type === orderType) {
+            if (updatedMessage.order_type === normalizedOrderType) {
               setMessages(prev => 
                 prev.map(msg => msg.id === updatedMessage.id ? updatedMessage : msg)
               );
@@ -223,14 +244,14 @@ export const useOrderMessages = (orderId: string, orderType: 'orders' | 'mto_ord
       console.log('🔔 Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [orderId, orderType, user?.email, toast]);
+  }, [orderId, normalizedOrderType, user?.email, toast]);
 
   // Fetch messages on mount and when orderId/orderType changes
   useEffect(() => {
-    if (orderId && orderType) {
+    if (orderId && normalizedOrderType) {
       fetchMessages();
     }
-  }, [orderId, orderType]);
+  }, [orderId, normalizedOrderType]);
 
   return {
     messages,
