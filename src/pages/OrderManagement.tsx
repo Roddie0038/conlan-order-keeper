@@ -10,6 +10,8 @@ import { useFetchWarrantyOrders } from "@/hooks/useFetchWarrantyOrders";
 import { OrderManagementHeader } from "./order-management/components/OrderManagementHeader";
 import { OrderManagementControls } from "./order-management/components/OrderManagementControls";
 import { OrderManagementTabs } from "./order-management/components/OrderManagementTabs";
+import { MessagingHelpBanner } from "./order-management/components/MessagingHelpBanner";
+import { MessagingHelpButton } from "./order-management/components/MessagingHelpButton";
 import { combineOrders } from "./order-management/utils/orderCombiner";
 
 export default function OrderManagement() {
@@ -86,13 +88,24 @@ export default function OrderManagement() {
         <Card className="p-6 bg-white/90 shadow-lg rounded-xl backdrop-blur-sm border border-gray-200">
           <OrderManagementHeader />
           
+          {/* Messaging Help Banner */}
+          <MessagingHelpBanner />
+          
           <CardContent className="p-0">
-            <OrderManagementControls
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              refreshAllOrders={refreshAllOrders}
-              allOrders={allOrders}
-            />
+            {/* Help Button in Controls Section */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex-1">
+                <OrderManagementControls
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  refreshAllOrders={refreshAllOrders}
+                  allOrders={allOrders}
+                />
+              </div>
+              <div className="ml-4">
+                <MessagingHelpButton />
+              </div>
+            </div>
             
             <OrderManagementTabs
               pendingOrders={pendingOrders}
