@@ -9,7 +9,6 @@ import PendingOrders from './pages/PendingOrders';
 import AllPendingOrders from './pages/AllPendingOrders';
 import CompletedOrders from './pages/CompletedOrders';
 import OrderManagement from './pages/OrderManagement';
-import Settings from './pages/Settings';
 import AdminInventory from './pages/AdminInventory';
 import AdminOrders from './pages/AdminOrders';
 import AllOrders from './pages/AllOrders';
@@ -57,7 +56,6 @@ function App() {
                 <Route path="/all-pending-orders" element={<AllPendingOrders />} />
                 <Route path="/completed-orders" element={<CompletedOrders />} />
                 <Route path="/order-management" element={<OrderManagement />} />
-                <Route path="/settings" element={<Settings />} />
                 <Route path="/admin-inventory" element={<AdminInventory />} />
                 <Route path="/admin-orders" element={<AdminOrders />} />
                 <Route path="/all-orders" element={<AllOrders />} />
