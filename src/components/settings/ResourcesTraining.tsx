@@ -1,20 +1,11 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, FileText, Download, Eye } from "lucide-react";
+import { Search, FileText, Video, BookOpen } from "lucide-react";
 import { ResourceCard } from "./ResourceCard";
+import { VideoPlayerDialog } from "./VideoPlayerDialog";
 import { MessagingGuideDialog } from "@/components/shared/MessagingGuideDialog";
-
-export interface TrainingResource {
-  id: string;
-  title: string;
-  description: string;
-  type: 'dialog' | 'pdf';
-  category: string;
-  lastUpdated: string;
-  fileUrl?: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
+import type { TrainingResource } from "./types";
 
 const trainingResources: TrainingResource[] = [
   {
@@ -24,7 +15,43 @@ const trainingResources: TrainingResource[] = [
     type: 'dialog',
     category: 'Communication',
     lastUpdated: '2024-01-15',
+    version: '2.1',
+    changelog: [
+      {
+        version: '2.1',
+        date: '2024-01-15',
+        changes: [
+          'Added role-based messaging permissions',
+          'Improved error handling for message delivery',
+          'Updated UI for better mobile experience'
+        ],
+        type: 'minor'
+      },
+      {
+        version: '2.0',
+        date: '2024-01-01',
+        changes: [
+          'Complete redesign of messaging interface',
+          'Added real-time message notifications',
+          'Implemented message thread history'
+        ],
+        type: 'major'
+      }
+    ],
     icon: FileText,
+  },
+  {
+    id: 'platform-overview-video',
+    title: 'Platform Overview - Video Walkthrough',
+    description: 'A comprehensive video tour of the Conlan Tire Ordering Platform showing all major features and navigation.',
+    type: 'video',
+    category: 'Getting Started',
+    lastUpdated: '2024-01-20',
+    version: '1.0',
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    duration: '12:30',
+    thumbnail: '/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png',
+    icon: Video,
   },
   {
     id: 'platform-overview',
@@ -33,6 +60,19 @@ const trainingResources: TrainingResource[] = [
     type: 'pdf',
     category: 'Getting Started',
     lastUpdated: '2024-01-10',
+    version: '1.3',
+    changelog: [
+      {
+        version: '1.3',
+        date: '2024-01-10',
+        changes: [
+          'Updated screenshots for new UI',
+          'Added troubleshooting section',
+          'Clarified login procedures'
+        ],
+        type: 'patch'
+      }
+    ],
     fileUrl: '/resources/training/platform-overview.pdf',
     icon: FileText,
   },
@@ -43,8 +83,46 @@ const trainingResources: TrainingResource[] = [
     type: 'pdf',
     category: 'Inventory',
     lastUpdated: '2024-01-08',
+    version: '2.0',
+    changelog: [
+      {
+        version: '2.0',
+        date: '2024-01-08',
+        changes: [
+          'Added cross-dock inventory procedures',
+          'New section on seasonal inventory planning',
+          'Updated vendor contact information'
+        ],
+        type: 'major'
+      }
+    ],
     fileUrl: '/resources/training/inventory-management.pdf',
-    icon: FileText,
+    icon: BookOpen,
+  },
+  {
+    id: 'order-management-video',
+    title: 'Order Management Deep Dive',
+    description: 'Advanced video tutorial covering order processing, status tracking, and warehouse communication.',
+    type: 'video',
+    category: 'Order Processing',
+    lastUpdated: '2024-01-12',
+    version: '1.1',
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    duration: '18:45',
+    thumbnail: '/lovable-uploads/77846306-47a3-456b-89fb-55993d2b09b2.png',
+    changelog: [
+      {
+        version: '1.1',
+        date: '2024-01-12',
+        changes: [
+          'Added messaging feature demonstration',
+          'Updated order status explanations',
+          'Improved audio quality'
+        ],
+        type: 'minor'
+      }
+    ],
+    icon: Video,
   },
 ];
 
@@ -52,6 +130,8 @@ export function ResourcesTraining() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [messagingGuideOpen, setMessagingGuideOpen] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<TrainingResource | null>(null);
 
   const categories = ["All", ...Array.from(new Set(trainingResources.map(r => r.category)))];
 
@@ -67,6 +147,9 @@ export function ResourcesTraining() {
       setMessagingGuideOpen(true);
     } else if (resource.type === 'pdf' && resource.fileUrl) {
       window.open(resource.fileUrl, '_blank');
+    } else if (resource.type === 'video') {
+      setSelectedVideo(resource);
+      setVideoDialogOpen(true);
     }
   };
 
@@ -115,6 +198,19 @@ export function ResourcesTraining() {
         isOpen={messagingGuideOpen} 
         onClose={() => setMessagingGuideOpen(false)} 
       />
+
+      {selectedVideo && (
+        <VideoPlayerDialog
+          isOpen={videoDialogOpen}
+          onClose={() => {
+            setVideoDialogOpen(false);
+            setSelectedVideo(null);
+          }}
+          title={selectedVideo.title}
+          videoUrl={selectedVideo.videoUrl}
+          embedCode={selectedVideo.embedCode}
+        />
+      )}
     </div>
   );
 }
