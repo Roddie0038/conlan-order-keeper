@@ -7,14 +7,11 @@ import { validateOrderData } from "./orderValidation";
 
 /**
  * Send a message for an order with email integration and enhanced error handling
- * Now relies on database triggers to auto-populate sender fields from authenticated user profile
  */
 export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ data: OrderMessage | null; error: Error | null }> => {
   try {
-    console.log("🔍 MESSAGE SERVICE - Starting message send with simplified data:", {
-      order_id: messageData.order_id,
-      order_type: messageData.order_type,
-      message_text: messageData.message_text,
+    console.log("🔍 MESSAGE SERVICE - Starting message send with raw data:", {
+      ...messageData,
       timestamp: new Date().toISOString()
     });
 
@@ -28,31 +25,37 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
       };
     }
 
-    // IMPORTANT: Only send order_id, order_type, message_text
-    // The database trigger will auto-populate sender fields from auth.uid() -> profiles
-    const simplifiedData = {
+    const normalizedData = {
+      ...messageData,
       order_id: validation.normalizedOrderId,
-      order_type: validation.normalizedOrderType,
-      message_text: messageData.message_text,
-      source: messageData.source || 'platform',
-      reply_to_email_id: messageData.reply_to_email_id,
+      order_type: validation.normalizedOrderType
     };
 
-    console.log("🔍 MESSAGE SERVICE - Sending simplified message data (triggers will populate sender fields):", {
-      ...simplifiedData,
+    console.log("🔍 MESSAGE SERVICE - Sending normalized message data:", {
+      ...normalizedData,
       timestamp: new Date().toISOString()
     });
     
     const { data, error } = await supabase
       .from('order_messages')
-      .insert(simplifiedData)
+      .insert({
+        order_id: normalizedData.order_id,
+        order_type: normalizedData.order_type,
+        message_text: normalizedData.message_text,
+        sender_email: normalizedData.sender_email,
+        sender_role: normalizedData.sender_role,
+        sender_name: normalizedData.sender_name,
+        sender_store: normalizedData.sender_store,
+        source: normalizedData.source || 'platform',
+        reply_to_email_id: normalizedData.reply_to_email_id,
+      })
       .select()
       .single();
 
     if (error) {
       console.error("❌ MESSAGE SERVICE - Database insert error:", {
         error,
-        simplifiedData,
+        normalizedData,
         errorCode: error.code,
         errorMessage: error.message,
         errorDetails: error.details,
@@ -69,20 +72,17 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
       if (isRLSError || isPolicyError) {
         return { 
           data: null, 
-          error: new Error(`Access denied: You don't have permission to send messages for this order. Please check your store assignment and try again.`) 
+          error: new Error(`Access denied: Please check store permissions for order ${normalizedData.order_id}. Your store: ${normalizedData.sender_store}`) 
         };
       }
 
       return { data: null, error: new Error(`Failed to send message: ${error.message}`) };
     }
 
-    console.log("✅ MESSAGE SERVICE - Message sent successfully with auto-populated sender fields:", {
+    console.log("✅ MESSAGE SERVICE - Message sent successfully:", {
       messageId: data?.id,
       normalizedOrderId: validation.normalizedOrderId,
       normalizedOrderType: validation.normalizedOrderType,
-      senderEmail: data?.sender_email,
-      senderStore: data?.sender_store,
-      senderRole: data?.sender_role,
       timestamp: new Date().toISOString()
     });
 
@@ -108,11 +108,7 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
   } catch (error) {
     console.error("❌ MESSAGE SERVICE - Unexpected error:", {
       error,
-      messageData: {
-        order_id: messageData.order_id,
-        order_type: messageData.order_type,
-        message_text_length: messageData.message_text?.length || 0
-      },
+      messageData,
       errorMessage: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString()
     });

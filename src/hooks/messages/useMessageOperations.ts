@@ -6,7 +6,6 @@ import { useToast } from '@/components/ui/use-toast';
 
 /**
  * Hook for handling message operations (fetch, send, mark as read)
- * Updated to work with secure RLS architecture using auth.uid() -> profiles
  */
 export const useMessageOperations = (orderId: string, normalizedOrderType: 'orders' | 'mto_orders' | 'wheel_orders') => {
   const [messages, setMessages] = useState<OrderMessage[]>([]);
@@ -17,15 +16,19 @@ export const useMessageOperations = (orderId: string, normalizedOrderType: 'orde
   const { toast } = useToast();
 
   // Log message sending failures for debugging
-  const logMessageError = async (error: any, messageData: Partial<SendMessageData>) => {
+  const logMessageError = async (error: any, messageData: SendMessageData) => {
     try {
       console.error("🚨 MESSAGE ERROR LOG:", {
         orderId: messageData.order_id,
         orderType: messageData.order_type,
+        senderRole: messageData.sender_role,
+        senderEmail: messageData.sender_email,
+        senderStore: messageData.sender_store,
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
         userContext: {
-          userId: user?.id,
+          isAdmin: user?.isAdmin,
+          storeName: user?.storeName,
           email: user?.email
         }
       });
@@ -73,7 +76,7 @@ export const useMessageOperations = (orderId: string, normalizedOrderType: 'orde
     }
   };
 
-  // Send a new message with simplified payload - database triggers handle sender population
+  // Send a new message with enhanced error handling and validation
   const sendMessage = async (messageText: string) => {
     if (!user || !orderId || !messageText.trim()) {
       console.warn("🚨 MESSAGE SEND BLOCKED: Missing required data:", {
@@ -86,22 +89,20 @@ export const useMessageOperations = (orderId: string, normalizedOrderType: 'orde
 
     setSending(true);
     
-    // SIMPLIFIED: Only send the essential message data
-    // Database triggers will auto-populate sender fields from auth.uid() -> profiles
     const messageData: SendMessageData = {
       order_id: orderId,
       order_type: normalizedOrderType,
       message_text: messageText.trim(),
-      source: 'platform',
-      // REMOVED: sender_email, sender_role, sender_name, sender_store
-      // These are now auto-populated by database triggers from the authenticated user's profile
-    } as SendMessageData;
+      sender_email: user.email,
+      sender_role: user.isAdmin ? 'warehouse_admin' : 'store_manager',
+      sender_name: user.name,
+      sender_store: user.storeName,
+      source: 'platform'
+    };
 
     try {
-      console.log("🔍 HOOK - Sending simplified message (triggers will populate sender fields):", {
-        order_id: messageData.order_id,
-        order_type: messageData.order_type,
-        message_text_length: messageData.message_text.length,
+      console.log("🔍 HOOK - Sending message with normalized data:", {
+        ...messageData,
         timestamp: new Date().toISOString()
       });
 
@@ -112,25 +113,21 @@ export const useMessageOperations = (orderId: string, normalizedOrderType: 'orde
         await logMessageError(result.error, messageData);
         
         // Provide more specific error messages based on error type
-        const isAccessDenied = result.error.message.includes('Access denied') || 
-                              result.error.message.includes('permission') ||
-                              result.error.message.includes('policy');
+        const isRLSError = result.error.message.includes('row-level security') || 
+                          result.error.message.includes('policy') ||
+                          result.error.message.includes('permission') ||
+                          result.error.message.includes('Access denied');
         
         toast({
           title: "Message Failed",
-          description: isAccessDenied 
-            ? "Access denied. You can only send messages for orders from your assigned store."
+          description: isRLSError 
+            ? "Access denied. Please check your store permissions and try again."
             : "Failed to send message. Please try again or contact support.",
           variant: "destructive",
         });
         return false;
       } else {
-        console.log("✅ HOOK - Message sent successfully with auto-populated sender fields:", {
-          messageId: result.data?.id,
-          senderEmail: result.data?.sender_email,
-          senderStore: result.data?.sender_store,
-          senderRole: result.data?.sender_role
-        });
+        console.log("✅ HOOK - Message sent successfully:", result.data?.id);
         toast({
           title: "Message Sent",
           description: "Your message has been sent and an email notification was delivered.",
