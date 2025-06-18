@@ -118,7 +118,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     // Add Email Testing Suite for admins
     menuItems.push({
       title: "📧 EMAIL TESTING SUITE",
-      icon: Mail,
+      icon: <Mail className="h-6 w-6" />,
       path: "/email-testing",
       color: "bg-gradient-to-br from-purple-500 to-pink-500",
       borderColor: "border-purple-400",
