@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -24,6 +23,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { PlantProvider } from './contexts/PlantContext';
 import { Toaster } from "@/components/ui/toaster"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
+import EmailTestingSuite from "./pages/EmailTestingSuite";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -67,6 +67,7 @@ function App() {
                 <Route path="/retread-warranty" element={<RetreadWarranty />} />
                 <Route path="/complaint-tracking" element={<ComplaintTracking />} />
                 <Route path="/my-complaints" element={<MyComplaints />} />
+                <Route path="/email-testing" element={<EmailTestingSuite />} />
               </Routes>
             </ConditionalSidebar>
           </QueryClientProvider>

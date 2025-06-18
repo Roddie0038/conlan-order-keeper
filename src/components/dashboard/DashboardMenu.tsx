@@ -1,4 +1,5 @@
-import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket, FileCheck, AlertTriangle } from "lucide-react";
+
+import { Box, Package, CheckSquare, Database, Truck, Disc, ClipboardList, Rocket, FileCheck, AlertTriangle, Mail } from "lucide-react";
 import { MenuCard, MenuItemProps } from "./MenuCard";
 import { ApprovedTreadsCard } from "./ApprovedTreadsCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -112,6 +113,20 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       hideTitle: true,
       fullSizeImage: true,
       backgroundImage: "/lovable-uploads/d105eb33-3189-4f02-995f-dfd6eaf2b08a.png"
+    });
+
+    // Add Email Testing Suite for admins
+    menuItems.push({
+      title: "📧 EMAIL TESTING SUITE",
+      icon: Mail,
+      path: "/email-testing",
+      color: "bg-gradient-to-br from-purple-500 to-pink-500",
+      borderColor: "border-purple-400",
+      delay: 1.0,
+      size: "col-span-1",
+      highlight: true,
+      hideTitle: false,
+      fullSizeImage: false
     });
   }
 
