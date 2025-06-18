@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string | null
+          created_at: string | null
+          deleted_at: string
+          deleted_by: string
+          entity_id: string
+          entity_type: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string | null
+          deleted_at?: string
+          deleted_by: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          action?: string | null
+          created_at?: string | null
+          deleted_at?: string
+          deleted_by?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       approved_treads: {
         Row: {
           category: string | null
@@ -53,6 +86,7 @@ export type Database = {
           complaint_type: string
           created_at: string | null
           date_submitted: string | null
+          deleted_at: string | null
           id: string
           identified_concern: string
           issue_type: string
@@ -74,6 +108,7 @@ export type Database = {
           complaint_type: string
           created_at?: string | null
           date_submitted?: string | null
+          deleted_at?: string | null
           id?: string
           identified_concern: string
           issue_type: string
@@ -95,6 +130,7 @@ export type Database = {
           complaint_type?: string
           created_at?: string | null
           date_submitted?: string | null
+          deleted_at?: string | null
           id?: string
           identified_concern?: string
           issue_type?: string
@@ -209,6 +245,7 @@ export type Database = {
           completed: boolean | null
           completed_at: string | null
           cross_dock_form_link: string | null
+          deleted_at: string | null
           description: string | null
           destination_manager_email: string | null
           email: string | null
@@ -255,6 +292,7 @@ export type Database = {
           completed?: boolean | null
           completed_at?: string | null
           cross_dock_form_link?: string | null
+          deleted_at?: string | null
           description?: string | null
           destination_manager_email?: string | null
           email?: string | null
@@ -301,6 +339,7 @@ export type Database = {
           completed?: boolean | null
           completed_at?: string | null
           cross_dock_form_link?: string | null
+          deleted_at?: string | null
           description?: string | null
           destination_manager_email?: string | null
           email?: string | null
@@ -443,6 +482,7 @@ export type Database = {
           cross_dock_form_link: string | null
           cross_dock_receiver_number: string | null
           cross_dock_type: string | null
+          deleted_at: string | null
           description: string | null
           destination_manager_email: string | null
           email: string | null
@@ -466,6 +506,7 @@ export type Database = {
           quantity: number | null
           ready_to_ship_at: string | null
           received_at: string | null
+          received_at_warehouse: string | null
           reopened_at: string | null
           reopened_reason: string | null
           response_deadline: string | null
@@ -478,6 +519,7 @@ export type Database = {
           store_response_date: string | null
           store_response_status: string | null
           timestamp: string
+          warehouse_received: boolean | null
         }
         Insert: {
           archived?: boolean | null
@@ -489,6 +531,7 @@ export type Database = {
           cross_dock_form_link?: string | null
           cross_dock_receiver_number?: string | null
           cross_dock_type?: string | null
+          deleted_at?: string | null
           description?: string | null
           destination_manager_email?: string | null
           email?: string | null
@@ -512,6 +555,7 @@ export type Database = {
           quantity?: number | null
           ready_to_ship_at?: string | null
           received_at?: string | null
+          received_at_warehouse?: string | null
           reopened_at?: string | null
           reopened_reason?: string | null
           response_deadline?: string | null
@@ -524,6 +568,7 @@ export type Database = {
           store_response_date?: string | null
           store_response_status?: string | null
           timestamp: string
+          warehouse_received?: boolean | null
         }
         Update: {
           archived?: boolean | null
@@ -535,6 +580,7 @@ export type Database = {
           cross_dock_form_link?: string | null
           cross_dock_receiver_number?: string | null
           cross_dock_type?: string | null
+          deleted_at?: string | null
           description?: string | null
           destination_manager_email?: string | null
           email?: string | null
@@ -558,6 +604,7 @@ export type Database = {
           quantity?: number | null
           ready_to_ship_at?: string | null
           received_at?: string | null
+          received_at_warehouse?: string | null
           reopened_at?: string | null
           reopened_reason?: string | null
           response_deadline?: string | null
@@ -570,6 +617,7 @@ export type Database = {
           store_response_date?: string | null
           store_response_status?: string | null
           timestamp?: string
+          warehouse_received?: boolean | null
         }
         Relationships: []
       }
@@ -626,10 +674,18 @@ export type Database = {
       }
       warranty_orders: {
         Row: {
+          approval_date: string | null
+          approval_invoice_number: string | null
+          approval_notes: string | null
+          approval_status: string | null
+          approved_by: string | null
           condition: string | null
           created_at: string
           customer_name: string | null
           date_submitted: string | null
+          deleted_at: string | null
+          denial_invoice_number: string | null
+          denial_reason: string | null
           dot_number: string | null
           email: string | null
           excise_tax_collected: boolean | null
@@ -658,10 +714,18 @@ export type Database = {
           work_order: string | null
         }
         Insert: {
+          approval_date?: string | null
+          approval_invoice_number?: string | null
+          approval_notes?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
           condition?: string | null
           created_at?: string
           customer_name?: string | null
           date_submitted?: string | null
+          deleted_at?: string | null
+          denial_invoice_number?: string | null
+          denial_reason?: string | null
           dot_number?: string | null
           email?: string | null
           excise_tax_collected?: boolean | null
@@ -690,10 +754,18 @@ export type Database = {
           work_order?: string | null
         }
         Update: {
+          approval_date?: string | null
+          approval_invoice_number?: string | null
+          approval_notes?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
           condition?: string | null
           created_at?: string
           customer_name?: string | null
           date_submitted?: string | null
+          deleted_at?: string | null
+          denial_invoice_number?: string | null
+          denial_reason?: string | null
           dot_number?: string | null
           email?: string | null
           excise_tax_collected?: boolean | null
@@ -726,12 +798,14 @@ export type Database = {
       wheel_orders: {
         Row: {
           completed: boolean | null
+          completed_at: string | null
           completedat: string | null
           crossdockdestination: string | null
           crossdocketadate: string | null
           crossdockformlink: string | null
           crossdockreceivernumber: string | null
           crossdocktype: string | null
+          deleted_at: string | null
           description: string | null
           desiredcolor: string | null
           destinationmanageremail: string | null
@@ -746,6 +820,7 @@ export type Database = {
           plant: string | null
           productnumber: string | null
           quantity: number | null
+          received_at: string | null
           receivedat: string | null
           schedulearrival: string | null
           sendemailtrigger: boolean | null
@@ -761,12 +836,14 @@ export type Database = {
         }
         Insert: {
           completed?: boolean | null
+          completed_at?: string | null
           completedat?: string | null
           crossdockdestination?: string | null
           crossdocketadate?: string | null
           crossdockformlink?: string | null
           crossdockreceivernumber?: string | null
           crossdocktype?: string | null
+          deleted_at?: string | null
           description?: string | null
           desiredcolor?: string | null
           destinationmanageremail?: string | null
@@ -781,6 +858,7 @@ export type Database = {
           plant?: string | null
           productnumber?: string | null
           quantity?: number | null
+          received_at?: string | null
           receivedat?: string | null
           schedulearrival?: string | null
           sendemailtrigger?: boolean | null
@@ -796,12 +874,14 @@ export type Database = {
         }
         Update: {
           completed?: boolean | null
+          completed_at?: string | null
           completedat?: string | null
           crossdockdestination?: string | null
           crossdocketadate?: string | null
           crossdockformlink?: string | null
           crossdockreceivernumber?: string | null
           crossdocktype?: string | null
+          deleted_at?: string | null
           description?: string | null
           desiredcolor?: string | null
           destinationmanageremail?: string | null
@@ -816,6 +896,7 @@ export type Database = {
           plant?: string | null
           productnumber?: string | null
           quantity?: number | null
+          received_at?: string | null
           receivedat?: string | null
           schedulearrival?: string | null
           sendemailtrigger?: boolean | null

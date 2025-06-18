@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { uploadFileToSupabase, uploadMultipleFiles } from "@/services/storageService";
 import { submitRetreadWarranty } from "@/services/warrantyService";
 import { validateWarrantyForm } from "@/utils/warrantyValidation";
+import { getManagerEmail } from "@/components/order-form/formConfig";
 import { RetreadWarrantyFormData } from "./useRetreadWarrantyForm";
 
 export const useWarrantySubmission = () => {
@@ -30,6 +31,13 @@ export const useWarrantySubmission = () => {
     try {
       console.log("🚀 Starting warranty claim submission...");
       
+      // Get the proper manager email and store name using the same logic as other forms
+      const managerEmail = getManagerEmail(user?.store || "");
+      const storeName = user?.store || "";
+      const submitterName = user?.name || "Store Manager";
+      
+      console.log("📧 WARRANTY SUBMISSION - Using email:", managerEmail, "for store:", storeName);
+      
       // Upload invoice file if provided
       let invoiceUrl = "";
       if (form.invoiceFile) {
@@ -45,10 +53,10 @@ export const useWarrantySubmission = () => {
         ? await uploadMultipleFiles(form.photoFiles, "warranty-photos", user?.id)
         : [];
 
-      // Submit warranty claim with standardized return type
+      // Submit warranty claim with proper email and store information
       const result = await submitRetreadWarranty({
         plant: user?.plant || "Grand Prairie 97",
-        store: user?.storeName || "",
+        store: storeName,
         tire_type: "Retread",
         dot_number: form.dotNumber,
         condition: form.condition,
@@ -58,8 +66,8 @@ export const useWarrantySubmission = () => {
         tire_size: form.tireSize,
         invoice_url: invoiceUrl,
         photo_urls: photoUrls,
-        email: user?.email || "",
-        name: user?.name || "",
+        email: managerEmail,
+        name: submitterName,
       });
 
       if (result.error) {

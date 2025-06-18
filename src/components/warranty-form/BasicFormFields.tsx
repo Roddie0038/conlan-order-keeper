@@ -19,14 +19,17 @@ interface BasicFormFieldsProps {
 export function BasicFormFields({ form, onChange }: BasicFormFieldsProps) {
   const { user } = useAuth();
 
+  // Use the same store display logic as other forms
+  const displayStoreName = user?.store || "Not specified";
+
   return (
     <>
-      {/* Store Location - Auto-filled */}
+      {/* Store Location - Auto-filled with proper store name */}
       <div>
         <Label htmlFor="storeLocation">Store Location</Label>
         <Input 
           id="storeLocation"
-          value={user?.storeName || "Not specified"}
+          value={displayStoreName}
           disabled 
           className="bg-gray-50"
         />
