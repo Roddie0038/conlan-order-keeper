@@ -37,6 +37,12 @@ const EMAIL_TEMPLATES = {
   "message-receipt": "Order Message Receipt Confirmation"
 };
 
+// Whitelist of allowed test email addresses
+const ALLOWED_TEST_EMAILS = [
+  "roderickdemarais@aol.com",
+  "conlan@conlantire.com"
+];
+
 const generateEmailHTML = (templateType: string, data: any): string => {
   const templateTitle = EMAIL_TEMPLATES[templateType as keyof typeof EMAIL_TEMPLATES] || "Order Notification";
   
@@ -120,9 +126,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("🧪 EMAIL TESTING - Processing request:", { templateType, recipientEmail, isTestMode });
 
-    // Security check - only send to admin emails during test mode
-    if (isTestMode && !recipientEmail.includes('@')) {
-      throw new Error("Invalid recipient email for test mode");
+    // Security check - only send to whitelisted test emails during test mode
+    if (isTestMode && !ALLOWED_TEST_EMAILS.includes(recipientEmail)) {
+      throw new Error(`Unauthorized recipient email for test mode: ${recipientEmail}`);
     }
 
     const subject = `Confirmation – ${templateData.order_type} for Store ${templateData.store_name}`;

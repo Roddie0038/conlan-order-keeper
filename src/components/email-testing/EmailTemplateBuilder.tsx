@@ -23,6 +23,12 @@ const EMAIL_TEMPLATES = {
   "message-receipt": "Order Message Receipt Confirmation"
 };
 
+const TEST_RECIPIENT_OPTIONS = {
+  "personal": { label: "Personal (AOL)", emails: ["roderickdemarais@aol.com"] },
+  "work": { label: "Work (Conlan)", emails: ["conlan@conlantire.com"] },
+  "both": { label: "Both", emails: ["roderickdemarais@aol.com", "conlan@conlantire.com"] }
+};
+
 interface EmailTemplateBuilderProps {
   selectedTemplate: string;
   onTemplateChange: (template: string) => void;
@@ -33,6 +39,11 @@ export function EmailTemplateBuilder({ selectedTemplate, onTemplateChange, onEma
   const { user } = useAuth();
   const { toast } = useToast();
   const [sending, setSending] = useState(false);
+  const [testRecipient, setTestRecipient] = useState(() => {
+    // Remember selection during session
+    return localStorage.getItem('emailTestRecipient') || 'both';
+  });
+  
   const [templateData, setTemplateData] = useState({
     store_name: "Fort Worth 22",
     order_id: "ORD-2024-001",
@@ -43,49 +54,60 @@ export function EmailTemplateBuilder({ selectedTemplate, onTemplateChange, onEma
     email_signature: "Best regards, Conlan Tire Warehouse Team"
   });
 
+  const handleRecipientChange = (value: string) => {
+    setTestRecipient(value);
+    localStorage.setItem('emailTestRecipient', value);
+  };
+
   const handleSendTestEmail = async () => {
-    if (!user?.email) {
+    const selectedOption = TEST_RECIPIENT_OPTIONS[testRecipient as keyof typeof TEST_RECIPIENT_OPTIONS];
+    if (!selectedOption) {
       toast({
         title: "Error",
-        description: "No admin email found",
+        description: "Please select a test recipient",
         variant: "destructive"
       });
       return;
     }
 
     setSending(true);
+    
     try {
-      console.log("🧪 EMAIL TEST - Sending to admin:", user.email);
+      const recipientEmails = selectedOption.emails;
+      console.log("🧪 EMAIL TEST - Sending to recipients:", recipientEmails);
       console.log("📧 EMAIL TEST - Template:", selectedTemplate);
       console.log("📊 EMAIL TEST - Data:", templateData);
 
-      const { data, error } = await supabase.functions.invoke('email-testing', {
-        body: {
-          templateType: selectedTemplate,
-          templateData,
-          recipientEmail: user.email,
-          isTestMode: true
-        }
-      });
+      // Send to each recipient
+      for (const recipientEmail of recipientEmails) {
+        const { data, error } = await supabase.functions.invoke('email-testing', {
+          body: {
+            templateType: selectedTemplate,
+            templateData,
+            recipientEmail: recipientEmail,
+            isTestMode: true
+          }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Log the email send
-      const logEntry = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        emailType: EMAIL_TEMPLATES[selectedTemplate as keyof typeof EMAIL_TEMPLATES],
-        routeStatus: "Success",
-        recipientEmail: user.email,
-        renderedSubject: `Confirmation – ${templateData.order_type} for Store ${templateData.store_name}`,
-        renderedBody: "Email sent successfully"
-      };
+        // Log each email send
+        const logEntry = {
+          id: Date.now() + Math.random(), // Ensure unique IDs for multiple emails
+          timestamp: new Date().toISOString(),
+          emailType: EMAIL_TEMPLATES[selectedTemplate as keyof typeof EMAIL_TEMPLATES],
+          routeStatus: "Success",
+          recipientEmail: recipientEmail,
+          renderedSubject: `Confirmation – ${templateData.order_type} for Store ${templateData.store_name}`,
+          renderedBody: "Email sent successfully"
+        };
 
-      onEmailSent(logEntry);
+        onEmailSent(logEntry);
+      }
 
       toast({
-        title: "Test Email Sent!",
-        description: `Email sent to ${user.email} successfully`
+        title: "Test Email(s) Sent!",
+        description: `Email sent to ${selectedOption.label} (${recipientEmails.length} recipient${recipientEmails.length > 1 ? 's' : ''})`
       });
 
     } catch (error) {
@@ -96,7 +118,7 @@ export function EmailTemplateBuilder({ selectedTemplate, onTemplateChange, onEma
         timestamp: new Date().toISOString(),
         emailType: EMAIL_TEMPLATES[selectedTemplate as keyof typeof EMAIL_TEMPLATES],
         routeStatus: "Failed",
-        recipientEmail: user.email,
+        recipientEmail: selectedOption.emails.join(", "),
         renderedSubject: `Confirmation – ${templateData.order_type} for Store ${templateData.store_name}`,
         renderedBody: `Error: ${error}`
       };
@@ -181,12 +203,33 @@ export function EmailTemplateBuilder({ selectedTemplate, onTemplateChange, onEma
           <CardTitle>Test Email Delivery</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="recipient-select">Send test email to:</Label>
+            <Select value={testRecipient} onValueChange={handleRecipientChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select test recipient" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {Object.entries(TEST_RECIPIENT_OPTIONS).map(([key, option]) => (
+                  <SelectItem key={key} value={key}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <p className="text-sm text-blue-700">
-              <strong>Test Recipient:</strong> {user?.email}
+              <strong>Selected Recipients:</strong>
             </p>
-            <p className="text-xs text-blue-600 mt-1">
-              All test emails will be sent to the currently logged-in admin user
+            <div className="text-xs text-blue-600 mt-1">
+              {TEST_RECIPIENT_OPTIONS[testRecipient as keyof typeof TEST_RECIPIENT_OPTIONS]?.emails.map((email, index) => (
+                <div key={index}>{email}</div>
+              ))}
+            </div>
+            <p className="text-xs text-blue-600 mt-2">
+              ⚠️ Internal testing only - No external emails will be sent
             </p>
           </div>
 
