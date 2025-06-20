@@ -42,7 +42,7 @@ const users = [
   { username: 'Tallahassee15', password: 'Welcome15', store: 'Tallahassee 15', isAdmin: false },
   { username: 'Mulberry99', password: 'Welcome99', store: 'Mulberry 99', isAdmin: false },
   { username: 'Orlando4', password: 'Welcome4', store: 'Orlando 4', isAdmin: false },
-  { username: 'Tampa6', password: 'Welcome3', store: 'Tampa 6', isAdmin: false },
+  { username: 'Tampa6', password: 'Welcome6', store: 'Tampa 6', isAdmin: false },
   { username: 'Vero Beach21', password: 'Welcome21', store: 'Vero Beach 21', isAdmin: false },
   { username: 'Sarasota23', password: 'Welcome23', store: 'Sarasota 23', isAdmin: false },
   { username: 'Romulus098', password: 'Welcome98', store: 'Romulus 098', isAdmin: false },
