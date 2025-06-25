@@ -78,10 +78,57 @@ export type Database = {
         }
         Relationships: []
       }
+      complaint_email_logs: {
+        Row: {
+          complaint_id: string
+          created_at: string | null
+          email_type: string
+          error_details: string | null
+          id: string
+          message_id: string | null
+          sent_to: string
+          status: string
+          timestamp: string
+        }
+        Insert: {
+          complaint_id: string
+          created_at?: string | null
+          email_type: string
+          error_details?: string | null
+          id?: string
+          message_id?: string | null
+          sent_to: string
+          status?: string
+          timestamp?: string
+        }
+        Update: {
+          complaint_id?: string
+          created_at?: string | null
+          email_type?: string
+          error_details?: string | null
+          id?: string
+          message_id?: string | null
+          sent_to?: string
+          status?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_email_logs_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaints: {
         Row: {
+          acknowledged_at: string | null
           admin_responder: string | null
           admin_response: string | null
+          assigned_at: string | null
+          assigned_to: string | null
           attachments: string[] | null
           complaint_type: string
           created_at: string | null
@@ -90,8 +137,11 @@ export type Database = {
           id: string
           identified_concern: string
           issue_type: string
+          notes: Json | null
           order_id: string | null
           resolved_at: string | null
+          response_message: string | null
+          response_sent_at: string | null
           sales_person: string | null
           status: string | null
           store_name: string
@@ -102,8 +152,11 @@ export type Database = {
           work_order_number: string | null
         }
         Insert: {
+          acknowledged_at?: string | null
           admin_responder?: string | null
           admin_response?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
           attachments?: string[] | null
           complaint_type: string
           created_at?: string | null
@@ -112,8 +165,11 @@ export type Database = {
           id?: string
           identified_concern: string
           issue_type: string
+          notes?: Json | null
           order_id?: string | null
           resolved_at?: string | null
+          response_message?: string | null
+          response_sent_at?: string | null
           sales_person?: string | null
           status?: string | null
           store_name: string
@@ -124,8 +180,11 @@ export type Database = {
           work_order_number?: string | null
         }
         Update: {
+          acknowledged_at?: string | null
           admin_responder?: string | null
           admin_response?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
           attachments?: string[] | null
           complaint_type?: string
           created_at?: string | null
@@ -134,8 +193,11 @@ export type Database = {
           id?: string
           identified_concern?: string
           issue_type?: string
+          notes?: Json | null
           order_id?: string | null
           resolved_at?: string | null
+          response_message?: string | null
+          response_sent_at?: string | null
           sales_person?: string | null
           status?: string | null
           store_name?: string

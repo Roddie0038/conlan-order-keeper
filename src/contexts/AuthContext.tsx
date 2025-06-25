@@ -25,6 +25,7 @@ const users = [
   { username: 'Grand Prairie27', password: 'Welcome27', store: 'Grand Prairie 27', isAdmin: false },
   { username: 'Houston28', password: 'Welcome28', store: 'Houston 28', isAdmin: false },
   { username: 'San Antonio29', password: 'Welcome29', store: 'San Antonio 29', isAdmin: false },
+  { username: 'Rpetty', password: 'Welcome29', store: 'San Antonio 29', isAdmin: false },
   { username: 'Oklahoma30', password: 'Welcome30', store: 'Oklahoma City 30', isAdmin: false },
   { username: 'Little Rock32', password: 'Welcome32', store: 'Little Rock 32', isAdmin: false },
   { username: 'Kansas33', password: 'Welcome33', store: 'Kansas 33', isAdmin: false },
@@ -67,8 +68,21 @@ const generateUserId = (username: string): string => {
 
 // Helper function to generate email from store name
 const generateEmail = (storeName: string, username: string): string => {
+  // Special case for Ryan Petty
+  if (username === 'Rpetty') {
+    return 'rpetty@conlantire.com';
+  }
   const cleanStoreName = storeName.replace(/\s+/g, '').toLowerCase();
   return `${cleanStoreName}@conlantire.com`;
+};
+
+// Helper function to generate display name
+const generateDisplayName = (username: string, storeName: string): string => {
+  // Special case for Ryan Petty
+  if (username === 'Rpetty') {
+    return 'Service Manager – San Antonio 29';
+  }
+  return username;
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -115,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // New required properties
         id: generateUserId(userMatch.username),
         email: generateEmail(userMatch.store, userMatch.username),
-        name: userMatch.username,
+        name: generateDisplayName(userMatch.username, userMatch.store),
         storeName: userMatch.store
       };
       console.log("AuthProvider: Login successful for:", extendedUser.store);
