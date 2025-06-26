@@ -263,6 +263,42 @@ export type Database = {
         }
         Relationships: []
       }
+      mto_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          notification_type: string
+          order_id: string
+          order_number: string
+          read: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          notification_type: string
+          order_id: string
+          order_number: string
+          read?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          notification_type?: string
+          order_id?: string
+          order_number?: string
+          read?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       mto_orders: {
         Row: {
           casing_grade: string | null
@@ -443,6 +479,57 @@ export type Database = {
           recipient_role?: string | null
           sent_at?: string | null
           status?: string | null
+        }
+        Relationships: []
+      }
+      order_messages: {
+        Row: {
+          created_at: string | null
+          email_sent: boolean | null
+          id: string
+          is_read: boolean | null
+          message_id: string | null
+          message_text: string
+          order_id: string
+          order_type: string
+          reply_to_email_id: string | null
+          sender_email: string
+          sender_name: string | null
+          sender_role: string
+          sender_store: string | null
+          source: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          is_read?: boolean | null
+          message_id?: string | null
+          message_text: string
+          order_id: string
+          order_type: string
+          reply_to_email_id?: string | null
+          sender_email: string
+          sender_name?: string | null
+          sender_role: string
+          sender_store?: string | null
+          source?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          is_read?: boolean | null
+          message_id?: string | null
+          message_text?: string
+          order_id?: string
+          order_type?: string
+          reply_to_email_id?: string | null
+          sender_email?: string
+          sender_name?: string | null
+          sender_role?: string
+          sender_store?: string | null
+          source?: string | null
         }
         Relationships: []
       }
@@ -895,6 +982,10 @@ export type Database = {
       archive_order_by_invoice: {
         Args: { p_invoice: string }
         Returns: undefined
+      }
+      generate_message_id: {
+        Args: { order_id_param: string; sender_email_param: string }
+        Returns: string
       }
     }
     Enums: {

@@ -11,7 +11,7 @@ interface LoginCardProps {
 
 export const LoginCard = ({ usernames }: LoginCardProps) => {
   return (
-    <div className="max-w-md w-full space-y-8 p-8 backdrop-blur-md shadow-2xl border border-white/30 rounded-3xl bg-zinc-800/90 hover:bg-zinc-700/90 transition-all duration-300 z-10 mx-4">
+    <div className="max-w-md w-full space-y-8 p-8 backdrop-blur-sm shadow-2xl border border-white/20 rounded-3xl bg-zinc-700/80 hover:bg-zinc-600/80 transition-all duration-300 z-10">
       <LoginHeader />
       <LoginAlert />
       <LoginForm usernames={usernames} />
