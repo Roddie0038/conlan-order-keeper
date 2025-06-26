@@ -14,8 +14,12 @@ const usernames = [
 
 export default function Login() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-slate-800 relative overflow-hidden">
-      <LoginBackground />
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: `url('/lovable-uploads/00512613-69c8-42e6-af5e-e9d8e3c555ed.png')`
+      }}
+    >
       <LoginCard usernames={usernames} />
     </div>
   );
