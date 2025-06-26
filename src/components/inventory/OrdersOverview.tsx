@@ -4,8 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Calendar, MessageSquare } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
+import { MessageWarehouseDialog } from "@/components/messages/MessageWarehouseDialog";
+import { useOrderMessages } from "@/hooks/useOrderMessages";
 
 type OrderSource = "pending" | "mto" | "completed";
 
@@ -28,6 +31,17 @@ export function OrdersOverview() {
   const [filterType, setFilterType] = useState<string>("all");
   const [sortField, setSortField] = useState<string>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  
+  // Message dialog state
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // Message hooks for selected order
+  const selectedOrderType = selectedOrder?.source === 'mto' ? 'mto_orders' : 'orders' as 'orders' | 'mto_orders' | 'wheel_orders';
+  const { sending, sendMessage } = useOrderMessages(
+    selectedOrder?.id || '',
+    selectedOrderType
+  );
 
   useEffect(() => {
     // Load all orders from various sources
@@ -50,10 +64,26 @@ export function OrdersOverview() {
   const getBadgeColor = (source: OrderSource) => {
     switch(source) {
       case "pending": return "bg-yellow-500 hover:bg-yellow-600";
-      case "mto": return "bg-blue-500 hover:bg-blue-600";
+      case "mto": return "bg-blue-500 hover:bg-blue-600"; 
       case "completed": return "bg-green-500 hover:bg-green-600";
       default: return "bg-gray-500 hover:bg-gray-600";
     }
+  };
+
+  const handleSendMessage = (order: Order) => {
+    setSelectedOrder(order);
+    setShowMessageDialog(true);
+  };
+
+  const handleSendMessageSubmit = async (messageText: string): Promise<boolean> => {
+    if (!selectedOrder) return false;
+    
+    const success = await sendMessage(messageText);
+    if (success) {
+      setShowMessageDialog(false);  
+      setSelectedOrder(null);
+    }
+    return success;
   };
 
   const sortOrders = (a: Order, b: Order) => {
@@ -171,12 +201,13 @@ export function OrdersOverview() {
               <TableHead>Description</TableHead>
               <TableHead>Quantity</TableHead>
               <TableHead>Type</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredOrders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   No orders found
                 </TableCell>
               </TableRow>
@@ -194,12 +225,35 @@ export function OrdersOverview() {
                        order.source === "mto" ? "MTO" : "Completed"}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSendMessage(order)}
+                      className="flex items-center gap-1"
+                    >
+                      <MessageSquare className="h-3 w-3" />
+                      Message
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
+
+      {/* Message Dialog */}
+      {selectedOrder && (
+        <MessageWarehouseDialog
+          open={showMessageDialog}
+          onOpenChange={setShowMessageDialog}
+          orderNumber={String(selectedOrder.id)}
+          storeName={selectedOrder.store}
+          onSendMessage={handleSendMessageSubmit}
+          sending={sending}
+        />
+      )}
     </div>
   );
 }

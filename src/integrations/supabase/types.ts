@@ -446,6 +446,57 @@ export type Database = {
         }
         Relationships: []
       }
+      order_messages: {
+        Row: {
+          created_at: string | null
+          email_sent: boolean | null
+          id: string
+          is_read: boolean | null
+          message_id: string | null
+          message_text: string
+          order_id: string
+          order_type: string
+          reply_to_email_id: string | null
+          sender_email: string
+          sender_name: string | null
+          sender_role: string
+          sender_store: string | null
+          source: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          is_read?: boolean | null
+          message_id?: string | null
+          message_text: string
+          order_id: string
+          order_type: string
+          reply_to_email_id?: string | null
+          sender_email: string
+          sender_name?: string | null
+          sender_role: string
+          sender_store?: string | null
+          source?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          is_read?: boolean | null
+          message_id?: string | null
+          message_text?: string
+          order_id?: string
+          order_type?: string
+          reply_to_email_id?: string | null
+          sender_email?: string
+          sender_name?: string | null
+          sender_role?: string
+          sender_store?: string | null
+          source?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           archived: boolean | null

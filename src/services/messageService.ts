@@ -1,4 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
+import { getTransferEmailRecipients, getMTOEmailRecipients } from "@/config/contactSystem";
 
 export interface OrderMessage {
   id: string;
@@ -11,7 +13,6 @@ export interface OrderMessage {
   sender_store?: string;
   is_read: boolean;
   created_at: string;
-  // New email integration fields
   message_id?: string;
   reply_to_email_id?: string;
   email_sent?: boolean;
@@ -28,45 +29,6 @@ export interface SendMessageData {
   sender_store?: string;
   source?: 'platform' | 'email_reply' | 'email_direct';
   reply_to_email_id?: string;
-}
-
-// Type guard utilities for order_type validation
-const validOrderTypes = ["orders", "mto_orders", "wheel_orders"] as const;
-type ValidOrderType = typeof validOrderTypes[number];
-
-function isValidOrderType(value: string): value is ValidOrderType {
-  return validOrderTypes.includes(value as ValidOrderType);
-}
-
-function parseOrderType(value: string): ValidOrderType {
-  if (!isValidOrderType(value)) {
-    console.warn(`[OrderTypeGuard] Invalid order_type detected: ${value}. Defaulting to 'orders'.`);
-  }
-  return isValidOrderType(value) ? value : "orders";
-}
-
-// Type guard utilities for sender_role validation
-const validRoles = ["store_manager", "warehouse_admin"] as const;
-type ValidSenderRole = typeof validRoles[number];
-
-function parseSenderRole(role: string | null): ValidSenderRole {
-  if (role && validRoles.includes(role as ValidSenderRole)) {
-    return role as ValidSenderRole;
-  }
-  console.warn(`[SenderRoleGuard] Invalid or null sender_role: ${role}. Defaulting to 'store_manager'.`);
-  return "store_manager";
-}
-
-// Type guard utilities for source validation
-const validSources = ["platform", "email_reply", "email_direct"] as const;
-type ValidSource = typeof validSources[number];
-
-function parseSource(value: string | null): ValidSource {
-  if (value && validSources.includes(value as ValidSource)) {
-    return value as ValidSource;
-  }
-  console.warn(`[SourceGuard] Invalid or null source: ${value}. Defaulting to 'platform'.`);
-  return "platform";
 }
 
 /**
@@ -99,20 +61,12 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
 
     console.log("✅ MESSAGE SERVICE - Message sent successfully:", data);
 
-    // Send email notification to recipient
+    // Send email notification to recipients
     if (data) {
-      await sendEmailNotification(data as any);
+      await sendEmailNotification(data as OrderMessage, messageData);
     }
 
-    // Apply type guards to ensure safe casting
-    const sanitizedMessage: OrderMessage = {
-      ...data,
-      order_type: parseOrderType(data.order_type),
-      sender_role: parseSenderRole(data.sender_role),
-      source: parseSource(data.source),
-    };
-
-    return { data: sanitizedMessage, error: null };
+    return { data: data as OrderMessage, error: null };
   } catch (error) {
     console.error("❌ MESSAGE SERVICE - Unexpected error:", error);
     return { 
@@ -123,18 +77,15 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
 };
 
 /**
- * Send email notification for a new message
+ * Send email notification for a new message using proper routing logic
  */
-export const sendEmailNotification = async (message: OrderMessage): Promise<void> => {
+export const sendEmailNotification = async (message: OrderMessage, originalData: SendMessageData): Promise<void> => {
   try {
     console.log("📧 Sending email notification for message:", message.id);
     
-    // Determine recipient based on sender role
-    const isFromWarehouse = message.sender_role === 'warehouse_admin';
-    
-    // Get order details to find recipient email
-    let recipientEmail: string | null = null;
+    // Get order details to extract store number for routing
     let orderDetails: any = null;
+    let storeNumber: string = '';
 
     const { data: orderData } = await supabase
       .from(message.order_type)
@@ -144,42 +95,67 @@ export const sendEmailNotification = async (message: OrderMessage): Promise<void
 
     if (orderData) {
       orderDetails = orderData;
-      recipientEmail = isFromWarehouse ? orderData.email : 'warehouse@maddenco.com';
+      // Extract store number from store name (e.g., "Fort Worth 22" -> "22")
+      const storeMatch = orderData.store?.match(/(\d+)$/);
+      storeNumber = storeMatch ? storeMatch[1] : '';
     }
 
-    if (!recipientEmail || !orderDetails) {
-      console.error("❌ Could not determine recipient email");
+    if (!orderDetails || !storeNumber) {
+      console.error("❌ Could not determine store number for email routing");
       return;
     }
+
+    // Determine recipients based on order type using contact system
+    let recipients: string[] = [];
+    
+    if (message.order_type === 'orders') {
+      // Transfer orders - send to warehouse managers and coordinators
+      recipients = getTransferEmailRecipients(storeNumber);
+    } else if (message.order_type === 'mto_orders') {
+      // MTO orders - send to retread managers, warehouse managers, and coordinators
+      recipients = getMTOEmailRecipients(storeNumber);
+    } else {
+      // Default fallback - use transfer logic
+      recipients = getTransferEmailRecipients(storeNumber);
+    }
+
+    if (recipients.length === 0) {
+      console.error("❌ No recipients found for email notification");
+      return;
+    }
+
+    console.log("📧 Email recipients:", recipients);
 
     // Generate message threading ID for email
     const messageId = message.message_id || `msg-${Date.now()}-${message.id}`;
     
-    // Create email content with reply options
-    const emailSubject = `Order #${orderDetails.product_number || orderDetails.id} - New Message`;
-    const platformLink = `${window.location.origin}/order-management?order=${message.order_id}&type=${message.order_type}`;
+    // Create email content
+    const emailSubject = `Order #${orderDetails.product_number || orderDetails.id} - New Message from ${orderDetails.store}`;
     
     const emailHtml = generateEmailTemplate({
       message,
       orderDetails,
-      platformLink,
       messageId,
       isReply: !!message.reply_to_email_id
     });
 
-    // Send email via your email service
-    await fetch('/api/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: recipientEmail,
+    // Send email notification via edge function
+    const { error: emailError } = await supabase.functions.invoke('send-order-message-email', {
+      body: {
+        to: recipients,
         subject: emailSubject,
         html: emailHtml,
         messageId: messageId,
         inReplyTo: message.reply_to_email_id,
-        replyTo: 'orders-noreply@maddenco.com' // Configure for email replies
-      })
+        orderType: message.order_type,
+        orderId: message.order_id
+      }
     });
+
+    if (emailError) {
+      console.error("❌ Error sending email via edge function:", emailError);
+      return;
+    }
 
     // Mark message as email sent
     await supabase
@@ -187,7 +163,7 @@ export const sendEmailNotification = async (message: OrderMessage): Promise<void
       .update({ email_sent: true })
       .eq('id', message.id);
 
-    console.log("✅ Email notification sent successfully");
+    console.log("✅ Email notification sent successfully to:", recipients);
 
   } catch (error) {
     console.error("❌ Error sending email notification:", error);
@@ -195,26 +171,26 @@ export const sendEmailNotification = async (message: OrderMessage): Promise<void
 };
 
 /**
- * Generate email template with reply options
+ * Generate email template for order messages
  */
-function generateEmailTemplate({ message, orderDetails, platformLink, messageId, isReply }: {
+function generateEmailTemplate({ message, orderDetails, messageId, isReply }: {
   message: OrderMessage;
   orderDetails: any;
-  platformLink: string;
   messageId: string;
   isReply: boolean;
 }): string {
   const senderName = message.sender_name || message.sender_email;
   const senderType = message.sender_role === 'warehouse_admin' ? 'Warehouse Team' : 'Store Manager';
+  const orderNumber = orderDetails.product_number || orderDetails.id;
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
         <h2 style="color: #333; margin: 0;">
-          ${isReply ? 'Reply to' : 'New Message'} - Order #${orderDetails.product_number || orderDetails.id}
+          ${isReply ? 'Reply to' : 'New Message'} - Order #${orderNumber}
         </h2>
         <p style="color: #666; margin: 5px 0 0 0;">
-          From: ${senderName} (${senderType})
+          From: ${senderName} (${senderType}) - ${orderDetails.store}
         </p>
       </div>
       
@@ -225,34 +201,19 @@ function generateEmailTemplate({ message, orderDetails, platformLink, messageId,
       </div>
       
       <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #1976d2; margin: 0 0 15px 0;">How to Reply:</h3>
-        
-        <div style="margin-bottom: 15px;">
-          <strong>Option 1: Reply directly to this email</strong>
-          <p style="margin: 5px 0; color: #666;">
-            Simply reply to this email and your message will be added to the conversation.
-          </p>
-        </div>
-        
-        <div>
-          <strong>Option 2: Reply on the platform</strong>
-          <p style="margin: 5px 0 10px 0; color: #666;">
-            View the full conversation and reply online:
-          </p>
-          <a href="${platformLink}" 
-             style="background: #1976d2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
-            View & Reply on Platform
-          </a>
-        </div>
+        <h3 style="color: #1976d2; margin: 0 0 15px 0;">Order Details:</h3>
+        <ul style="margin: 0; padding-left: 20px; color: #333;">
+          <li>Order ID: ${orderDetails.id}</li>
+          <li>Store: ${orderDetails.store}</li>
+          <li>Product: ${orderDetails.product_number || 'N/A'}</li>
+          <li>Description: ${orderDetails.description || 'N/A'}</li>
+          <li>Date: ${new Date(orderDetails.timestamp || orderDetails.created_at).toLocaleDateString()}</li>
+        </ul>
       </div>
       
       <div style="border-top: 1px solid #ddd; padding-top: 20px; color: #666; font-size: 12px;">
-        <p>Order Details:</p>
-        <ul style="margin: 0; padding-left: 20px;">
-          <li>Store: ${orderDetails.store}</li>
-          <li>Product: ${orderDetails.product_number}</li>
-          <li>Description: ${orderDetails.description}</li>
-        </ul>
+        <p>This message was sent via the Conlan Tire Ordering Platform messaging system.</p>
+        <p>Message ID: ${messageId}</p>
       </div>
     </div>
   `;
@@ -279,15 +240,7 @@ export const getOrderMessages = async (orderId: string, orderType: 'orders' | 'm
 
     console.log("✅ MESSAGE SERVICE - Messages fetched successfully:", data?.length || 0);
     
-    // Apply type guards to safely map messages
-    const sanitizedMessages: OrderMessage[] = (data ?? []).map(msg => ({
-      ...msg,
-      order_type: parseOrderType(msg.order_type),
-      sender_role: parseSenderRole(msg.sender_role),
-      source: parseSource(msg.source),
-    }));
-
-    return { data: sanitizedMessages, error: null };
+    return { data: (data as OrderMessage[]) || [], error: null };
   } catch (error) {
     console.error("❌ MESSAGE SERVICE - Unexpected error:", error);
     return { 

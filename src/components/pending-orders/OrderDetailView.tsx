@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +21,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const { toast } = useToast();
 
-  // Determine order type
+  // Determine order type based on order properties
   const getOrderType = (): 'orders' | 'mto_orders' | 'wheel_orders' => {
     if (order.order_type === 'MTO' || order.tire_size) return 'mto_orders';
     if (order.order_type === 'WHEEL_POWDER_COATING' || order.wheel_size) return 'wheel_orders';
@@ -86,7 +85,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
               ) : (
                 <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
                   <RefreshCw className="h-3 w-3 mr-1" />
-                  Synced to Supabase
+                  Active Order
                 </Badge>
               )}
               <MessageIndicator messageCount={messageCount} />
@@ -140,7 +139,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
           )}
           
           <div className="mt-6 pt-6 border-t">
-            <h3 className="text-lg font-medium mb-4">Document Actions</h3>
+            <h3 className="text-lg font-medium mb-4">Actions</h3>
             <div className="flex flex-wrap gap-3">
               <Button 
                 variant="outline" 
@@ -173,7 +172,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                 className="flex items-center gap-2 bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
               >
                 <MessageSquare className="h-4 w-4" />
-                Message Warehouse
+                Send Message
               </Button>
               
               {outOfStock ? (
