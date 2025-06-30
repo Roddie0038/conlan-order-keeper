@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { OptimizedDashboardMenu } from "@/components/dashboard/OptimizedDashboardMenu";
+import { DashboardMenu } from "@/components/dashboard/DashboardMenu";
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { Building } from "lucide-react";
@@ -62,7 +62,7 @@ export default function Dashboard() {
         </div>
 
         <main>
-          <OptimizedDashboardMenu loaded={loaded} />
+          <DashboardMenu loaded={loaded} />
         </main>
 
         <DashboardFooter />
