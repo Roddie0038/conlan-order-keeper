@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -15,6 +15,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [loaded, setLoaded] = useState(false);
 
+  // Memoize plant display to prevent unnecessary re-renders
+  const plantDisplay = useMemo(() => selectedPlant, [selectedPlant]);
+
   useEffect(() => {
     // Wait for auth to finish loading before checking user
     if (loading) return;
@@ -26,9 +29,14 @@ export default function Dashboard() {
     }
     
     console.log("User authenticated, showing dashboard for:", user.store);
-    // Reduced timer for faster perceived loading
-    const timer = setTimeout(() => setLoaded(true), 50);
-    return () => clearTimeout(timer);
+    
+    // Use requestIdleCallback for non-critical loading if available
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => setLoaded(true));
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      setTimeout(() => setLoaded(true), 50);
+    }
   }, [user, loading, navigate]);
 
   // Show loading while auth is being checked
@@ -56,7 +64,7 @@ export default function Dashboard() {
         <div className="flex flex-col justify-center items-center mb-10">
           <div className="flex items-center gap-2 p-2 px-4 rounded-full bg-blue-700/30 border border-blue-500 mb-4 animate-pulse">
             <Building className="h-5 w-5 text-amber-400" />
-            <span className="font-bold text-amber-400">Currently at: {selectedPlant}</span>
+            <span className="font-bold text-amber-400">Currently at: {plantDisplay}</span>
           </div>
           <DashboardBanner />
         </div>

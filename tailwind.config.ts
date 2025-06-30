@@ -115,6 +115,15 @@ export default {
         '.preserve-3d': {
           transformStyle: 'preserve-3d',
         },
+        // Performance optimizations
+        '.gpu-accelerated': {
+          transform: 'translateZ(0)',
+          willChange: 'transform',
+        },
+        '.optimize-animations': {
+          willChange: 'transform, opacity',
+          backfaceVisibility: 'hidden',
+        },
       };
       addUtilities(newUtilities);
     }

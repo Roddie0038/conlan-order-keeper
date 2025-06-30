@@ -688,18 +688,24 @@ export type Database = {
           created_at: string | null
           header_image_url: string | null
           id: string
+          time_format: string | null
+          timezone: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           header_image_url?: string | null
           id: string
+          time_format?: string | null
+          timezone?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           header_image_url?: string | null
           id?: string
+          time_format?: string | null
+          timezone?: string | null
           user_id?: string | null
         }
         Relationships: []
