@@ -3,63 +3,23 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { useFetchOrders } from "@/hooks/useFetchOrders";
-import { useFetchMTOOrders } from "@/hooks/useFetchMTOOrders";
-import { useFetchWheelOrders } from "@/hooks/useFetchWheelOrders";
-import { useFetchWarrantyOrders } from "@/hooks/useFetchWarrantyOrders";
+import { useOrdersManager } from "@/hooks/useOrdersManager";
 import { OrderManagementHeader } from "./order-management/components/OrderManagementHeader";
 import { OrderManagementControls } from "./order-management/components/OrderManagementControls";
 import { OrderManagementTabs } from "./order-management/components/OrderManagementTabs";
 import { combineOrders } from "./order-management/utils/orderCombiner";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function OrderManagement() {
   const { user } = useAuth();
-  
-  // Fetch all order types
-  const { orders: transferOrders, loading: transferLoading, refreshOrders: refreshTransfer } = useFetchOrders();
-  const { orders: mtoOrders, loading: mtoLoading, refreshOrders: refreshMTO } = useFetchMTOOrders();
-  const { orders: wheelOrders, loading: wheelLoading, refreshOrders: refreshWheel } = useFetchWheelOrders();
-  const { orders: warrantyOrders, loading: warrantyLoading, refreshOrders: refreshWarranty } = useFetchWarrantyOrders();
+  const { orders, loading, error, refreshAllOrders } = useOrdersManager();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<string>("timestamp");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  const loading = transferLoading || mtoLoading || wheelLoading || warrantyLoading;
-
-  // Combine all orders into a unified format
-  const allOrders = combineOrders(transferOrders, mtoOrders, wheelOrders, warrantyOrders);
-
-  // Filter orders based on search term
-  const filteredOrders = allOrders.filter(order => {
-    const matchesSearch = 
-      order.productNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.store?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesSearch;
-  });
-
-  // Separate pending and completed orders
-  const pendingOrders = filteredOrders.filter(order => !order.completed);
-  const completedOrders = filteredOrders.filter(order => order.completed);
-
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
-  };
-
-  const refreshAllOrders = () => {
-    refreshTransfer();
-    refreshMTO();
-    refreshWheel();
-    refreshWarranty();
-  };
+  // Debounce search for better performance
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   if (loading) {
     return (
@@ -77,6 +37,55 @@ export default function OrderManagement() {
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div 
+        className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center relative" 
+        style={{
+          backgroundImage: 'url("/lovable-uploads/061bc791-3377-4911-8269-c0fed6642b6a.png")'
+        }}
+      >
+        <div className="absolute inset-0 bg-black/30"></div>
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg relative z-10">
+          <h3 className="text-red-800 dark:text-red-400 font-medium">Error loading orders</h3>
+          <p className="text-red-600 dark:text-red-300">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Combine all orders into a unified format
+  const allOrders = combineOrders(
+    orders.transfer, 
+    orders.mto, 
+    orders.wheel, 
+    orders.warranty
+  );
+
+  // Filter orders based on debounced search term
+  const filteredOrders = allOrders.filter(order => {
+    const matchesSearch = 
+      order.productNumber?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      order.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      order.store?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      order.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+    
+    return matchesSearch;
+  });
+
+  // Separate pending and completed orders
+  const pendingOrders = filteredOrders.filter(order => !order.completed);
+  const completedOrders = filteredOrders.filter(order => order.completed);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
 
   return (
     <div 

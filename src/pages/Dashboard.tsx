@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardMenu } from "@/components/dashboard/DashboardMenu";
+import { OptimizedDashboardMenu } from "@/components/dashboard/OptimizedDashboardMenu";
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { Building } from "lucide-react";
@@ -26,7 +26,8 @@ export default function Dashboard() {
     }
     
     console.log("User authenticated, showing dashboard for:", user.store);
-    const timer = setTimeout(() => setLoaded(true), 100);
+    // Reduced timer for faster perceived loading
+    const timer = setTimeout(() => setLoaded(true), 50);
     return () => clearTimeout(timer);
   }, [user, loading, navigate]);
 
@@ -61,7 +62,7 @@ export default function Dashboard() {
         </div>
 
         <main>
-          <DashboardMenu loaded={loaded} />
+          <OptimizedDashboardMenu loaded={loaded} />
         </main>
 
         <DashboardFooter />
