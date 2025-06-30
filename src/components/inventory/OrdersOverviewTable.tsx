@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,7 +45,8 @@ export function OrdersOverviewTable({
 
   const handleSort = (field: string) => {
     if (sortField === field) {
-      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+      const newDirection = sortDirection === "asc" ? "desc" : "asc";
+      setSortDirection(newDirection);
     } else {
       setSortField(field);
       setSortDirection(field === "timestamp" ? "desc" : "asc");
