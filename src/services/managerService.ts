@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Manager {
@@ -35,7 +34,7 @@ export const getManagersByPlantCode = async (plantCode: string): Promise<Manager
       .from('managers')
       .select('*')
       .eq('plant_code', plantCode)
-      .eq('is_active', true)
+      .eq('is_active', true) // Only get active managers
       .in('role', ['plant_manager', 'retread_manager', 'operations_manager', 'warehouse_manager', 'office_manager', 'coordinator']);
 
     if (error) {
@@ -43,7 +42,7 @@ export const getManagersByPlantCode = async (plantCode: string): Promise<Manager
       throw error;
     }
 
-    console.log(`✅ Found ${data?.length || 0} managers for plant ${plantCode}`);
+    console.log(`✅ Found ${data?.length || 0} active managers for plant ${plantCode}`);
     return data || [];
   } catch (error) {
     console.error('❌ Manager service error:', error);

@@ -57,7 +57,7 @@ export const STORE_MANAGERS: Record<string, Contact> = {
   },
   "33": {
     name: "Kansas Manager",
-    email: "rjohnson@conlantire.com",
+    email: "rowilson@conlantire.com",
     role: "store_manager",
     region: "Kansas",
     store: "Kansas 33"
@@ -71,7 +71,7 @@ export const STORE_MANAGERS: Record<string, Contact> = {
   },
   "36": {
     name: "Tulsa Manager",
-    email: "rjohnson@conlantire.com",
+    email: "kbrown@conlantire.com",
     role: "store_manager",
     region: "Oklahoma",
     store: "Tulsa 36"

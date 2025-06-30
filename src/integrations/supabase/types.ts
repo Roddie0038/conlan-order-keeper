@@ -503,6 +503,7 @@ export type Database = {
           completed: boolean | null
           completed_at: string | null
           completed_by: string | null
+          confirmation_token: string | null
           cross_dock_destination: string | null
           cross_dock_eta_date: string | null
           cross_dock_form_link: string | null
@@ -542,6 +543,7 @@ export type Database = {
           status: string | null
           status_updated_at: string | null
           store: string | null
+          store_manager_message: string | null
           store_response_date: string | null
           store_response_status: string | null
           timestamp: string
@@ -552,6 +554,7 @@ export type Database = {
           completed?: boolean | null
           completed_at?: string | null
           completed_by?: string | null
+          confirmation_token?: string | null
           cross_dock_destination?: string | null
           cross_dock_eta_date?: string | null
           cross_dock_form_link?: string | null
@@ -591,6 +594,7 @@ export type Database = {
           status?: string | null
           status_updated_at?: string | null
           store?: string | null
+          store_manager_message?: string | null
           store_response_date?: string | null
           store_response_status?: string | null
           timestamp: string
@@ -601,6 +605,7 @@ export type Database = {
           completed?: boolean | null
           completed_at?: string | null
           completed_by?: string | null
+          confirmation_token?: string | null
           cross_dock_destination?: string | null
           cross_dock_eta_date?: string | null
           cross_dock_form_link?: string | null
@@ -640,6 +645,7 @@ export type Database = {
           status?: string | null
           status_updated_at?: string | null
           store?: string | null
+          store_manager_message?: string | null
           store_response_date?: string | null
           store_response_status?: string | null
           timestamp?: string
