@@ -20,10 +20,26 @@ export default function ResetPassword() {
     errors: [] as string[],
     strength: 'weak' as 'weak' | 'medium' | 'strong'
   });
-  const [searchParams] = useSearchParams();
   const { updatePassword } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [isValidToken, setIsValidToken] = useState(false);
+  const [isCheckingToken, setIsCheckingToken] = useState(true);
+
+  // Extract tokens from URL hash
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
+
+    if (accessToken && refreshToken && type === 'recovery') {
+      setIsValidToken(true);
+    } else {
+      setIsValidToken(false);
+    }
+    setIsCheckingToken(false);
+  }, []);
 
   // Validate password in real-time
   useEffect(() => {
@@ -112,6 +128,55 @@ export default function ResetPassword() {
       default: return 'bg-red-100 border-red-200';
     }
   };
+
+  // Show loading while checking token
+  if (isCheckingToken) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat p-4"
+        style={{
+          backgroundImage: `url('/lovable-uploads/00512613-69c8-42e6-af5e-e9d8e3c555ed.png')`
+        }}
+      >
+        <Card className="w-full max-w-md bg-white/95 backdrop-blur-md shadow-2xl border border-white/30">
+          <CardContent className="p-8 text-center">
+            <Loader className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+            <p className="text-gray-600">Validating reset link...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error for invalid token
+  if (!isValidToken) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat p-4"
+        style={{
+          backgroundImage: `url('/lovable-uploads/00512613-69c8-42e6-af5e-e9d8e3c555ed.png')`
+        }}
+      >
+        <Card className="w-full max-w-md bg-white/95 backdrop-blur-md shadow-2xl border border-white/30">
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+              <CardTitle className="text-2xl font-bold text-gray-900">Invalid Reset Link</CardTitle>
+            </div>
+            <CardDescription className="text-gray-600">
+              This password reset link is invalid, expired, or has already been used.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={() => navigate('/login')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Back to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div 
