@@ -25,7 +25,7 @@ export function DashboardHeader() {
           </h1>
           {storeInfo && (
             <p className="text-lg text-gray-300 mt-1">
-              {storeInfo.name} - {storeInfo.title}
+              {storeInfo.name} - {user?.title}
             </p>
           )}
         </div>

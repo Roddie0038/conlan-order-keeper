@@ -74,7 +74,7 @@ export default function Dashboard() {
           {storeInfo && (
             <div className="flex items-center gap-2 p-2 px-4 rounded-full bg-green-700/30 border border-green-500 mb-4">
               <span className="font-bold text-green-400">
-                {storeInfo.name} - {storeInfo.title} at {storeInfo.store_number}
+                {storeInfo.name} - {user.title} at {storeInfo.store_number}
               </span>
             </div>
           )}
