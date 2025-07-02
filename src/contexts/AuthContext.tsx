@@ -32,6 +32,8 @@ interface AuthContextType {
   session: Session | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   loading: boolean;
 }
 
@@ -221,8 +223,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      console.log("AuthProvider: Attempting password reset for:", email);
+      
+      // Check for rate limiting
+      const lastResetAttempt = localStorage.getItem('lastPasswordResetAttempt');
+      const resetAttempts = parseInt(localStorage.getItem('passwordResetAttempts') || '0');
+      const now = Date.now();
+      
+      if (lastResetAttempt && now - parseInt(lastResetAttempt) < 60000 && resetAttempts >= 3) {
+        return { success: false, error: "Too many reset attempts. Please wait before trying again." };
+      }
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      // Update rate limiting
+      localStorage.setItem('lastPasswordResetAttempt', now.toString());
+      localStorage.setItem('passwordResetAttempts', (resetAttempts + 1).toString());
+
+      if (error) {
+        console.log("AuthProvider: Password reset failed:", error.message);
+        return { success: false, error: error.message };
+      }
+
+      console.log("AuthProvider: Password reset email sent");
+      return { success: true };
+    } catch (error) {
+      console.error("AuthProvider: Password reset error:", error);
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  };
+
+  const updatePassword = async (password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      console.log("AuthProvider: Attempting password update");
+      
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (error) {
+        console.log("AuthProvider: Password update failed:", error.message);
+        return { success: false, error: error.message };
+      }
+
+      console.log("AuthProvider: Password updated successfully");
+      return { success: true };
+    } catch (error) {
+      console.error("AuthProvider: Password update error:", error);
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, session, login, logout, resetPassword, updatePassword, loading }}>
       {children}
     </AuthContext.Provider>
   );

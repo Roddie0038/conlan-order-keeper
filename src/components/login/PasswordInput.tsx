@@ -1,7 +1,7 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { ForgotPasswordModal } from "@/components/auth/ForgotPasswordModal";
 
 interface PasswordInputProps {
   password: string;
@@ -9,7 +9,7 @@ interface PasswordInputProps {
 }
 
 export const PasswordInput = ({ password, setPassword }: PasswordInputProps) => {
-  const { toast } = useToast();
+  const [showForgotModal, setShowForgotModal] = useState(false);
   
   return (
     <div>
@@ -19,10 +19,7 @@ export const PasswordInput = ({ password, setPassword }: PasswordInputProps) => 
         </label>
         <button 
           type="button"
-          onClick={() => toast({ 
-            title: "Password Reset", 
-            description: "Please contact your administrator to reset your password." 
-          })}
+          onClick={() => setShowForgotModal(true)}
           className="text-xs text-blue-300 hover:text-blue-200 transition-colors"
         >
           Forgot Password?
@@ -35,6 +32,11 @@ export const PasswordInput = ({ password, setPassword }: PasswordInputProps) => 
         onChange={e => setPassword(e.target.value)} 
         required 
         className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:ring-blue-500" 
+      />
+      
+      <ForgotPasswordModal 
+        isOpen={showForgotModal} 
+        onClose={() => setShowForgotModal(false)} 
       />
     </div>
   );

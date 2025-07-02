@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Index from './pages/Index';
 import Login from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import PendingOrders from './pages/PendingOrders';
 import AllPendingOrders from './pages/AllPendingOrders';
@@ -60,6 +61,7 @@ function App() {
                 <Route path="/" element={<HomeRedirect />} />
                 <Route path="/transfer-request" element={<Index />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route
                   path="/dashboard"
                   element={
