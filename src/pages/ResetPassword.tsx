@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Lock, Loader, CheckCircle, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -26,28 +27,87 @@ export default function ResetPassword() {
   const [isProcessingRecovery, setIsProcessingRecovery] = useState(true);
   const [recoverySessionEstablished, setRecoverySessionEstablished] = useState(false);
 
-  // Wait for Supabase to process recovery tokens and establish session
+  // Handle recovery token processing and session establishment
   useEffect(() => {
-    // Wait for auth context to finish loading
-    if (loading) return;
+    const processRecoveryTokens = async () => {
+      console.log("[🔐] Processing recovery tokens...");
+      
+      // Wait for auth context to finish loading
+      if (loading) return;
 
-    // Check if we have a valid recovery session
-    if (session && session.user) {
-      console.log("Recovery session established:", session.user.email);
-      setRecoverySessionEstablished(true);
-      setIsProcessingRecovery(false);
-    } else {
-      // Give Supabase some time to process the recovery tokens
-      const timeout = setTimeout(() => {
+      // Check if we already have a valid recovery session
+      if (session && session.user) {
+        console.log("[✅] Recovery session established:", session.user.email);
+        setRecoverySessionEstablished(true);
+        setIsProcessingRecovery(false);
+        return;
+      }
+
+      // Try to extract tokens from URL manually for fallback
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const searchParams = new URLSearchParams(window.location.search);
+      
+      const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+      const type = hashParams.get('type') || searchParams.get('type');
+
+      console.log("[🔍] Token extraction:", { 
+        accessToken: accessToken ? `${accessToken.substring(0, 10)}...` : 'MISSING',
+        refreshToken: refreshToken ? `${refreshToken.substring(0, 10)}...` : 'MISSING',
+        type 
+      });
+
+      if (accessToken && type === 'recovery') {
+        console.log("[🔄] Attempting manual session establishment with tokens...");
+        
+        try {
+          // Try to establish session with available tokens
+          const sessionData: any = {
+            access_token: accessToken,
+            token_type: 'bearer',
+            expires_in: 3600,
+            refresh_token: refreshToken || '', // Use empty string if missing
+            user: null
+          };
+
+          const { data, error } = await supabase.auth.setSession(sessionData);
+          
+          if (error) {
+            console.log("[❌] Manual session establishment failed:", error.message);
+            
+            // If that fails, try a different approach - verify the token directly
+            const { data: user, error: userError } = await supabase.auth.getUser(accessToken);
+            
+            if (user && !userError) {
+              console.log("[✅] Token verification successful, user found");
+              setRecoverySessionEstablished(true);
+              setIsProcessingRecovery(false);
+              return;
+            } else {
+              console.log("[❌] Token verification failed:", userError?.message);
+            }
+          } else if (data.session) {
+            console.log("[✅] Manual session establishment successful");
+            setRecoverySessionEstablished(true);
+            setIsProcessingRecovery(false);
+            return;
+          }
+        } catch (error) {
+          console.error("[❌] Error during manual session establishment:", error);
+        }
+      }
+
+      // Final timeout check if no session was established
+      setTimeout(() => {
         if (!session) {
-          console.log("No recovery session found after timeout");
+          console.log("[❌] No recovery session found after all attempts");
           setRecoverySessionEstablished(false);
           setIsProcessingRecovery(false);
         }
-      }, 3000); // 3 second timeout
+      }, 5000); // Extended timeout to 5 seconds
+    };
 
-      return () => clearTimeout(timeout);
-    }
+    processRecoveryTokens();
   }, [session, loading]);
 
   // Validate password in real-time
