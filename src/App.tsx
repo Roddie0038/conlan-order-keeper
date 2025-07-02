@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -23,6 +24,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { PlantProvider } from './contexts/PlantContext';
 import { Toaster } from "@/components/ui/toaster"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
+import { RequireAuth } from './components/auth/RequireAuth';
 import EmailTestingSuite from "./pages/EmailTestingSuite";
 
 // Create a client
@@ -33,7 +35,14 @@ function HomeRedirect() {
   const { user, loading } = useAuth();
   
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-slate-900 text-white p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
   }
   
   return <Navigate to={user ? "/dashboard" : "/login"} replace />;
@@ -51,23 +60,142 @@ function App() {
                 <Route path="/" element={<HomeRedirect />} />
                 <Route path="/transfer-request" element={<Index />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/pending-orders" element={<PendingOrders />} />
-                <Route path="/all-pending-orders" element={<AllPendingOrders />} />
-                <Route path="/completed-orders" element={<CompletedOrders />} />
-                <Route path="/order-management" element={<OrderManagement />} />
-                <Route path="/admin-inventory" element={<AdminInventory />} />
-                <Route path="/admin-orders" element={<AdminOrders />} />
-                <Route path="/all-orders" element={<AllOrders />} />
-                <Route path="/approved-treads" element={<ApprovedTreads />} />
-                <Route path="/relentless-inventory" element={<RelentlessInventory />} />
-                <Route path="/mto-order" element={<MTOOrder />} />
-                <Route path="/cross-dock" element={<CrossDock />} />
-                <Route path="/wheel-order" element={<WheelOrder />} />
-                <Route path="/retread-warranty" element={<RetreadWarranty />} />
-                <Route path="/complaint-tracking" element={<ComplaintTracking />} />
-                <Route path="/my-complaints" element={<MyComplaints />} />
-                <Route path="/email-testing" element={<EmailTestingSuite />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <RequireAuth>
+                      <Dashboard />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/pending-orders"
+                  element={
+                    <RequireAuth>
+                      <PendingOrders />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/all-pending-orders"
+                  element={
+                    <RequireAuth>
+                      <AllPendingOrders />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/completed-orders"
+                  element={
+                    <RequireAuth>
+                      <CompletedOrders />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/order-management"
+                  element={
+                    <RequireAuth>
+                      <OrderManagement />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/admin-inventory"
+                  element={
+                    <RequireAuth>
+                      <AdminInventory />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/admin-orders"
+                  element={
+                    <RequireAuth>
+                      <AdminOrders />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/all-orders"
+                  element={
+                    <RequireAuth>
+                      <AllOrders />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/approved-treads"
+                  element={
+                    <RequireAuth>
+                      <ApprovedTreads />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/relentless-inventory"
+                  element={
+                    <RequireAuth>
+                      <RelentlessInventory />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/mto-order"
+                  element={
+                    <RequireAuth>
+                      <MTOOrder />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/cross-dock"
+                  element={
+                    <RequireAuth>
+                      <CrossDock />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/wheel-order"
+                  element={
+                    <RequireAuth>
+                      <WheelOrder />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/retread-warranty"
+                  element={
+                    <RequireAuth>
+                      <RetreadWarranty />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/complaint-tracking"
+                  element={
+                    <RequireAuth>
+                      <ComplaintTracking />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/my-complaints"
+                  element={
+                    <RequireAuth>
+                      <MyComplaints />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/email-testing"
+                  element={
+                    <RequireAuth>
+                      <EmailTestingSuite />
+                    </RequireAuth>
+                  }
+                />
               </Routes>
             </ConditionalSidebar>
           </QueryClientProvider>

@@ -18,6 +18,9 @@ export default function Dashboard() {
   // Memoize plant display to prevent unnecessary re-renders
   const plantDisplay = useMemo(() => selectedPlant, [selectedPlant]);
 
+  // Get store information from authenticated user
+  const storeInfo = user?.storeManager;
+
   useEffect(() => {
     // Wait for auth to finish loading before checking user
     if (loading) return;
@@ -28,7 +31,7 @@ export default function Dashboard() {
       return;
     }
     
-    console.log("User authenticated, showing dashboard for:", user.store);
+    console.log("User authenticated, showing dashboard for:", storeInfo?.store_number || user.email);
     
     // Use requestIdleCallback for non-critical loading if available
     if ('requestIdleCallback' in window) {
@@ -37,7 +40,7 @@ export default function Dashboard() {
       // Fallback for browsers without requestIdleCallback
       setTimeout(() => setLoaded(true), 50);
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, storeInfo]);
 
   // Show loading while auth is being checked
   if (loading) {
@@ -66,6 +69,16 @@ export default function Dashboard() {
             <Building className="h-5 w-5 text-amber-400" />
             <span className="font-bold text-amber-400">Currently at: {plantDisplay}</span>
           </div>
+          
+          {/* Display store manager information */}
+          {storeInfo && (
+            <div className="flex items-center gap-2 p-2 px-4 rounded-full bg-green-700/30 border border-green-500 mb-4">
+              <span className="font-bold text-green-400">
+                {storeInfo.name} - {storeInfo.title} at {storeInfo.store_number}
+              </span>
+            </div>
+          )}
+          
           <DashboardBanner />
         </div>
 

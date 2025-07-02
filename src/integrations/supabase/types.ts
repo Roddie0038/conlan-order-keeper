@@ -14,30 +14,33 @@ export type Database = {
           action: string | null
           created_at: string | null
           deleted_at: string
-          deleted_by: string
+          deleted_by: string | null
           entity_id: string
           entity_type: string
           id: string
+          metadata: Json | null
           reason: string | null
         }
         Insert: {
           action?: string | null
           created_at?: string | null
           deleted_at?: string
-          deleted_by: string
+          deleted_by?: string | null
           entity_id: string
           entity_type: string
           id?: string
+          metadata?: Json | null
           reason?: string | null
         }
         Update: {
           action?: string | null
           created_at?: string | null
           deleted_at?: string
-          deleted_by?: string
+          deleted_by?: string | null
           entity_id?: string
           entity_type?: string
           id?: string
+          metadata?: Json | null
           reason?: string | null
         }
         Relationships: []
@@ -517,6 +520,7 @@ export type Database = {
           id: number
           in_transit_at: string | null
           invoice_number: string | null
+          manager_notes: string | null
           manual_override_allowed: boolean | null
           manual_override_reason: string | null
           name: string | null
@@ -547,6 +551,7 @@ export type Database = {
           store_response_date: string | null
           store_response_status: string | null
           timestamp: string
+          tire_pull_status: string | null
           warehouse_received: boolean | null
         }
         Insert: {
@@ -568,6 +573,7 @@ export type Database = {
           id?: number
           in_transit_at?: string | null
           invoice_number?: string | null
+          manager_notes?: string | null
           manual_override_allowed?: boolean | null
           manual_override_reason?: string | null
           name?: string | null
@@ -598,6 +604,7 @@ export type Database = {
           store_response_date?: string | null
           store_response_status?: string | null
           timestamp: string
+          tire_pull_status?: string | null
           warehouse_received?: boolean | null
         }
         Update: {
@@ -619,6 +626,7 @@ export type Database = {
           id?: number
           in_transit_at?: string | null
           invoice_number?: string | null
+          manager_notes?: string | null
           manual_override_allowed?: boolean | null
           manual_override_reason?: string | null
           name?: string | null
@@ -649,6 +657,7 @@ export type Database = {
           store_response_date?: string | null
           store_response_status?: string | null
           timestamp?: string
+          tire_pull_status?: string | null
           warehouse_received?: boolean | null
         }
         Relationships: []

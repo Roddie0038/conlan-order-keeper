@@ -1,18 +1,61 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { LoginBackground } from "@/components/login/LoginBackground";
 import { LoginCard } from "@/components/login/LoginCard";
-
-const usernames = [
-  "Conlan97", "Fort Worth22", "Grand Prairie27", "Houston28", "San Antonio29", "Rpetty",
-  "Oklahoma30", "Little Rock32", "Kansas33", "Laredo35", "Tulsa36", "Austin39",
-  "Miami 3", "Pompano Beach7", "Fort Myers9", "Jacksonville2", "Ocala5", 
-  "Tallahassee15", "Mulberry99", "Orlando4", "Tampa6", "Vero Beach21", 
-  "Sarasota23", "Romulus098", "Toledo8", "Detroit11", "Grand Rapids13", 
-  "Cleveland18", "Chicago41", "Grand Prairie 97", "Romulus 98", "Mulberry 99"
-];
+import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
+  const { login, user, loading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      console.log("User already authenticated, redirecting to dashboard");
+      navigate('/dashboard');
+    }
+  }, [user, loading, navigate]);
+
+  const handleLogin = async (email: string, password: string) => {
+    setIsSubmitting(true);
+    
+    try {
+      const result = await login(email, password);
+      
+      if (result.success) {
+        toast({
+          title: "Login successful",
+          description: "Welcome back to the Ordering Platform!",
+          className: "bg-green-50 border-green-200",
+        });
+        navigate('/dashboard');
+      } else {
+        toast({
+          title: "Login failed",
+          description: result.error || "Invalid email or password. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Don't render if user is already authenticated
+  if (!loading && user) {
+    return null;
+  }
+
   return (
     <div 
       className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat"
@@ -20,7 +63,7 @@ export default function Login() {
         backgroundImage: `url('/lovable-uploads/00512613-69c8-42e6-af5e-e9d8e3c555ed.png')`
       }}
     >
-      <LoginCard usernames={usernames} />
+      <LoginCard onLogin={handleLogin} isSubmitting={isSubmitting} />
     </div>
   );
 }
