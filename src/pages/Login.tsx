@@ -20,13 +20,22 @@ export default function Login() {
     }
   }, [user, loading, navigate]);
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (email: string, password: string, rememberMe: boolean) => {
     setIsSubmitting(true);
     
     try {
       const result = await login(email, password);
       
       if (result.success) {
+        // Handle remember me functionality
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', email);
+          localStorage.setItem('rememberMe', 'true');
+        } else {
+          localStorage.removeItem('rememberedEmail');
+          localStorage.removeItem('rememberMe');
+        }
+        
         toast({
           title: "Login successful",
           description: "Welcome back to the Ordering Platform!",

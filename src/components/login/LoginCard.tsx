@@ -6,7 +6,7 @@ import { SupabaseLoginForm } from "./SupabaseLoginForm";
 import { LoginFooter } from "./LoginFooter";
 
 interface LoginCardProps {
-  onLogin: (email: string, password: string) => Promise<void>;
+  onLogin: (email: string, password: string, rememberMe: boolean) => Promise<void>;
   isSubmitting: boolean;
 }
 

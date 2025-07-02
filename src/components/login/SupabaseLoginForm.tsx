@@ -1,19 +1,32 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface SupabaseLoginFormProps {
-  onLogin: (email: string, password: string) => Promise<void>;
+  onLogin: (email: string, password: string, rememberMe: boolean) => Promise<void>;
   isSubmitting: boolean;
 }
 
 export const SupabaseLoginForm = ({ onLogin, isSubmitting }: SupabaseLoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Load saved credentials on component mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
+    
+    if (savedEmail && savedRememberMe) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password && !isSubmitting) {
-      await onLogin(email, password);
+      await onLogin(email, password, rememberMe);
     }
   };
 
@@ -55,6 +68,21 @@ export const SupabaseLoginForm = ({ onLogin, isSubmitting }: SupabaseLoginFormPr
             disabled={isSubmitting}
           />
         </div>
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="remember-me"
+          checked={rememberMe}
+          onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+          className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+        />
+        <label
+          htmlFor="remember-me"
+          className="text-sm text-white/90 cursor-pointer select-none"
+        >
+          Remember me for faster login
+        </label>
       </div>
 
       <div>
