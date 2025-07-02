@@ -27,7 +27,10 @@ export const LoginForm = ({ usernames }: LoginFormProps) => {
     setIsLoading(true);
     
     try {
-      if (login(username, password, selectedPlant)) {
+      // Use the new Supabase login with email/password only
+      const result = await login(username, password);
+      
+      if (result.success) {
         toast({
           title: "Login successful",
           description: `Welcome back to ${selectedPlant} Order Tracking!`,
@@ -37,7 +40,7 @@ export const LoginForm = ({ usernames }: LoginFormProps) => {
       } else {
         toast({
           title: "Login failed",
-          description: "Invalid username or password. Please try again.",
+          description: result.error || "Invalid email or password. Please try again.",
           variant: "destructive"
         });
       }

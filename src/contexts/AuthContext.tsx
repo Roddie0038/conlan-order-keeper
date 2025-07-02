@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -13,6 +12,16 @@ interface StoreManager {
 }
 
 interface ExtendedUser extends User {
+  // Flattened fields that components expect
+  name: string;
+  title: string;
+  store: string;
+  storeName: string;
+  plant: string;
+  isAdmin: boolean;
+  username: string;
+  
+  // Keep nested object for backwards compatibility
   storeManager?: StoreManager;
 }
 
@@ -50,12 +59,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Enhanced user object with store manager data
+  // Helper function to determine admin status
+  const isUserAdmin = (email: string, title?: string): boolean => {
+    // Check for specific admin emails
+    const adminEmails = [
+      'conlan97@conlantire.com',
+      'bperry@conlantire.com',
+      'admin@conlantire.com'
+    ];
+    
+    if (adminEmails.includes(email.toLowerCase())) {
+      return true;
+    }
+
+    // Check for admin titles
+    const adminTitles = [
+      'Plant Manager',
+      'Warehouse Manager', 
+      'Operations Manager',
+      'Corporate Director',
+      'Admin'
+    ];
+    
+    if (title && adminTitles.some(adminTitle => 
+      title.toLowerCase().includes(adminTitle.toLowerCase())
+    )) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Helper function to format store name
+  const formatStoreName = (storeNumber: string): string => {
+    // Convert "Fort Worth 22" to "Fort Worth 22", "Houston 28" to "Houston 28", etc.
+    return storeNumber;
+  };
+
+  // Enhanced user object with flattened store manager data
   const enrichUserWithStoreData = async (authUser: User): Promise<ExtendedUser> => {
     const storeManager = await fetchStoreManagerProfile(authUser.email!);
+    
+    if (storeManager) {
+      return {
+        ...authUser,
+        // Flattened fields for component compatibility
+        name: storeManager.name,
+        title: storeManager.title,
+        store: storeManager.store_number,
+        storeName: formatStoreName(storeManager.store_number),
+        plant: storeManager.plant,
+        isAdmin: isUserAdmin(authUser.email!, storeManager.title),
+        username: storeManager.name, // Use name as username
+        
+        // Keep nested object for backwards compatibility
+        storeManager: storeManager
+      };
+    }
+
+    // Fallback for users without store manager records
     return {
       ...authUser,
-      storeManager: storeManager || undefined
+      name: authUser.email!,
+      title: 'User',
+      store: 'Unassigned',
+      storeName: 'Unassigned',
+      plant: 'Grand Prairie 97',
+      isAdmin: isUserAdmin(authUser.email!),
+      username: authUser.email!,
+      storeManager: undefined
     };
   };
 
@@ -72,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           const enrichedUser = await enrichUserWithStoreData(session.user);
           setUser(enrichedUser);
-          console.log("AuthProvider: User authenticated:", enrichedUser.storeManager?.store_number);
+          console.log("AuthProvider: User authenticated:", enrichedUser.storeName);
         } else {
           setUser(null);
           console.log("AuthProvider: User signed out");
@@ -86,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         enrichUserWithStoreData(session.user).then(enrichedUser => {
           setSession(session);
           setUser(enrichedUser);
-          console.log("AuthProvider: Found existing session:", enrichedUser.storeManager?.store_number);
+          console.log("AuthProvider: Found existing session:", enrichedUser.storeName);
         });
       }
       setLoading(false);
@@ -113,7 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const enrichedUser = await enrichUserWithStoreData(data.user);
         setUser(enrichedUser);
         setSession(data.session);
-        console.log("AuthProvider: Login successful for:", enrichedUser.storeManager?.store_number);
+        console.log("AuthProvider: Login successful for:", enrichedUser.storeName);
         return { success: true };
       }
 
