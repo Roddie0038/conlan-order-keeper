@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { validatePassword, validatePasswordMatch } from "@/utils/validation";
@@ -20,26 +20,35 @@ export default function ResetPassword() {
     errors: [] as string[],
     strength: 'weak' as 'weak' | 'medium' | 'strong'
   });
-  const { updatePassword } = useAuth();
+  const { updatePassword, session, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [isValidToken, setIsValidToken] = useState(false);
-  const [isCheckingToken, setIsCheckingToken] = useState(true);
+  const [isProcessingRecovery, setIsProcessingRecovery] = useState(true);
+  const [recoverySessionEstablished, setRecoverySessionEstablished] = useState(false);
 
-  // Extract tokens from URL hash
+  // Wait for Supabase to process recovery tokens and establish session
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    const refreshToken = hashParams.get('refresh_token');
-    const type = hashParams.get('type');
+    // Wait for auth context to finish loading
+    if (loading) return;
 
-    if (accessToken && refreshToken && type === 'recovery') {
-      setIsValidToken(true);
+    // Check if we have a valid recovery session
+    if (session && session.user) {
+      console.log("Recovery session established:", session.user.email);
+      setRecoverySessionEstablished(true);
+      setIsProcessingRecovery(false);
     } else {
-      setIsValidToken(false);
+      // Give Supabase some time to process the recovery tokens
+      const timeout = setTimeout(() => {
+        if (!session) {
+          console.log("No recovery session found after timeout");
+          setRecoverySessionEstablished(false);
+          setIsProcessingRecovery(false);
+        }
+      }, 3000); // 3 second timeout
+
+      return () => clearTimeout(timeout);
     }
-    setIsCheckingToken(false);
-  }, []);
+  }, [session, loading]);
 
   // Validate password in real-time
   useEffect(() => {
@@ -129,8 +138,8 @@ export default function ResetPassword() {
     }
   };
 
-  // Show loading while checking token
-  if (isCheckingToken) {
+  // Show loading while processing recovery
+  if (isProcessingRecovery) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat p-4"
         style={{
@@ -140,15 +149,15 @@ export default function ResetPassword() {
         <Card className="w-full max-w-md bg-white/95 backdrop-blur-md shadow-2xl border border-white/30">
           <CardContent className="p-8 text-center">
             <Loader className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-            <p className="text-gray-600">Validating reset link...</p>
+            <p className="text-gray-600">Processing reset link...</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  // Show error for invalid token
-  if (!isValidToken) {
+  // Show error for invalid or expired recovery session
+  if (!recoverySessionEstablished) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center bg-no-repeat p-4"
         style={{
@@ -162,7 +171,7 @@ export default function ResetPassword() {
               <CardTitle className="text-2xl font-bold text-gray-900">Invalid Reset Link</CardTitle>
             </div>
             <CardDescription className="text-gray-600">
-              This password reset link is invalid, expired, or has already been used.
+              This password reset link is invalid, expired, or has already been used. Please request a new password reset email.
             </CardDescription>
           </CardHeader>
           <CardContent>
