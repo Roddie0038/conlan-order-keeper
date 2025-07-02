@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ForgotPasswordModal } from "@/components/auth/ForgotPasswordModal";
 
 interface SupabaseLoginFormProps {
   onLogin: (email: string, password: string, rememberMe: boolean) => Promise<void>;
@@ -11,6 +12,7 @@ export const SupabaseLoginForm = ({ onLogin, isSubmitting }: SupabaseLoginFormPr
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   // Load saved credentials on component mount
   useEffect(() => {
@@ -52,9 +54,19 @@ export const SupabaseLoginForm = ({ onLogin, isSubmitting }: SupabaseLoginFormPr
         </div>
         
         <div>
-          <label htmlFor="password" className="sr-only">
-            Password
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label htmlFor="password" className="text-sm font-medium text-white/90">
+              Password
+            </label>
+            <button 
+              type="button"
+              onClick={() => setShowForgotModal(true)}
+              className="text-xs text-blue-300 hover:text-blue-200 transition-colors focus:outline-none focus:underline"
+              disabled={isSubmitting}
+            >
+              Forgot Password?
+            </button>
+          </div>
           <input
             id="password"
             name="password"
@@ -101,6 +113,11 @@ export const SupabaseLoginForm = ({ onLogin, isSubmitting }: SupabaseLoginFormPr
           )}
         </button>
       </div>
+
+      <ForgotPasswordModal 
+        isOpen={showForgotModal} 
+        onClose={() => setShowForgotModal(false)} 
+      />
     </form>
   );
 };
