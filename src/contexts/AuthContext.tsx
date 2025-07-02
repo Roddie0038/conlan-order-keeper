@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -6,9 +7,10 @@ interface StoreManager {
   id: string;
   name: string;
   email: string;
-  title: string;
+  role: string;
   store_number: string;
-  plant: string;
+  plant_code: string;
+  is_active: boolean;
 }
 
 interface ExtendedUser extends User {
@@ -40,27 +42,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Helper function to fetch store manager profile
+  // Helper function to fetch store manager profile using direct table query
   const fetchStoreManagerProfile = async (email: string): Promise<StoreManager | null> => {
     try {
-      const { data, error } = await supabase.rpc('get_store_manager_by_email', {
-        user_email: email
-      });
+      const { data, error } = await supabase
+        .from('managers')
+        .select('*')
+        .eq('email', email)
+        .eq('is_active', true)
+        .single();
 
       if (error) {
         console.error('Error fetching store manager profile:', error);
         return null;
       }
 
-      return data && data.length > 0 ? data[0] : null;
+      return data ? {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role || 'Store Manager',
+        store_number: data.store_number || 'Unassigned',
+        plant_code: data.plant_code || 'Grand Prairie 97',
+        is_active: data.is_active
+      } : null;
     } catch (error) {
-      console.error('Error calling store manager function:', error);
+      console.error('Error calling store manager query:', error);
       return null;
     }
   };
 
   // Helper function to determine admin status
-  const isUserAdmin = (email: string, title?: string): boolean => {
+  const isUserAdmin = (email: string, role?: string): boolean => {
     // Check for specific admin emails
     const adminEmails = [
       'conlan97@conlantire.com',
@@ -72,17 +85,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return true;
     }
 
-    // Check for admin titles
-    const adminTitles = [
-      'Plant Manager',
-      'Warehouse Manager', 
-      'Operations Manager',
-      'Corporate Director',
-      'Admin'
+    // Check for admin roles/titles
+    const adminRoles = [
+      'plant_manager',
+      'warehouse_manager', 
+      'operations_manager',
+      'corporate_director',
+      'admin',
+      'super_admin'
     ];
     
-    if (title && adminTitles.some(adminTitle => 
-      title.toLowerCase().includes(adminTitle.toLowerCase())
+    if (role && adminRoles.some(adminRole => 
+      role.toLowerCase().includes(adminRole.toLowerCase())
     )) {
       return true;
     }
@@ -92,8 +106,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Helper function to format store name
   const formatStoreName = (storeNumber: string): string => {
-    // Convert "Fort Worth 22" to "Fort Worth 22", "Houston 28" to "Houston 28", etc.
-    return storeNumber;
+    // Convert store number to readable store name
+    return storeNumber || 'Unassigned';
   };
 
   // Enhanced user object with flattened store manager data
@@ -105,11 +119,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...authUser,
         // Flattened fields for component compatibility
         name: storeManager.name,
-        title: storeManager.title,
+        title: storeManager.role,
         store: storeManager.store_number,
         storeName: formatStoreName(storeManager.store_number),
-        plant: storeManager.plant,
-        isAdmin: isUserAdmin(authUser.email!, storeManager.title),
+        plant: storeManager.plant_code,
+        isAdmin: isUserAdmin(authUser.email!, storeManager.role),
         username: storeManager.name, // Use name as username
         
         // Keep nested object for backwards compatibility
