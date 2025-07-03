@@ -43,13 +43,13 @@ export default function ResetPassword() {
         return;
       }
 
-      // Try to extract tokens from URL manually for fallback
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      // Extract tokens from URL - check query params first (new format), then hash (legacy)
       const searchParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
       
-      const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
-      const type = hashParams.get('type') || searchParams.get('type');
+      const accessToken = searchParams.get('access_token') || hashParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token') || hashParams.get('refresh_token');
+      const type = searchParams.get('type') || hashParams.get('type');
 
       console.log("[🔍] Token extraction:", { 
         accessToken: accessToken ? `${accessToken.substring(0, 10)}...` : 'MISSING',
