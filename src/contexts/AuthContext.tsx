@@ -236,8 +236,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: "Too many reset attempts. Please wait before trying again." };
       }
       
+      // Platform-aware redirect URL - use current domain for reset password
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      console.log("AuthProvider: Using redirect URL:", redirectUrl);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password?type=recovery`,
+        redirectTo: redirectUrl,
       });
 
       // Update rate limiting
