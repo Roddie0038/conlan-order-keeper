@@ -266,6 +266,127 @@ export type Database = {
         }
         Relationships: []
       }
+      message_attachments: {
+        Row: {
+          created_at: string | null
+          download_count: number | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          message_id: string
+          storage_path: string
+          updated_at: string | null
+          uploaded_by: string
+          virus_scan_status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          download_count?: number | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id?: string
+          message_id: string
+          storage_path: string
+          updated_at?: string | null
+          uploaded_by: string
+          virus_scan_status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          download_count?: number | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          message_id?: string
+          storage_path?: string
+          updated_at?: string | null
+          uploaded_by?: string
+          virus_scan_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "order_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_read_status: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string | null
+          user_email: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string | null
+          user_email: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string | null
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_read_status_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "order_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          created_by_email: string
+          id: string
+          is_active: boolean | null
+          is_system: boolean | null
+          title: string
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          created_by_email: string
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          title: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          created_by_email?: string
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          title?: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       mto_orders: {
         Row: {
           casing_grade: string | null
@@ -451,54 +572,77 @@ export type Database = {
       }
       order_messages: {
         Row: {
+          attachments: Json | null
           created_at: string | null
           email_sent: boolean | null
           id: string
           is_read: boolean | null
           message_id: string | null
           message_text: string
+          message_type: string | null
           order_id: string
           order_type: string
+          priority: string | null
           reply_to_email_id: string | null
+          reply_to_message_id: string | null
           sender_email: string
           sender_name: string | null
           sender_role: string
           sender_store: string | null
           source: string | null
+          thread_id: string | null
         }
         Insert: {
+          attachments?: Json | null
           created_at?: string | null
           email_sent?: boolean | null
           id?: string
           is_read?: boolean | null
           message_id?: string | null
           message_text: string
+          message_type?: string | null
           order_id: string
           order_type: string
+          priority?: string | null
           reply_to_email_id?: string | null
+          reply_to_message_id?: string | null
           sender_email: string
           sender_name?: string | null
           sender_role: string
           sender_store?: string | null
           source?: string | null
+          thread_id?: string | null
         }
         Update: {
+          attachments?: Json | null
           created_at?: string | null
           email_sent?: boolean | null
           id?: string
           is_read?: boolean | null
           message_id?: string | null
           message_text?: string
+          message_type?: string | null
           order_id?: string
           order_type?: string
+          priority?: string | null
           reply_to_email_id?: string | null
+          reply_to_message_id?: string | null
           sender_email?: string
           sender_name?: string | null
           sender_role?: string
           sender_store?: string | null
           source?: string | null
+          thread_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "order_messages_reply_to_message_id_fkey"
+            columns: ["reply_to_message_id"]
+            isOneToOne: false
+            referencedRelation: "order_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -689,6 +833,39 @@ export type Database = {
           role?: string
           store?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      typing_status: {
+        Row: {
+          expires_at: string | null
+          id: string
+          is_typing: boolean | null
+          last_updated: string | null
+          order_id: string
+          order_type: string
+          user_email: string
+          user_name: string | null
+        }
+        Insert: {
+          expires_at?: string | null
+          id?: string
+          is_typing?: boolean | null
+          last_updated?: string | null
+          order_id: string
+          order_type: string
+          user_email: string
+          user_name?: string | null
+        }
+        Update: {
+          expires_at?: string | null
+          id?: string
+          is_typing?: boolean | null
+          last_updated?: string | null
+          order_id?: string
+          order_type?: string
+          user_email?: string
+          user_name?: string | null
         }
         Relationships: []
       }
