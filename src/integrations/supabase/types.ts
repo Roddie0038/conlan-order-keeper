@@ -836,6 +836,33 @@ export type Database = {
         }
         Relationships: []
       }
+      training_downloads: {
+        Row: {
+          document_name: string
+          download_date: string | null
+          id: string
+          user_email: string | null
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          document_name: string
+          download_date?: string | null
+          id?: string
+          user_email?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          document_name?: string
+          download_date?: string | null
+          id?: string
+          user_email?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       typing_status: {
         Row: {
           expires_at: string | null
