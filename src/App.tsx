@@ -27,6 +27,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
 import { RequireAuth } from './components/auth/RequireAuth';
 import EmailTestingSuite from "./pages/EmailTestingSuite";
+import Settings from "./pages/Settings";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -195,6 +196,14 @@ function App() {
                   element={
                     <RequireAuth>
                       <EmailTestingSuite />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <RequireAuth>
+                      <Settings />
                     </RequireAuth>
                   }
                 />
