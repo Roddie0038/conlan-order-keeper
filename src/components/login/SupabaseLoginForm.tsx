@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ForgotPasswordModal } from "@/components/auth/ForgotPasswordModal";
 
@@ -112,6 +113,18 @@ export const SupabaseLoginForm = ({ onLogin, isSubmitting }: SupabaseLoginFormPr
             'Sign in to Dashboard'
           )}
         </button>
+      </div>
+
+      <div className="text-center">
+        <p className="text-white/70 text-sm mb-3">
+          Don't have an account?
+        </p>
+        <Link 
+          to="/signup" 
+          className="w-full inline-flex justify-center items-center py-3 px-4 border border-white/30 rounded-xl text-white/90 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-200 font-medium backdrop-blur-sm"
+        >
+          Create Account
+        </Link>
       </div>
 
       <ForgotPasswordModal 

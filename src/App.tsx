@@ -6,9 +6,21 @@ import { PlantProvider } from './contexts/PlantContext';
 import { Toaster } from "@/components/ui/toaster"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
 import { AppRoutes } from './components/routing/AppRoutes';
+import { useRegistrationNotification } from './hooks/useRegistrationNotification';
 
 // Create a client
 const queryClient = new QueryClient();
+
+function AppContent() {
+  // Set up registration notification listener
+  useRegistrationNotification();
+  
+  return (
+    <ConditionalSidebar>
+      <AppRoutes />
+    </ConditionalSidebar>
+  );
+}
 
 function App() {
   return (
@@ -17,9 +29,7 @@ function App() {
         <PlantProvider>
           <QueryClientProvider client={queryClient}>
             <Toaster />
-            <ConditionalSidebar>
-              <AppRoutes />
-            </ConditionalSidebar>
+            <AppContent />
           </QueryClientProvider>
         </PlantProvider>
       </AuthProvider>

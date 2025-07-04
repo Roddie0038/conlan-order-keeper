@@ -806,6 +806,54 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_registrations: {
+        Row: {
+          admin_reviewed: boolean | null
+          approved_by: string | null
+          created_at: string | null
+          email: string
+          email_verified: boolean | null
+          id: string
+          password_hash: string
+          plant_code: string
+          reviewed_at: string | null
+          role_title: string
+          status: string | null
+          store_number: string
+          verified_at: string | null
+        }
+        Insert: {
+          admin_reviewed?: boolean | null
+          approved_by?: string | null
+          created_at?: string | null
+          email: string
+          email_verified?: boolean | null
+          id?: string
+          password_hash: string
+          plant_code: string
+          reviewed_at?: string | null
+          role_title: string
+          status?: string | null
+          store_number: string
+          verified_at?: string | null
+        }
+        Update: {
+          admin_reviewed?: boolean | null
+          approved_by?: string | null
+          created_at?: string | null
+          email?: string
+          email_verified?: boolean | null
+          id?: string
+          password_hash?: string
+          plant_code?: string
+          reviewed_at?: string | null
+          role_title?: string
+          status?: string | null
+          store_number?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
