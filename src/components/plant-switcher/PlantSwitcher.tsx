@@ -68,29 +68,29 @@ export function PlantSwitcher() {
 
   return (
     <TooltipProvider>
-      <div className="space-y-4">
-        {/* Main Plant Switcher - Glassy Dark Design */}
-        <div className="relative">
-          {/* Neon Blue Glowing Border Container */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-blue-400/30 to-blue-500/20 rounded-2xl blur-sm animate-pulse"></div>
-          <div className="absolute inset-0 border-2 border-blue-400/60 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.3)]"></div>
-          
-          {/* Main Content Container */}
-          <div className="relative backdrop-blur-md bg-black/40 p-6 rounded-2xl border border-blue-400/30 shadow-xl hover:shadow-2xl transition-all duration-300 hover:bg-black/50">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">Choose Plant</h3>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-auto p-1 text-blue-400 hover:text-blue-300">
-                    <Info className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-black/80 text-white border-blue-400/30">
-                  <p>Switch to a different warehouse location</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+        <div className="space-y-4">
+          {/* Main Plant Switcher - Glassy Dark Design */}
+          <div className="relative">
+            {/* Enhanced Neon Blue Glowing Border Container with Pulse Animation */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-blue-400/30 to-blue-500/20 rounded-2xl blur-sm animate-pulse"></div>
+            <div className="absolute inset-0 border-2 border-blue-400/60 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.3)] animate-[pulse_3s_ease-in-out_infinite]"></div>
+            
+            {/* Main Content Container */}
+            <div className="relative backdrop-blur-md bg-black/40 p-6 rounded-2xl border border-blue-400/30 shadow-xl hover:shadow-2xl transition-all duration-300 hover:bg-black/50 hover:border-blue-400/50">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Choose Plant</h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-auto p-1 text-blue-400 hover:text-blue-300">
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black/80 text-white border-blue-400/30">
+                    <p>Switch to a different warehouse location</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
 
             {/* Current Plant Info */}
             <div className="space-y-3 mb-4">

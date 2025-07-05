@@ -7,7 +7,7 @@ import { getPlantForStore } from "@/utils/plantMapping";
 import { getTransferEmailRecipients, getRefurbishedEmailRecipients } from "@/config/contactSystem";
 import type { OrderData } from "@/types/supabase-extensions";
 import { formatDateForSupabase } from "@/utils/dateTime";
-import { supabase } from "@/integrations/supabase/extended-client";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage

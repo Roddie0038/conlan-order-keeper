@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/extended-client';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { InventoryItem } from '@/types/inventory';
 
