@@ -2,21 +2,15 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePlant } from "@/contexts/PlantContext";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardMenu } from "@/components/dashboard/DashboardMenu";
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
-import { Building } from "lucide-react";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
-  const { selectedPlant } = usePlant();
   const navigate = useNavigate();
   const [loaded, setLoaded] = useState(false);
-
-  // Memoize plant display to prevent unnecessary re-renders
-  const plantDisplay = useMemo(() => selectedPlant, [selectedPlant]);
 
   // Get store information from authenticated user
   const storeInfo = user?.storeManager;
@@ -65,11 +59,6 @@ export default function Dashboard() {
         <DashboardHeader />
 
         <div className="flex flex-col justify-center items-center mb-10">
-          <div className="flex items-center gap-2 p-2 px-4 rounded-full bg-blue-700/30 border border-blue-500 mb-4 animate-pulse">
-            <Building className="h-5 w-5 text-amber-400" />
-            <span className="font-bold text-amber-400">Currently at: {plantDisplay}</span>
-          </div>
-          
           {/* Display store manager information */}
           {storeInfo && (
             <div className="flex items-center gap-2 p-2 px-4 rounded-full bg-green-700/30 border border-green-500 mb-4">

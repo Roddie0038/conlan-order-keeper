@@ -1,11 +1,9 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { usePlant } from "@/contexts/PlantContext";
-import { Building } from "lucide-react";
+import { PlantSwitcher } from "@/components/plant-switcher";
 
 export function DashboardHeader() {
   const { user } = useAuth();
-  const { selectedPlant } = usePlant();
 
   // Get store information from authenticated user
   const storeInfo = user?.storeManager;
@@ -30,9 +28,8 @@ export function DashboardHeader() {
           )}
         </div>
       </div>
-      <div className="flex items-center bg-gradient-to-r from-blue-700 to-blue-900 px-4 py-2 rounded-lg border-2 border-amber-400">
-        <Building className="h-6 w-6 mr-2 text-amber-400" />
-        <span className="text-xl font-bold text-white">Plant: <span className="text-amber-400">{selectedPlant}</span></span>
+      <div className="w-full md:w-auto md:max-w-sm">
+        <PlantSwitcher />
       </div>
     </header>
   );
