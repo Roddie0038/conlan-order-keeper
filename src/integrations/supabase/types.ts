@@ -656,6 +656,7 @@ export type Database = {
           cross_dock_form_link: string | null
           cross_dock_receiver_number: string | null
           cross_dock_type: string | null
+          cross_plant_order: boolean | null
           deleted_at: string | null
           description: string | null
           destination_manager_email: string | null
@@ -709,6 +710,7 @@ export type Database = {
           cross_dock_form_link?: string | null
           cross_dock_receiver_number?: string | null
           cross_dock_type?: string | null
+          cross_plant_order?: boolean | null
           deleted_at?: string | null
           description?: string | null
           destination_manager_email?: string | null
@@ -762,6 +764,7 @@ export type Database = {
           cross_dock_form_link?: string | null
           cross_dock_receiver_number?: string | null
           cross_dock_type?: string | null
+          cross_plant_order?: boolean | null
           deleted_at?: string | null
           description?: string | null
           destination_manager_email?: string | null
@@ -851,6 +854,45 @@ export type Database = {
           status?: string | null
           store_number?: string
           verified_at?: string | null
+        }
+        Relationships: []
+      }
+      plant_switch_logs: {
+        Row: {
+          created_at: string | null
+          from_plant: string
+          id: string
+          ip_address: unknown | null
+          session_id: string | null
+          switch_reason: string | null
+          to_plant: string
+          user_agent: string | null
+          user_email: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          from_plant: string
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          switch_reason?: string | null
+          to_plant: string
+          user_agent?: string | null
+          user_email: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          from_plant?: string
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          switch_reason?: string | null
+          to_plant?: string
+          user_agent?: string | null
+          user_email?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -946,25 +988,34 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          allow_plant_switching: boolean | null
           created_at: string | null
+          current_plant: string | null
           header_image_url: string | null
           id: string
+          last_plant_switch: string | null
           time_format: string | null
           timezone: string | null
           user_id: string | null
         }
         Insert: {
+          allow_plant_switching?: boolean | null
           created_at?: string | null
+          current_plant?: string | null
           header_image_url?: string | null
           id: string
+          last_plant_switch?: string | null
           time_format?: string | null
           timezone?: string | null
           user_id?: string | null
         }
         Update: {
+          allow_plant_switching?: boolean | null
           created_at?: string | null
+          current_plant?: string | null
           header_image_url?: string | null
           id?: string
+          last_plant_switch?: string | null
           time_format?: string | null
           timezone?: string | null
           user_id?: string | null

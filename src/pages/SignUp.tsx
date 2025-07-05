@@ -27,7 +27,11 @@ const STORES_BY_PLANT: Record<string, Array<{ number: string; name: string }>> =
     { number: '28', name: 'Houston 28' },
     { number: '29', name: 'San Antonio 29' },
     { number: '35', name: 'Laredo 35' },
-    { number: '39', name: 'Austin 39' }
+    { number: '39', name: 'Austin 39' },
+    { number: '30', name: 'Oklahoma City 30' },
+    { number: '32', name: 'Little Rock 32' },
+    { number: '33', name: 'Kansas City 33' },
+    { number: '36', name: 'Tulsa 36' }
   ],
   '98': [
     { number: '98', name: 'Romulus 98' },
@@ -41,20 +45,16 @@ const STORES_BY_PLANT: Record<string, Array<{ number: string; name: string }>> =
     { number: '3', name: 'Miami 3' },
     { number: '7', name: 'Pompano Beach 7' },
     { number: '9', name: 'Fort Myers 9' },
-    { number: '002', name: 'Jacksonville - 002' },
+    { number: '002', name: 'Jacksonville 002' },
     { number: '5', name: 'Ocala 5' },
     { number: '15', name: 'Tallahassee 15' },
     { number: '1', name: 'Mulberry Service 1' },
     { number: '99', name: 'Mulberry 99' },
-    { number: '4', name: 'New Orland 4' },
+    { number: '4', name: 'New Orleans 4' },
     { number: '6', name: 'Tampa 6' },
     { number: '21', name: 'Vero Beach 21' },
     { number: '23', name: 'Sarasota 23' },
-    { number: '40', name: 'Tampa Foam Fill 40' },
-    { number: '30', name: 'Oklahoma City 30' },
-    { number: '32', name: 'Little Rock 32' },
-    { number: '33', name: 'Kansas City 33' },
-    { number: '36', name: 'Tulsa 36' }
+    { number: '40', name: 'Tampa Foam Fill 40' }
   ]
 };
 
@@ -124,13 +124,17 @@ export default function SignUp() {
 
     try {
       // First, create the pending registration record
+      const selectedStore = STORES_BY_PLANT[formData.plant]?.find(store => store.number === formData.store);
+      const storeName = selectedStore?.name || `Store ${formData.store}`;
+      const plantName = PLANTS.find(p => p.code === formData.plant)?.name || `Plant ${formData.plant}`;
+      
       const { error: registrationError } = await supabase
         .from('pending_registrations')
         .insert({
           email: formData.email.toLowerCase(),
           password_hash: formData.password, // This will be handled by Supabase auth
-          plant_code: formData.plant,
-          store_number: formData.store,
+          plant_code: plantName,
+          store_number: storeName, // Store as "Store Name Store Number" format
           role_title: formData.roleTitle.trim()
         });
 
@@ -141,12 +145,18 @@ export default function SignUp() {
         throw registrationError;
       }
 
-      // Then create the Supabase auth user
+      // Then create the Supabase auth user with proper metadata
       const { error: authError } = await supabase.auth.signUp({
         email: formData.email.toLowerCase(),
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/signup-success`
+          emailRedirectTo: `${window.location.origin}/signup-success`,
+          data: {
+            store_name_number: storeName, // "Store Name Store Number" format
+            default_plant: plantName,
+            role_title: formData.roleTitle.trim(),
+            plant_code: formData.plant
+          }
         }
       });
 

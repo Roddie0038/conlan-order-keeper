@@ -1,18 +1,20 @@
 
-// Plant to store mapping for determining which plant handles orders from specific stores
+// MASTER REFERENCE: Plant to store mapping (Store Name Store Number format)
 export const PLANT_STORE_MAP = {
   "Grand Prairie 97": [
-    "Fort Worth 22", "Grand Prairie 27", "Houston 28", "San Antonio 29",
-    "OKC 30", "Little Rock 32", "Kansas 33", "Laredo 35",
-    "Tulsa 36", "Austin 39"
+    "Fort Worth 22", "Grand Prairie Service 27", "Grand Prairie 97", "Houston 28", 
+    "San Antonio 29", "Laredo 35", "Austin 39", "Oklahoma City 30", 
+    "Little Rock 32", "Kansas City 33", "Tulsa 36"
   ],
   "Romulus 98": [
-    "Detroit 11", "Toledo 8", "Grand Rapids 13", "Cleveland 18", "Chicago 41"
+    "Romulus 98", "Toledo 8", "Detroit 11", "Grand Rapids 13", 
+    "Cleveland 18", "Chicago 41"
   ],
   "Mulberry 99": [
-    "Miami 3", "Pompano Beach 7", "Fort Myers 9", "Jacksonville 2", "Ocala 5",
-    "Tallahassee 15", "Orlando 4", "Tampa 6", "Vero Beach 21", "Sarasota 23",
-    "Mulberry Service 1", "Tampa Foam Fill 40"
+    "Miami 3", "Pompano Beach 7", "Fort Myers 9", "Jacksonville 002", 
+    "Ocala 5", "Tallahassee 15", "Mulberry Service 1", "Mulberry 99", 
+    "New Orleans 4", "Tampa 6", "Vero Beach 21", "Sarasota 23", 
+    "Tampa Foam Fill 40"
   ]
 };
 

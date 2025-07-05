@@ -116,6 +116,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const enrichUserWithStoreData = async (authUser: User): Promise<ExtendedUser> => {
     const storeManager = await fetchStoreManagerProfile(authUser.email!);
     
+    // Get plant and store info from user metadata if available
+    const userMetadata = authUser.user_metadata || {};
+    const storeNameNumber = userMetadata.store_name_number || storeManager?.store_number || 'Unassigned';
+    const defaultPlant = userMetadata.default_plant || storeManager?.plant_code || 'Grand Prairie 97';
+    
     if (storeManager) {
       return {
         ...authUser,
@@ -123,26 +128,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name: storeManager.name,
         title: storeManager.role,
         store: storeManager.store_number,
-        storeName: formatStoreName(storeManager.store_number),
-        plant: storeManager.plant_code,
+        storeName: storeNameNumber, // Use metadata format: "Store Name Store Number"
+        plant: defaultPlant, // Use metadata default plant
         isAdmin: isUserAdmin(authUser.email!, storeManager.role),
         username: storeManager.name, // Use name as username
         
         // Keep nested object for backwards compatibility
-        storeManager: storeManager
+        storeManager: {
+          ...storeManager,
+          store_number: storeNameNumber, // Update with proper format
+          plant_code: defaultPlant
+        }
       };
     }
 
     // Fallback for users without store manager records
     return {
       ...authUser,
-      name: authUser.email!,
-      title: 'User',
+      name: userMetadata.role_title || authUser.email!,
+      title: userMetadata.role_title || 'User',
       store: 'Unassigned',
-      storeName: 'Unassigned',
-      plant: 'Grand Prairie 97',
+      storeName: storeNameNumber,
+      plant: defaultPlant,
       isAdmin: isUserAdmin(authUser.email!),
-      username: authUser.email!,
+      username: userMetadata.role_title || authUser.email!,
       storeManager: undefined
     };
   };
