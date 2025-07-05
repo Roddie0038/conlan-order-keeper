@@ -4,16 +4,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, MessageSquare, Building, Warehouse, CheckCircle, Paperclip, Mail } from 'lucide-react';
+import { Download, MessageSquare, Building, Warehouse, CheckCircle, Paperclip, Mail, ArrowRightLeft } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const [viewMode, setViewMode] = useState<'store' | 'warehouse'>('store');
+  const navigate = useNavigate();
 
   const downloadPDF = () => {
     // Placeholder for PDF download functionality
     console.log('Download PDF clicked');
+  };
+
+  const openPlantSwitcherGuide = () => {
+    navigate('/plant-switcher-guide');
   };
 
   return (
@@ -33,6 +39,35 @@ const Settings = () => {
           </TabsList>
 
           <TabsContent value="training" className="space-y-6">
+            {/* Plant Switcher Guide Card */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <ArrowRightLeft className="h-6 w-6 text-primary" />
+                  <CardTitle>Plant Switcher Training Guide</CardTitle>
+                </div>
+                <CardDescription>
+                  Complete guide on how to switch plants in the ordering system
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <h4 className="font-medium mb-2">📚 What You'll Learn</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• How to locate and use the Plant Switcher</li>
+                    <li>• Understanding plant coverage areas</li>
+                    <li>• Step-by-step switching instructions</li>
+                    <li>• Best practices and troubleshooting</li>
+                  </ul>
+                </div>
+                <div className="flex justify-center">
+                  <Button onClick={openPlantSwitcherGuide} className="gap-2" size="lg">
+                    <ArrowRightLeft className="h-4 w-4" />
+                    📖 Open Plant Switcher Guide
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
