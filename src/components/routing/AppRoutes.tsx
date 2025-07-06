@@ -29,7 +29,6 @@ import EmailTestingSuite from '@/pages/EmailTestingSuite';
 import Settings from '@/pages/Settings';
 import PlantSwitcherGuide from '@/pages/PlantSwitcherGuide';
 import UserManagement from '@/pages/UserManagement';
-import UserManagement from '@/pages/UserManagement';
 
 export function AppRoutes() {
   return (

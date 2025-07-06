@@ -3,8 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export type PlatformType = 'ordering_platform' | 'ot_platform';
-export type UserRole = 'super_admin' | 'plant_admin' | 'store_manager' | 'warehouse_manager' | 'office_manager';
-export type UserStatus = 'active' | 'inactive' | 'suspended';
+export type UserRole = 'super_admin' | 'plant_admin' | 'store_manager' | 'warehouse_manager' | 'office_manager' | 'operations_manager' | 'warehouse_staff';
+export type UserStatus = 'active' | 'inactive' | 'suspended' | 'pending';
 
 export interface PlatformUser {
   id: string;
@@ -20,12 +20,12 @@ export interface PlatformUser {
   updated_at: string;
 }
 
-export function useUserManagement() {
+export function useUserManagement(platform?: PlatformType) {
   const { session } = useAuth();
   const [users, setUsers] = useState<PlatformUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPlatform, setSelectedPlatform] = useState<PlatformType>('ordering_platform');
+  const [selectedPlatform, setSelectedPlatform] = useState<PlatformType>(platform || 'ordering_platform');
 
   const fetchUsers = async (platform?: PlatformType) => {
     if (!session?.user) return;
@@ -57,8 +57,8 @@ export function useUserManagement() {
   };
 
   useEffect(() => {
-    if (session?.user) fetchUsers();
-  }, [session?.user]);
+    if (session?.user) fetchUsers(platform);
+  }, [session?.user, platform]);
 
   return {
     users,
