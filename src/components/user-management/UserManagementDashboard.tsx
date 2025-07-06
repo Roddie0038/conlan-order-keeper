@@ -10,6 +10,7 @@ import { AlertCircle, Download, Filter, Plus, RefreshCw, Users } from 'lucide-re
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useUserActivityLogs } from '@/hooks/useUserActivityLogs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 export function UserManagementDashboard() {
   const [selectedPlatform, setSelectedPlatform] = useState<'ordering_platform' | 'ot_platform'>('ordering_platform');
@@ -73,8 +74,11 @@ export function UserManagementDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <ErrorBoundary context="User Management Dashboard" onError={(error) => {
+      console.error('[UserManagementDashboard] Dashboard error:', error);
+    }}>
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -289,7 +293,8 @@ export function UserManagementDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }

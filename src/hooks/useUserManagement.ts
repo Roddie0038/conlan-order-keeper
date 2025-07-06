@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { waitForSessionReadiness, withRetry, logError } from '@/utils/sessionUtils';
 
 export type PlatformType = 'ordering_platform' | 'ot_platform';
 export type UserRole = 'super_admin' | 'plant_admin' | 'store_manager' | 'warehouse_manager' | 'office_manager' | 'operations_manager' | 'warehouse_staff';
@@ -21,31 +22,61 @@ export interface PlatformUser {
 }
 
 export function useUserManagement(platform?: PlatformType) {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const [users, setUsers] = useState<PlatformUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformType>(platform || 'ordering_platform');
 
-  const fetchUsers = async (platform?: PlatformType) => {
-    if (!session?.user) return;
+  const fetchUsers = async (targetPlatform?: PlatformType, retryCount = 0) => {
+    const operationName = `fetchUsers(${targetPlatform || selectedPlatform})`;
     
-    await new Promise(resolve => setTimeout(resolve, 500)); // Session-aware delay
-    
-    setLoading(true);
     try {
-      let query = supabase.from('platform_users').select('*').order('created_at', { ascending: false });
-      if (platform || selectedPlatform) {
-        query = query.eq('platform', platform || selectedPlatform);
+      setLoading(true);
+      setError(null);
+
+      // Enhanced session validation with retry logic
+      const sessionReady = await waitForSessionReadiness(session, user, 10000);
+      if (!sessionReady) {
+        throw new Error('Session not ready or insufficient permissions for Super Admin access');
       }
+
+      // Use enhanced retry logic for the database query
+      const result = await withRetry(
+        async () => {
+          let query = supabase
+            .from('platform_users')
+            .select('*')
+            .order('created_at', { ascending: false });
+          
+          const platformToQuery = targetPlatform || selectedPlatform;
+          if (platformToQuery) {
+            query = query.eq('platform', platformToQuery);
+          }
+          
+          const { data, error } = await query;
+          if (error) throw error;
+          
+          return data || [];
+        },
+        { maxRetries: 2, baseDelay: 1000 },
+        operationName
+      );
       
-      const { data, error } = await query;
-      if (error) throw error;
+      console.log(`[useUserManagement] Successfully fetched ${result.length} users for ${targetPlatform || selectedPlatform}`);
+      setUsers(result);
+      if (targetPlatform) setSelectedPlatform(targetPlatform);
       
-      setUsers(data || []);
-      if (platform) setSelectedPlatform(platform);
     } catch (err: any) {
-      setError(err.message);
+      const errorInfo = logError('useUserManagement.fetchUsers', err, { 
+        platform: targetPlatform || selectedPlatform,
+        retryCount,
+        sessionExists: !!session,
+        userEmail: user?.email
+      });
+      
+      setError(`Failed to load users: ${err.message}`);
+      setUsers([]); // Clear users on error
     } finally {
       setLoading(false);
     }
@@ -57,8 +88,15 @@ export function useUserManagement(platform?: PlatformType) {
   };
 
   useEffect(() => {
-    if (session?.user) fetchUsers(platform);
-  }, [session?.user, platform]);
+    if (session?.user && user) {
+      // Delay initial fetch to ensure session is fully ready
+      const timer = setTimeout(() => {
+        fetchUsers(platform);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [session?.user, user, platform]);
 
   return {
     users,

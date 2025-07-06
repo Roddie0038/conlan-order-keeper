@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { waitForSessionReadiness, withRetry, logError } from '@/utils/sessionUtils';
 
 export interface ActivityLog {
   id: string;
@@ -20,48 +21,53 @@ export function useUserActivityLogs(selectedPlatform?: 'ordering_platform' | 'ot
   const { user, session } = useAuth();
 
   const fetchLogs = async (retryCount = 0) => {
-    if (!session || !user) {
-      console.log('[useUserActivityLogs] No session or user, skipping fetch');
-      return;
-    }
-
+    const operationName = `fetchActivityLogs(${selectedPlatform || 'all'})`;
+    
     try {
       setLoading(true);
       setError(null);
 
-      // Add session validation delay to prevent race conditions
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      let query = supabase
-        .from('user_activity_logs')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(100);
-
-      if (selectedPlatform) {
-        query = query.eq('platform', selectedPlatform);
+      // Enhanced session validation with comprehensive checks
+      const sessionReady = await waitForSessionReadiness(session, user, 10000);
+      if (!sessionReady) {
+        throw new Error('Session not ready or insufficient permissions for Super Admin access');
       }
 
-      const { data, error: fetchError } = await query;
+      // Use enhanced retry logic for the database query
+      const result = await withRetry(
+        async () => {
+          let query = supabase
+            .from('user_activity_logs')
+            .select('*')
+            .order('timestamp', { ascending: false })
+            .limit(100);
 
-      if (fetchError) {
-        console.error('[useUserActivityLogs] Error fetching activity logs:', fetchError);
-        throw fetchError;
-      }
+          if (selectedPlatform) {
+            query = query.eq('platform', selectedPlatform);
+          }
 
-      console.log(`[useUserActivityLogs] Fetched ${data?.length || 0} activity logs`);
-      setLogs(data || []);
+          const { data, error: fetchError } = await query;
+          if (fetchError) throw fetchError;
+          
+          return data || [];
+        },
+        { maxRetries: 2, baseDelay: 1000 },
+        operationName
+      );
+
+      console.log(`[useUserActivityLogs] Successfully fetched ${result.length} activity logs`);
+      setLogs(result);
+      
     } catch (err: any) {
-      console.error('[useUserActivityLogs] Fetch error:', err);
+      const errorInfo = logError('useUserActivityLogs.fetchLogs', err, {
+        platform: selectedPlatform,
+        retryCount,
+        sessionExists: !!session,
+        userEmail: user?.email
+      });
       
-      // Retry logic for failed queries
-      if (retryCount < 2 && err.code !== 'PGRST301') {
-        console.log(`[useUserActivityLogs] Retrying fetch (attempt ${retryCount + 1})`);
-        setTimeout(() => fetchLogs(retryCount + 1), 1000);
-        return;
-      }
-      
-      setError(err.message || 'Failed to fetch activity logs');
+      setError(`Failed to load activity logs: ${err.message}`);
+      setLogs([]); // Clear logs on error
     } finally {
       setLoading(false);
     }
@@ -96,7 +102,12 @@ export function useUserActivityLogs(selectedPlatform?: 'ordering_platform' | 'ot
 
   useEffect(() => {
     if (session && user) {
-      fetchLogs();
+      // Delay initial fetch to ensure session is fully ready
+      const timer = setTimeout(() => {
+        fetchLogs();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [session, user, selectedPlatform]);
 
