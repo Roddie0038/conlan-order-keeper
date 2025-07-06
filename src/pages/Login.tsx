@@ -7,18 +7,19 @@ import { LoginCard } from "@/components/login/LoginCard";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
-  const { login, user, loading } = useAuth();
+  const { login, user, loading, isEnriching } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already logged in
+  // Redirect if already logged in (handled by AuthGuard now)
+  // This is kept as fallback only
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && !isEnriching && user) {
       console.log("User already authenticated, redirecting to dashboard");
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, isEnriching, navigate]);
 
   const handleLogin = async (email: string, password: string, rememberMe: boolean) => {
     setIsSubmitting(true);
@@ -41,7 +42,8 @@ export default function Login() {
           description: "Welcome back to the Ordering Platform!",
           className: "bg-green-50 border-green-200",
         });
-        navigate('/dashboard');
+        // Let AuthGuard handle the redirect after successful login
+        setTimeout(() => navigate('/dashboard', { replace: true }), 100);
       } else {
         toast({
           title: "Login failed",
@@ -60,8 +62,8 @@ export default function Login() {
     }
   };
 
-  // Don't render if user is already authenticated
-  if (!loading && user) {
+  // Don't render if user is already authenticated (handled by AuthGuard)
+  if (!loading && !isEnriching && user) {
     return null;
   }
 

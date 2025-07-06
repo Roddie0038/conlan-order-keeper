@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
+import { AuthHealthMonitor } from './components/auth/AuthHealthMonitor';
 import { PlantProvider } from './contexts/PlantContext';
 import { Toaster } from "@/components/ui/toaster"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
@@ -16,9 +17,12 @@ function AppContent() {
   useRegistrationNotification();
   
   return (
-    <ConditionalSidebar>
-      <AppRoutes />
-    </ConditionalSidebar>
+    <>
+      <AuthHealthMonitor />
+      <ConditionalSidebar>
+        <AppRoutes />
+      </ConditionalSidebar>
+    </>
   );
 }
 

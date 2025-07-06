@@ -34,6 +34,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   loading: boolean;
+  isEnriching: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<ExtendedUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEnriching, setIsEnriching] = useState(false);
 
   // Helper function to log user activity
   const logUserActivity = async (action: string, userEmail: string, metadata?: any) => {
@@ -177,17 +179,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log("AuthProvider: Auth state changed:", event);
         
         setSession(session);
         
         if (session?.user) {
-          const enrichedUser = await enrichUserWithStoreData(session.user);
-          setUser(enrichedUser);
-          console.log("AuthProvider: User authenticated:", enrichedUser.storeName);
+          setIsEnriching(true);
+          enrichUserWithStoreData(session.user)
+            .then(enrichedUser => {
+              setUser(enrichedUser);
+              console.log("AuthProvider: User authenticated:", enrichedUser.storeName);
+            })
+            .catch(error => {
+              console.error("AuthProvider: User enrichment failed:", error);
+              setUser(null);
+            })
+            .finally(() => {
+              setIsEnriching(false);
+              setLoading(false);
+            });
         } else {
           setUser(null);
+          setIsEnriching(false);
+          setLoading(false);
           console.log("AuthProvider: User signed out");
         }
       }
@@ -196,13 +211,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        enrichUserWithStoreData(session.user).then(enrichedUser => {
-          setSession(session);
-          setUser(enrichedUser);
-          console.log("AuthProvider: Found existing session:", enrichedUser.storeName);
-        });
+        setIsEnriching(true);
+        enrichUserWithStoreData(session.user)
+          .then(enrichedUser => {
+            setSession(session);
+            setUser(enrichedUser);
+            console.log("AuthProvider: Found existing session:", enrichedUser.storeName);
+          })
+          .catch(error => {
+            console.error("AuthProvider: Session user enrichment failed:", error);
+          })
+          .finally(() => {
+            setIsEnriching(false);
+            setLoading(false);
+          });
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -258,11 +283,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
       
-      await supabase.auth.signOut();
+      // Clear session state first
+      setLoading(true);
       setUser(null);
       setSession(null);
+      setIsEnriching(false);
+      
+      // Clear local storage
+      localStorage.removeItem('rememberedEmail');
+      localStorage.removeItem('rememberMe');
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      console.log("AuthProvider: Logout completed successfully");
     } catch (error) {
       console.error("AuthProvider: Logout error:", error);
+      // Force clear state even if signOut fails
+      setUser(null);
+      setSession(null);
+      setIsEnriching(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -326,7 +368,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, login, logout, resetPassword, updatePassword, loading }}>
+    <AuthContext.Provider value={{ user, session, login, logout, resetPassword, updatePassword, loading, isEnriching }}>
       {children}
     </AuthContext.Provider>
   );

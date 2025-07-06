@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { RequireAuth } from '@/components/auth/RequireAuth';
-import { HomeRedirect } from './HomeRedirect';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 
 // Page imports
 import Index from '@/pages/Index';
@@ -33,174 +32,162 @@ import UserManagement from '@/pages/UserManagement';
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<HomeRedirect />} />
-      <Route path="/transfer-request" element={<Index />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<SignUp />} />
-      <Route path="/signup-success" element={<SignUpSuccess />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/" element={
+        <AuthGuard requireAuth={false}>
+          <Index />
+        </AuthGuard>
+      } />
+      
+      <Route path="/transfer-request" element={
+        <AuthGuard>
+          <Index />
+        </AuthGuard>
+      } />
+      
+      <Route path="/login" element={
+        <AuthGuard requireAuth={false}>
+          <Login />
+        </AuthGuard>
+      } />
+      
+      <Route path="/signup" element={
+        <AuthGuard requireAuth={false}>
+          <SignUp />
+        </AuthGuard>
+      } />
+      
+      <Route path="/signup-success" element={
+        <AuthGuard requireAuth={false}>
+          <SignUpSuccess />
+        </AuthGuard>
+      } />
+      
+      <Route path="/reset-password" element={
+        <AuthGuard requireAuth={false}>
+          <ResetPassword />
+        </AuthGuard>
+      } />
       
       {/* Protected Routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <RequireAuth>
-            <Dashboard />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/pending-orders"
-        element={
-          <RequireAuth>
-            <PendingOrders />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/all-pending-orders"
-        element={
-          <RequireAuth>
-            <AllPendingOrders />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/completed-orders"
-        element={
-          <RequireAuth>
-            <CompletedOrders />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/order-management"
-        element={
-          <RequireAuth>
-            <OrderManagement />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin-inventory"
-        element={
-          <RequireAuth>
-            <AdminInventory />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin-orders"
-        element={
-          <RequireAuth>
-            <AdminOrders />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/all-orders"
-        element={
-          <RequireAuth>
-            <AllOrders />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/approved-treads"
-        element={
-          <RequireAuth>
-            <ApprovedTreads />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/relentless-inventory"
-        element={
-          <RequireAuth>
-            <RelentlessInventory />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/mto-order"
-        element={
-          <RequireAuth>
-            <MTOOrder />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/cross-dock"
-        element={
-          <RequireAuth>
-            <CrossDock />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/wheel-order"
-        element={
-          <RequireAuth>
-            <WheelOrder />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/retread-warranty"
-        element={
-          <RequireAuth>
-            <RetreadWarranty />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/complaint-tracking"
-        element={
-          <RequireAuth>
-            <ComplaintTracking />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/my-complaints"
-        element={
-          <RequireAuth>
-            <MyComplaints />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/email-testing"
-        element={
-          <RequireAuth>
-            <EmailTestingSuite />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <RequireAuth>
-            <Settings />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/plant-switcher-guide"
-        element={
-          <RequireAuth>
-            <PlantSwitcherGuide />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/user-management"
-        element={
-          <RequireAuth>
-            <UserManagement />
-          </RequireAuth>
-        }
-      />
+      <Route path="/dashboard" element={
+        <AuthGuard>
+          <Dashboard />
+        </AuthGuard>
+      } />
+      
+      <Route path="/pending-orders" element={
+        <AuthGuard>
+          <PendingOrders />
+        </AuthGuard>
+      } />
+      
+      <Route path="/all-pending-orders" element={
+        <AuthGuard>
+          <AllPendingOrders />
+        </AuthGuard>
+      } />
+      
+      <Route path="/completed-orders" element={
+        <AuthGuard>
+          <CompletedOrders />
+        </AuthGuard>
+      } />
+      
+      <Route path="/order-management" element={
+        <AuthGuard>
+          <OrderManagement />
+        </AuthGuard>
+      } />
+      
+      <Route path="/admin-inventory" element={
+        <AuthGuard>
+          <AdminInventory />
+        </AuthGuard>
+      } />
+      
+      <Route path="/admin-orders" element={
+        <AuthGuard>
+          <AdminOrders />
+        </AuthGuard>
+      } />
+      
+      <Route path="/all-orders" element={
+        <AuthGuard>
+          <AllOrders />
+        </AuthGuard>
+      } />
+      
+      <Route path="/approved-treads" element={
+        <AuthGuard>
+          <ApprovedTreads />
+        </AuthGuard>
+      } />
+      
+      <Route path="/relentless-inventory" element={
+        <AuthGuard>
+          <RelentlessInventory />
+        </AuthGuard>
+      } />
+      
+      <Route path="/mto-order" element={
+        <AuthGuard>
+          <MTOOrder />
+        </AuthGuard>
+      } />
+      
+      <Route path="/cross-dock" element={
+        <AuthGuard>
+          <CrossDock />
+        </AuthGuard>
+      } />
+      
+      <Route path="/wheel-order" element={
+        <AuthGuard>
+          <WheelOrder />
+        </AuthGuard>
+      } />
+      
+      <Route path="/retread-warranty" element={
+        <AuthGuard>
+          <RetreadWarranty />
+        </AuthGuard>
+      } />
+      
+      <Route path="/complaint-tracking" element={
+        <AuthGuard>
+          <ComplaintTracking />
+        </AuthGuard>
+      } />
+      
+      <Route path="/my-complaints" element={
+        <AuthGuard>
+          <MyComplaints />
+        </AuthGuard>
+      } />
+      
+      <Route path="/email-testing" element={
+        <AuthGuard>
+          <EmailTestingSuite />
+        </AuthGuard>
+      } />
+      
+      <Route path="/settings" element={
+        <AuthGuard>
+          <Settings />
+        </AuthGuard>
+      } />
+      
+      <Route path="/plant-switcher-guide" element={
+        <AuthGuard>
+          <PlantSwitcherGuide />
+        </AuthGuard>
+      } />
+      
+      <Route path="/user-management" element={
+        <AuthGuard>
+          <UserManagement />
+        </AuthGuard>
+      } />
     </Routes>
   );
 }
