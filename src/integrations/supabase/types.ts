@@ -896,6 +896,54 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_users: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email: string
+          full_name: string
+          id: string
+          last_login: string | null
+          plant: string | null
+          platform: Database["public"]["Enums"]["platform_type"]
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["user_status"] | null
+          store: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          full_name: string
+          id?: string
+          last_login?: string | null
+          plant?: string | null
+          platform: Database["public"]["Enums"]["platform_type"]
+          role: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"] | null
+          store?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          last_login?: string | null
+          plant?: string | null
+          platform?: Database["public"]["Enums"]["platform_type"]
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"] | null
+          store?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -983,6 +1031,39 @@ export type Database = {
           order_type?: string
           user_email?: string
           user_name?: string | null
+        }
+        Relationships: []
+      }
+      user_activity_logs: {
+        Row: {
+          action: string
+          affected_user: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          performed_by: string
+          platform: Database["public"]["Enums"]["platform_type"]
+          timestamp: string | null
+        }
+        Insert: {
+          action: string
+          affected_user: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          performed_by: string
+          platform: Database["public"]["Enums"]["platform_type"]
+          timestamp?: string | null
+        }
+        Update: {
+          action?: string
+          affected_user?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          performed_by?: string
+          platform?: Database["public"]["Enums"]["platform_type"]
+          timestamp?: string | null
         }
         Relationships: []
       }
@@ -1273,7 +1354,15 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      platform_type: "ordering_platform" | "ot_platform"
+      user_role:
+        | "super_admin"
+        | "operations_manager"
+        | "plant_admin"
+        | "warehouse_manager"
+        | "store_manager"
+        | "warehouse_staff"
+      user_status: "active" | "inactive" | "suspended" | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1388,6 +1477,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      platform_type: ["ordering_platform", "ot_platform"],
+      user_role: [
+        "super_admin",
+        "operations_manager",
+        "plant_admin",
+        "warehouse_manager",
+        "store_manager",
+        "warehouse_staff",
+      ],
+      user_status: ["active", "inactive", "suspended", "pending"],
+    },
   },
 } as const

@@ -28,6 +28,7 @@ import MyComplaints from '@/pages/MyComplaints';
 import EmailTestingSuite from '@/pages/EmailTestingSuite';
 import Settings from '@/pages/Settings';
 import PlantSwitcherGuide from '@/pages/PlantSwitcherGuide';
+import UserManagement from '@/pages/UserManagement';
 
 export function AppRoutes() {
   return (
@@ -189,6 +190,14 @@ export function AppRoutes() {
         element={
           <RequireAuth>
             <PlantSwitcherGuide />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/user-management"
+        element={
+          <RequireAuth>
+            <UserManagement />
           </RequireAuth>
         }
       />

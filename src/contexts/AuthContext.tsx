@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -43,6 +42,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<ExtendedUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to log user activity
+  const logUserActivity = async (action: string, userEmail: string, metadata?: any) => {
+    try {
+      await supabase.from('user_activity_logs').insert([{
+        action,
+        affected_user: userEmail,
+        performed_by: userEmail,
+        platform: 'ordering_platform',
+        description: `User ${action} on ordering platform`,
+        metadata,
+        timestamp: new Date().toISOString()
+      }]);
+    } catch (error) {
+      console.error('Failed to log user activity:', error);
+    }
+  };
 
   // Helper function to fetch store manager profile using direct table query
   const fetchStoreManagerProfile = async (email: string): Promise<StoreManager | null> => {
@@ -210,6 +226,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const enrichedUser = await enrichUserWithStoreData(data.user);
         setUser(enrichedUser);
         setSession(data.session);
+        
+        // Log login activity
+        await logUserActivity('login', email, {
+          store: enrichedUser.store,
+          plant: enrichedUser.plant,
+          timestamp: new Date().toISOString()
+        });
+        
         console.log("AuthProvider: Login successful for:", enrichedUser.storeName);
         return { success: true };
       }
@@ -224,6 +248,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       console.log("AuthProvider: Logging out user");
+      
+      // Log logout activity before clearing session
+      if (user) {
+        await logUserActivity('logout', user.email!, {
+          store: user.store,
+          plant: user.plant,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
