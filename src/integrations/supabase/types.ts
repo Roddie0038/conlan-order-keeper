@@ -809,6 +809,201 @@ export type Database = {
         }
         Relationships: []
       }
+      ot_auth_logs: {
+        Row: {
+          error_message: string | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          success: boolean
+          timestamp: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          error_message?: string | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          success: boolean
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          success?: boolean
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ot_auth_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ot_password_resets: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          reset_token: string
+          used_at: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          reset_token: string
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          reset_token?: string
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ot_password_resets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ot_platform_users: {
+        Row: {
+          auth_user_id: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string
+          email_verified: boolean | null
+          failed_login_attempts: number | null
+          full_name: string
+          id: string
+          last_login: string | null
+          locked_until: string | null
+          password_reset_expires: string | null
+          password_reset_token: string | null
+          plant: string | null
+          role: Database["public"]["Enums"]["ot_user_role"]
+          status: Database["public"]["Enums"]["ot_user_status"] | null
+          store: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          email_verified?: boolean | null
+          failed_login_attempts?: number | null
+          full_name: string
+          id?: string
+          last_login?: string | null
+          locked_until?: string | null
+          password_reset_expires?: string | null
+          password_reset_token?: string | null
+          plant?: string | null
+          role: Database["public"]["Enums"]["ot_user_role"]
+          status?: Database["public"]["Enums"]["ot_user_status"] | null
+          store?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          email_verified?: boolean | null
+          failed_login_attempts?: number | null
+          full_name?: string
+          id?: string
+          last_login?: string | null
+          locked_until?: string | null
+          password_reset_expires?: string | null
+          password_reset_token?: string | null
+          plant?: string | null
+          role?: Database["public"]["Enums"]["ot_user_role"]
+          status?: Database["public"]["Enums"]["ot_user_status"] | null
+          store?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      ot_user_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_active: boolean | null
+          last_accessed: string | null
+          platform: string | null
+          session_token: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_accessed?: string | null
+          platform?: string | null
+          session_token: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_accessed?: string | null
+          platform?: string | null
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ot_user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_registrations: {
         Row: {
           admin_reviewed: boolean | null
@@ -857,6 +1052,60 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_user_registrations: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          auth_user_id: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          plant: string | null
+          platform: Database["public"]["Enums"]["platform_type"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          status: string | null
+          store: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          auth_user_id?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          plant?: string | null
+          platform: Database["public"]["Enums"]["platform_type"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          status?: string | null
+          store?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          auth_user_id?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          plant?: string | null
+          platform?: Database["public"]["Enums"]["platform_type"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: string | null
+          store?: string | null
+        }
+        Relationships: []
+      }
       plant_switch_logs: {
         Row: {
           created_at: string | null
@@ -893,6 +1142,42 @@ export type Database = {
           user_agent?: string | null
           user_email?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      platform_access_logs: {
+        Row: {
+          access_granted: boolean | null
+          access_method: string | null
+          auth_email: string | null
+          auth_role: string | null
+          auth_uid: string | null
+          error_message: string | null
+          id: string
+          platform_requested: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          access_granted?: boolean | null
+          access_method?: string | null
+          auth_email?: string | null
+          auth_role?: string | null
+          auth_uid?: string | null
+          error_message?: string | null
+          id?: string
+          platform_requested?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          access_granted?: boolean | null
+          access_method?: string | null
+          auth_email?: string | null
+          auth_role?: string | null
+          auth_uid?: string | null
+          error_message?: string | null
+          id?: string
+          platform_requested?: string | null
+          timestamp?: string | null
         }
         Relationships: []
       }
@@ -1348,12 +1633,67 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_user_registration: {
+        Args: { registration_id: string; approved_by_email: string }
+        Returns: boolean
+      }
       archive_order_by_invoice: {
         Args: { p_invoice: string }
         Returns: undefined
       }
+      can_manage_plant_users: {
+        Args: { target_plant: string }
+        Returns: boolean
+      }
+      create_ot_user_session: {
+        Args: {
+          p_user_id: string
+          p_session_token: string
+          p_expires_at: string
+          p_ip_address?: unknown
+          p_user_agent?: string
+        }
+        Returns: string
+      }
+      get_current_ot_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["ot_user_role"]
+      }
+      is_cross_platform_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_current_user_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      log_ot_auth_event: {
+        Args: {
+          p_user_id: string
+          p_event_type: string
+          p_success: boolean
+          p_ip_address?: unknown
+          p_user_agent?: string
+          p_error_message?: string
+          p_metadata?: Json
+        }
+        Returns: string
+      }
     }
     Enums: {
+      ot_user_role:
+        | "super_admin"
+        | "operations_manager"
+        | "plant_admin"
+        | "warehouse_manager"
+        | "store_manager"
+        | "warehouse_staff"
+      ot_user_status:
+        | "active"
+        | "inactive"
+        | "suspended"
+        | "pending_verification"
+        | "locked"
       platform_type: "ordering_platform" | "ot_platform"
       user_role:
         | "super_admin"
@@ -1478,6 +1818,21 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ot_user_role: [
+        "super_admin",
+        "operations_manager",
+        "plant_admin",
+        "warehouse_manager",
+        "store_manager",
+        "warehouse_staff",
+      ],
+      ot_user_status: [
+        "active",
+        "inactive",
+        "suspended",
+        "pending_verification",
+        "locked",
+      ],
       platform_type: ["ordering_platform", "ot_platform"],
       user_role: [
         "super_admin",

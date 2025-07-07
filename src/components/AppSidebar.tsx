@@ -27,7 +27,8 @@ import {
   RotateCcw,
   Search,
   AlertTriangle,
-  MessageSquare
+  MessageSquare,
+  Users
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -114,6 +115,15 @@ const adminItems = [
     title: "Completed Orders",
     url: "/completed-orders",
     icon: FileText,
+  },
+];
+
+// Super Admin only items
+const superAdminItems = [
+  {
+    title: "User Management",
+    url: "/user-management",
+    icon: Users,
   },
 ];
 
@@ -210,6 +220,31 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={location.pathname === item.url}
+                      className="text-blue-100 hover:bg-blue-500/30 hover:text-white data-[active=true]:bg-blue-500/50 data-[active=true]:text-white rounded-lg transition-all duration-200 backdrop-blur-sm border border-transparent hover:border-blue-400/30"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Super Admin Navigation */}
+        {user?.email?.toLowerCase() === 'roderickdemarais@aol.com' && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-blue-100 font-semibold">Super Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {superAdminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton 
                       asChild 

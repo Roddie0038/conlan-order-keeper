@@ -11,15 +11,32 @@ import { useUserManagement } from '@/hooks/useUserManagement';
 import { useUserActivityLogs } from '@/hooks/useUserActivityLogs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { AddUserDialog } from './AddUserDialog';
+import { EditUserDialog } from './EditUserDialog';
+import { UserActionsDropdown } from './UserActionsDropdown';
+import type { PlatformUser } from '@/hooks/useUserManagement';
 
 export function UserManagementDashboard() {
   const [selectedPlatform, setSelectedPlatform] = useState<'ordering_platform' | 'ot_platform'>('ordering_platform');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [filterStore, setFilterStore] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<PlatformUser | null>(null);
 
   const { users, loading: usersLoading, error: usersError, refetch: refetchUsers } = useUserManagement(selectedPlatform);
   const { logs, loading: logsLoading, error: logsError, refetch: refetchLogs } = useUserActivityLogs(selectedPlatform);
+
+  const handleEditUser = (user: PlatformUser) => {
+    setSelectedUser(user);
+    setShowEditDialog(true);
+  };
+
+  const handleUserUpdated = () => {
+    refetchUsers();
+    refetchLogs();
+  };
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = searchTerm === '' || 
@@ -140,7 +157,7 @@ export function UserManagementDashboard() {
                       <Download className="h-4 w-4 mr-2" />
                       Export CSV
                     </Button>
-                    <Button size="sm">
+                    <Button size="sm" onClick={() => setShowAddDialog(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add User
                     </Button>
@@ -227,7 +244,11 @@ export function UserManagementDashboard() {
                               {user.last_login ? formatTimestamp(user.last_login) : 'Never'}
                             </TableCell>
                             <TableCell>
-                              <Button variant="ghost" size="sm">Edit</Button>
+                              <UserActionsDropdown 
+                                user={user} 
+                                onEdit={handleEditUser}
+                                onUserUpdated={handleUserUpdated}
+                              />
                             </TableCell>
                           </TableRow>
                         ))
@@ -295,6 +316,20 @@ export function UserManagementDashboard() {
         </Tabs>
         </div>
       </div>
+      
+      <AddUserDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        selectedPlatform={selectedPlatform}
+        onUserAdded={handleUserUpdated}
+      />
+      
+      <EditUserDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        user={selectedUser}
+        onUserUpdated={handleUserUpdated}
+      />
     </ErrorBoundary>
   );
 }
