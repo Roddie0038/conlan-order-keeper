@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { waitForSessionReadiness, withRetry, logError } from '@/utils/sessionUtils';
 
 export type PlatformType = 'ordering_platform' | 'ot_platform';
-export type UserRole = 'super_admin' | 'plant_admin' | 'store_manager' | 'warehouse_manager' | 'office_manager' | 'operations_manager' | 'warehouse_staff';
+export type UserRole = 'super_admin' | 'plant_admin' | 'store_manager' | 'warehouse_manager' | 'operations_manager' | 'warehouse_staff';
 export type UserStatus = 'active' | 'inactive' | 'suspended' | 'pending';
 
 export interface PlatformUser {
