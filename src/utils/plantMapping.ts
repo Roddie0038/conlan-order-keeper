@@ -33,27 +33,33 @@ export function getPlantForStore(store: string): string | undefined {
   }
 
   // If no match is found, check for partial matches (store number)
-  const storeNumber = normalizedStore.match(/\d+$/)?.[0];
+  // Extract all numbers from the store string to handle various formats
+  const storeNumber = normalizedStore.match(/\d+/)?.[0];
   if (storeNumber) {
     const paddedStoreNumber = storeNumber.padStart(3, '0');
     
+    console.log(`🔍 PLANT MAPPING - Store: "${store}" -> Number: "${storeNumber}" -> Padded: "${paddedStoreNumber}"`);
+    
     // Mulberry 099: stores 001-011
     if (["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011"].includes(paddedStoreNumber)) {
+      console.log(`✅ PLANT MAPPING - Mapped to Mulberry 099`);
       return "Mulberry 099";
     }
     
     // Grand Prairie 097: stores 022, 027-030, 032-033, 035-036, 039
     if (["022", "027", "028", "029", "030", "032", "033", "035", "036", "039"].includes(paddedStoreNumber)) {
+      console.log(`✅ PLANT MAPPING - Mapped to Grand Prairie 097`);
       return "Grand Prairie 097";
     }
     
     // Romulus 098: stores 040-045
     if (["040", "041", "042", "043", "044", "045"].includes(paddedStoreNumber)) {
+      console.log(`✅ PLANT MAPPING - Mapped to Romulus 098`);
       return "Romulus 098";
     }
   }
 
   // Default to Grand Prairie if no match is found
-  console.warn(`No plant mapping found for store: ${store}, defaulting to Grand Prairie 097`);
+  console.warn(`❌ PLANT MAPPING - No mapping found for store: "${store}", defaulting to Grand Prairie 097`);
   return "Grand Prairie 097";
 }
