@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       admin_audit_log: {
@@ -209,6 +214,39 @@ export type Database = {
           submitted_by_name?: string
           updated_at?: string | null
           work_order_number?: string | null
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          created_at: string | null
+          html_template: string
+          id: string
+          is_active: boolean | null
+          subject_template: string
+          template_name: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          html_template: string
+          id?: string
+          is_active?: boolean | null
+          subject_template: string
+          template_name: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          html_template?: string
+          id?: string
+          is_active?: boolean | null
+          subject_template?: string
+          template_name?: string
+          updated_at?: string | null
+          variables?: Json | null
         }
         Relationships: []
       }
@@ -536,37 +574,49 @@ export type Database = {
           created_at: string | null
           error_message: string | null
           id: string
+          metadata: Json | null
           notification_type: string
           order_id: string
           order_number: string | null
+          plant: string | null
           recipient_email: string
           recipient_role: string | null
           sent_at: string | null
           status: string | null
+          store: string | null
+          template_used: string | null
         }
         Insert: {
           created_at?: string | null
           error_message?: string | null
           id?: string
+          metadata?: Json | null
           notification_type: string
           order_id: string
           order_number?: string | null
+          plant?: string | null
           recipient_email: string
           recipient_role?: string | null
           sent_at?: string | null
           status?: string | null
+          store?: string | null
+          template_used?: string | null
         }
         Update: {
           created_at?: string | null
           error_message?: string | null
           id?: string
+          metadata?: Json | null
           notification_type?: string
           order_id?: string
           order_number?: string | null
+          plant?: string | null
           recipient_email?: string
           recipient_role?: string | null
           sent_at?: string | null
           status?: string | null
+          store?: string | null
+          template_used?: string | null
         }
         Relationships: []
       }
@@ -906,12 +956,15 @@ export type Database = {
           id: string
           last_login: string | null
           locked_until: string | null
+          must_change_password: boolean | null
           password_reset_expires: string | null
           password_reset_token: string | null
           plant: string | null
           role: Database["public"]["Enums"]["ot_user_role"]
           status: Database["public"]["Enums"]["ot_user_status"] | null
           store: string | null
+          temporary_password_expires_at: string | null
+          temporary_password_set_at: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -926,12 +979,15 @@ export type Database = {
           id?: string
           last_login?: string | null
           locked_until?: string | null
+          must_change_password?: boolean | null
           password_reset_expires?: string | null
           password_reset_token?: string | null
           plant?: string | null
           role: Database["public"]["Enums"]["ot_user_role"]
           status?: Database["public"]["Enums"]["ot_user_status"] | null
           store?: string | null
+          temporary_password_expires_at?: string | null
+          temporary_password_set_at?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -946,12 +1002,15 @@ export type Database = {
           id?: string
           last_login?: string | null
           locked_until?: string | null
+          must_change_password?: boolean | null
           password_reset_expires?: string | null
           password_reset_token?: string | null
           plant?: string | null
           role?: Database["public"]["Enums"]["ot_user_role"]
           status?: Database["public"]["Enums"]["ot_user_status"] | null
           store?: string | null
+          temporary_password_expires_at?: string | null
+          temporary_password_set_at?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -1183,47 +1242,59 @@ export type Database = {
       }
       platform_users: {
         Row: {
+          auth_user_id: string | null
           created_at: string | null
           created_by: string | null
           email: string
           full_name: string
           id: string
           last_login: string | null
+          must_change_password: boolean | null
           plant: string | null
           platform: Database["public"]["Enums"]["platform_type"]
           role: Database["public"]["Enums"]["user_role"]
           status: Database["public"]["Enums"]["user_status"] | null
           store: string | null
+          temporary_password_expires_at: string | null
+          temporary_password_set_at: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           created_at?: string | null
           created_by?: string | null
           email: string
           full_name: string
           id?: string
           last_login?: string | null
+          must_change_password?: boolean | null
           plant?: string | null
           platform: Database["public"]["Enums"]["platform_type"]
           role: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["user_status"] | null
           store?: string | null
+          temporary_password_expires_at?: string | null
+          temporary_password_set_at?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           created_at?: string | null
           created_by?: string | null
           email?: string
           full_name?: string
           id?: string
           last_login?: string | null
+          must_change_password?: boolean | null
           plant?: string | null
           platform?: Database["public"]["Enums"]["platform_type"]
           role?: Database["public"]["Enums"]["user_role"]
           status?: Database["public"]["Enums"]["user_status"] | null
           store?: string | null
+          temporary_password_expires_at?: string | null
+          temporary_password_set_at?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -1256,6 +1327,36 @@ export type Database = {
           role?: string
           store?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -1351,6 +1452,44 @@ export type Database = {
           timestamp?: string | null
         }
         Relationships: []
+      }
+      user_notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_address: string | null
+          enabled: boolean | null
+          id: string
+          notification_type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_address?: string | null
+          enabled?: boolean | null
+          id?: string
+          notification_type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_address?: string | null
+          enabled?: boolean | null
+          id?: string
+          notification_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
@@ -1645,6 +1784,13 @@ export type Database = {
         Args: { target_plant: string }
         Returns: boolean
       }
+      clear_temporary_password_requirement: {
+        Args: {
+          p_user_id: string
+          p_platform: Database["public"]["Enums"]["platform_type"]
+        }
+        Returns: boolean
+      }
       create_ot_user_session: {
         Args: {
           p_user_id: string
@@ -1655,15 +1801,73 @@ export type Database = {
         }
         Returns: string
       }
+      generate_temporary_password: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_ot_user: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          auth_user_id: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string
+          email_verified: boolean | null
+          failed_login_attempts: number | null
+          full_name: string
+          id: string
+          last_login: string | null
+          locked_until: string | null
+          must_change_password: boolean | null
+          password_reset_expires: string | null
+          password_reset_token: string | null
+          plant: string | null
+          role: Database["public"]["Enums"]["ot_user_role"]
+          status: Database["public"]["Enums"]["ot_user_status"] | null
+          store: string | null
+          temporary_password_expires_at: string | null
+          temporary_password_set_at: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+      }
       get_current_ot_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["ot_user_role"]
+      }
+      get_notification_recipients: {
+        Args: {
+          p_notification_type: string
+          p_plant?: string
+          p_store?: string
+        }
+        Returns: {
+          user_email: string
+          user_name: string
+          user_role: Database["public"]["Enums"]["ot_user_role"]
+        }[]
+      }
+      has_plant_access: {
+        Args: { target_plant: string }
+        Returns: boolean
+      }
+      has_store_access: {
+        Args: { target_store: string }
+        Returns: boolean
       }
       is_cross_platform_super_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
       is_current_user_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_ot_operations_manager: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_ot_super_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
@@ -1679,6 +1883,14 @@ export type Database = {
         }
         Returns: string
       }
+      set_temporary_password: {
+        Args: {
+          p_user_id: string
+          p_platform: Database["public"]["Enums"]["platform_type"]
+          p_set_by_email: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       ot_user_role:
@@ -1688,6 +1900,11 @@ export type Database = {
         | "warehouse_manager"
         | "store_manager"
         | "warehouse_staff"
+        | "warehouse_coordinator"
+        | "retread_manager"
+        | "plant_manager"
+        | "office_manager"
+        | "service_manager"
       ot_user_status:
         | "active"
         | "inactive"
@@ -1710,21 +1927,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -1742,14 +1963,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -1765,14 +1988,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1788,14 +2013,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1803,14 +2030,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
@@ -1825,6 +2054,11 @@ export const Constants = {
         "warehouse_manager",
         "store_manager",
         "warehouse_staff",
+        "warehouse_coordinator",
+        "retread_manager",
+        "plant_manager",
+        "office_manager",
+        "service_manager",
       ],
       ot_user_status: [
         "active",

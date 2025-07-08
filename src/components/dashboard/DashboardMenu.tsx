@@ -4,7 +4,9 @@ import { DashboardTile, DashboardTileProps } from "./DashboardTile";
 import { OptimizedApprovedTreadsCard } from "./OptimizedApprovedTreadsCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { DeploymentControls } from "@/components/admin/DeploymentControls";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { TireDashboard } from "./3d/TireDashboard";
+import { Dashboard3DToggle } from "./Dashboard3DToggle";
 
 interface DashboardMenuProps {
   loaded: boolean;
@@ -12,6 +14,7 @@ interface DashboardMenuProps {
 
 export function DashboardMenu({ loaded }: DashboardMenuProps) {
   const { user } = useAuth();
+  const [is3DMode, setIs3DMode] = useState(false);
   
   // Memoize menu items to prevent unnecessary re-calculations
   const menuItems: DashboardTileProps[] = useMemo(() => {
@@ -148,14 +151,26 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        {menuItems.map((item) => (
-          <DashboardTile key={item.title} {...item} />
-        ))}
-        
-        {/* Approved Treads Card */}
-        <OptimizedApprovedTreadsCard loaded={loaded} delay={0.7} />
+      {/* 3D/2D Toggle */}
+      <div className="flex justify-center mb-6">
+        <Dashboard3DToggle is3DMode={is3DMode} onToggle={setIs3DMode} />
       </div>
+
+      {/* Conditional Dashboard Rendering */}
+      {is3DMode ? (
+        <div className="flex justify-center">
+          <TireDashboard className="max-w-6xl" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          {menuItems.map((item) => (
+            <DashboardTile key={item.title} {...item} />
+          ))}
+          
+          {/* Approved Treads Card */}
+          <OptimizedApprovedTreadsCard loaded={loaded} delay={0.7} />
+        </div>
+      )}
       
       {user?.username === 'Conlan97' && (
         <div className="mt-10 max-w-md mx-auto">
