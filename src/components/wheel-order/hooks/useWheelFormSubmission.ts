@@ -153,8 +153,8 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         localStorage.setItem('wheelOrders', JSON.stringify(existingOrders));
 
         toast({
-          title: "Order Submitted",
-          description: "Your wheel powder coating order has been submitted successfully.",
+          title: "🔧 Wheel order submitted successfully! 🔧",
+          description: "Your wheel powder coating order has been submitted and is ready for processing!",
         });
         navigate('/dashboard');
       } else {

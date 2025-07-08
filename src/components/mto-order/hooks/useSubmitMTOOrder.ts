@@ -118,8 +118,8 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
 
       if (result.status === 'success' || result.status === 'partial_success') {
         toast({
-          title: "MTO Order Submitted",
-          description: "Your MTO order has been submitted successfully.",
+          title: "🎉 MTO order submitted successfully! 🎉",
+          description: "Your MTO order has been submitted and is being processed with excitement!",
         });
         resetForm();
       } else {

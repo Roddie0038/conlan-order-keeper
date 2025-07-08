@@ -87,8 +87,8 @@ export function useOrderSubmission() {
       onSuccess(processedOrders);
       
       toast({
-        title: "Orders submitted successfully",
-        description: `${processedOrders.length} order(s) have been submitted successfully.`
+        title: "🚚 Transfer request submitted! 🚚",
+        description: `${processedOrders.length} transfer order(s) have been submitted successfully and are being processed.`
       });
     } catch (error) {
       console.error("❌ SUBMIT - Error submitting orders:", error);
