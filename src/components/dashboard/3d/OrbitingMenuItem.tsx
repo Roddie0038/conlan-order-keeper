@@ -69,7 +69,6 @@ export function OrbitingMenuItem({ item, index, totalItems, elapsedTime }: Orbit
         color="#ffffff"
         anchorX="center"
         anchorY="middle"
-        font="/fonts/Inter-Bold.ttf"
         outlineWidth={0.01}
         outlineColor="#000000"
       >

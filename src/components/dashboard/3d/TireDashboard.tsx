@@ -1,4 +1,4 @@
-import { Suspense, useRef } from 'react';
+import { Suspense, useRef, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,6 +6,7 @@ import { RealisticTire } from './RealisticTire';
 import { OrbitingMenuItem } from './OrbitingMenuItem';
 import { menuItems3D } from './menuItems';
 import { useAuth } from '@/contexts/AuthContext';
+import { ThreeDErrorBoundary } from './ThreeDErrorBoundary';
 
 function Scene() {
   const sceneRef = useRef<THREE.Group>(null);
@@ -68,31 +69,68 @@ function LoadingFallback() {
   );
 }
 
+function ErrorFallback() {
+  return (
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center p-4">
+        <div className="text-destructive mb-2">⚠️ 3D View Unavailable</div>
+        <p className="text-sm text-muted-foreground">
+          Your device may not support WebGL or 3D graphics.
+          <br />
+          Please try switching back to 2D view.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 interface TireDashboardProps {
   className?: string;
 }
 
 export function TireDashboard({ className }: TireDashboardProps) {
-  return (
-    <div className={`w-full h-[600px] ${className}`}>
-      <Canvas
-        camera={{ position: [0, 5, 8], fov: 60 }}
-        style={{ background: 'transparent' }}
-        dpr={[1, 2]}
-        performance={{ min: 0.5 }}
-      >
-        <Suspense fallback={null}>
-          <Scene />
-          <OrbitControls
-            enableZoom={false}
-            enablePan={false}
-            maxPolarAngle={Math.PI / 2}
-            minPolarAngle={Math.PI / 3}
-            autoRotate={false}
-            rotateSpeed={0.5}
-          />
-        </Suspense>
-      </Canvas>
-    </div>
-  );
+  const handleCreated = useCallback((state: any) => {
+    // Ensure WebGL context is properly initialized
+    const gl = state.gl;
+    if (gl && gl.getContext) {
+      console.log('WebGL context created successfully');
+    }
+  }, []);
+
+  const handleError = useCallback((error: any) => {
+    console.error('3D Canvas error:', error);
+  }, []);
+
+  try {
+    return (
+      <ThreeDErrorBoundary>
+        <div className={`w-full h-[600px] ${className}`}>
+          <Canvas
+            camera={{ position: [0, 5, 8], fov: 60 }}
+            style={{ background: 'transparent' }}
+            dpr={[1, 2]}
+            performance={{ min: 0.5 }}
+            onCreated={handleCreated}
+            onError={handleError}
+            fallback={<ErrorFallback />}
+          >
+            <Suspense fallback={<LoadingFallback />}>
+              <Scene />
+              <OrbitControls
+                enableZoom={false}
+                enablePan={false}
+                maxPolarAngle={Math.PI / 2}
+                minPolarAngle={Math.PI / 3}
+                autoRotate={false}
+                rotateSpeed={0.5}
+              />
+            </Suspense>
+          </Canvas>
+        </div>
+      </ThreeDErrorBoundary>
+    );
+  } catch (error) {
+    console.error('TireDashboard render error:', error);
+    return <ErrorFallback />;
+  }
 }
