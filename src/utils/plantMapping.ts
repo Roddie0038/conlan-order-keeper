@@ -1,27 +1,25 @@
-
-// MASTER REFERENCE: Plant to store mapping (Store Name Store Number format)
+// MASTER REFERENCE: Plant to store mapping with 3-digit plant codes
 export const PLANT_STORE_MAP = {
-  "Grand Prairie 97": [
-    "Fort Worth 22", "Grand Prairie Service 27", "Grand Prairie 97", "Houston 28", 
-    "San Antonio 29", "Laredo 35", "Austin 39", "Oklahoma City 30", 
-    "Little Rock 32", "Kansas City 33", "Tulsa 36"
+  "Grand Prairie 097": [
+    "Fort Worth 022", "Grand Prairie 027", "Houston 028", "San Antonio 029", 
+    "Oklahoma 030", "Little Rock 032", "Kansas 033", "Laredo 035", 
+    "Tulsa 036", "Austin 039"
   ],
-  "Romulus 98": [
-    "Romulus 98", "Toledo 8", "Detroit 11", "Grand Rapids 13", 
-    "Cleveland 18", "Chicago 41"
+  "Romulus 098": [
+    "Romulus 040", "Detroit 041", "Toledo 042", "Columbus 043", 
+    "Flint 044", "South Bend 045"
   ],
-  "Mulberry 99": [
-    "Miami 3", "Pompano Beach 7", "Fort Myers 9", "Jacksonville 002", 
-    "Ocala 5", "Tallahassee 15", "Mulberry Service 1", "Mulberry 99", 
-    "New Orleans 4", "Tampa 6", "Vero Beach 21", "Sarasota 23", 
-    "Tampa Foam Fill 40"
+  "Mulberry 099": [
+    "Fort Myers 001", "Tampa 002", "St. Pete 003", "Sarasota 004", 
+    "Lakeland 005", "Fort Pierce 006", "Orlando 007", "Lake Wales 008", 
+    "Gainesville 009", "Jacksonville 010", "Ocala 011"
   ]
 };
 
 /**
  * Determine which plant should handle an order based on the store
- * @param store - The full store name (e.g., "Fort Worth 22")
- * @returns The plant name or undefined if no matching plant is found
+ * @param store - The full store name (e.g., "Fort Worth 022")
+ * @returns The plant name with 3-digit code format
  */
 export function getPlantForStore(store: string): string | undefined {
   // Normalize store name by removing extra spaces
@@ -37,22 +35,25 @@ export function getPlantForStore(store: string): string | undefined {
   // If no match is found, check for partial matches (store number)
   const storeNumber = normalizedStore.match(/\d+$/)?.[0];
   if (storeNumber) {
-    for (const [plant, stores] of Object.entries(PLANT_STORE_MAP)) {
-      if (stores.some(s => s.includes(storeNumber))) {
-        return plant;
-      }
+    const paddedStoreNumber = storeNumber.padStart(3, '0');
+    
+    // Mulberry 099: stores 001-011
+    if (["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011"].includes(paddedStoreNumber)) {
+      return "Mulberry 099";
     }
-  }
-
-  // For new Florida stores, map by store number
-  if (storeNumber) {
-    const floridaStoreNumbers = ["001", "002", "003", "004", "005", "006", "007", "009", "015", "023", "040"];
-    if (floridaStoreNumbers.includes(storeNumber.padStart(3, '0'))) {
-      return "Mulberry 99";
+    
+    // Grand Prairie 097: stores 022, 027-030, 032-033, 035-036, 039
+    if (["022", "027", "028", "029", "030", "032", "033", "035", "036", "039"].includes(paddedStoreNumber)) {
+      return "Grand Prairie 097";
+    }
+    
+    // Romulus 098: stores 040-045
+    if (["040", "041", "042", "043", "044", "045"].includes(paddedStoreNumber)) {
+      return "Romulus 098";
     }
   }
 
   // Default to Grand Prairie if no match is found
-  console.warn(`No plant mapping found for store: ${store}, defaulting to Grand Prairie 97`);
-  return "Grand Prairie 97";
+  console.warn(`No plant mapping found for store: ${store}, defaulting to Grand Prairie 097`);
+  return "Grand Prairie 097";
 }
