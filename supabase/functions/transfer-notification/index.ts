@@ -1,7 +1,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { sendEmail } from "../_shared/mailer.ts";
+import { sendEmail, createEmailTemplate, logEmailNotification } from "../_shared/mailer.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
 // Email notification for Transfer Request orders
@@ -33,6 +33,17 @@ serve(async (req) => {
 
     if (!recipients || recipients.length === 0) {
       console.log("⚠️ TRANSFER NOTIFICATION - No email recipients provided for order:", orderId);
+      
+      // Log the attempt even if no recipients
+      await logEmailNotification({
+        orderId: orderId || 'unknown',
+        orderType: transferData.orderType || 'TRANSFER',
+        recipients: [],
+        status: 'failed',
+        notificationType: 'transfer_order_submitted',
+        errorMessage: 'No recipients provided'
+      });
+      
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'No recipients provided',
@@ -43,53 +54,38 @@ serve(async (req) => {
       });
     }
 
-    // Create comprehensive email subject and body
-    const emailSubject = `Order Confirmation - ${transferData.store} - ${transferData.productNumber || transferData.product_number}`;
-    
-    const emailBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
-          New Order Submitted - Confirmation
-        </h2>
-        
-        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="color: #333; margin-top: 0;">Order Details:</h3>
-          <ul style="list-style: none; padding: 0;">
-            <li style="margin: 8px 0;"><strong>Store:</strong> ${transferData.store}</li>
-            <li style="margin: 8px 0;"><strong>Plant:</strong> ${transferData.plant}</li>
-            <li style="margin: 8px 0;"><strong>Product Number:</strong> ${transferData.productNumber || transferData.product_number}</li>
-            <li style="margin: 8px 0;"><strong>Description:</strong> ${transferData.description}</li>
-            <li style="margin: 8px 0;"><strong>Quantity:</strong> ${transferData.quantity}</li>
-            <li style="margin: 8px 0;"><strong>Schedule Arrival:</strong> ${transferData.scheduleArrival || transferData.schedule_arrival}</li>
-            <li style="margin: 8px 0;"><strong>Submitted by:</strong> ${transferData.name} (${transferData.email})</li>
-          </ul>
-        </div>
+    // Determine if this is a cross-dock order
+    const isCrossDock = transferData.crossDock === 'Yes' || transferData.cross_dock_type === 'Yes';
+    const crossDockDetails = isCrossDock ? {
+      destination: transferData.crossDockDestination || transferData.cross_dock_destination,
+      receiverNumber: transferData.receiverNo || transferData.cross_dock_receiver_number,
+      etaDate: transferData.etaDate || transferData.cross_dock_eta_date
+    } : undefined;
 
-        <div style="background-color: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="color: #333; margin-top: 0;">Additional Information:</h3>
-          <p><strong>Notes:</strong> ${transferData.notes || 'None'}</p>
-        </div>
-        
-        ${transferData.crossDock === 'Yes' || transferData.cross_dock_type === 'Yes' ? `
-          <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
-            <h3 style="color: #856404; margin-top: 0;">Cross Dock Information:</h3>
-            <ul style="list-style: none; padding: 0;">
-              <li style="margin: 8px 0;"><strong>Destination:</strong> ${transferData.crossDockDestination || transferData.cross_dock_destination}</li>
-              <li style="margin: 8px 0;"><strong>Receiver Number:</strong> ${transferData.receiverNo || transferData.cross_dock_receiver_number || 'Not specified'}</li>
-              <li style="margin: 8px 0;"><strong>ETA Date:</strong> ${transferData.etaDate || transferData.cross_dock_eta_date || 'Not specified'}</li>
-            </ul>
-          </div>
-        ` : ''}
-        
-        <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
-        
-        <div style="text-align: center; color: #6c757d; font-size: 14px;">
-          <p><em>This order has been assigned ID: ${orderId}</em></p>
-          <p><em>Please review and process according to company procedures.</em></p>
-          <p style="margin-top: 20px;">Conlan Tire Order Management System</p>
-        </div>
-      </div>
-    `;
+    // Create standardized email using the new template system
+    const emailSubject = `${isCrossDock ? 'Cross-Dock ' : ''}Order Confirmation - ${transferData.store} - ${transferData.productNumber || transferData.product_number}`;
+    
+    const orderDetails = {
+      store: transferData.store,
+      plant: transferData.plant,
+      productNumber: transferData.productNumber || transferData.product_number,
+      description: transferData.description,
+      quantity: transferData.quantity,
+      scheduleArrival: transferData.scheduleArrival || transferData.schedule_arrival,
+      notes: transferData.notes || 'None'
+    };
+
+    const emailBody = createEmailTemplate({
+      orderType: transferData.orderType || 'Transfer',
+      orderDetails: orderDetails,
+      submitterInfo: {
+        name: transferData.name,
+        email: transferData.email
+      },
+      orderId: orderId,
+      isCrossDock: isCrossDock,
+      crossDockDetails: crossDockDetails
+    });
 
     console.log("📧 TRANSFER NOTIFICATION - Sending email via centralized mailer to:", recipients);
     console.log("📧 TRANSFER NOTIFICATION - Email subject:", emailSubject);
@@ -103,20 +99,46 @@ serve(async (req) => {
 
     if (emailResult.success) {
       console.log("✅ TRANSFER NOTIFICATION - Email sent successfully via Resend:", emailResult.data);
+      
+      // Log successful email
+      await logEmailNotification({
+        orderId: orderId,
+        orderType: transferData.orderType || 'TRANSFER',
+        recipients: emailResult.sentTo || recipients,
+        status: 'sent',
+        notificationType: isCrossDock ? 'cross_dock_order_submitted' : 'transfer_order_submitted',
+        isCrossDock: isCrossDock,
+        emailProvider: 'resend'
+      });
+      
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'Order confirmation email sent successfully via Resend',
-        recipients: recipients.length,
+        recipients: (emailResult.sentTo || recipients).length,
         orderId: orderId,
-        orderType: transferData.type || 'TRANSFER',
+        orderType: transferData.orderType || 'TRANSFER',
         store: transferData.store,
-        emailId: emailResult.data?.id
+        emailId: emailResult.data?.id,
+        isCrossDock: isCrossDock
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else {
       console.error("❌ TRANSFER NOTIFICATION - Email sending failed:", emailResult.error);
+      
+      // Log failed email
+      await logEmailNotification({
+        orderId: orderId,
+        orderType: transferData.orderType || 'TRANSFER',
+        recipients: recipients,
+        status: 'failed',
+        notificationType: isCrossDock ? 'cross_dock_order_submitted' : 'transfer_order_submitted',
+        isCrossDock: isCrossDock,
+        emailProvider: 'resend',
+        errorMessage: emailResult.error
+      });
+      
       return new Response(JSON.stringify({ 
         success: false, 
         error: `Email sending failed: ${emailResult.error}`,
@@ -129,6 +151,22 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("❌ TRANSFER NOTIFICATION - Error:", error);
+    
+    // Log error
+    try {
+      await logEmailNotification({
+        orderId: 'unknown',
+        orderType: 'TRANSFER',
+        recipients: [],
+        status: 'failed',
+        notificationType: 'transfer_order_submitted',
+        emailProvider: 'resend',
+        errorMessage: error.message
+      });
+    } catch (logError) {
+      console.error("❌ Failed to log error:", logError);
+    }
+    
     return new Response(JSON.stringify({ 
       success: false, 
       error: error.message,

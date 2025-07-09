@@ -572,13 +572,17 @@ export type Database = {
       notification_logs: {
         Row: {
           created_at: string | null
+          cross_dock_order: boolean | null
+          email_provider: string | null
           error_message: string | null
           id: string
           metadata: Json | null
           notification_type: string
           order_id: string
           order_number: string | null
+          order_type: string | null
           plant: string | null
+          platform: string | null
           recipient_email: string
           recipient_role: string | null
           sent_at: string | null
@@ -588,13 +592,17 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          cross_dock_order?: boolean | null
+          email_provider?: string | null
           error_message?: string | null
           id?: string
           metadata?: Json | null
           notification_type: string
           order_id: string
           order_number?: string | null
+          order_type?: string | null
           plant?: string | null
+          platform?: string | null
           recipient_email: string
           recipient_role?: string | null
           sent_at?: string | null
@@ -604,13 +612,17 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          cross_dock_order?: boolean | null
+          email_provider?: string | null
           error_message?: string | null
           id?: string
           metadata?: Json | null
           notification_type?: string
           order_id?: string
           order_number?: string | null
+          order_type?: string | null
           plant?: string | null
+          platform?: string | null
           recipient_email?: string
           recipient_role?: string | null
           sent_at?: string | null

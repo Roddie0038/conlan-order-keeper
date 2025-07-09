@@ -1,11 +1,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders } from "../_shared/cors.ts";
 
 // Google Apps Script webhook URL for wheel orders
 const WHEEL_ORDERS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyHgFTW0pDGhZOHwUjW5zeqWebs6pXH53Ud8FFC-87bMxCNEf406j0Eu8dQvo_zAhJUEQ/exec";
@@ -48,6 +44,40 @@ serve(async (req) => {
 
     if (response.ok) {
       console.log("✅ EDGE FUNCTION - Successfully forwarded wheel order to Google Sheets");
+      
+      // After successful Google Sheets submission, trigger email notifications if store info is available
+      const storeNumber = wheelOrderData.storeName?.match(/\d+$/)?.[0] || wheelOrderData.store?.match(/\d+$/)?.[0];
+      if (storeNumber) {
+        try {
+          console.log("📧 WHEEL WEBHOOK - Triggering email notifications for store:", storeNumber);
+          
+          // Call the wheel notification function
+          const emailResponse = await fetch(
+            `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/wheel-notification`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
+              },
+              body: JSON.stringify({
+                wheelData: wheelOrderData,
+                orderId: crypto.randomUUID(), // Generate a UUID for tracking
+                recipients: [] // Will be populated by the contact system in wheel-notification
+              })
+            }
+          );
+          
+          if (emailResponse.ok) {
+            console.log("✅ WHEEL WEBHOOK - Email notification sent successfully");
+          } else {
+            console.error("❌ WHEEL WEBHOOK - Email notification failed");
+          }
+        } catch (emailError) {
+          console.error("❌ WHEEL WEBHOOK - Error sending email notification:", emailError);
+        }
+      }
+      
       return new Response(JSON.stringify({ success: true, message: 'Wheel order submitted successfully' }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

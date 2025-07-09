@@ -80,10 +80,10 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       const result = await submitToGoogleSheets(mtoOrderData, user);
       console.log("🔍 MTO FORM - Google Sheets result:", result);
 
-      // Send email notifications using new contact system
+      // Send email notifications using new contact system for ALL stores
       const storeNumber = formData.store.match(/\d+$/)?.[0] || "";
-      if (storeNumber && !["22", "27", "28", "29", "30", "32", "33", "35", "36", "39"].includes(storeNumber)) {
-        // Use new contact system for non-Grand Prairie stores
+      if (storeNumber) {
+        // Use new contact system for ALL stores (including Grand Prairie)
         const emailRecipients = getMTOEmailRecipients(storeNumber);
         console.log("🔍 MTO FORM - Email recipients:", emailRecipients);
         
