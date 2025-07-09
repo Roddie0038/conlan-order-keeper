@@ -10,6 +10,8 @@ import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
+import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
+import { supabase } from "@/integrations/supabase/client";
 import type { OrderData } from "@/types/supabase-extensions";
 
 export function useOrderFormSubmit() {
@@ -86,7 +88,36 @@ export function useOrderFormSubmit() {
 
         console.log("✅ ORDER SUBMIT - Order saved to Supabase:", savedOrder.data);
 
-        // Send confirmation email for ALL stores
+        // 🔹 Send Order Confirmation Email (New Ordering Platform System)
+        try {
+          console.log("📧 ORDER SUBMIT - Sending order confirmation email via ordering system...");
+          
+          const orderConfirmationData = {
+            store_number: storeNumber,
+            store_name: order.store,
+            order_type: orderType,
+            order_id: savedOrder.data?.id?.toString() || 'Unknown',
+            timestamp: new Date().toISOString(),
+            name: order.yourName || 'Unknown',
+            email: storeManagerEmail || 'unknown@email.com',
+            quantity: parseInt(order.quantity.toString()) || 0,
+            product_number: order.productNumber,
+            description: order.description
+          };
+
+          const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
+          
+          if (confirmationResult.success) {
+            console.log(`✅ ORDER SUBMIT - Order confirmation email sent for order ${savedOrder.data?.id}`);
+          } else {
+            console.error(`❌ ORDER SUBMIT - Order confirmation email failed:`, confirmationResult.message);
+          }
+        } catch (emailError) {
+          console.error("❌ ORDER SUBMIT - Error sending order confirmation email:", emailError);
+          // Log the error but don't block the order submission
+        }
+
+        // Send notification email for workflow triggers (existing system)
         if (storeNumber) {
           try {
             console.log("📧 ORDER SUBMIT - Sending confirmation email for store:", storeNumber);

@@ -706,6 +706,81 @@ export type Database = {
           },
         ]
       }
+      ordering_email_logs: {
+        Row: {
+          created_at: string | null
+          email_type: string | null
+          error_details: string | null
+          id: number
+          order_id: string | null
+          order_type: string | null
+          recipient_email: string | null
+          response: string | null
+          status: string | null
+          store_number: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_type?: string | null
+          error_details?: string | null
+          id?: never
+          order_id?: string | null
+          order_type?: string | null
+          recipient_email?: string | null
+          response?: string | null
+          status?: string | null
+          store_number?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_type?: string | null
+          error_details?: string | null
+          id?: never
+          order_id?: string | null
+          order_type?: string | null
+          recipient_email?: string | null
+          response?: string | null
+          status?: string | null
+          store_number?: string | null
+        }
+        Relationships: []
+      }
+      ordering_email_recipients: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email_type: string | null
+          id: number
+          is_active: boolean | null
+          recipient_email: string
+          role: string | null
+          store_name: string | null
+          store_number: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email_type?: string | null
+          id?: never
+          is_active?: boolean | null
+          recipient_email: string
+          role?: string | null
+          store_name?: string | null
+          store_number: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email_type?: string | null
+          id?: never
+          is_active?: boolean | null
+          recipient_email?: string
+          role?: string | null
+          store_name?: string | null
+          store_number?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           archived: boolean | null

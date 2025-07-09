@@ -28,7 +28,8 @@ import {
   Search,
   AlertTriangle,
   MessageSquare,
-  Users
+  Users,
+  Mail
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -124,6 +125,11 @@ const superAdminItems = [
     title: "User Management",
     url: "/user-management",
     icon: Users,
+  },
+  {
+    title: "Email Routing",
+    url: "/admin/email-routing",
+    icon: Mail,
   },
 ];
 

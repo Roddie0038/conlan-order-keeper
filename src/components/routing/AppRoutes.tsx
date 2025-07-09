@@ -28,6 +28,7 @@ import EmailTestingSuite from '@/pages/EmailTestingSuite';
 import Settings from '@/pages/Settings';
 import PlantSwitcherGuide from '@/pages/PlantSwitcherGuide';
 import UserManagement from '@/pages/UserManagement';
+import AdminEmailRouting from '@/pages/AdminEmailRouting';
 
 export function AppRoutes() {
   return (
@@ -186,6 +187,12 @@ export function AppRoutes() {
       <Route path="/user-management" element={
         <AuthGuard>
           <UserManagement />
+        </AuthGuard>
+      } />
+      
+      <Route path="/admin/email-routing" element={
+        <AuthGuard>
+          <AdminEmailRouting />
         </AuthGuard>
       } />
     </Routes>

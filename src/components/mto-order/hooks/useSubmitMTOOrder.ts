@@ -9,6 +9,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
+import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
 import type { MTOOrderData } from "@/types/supabase-extensions";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
@@ -76,15 +77,42 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       
       console.log("🔍 MTO FORM - Saved to Supabase successfully:", savedOrder.data);
 
+      // Send order confirmation email
+      try {
+        console.log("📧 MTO FORM - Sending order confirmation email...");
+        
+        const storeNumber = formData.store.match(/\d+$/)?.[0] || "";
+        const orderConfirmationData = {
+          store_number: storeNumber,
+          store_name: formData.store,
+          order_type: 'MTO',
+          order_id: savedOrder.data?.id?.toString() || 'Unknown',
+          timestamp: timestamp,
+          name: formData.name,
+          email: managerEmail,
+          quantity: parseInt(formData.quantity) || 0,
+          product_number: formData.productNumber,
+          description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`
+        };
+
+        const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
+        
+        if (confirmationResult.success) {
+          console.log(`✅ MTO FORM - Order confirmation email sent for order ${savedOrder.data?.id}`);
+        }
+      } catch (emailError) {
+        console.error("❌ MTO FORM - Error sending order confirmation email:", emailError);
+      }
+
       // Submit to Google Sheets (uses mapMTOToGoogleSheets internally for camelCase)
       const result = await submitToGoogleSheets(mtoOrderData, user);
       console.log("🔍 MTO FORM - Google Sheets result:", result);
 
-      // Send email notifications using centralized database routing for ALL stores
-      const storeNumber = formData.store.match(/\d+$/)?.[0] || "";
-      if (storeNumber) {
+      // Send workflow notification emails using centralized database routing
+      const storeNumberForNotification = formData.store.match(/\d+$/)?.[0] || "";
+      if (storeNumberForNotification) {
         try {
-          const emailResult = await getStoreEmailRecipients(storeNumber, 'mto');
+          const emailResult = await getStoreEmailRecipients(storeNumberForNotification, 'mto');
           const emailRecipients = emailResult.recipients;
           
           console.log(`🔍 MTO FORM - Email recipients (${emailResult.source}):`, emailRecipients);

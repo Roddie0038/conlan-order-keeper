@@ -9,3 +9,6 @@ verify_jwt = false
 
 [functions.transfer-notification]
 verify_jwt = false
+
+[functions.ordering-confirmation-email]
+verify_jwt = false

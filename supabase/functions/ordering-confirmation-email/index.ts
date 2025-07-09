@@ -1,0 +1,202 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { Resend } from "npm:resend@2.0.0";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface OrderData {
+  store_number: string;
+  store_name: string;
+  order_type: string;
+  order_id: string;
+  timestamp: string;
+  name: string;
+  email: string;
+  quantity?: number;
+  product_number?: string;
+  description?: string;
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Initialize Resend
+    const resend = new Resend(Deno.env.get('RESEND_API_KEY')!);
+    const fromEmail = Deno.env.get('FROM_EMAIL') || 'onboarding@resend.dev';
+
+    const orderData: OrderData = await req.json();
+    console.log('Processing order confirmation email for:', orderData);
+
+    // Extract store number from store name if needed
+    let storeNumber = orderData.store_number;
+    if (!storeNumber && orderData.store_name) {
+      const match = orderData.store_name.match(/\d+/);
+      storeNumber = match ? match[0] : '';
+    }
+
+    // Get email recipients for this store
+    const { data: recipients, error: recipientsError } = await supabase
+      .from('ordering_email_recipients')
+      .select('*')
+      .eq('store_number', storeNumber)
+      .eq('is_active', true)
+      .eq('email_type', 'order_confirmation');
+
+    if (recipientsError) {
+      console.error('Error fetching email recipients:', recipientsError);
+      throw recipientsError;
+    }
+
+    if (!recipients || recipients.length === 0) {
+      console.log(`No email recipients found for store ${storeNumber}`);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: `No email recipients configured for store ${storeNumber}` 
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log(`Found ${recipients.length} recipients for store ${storeNumber}`);
+
+    // Generate email content
+    const subject = `✅ Order Confirmation – ${orderData.order_type} Order Received`;
+    
+    const emailBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+        <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <h2 style="color: #2563eb; margin-bottom: 20px;">Order Confirmation</h2>
+          
+          <p style="margin-bottom: 15px;">Hi ${orderData.store_name} team,</p>
+          
+          <p style="margin-bottom: 20px;">This is to confirm that your <strong>${orderData.order_type}</strong> order has been received and is being processed.</p>
+          
+          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #374151;">Order Details:</h3>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li><strong>Order Type:</strong> ${orderData.order_type}</li>
+              <li><strong>Order ID:</strong> ${orderData.order_id}</li>
+              <li><strong>Store:</strong> ${orderData.store_name} (#${storeNumber})</li>
+              <li><strong>Submitted by:</strong> ${orderData.name} (${orderData.email})</li>
+              <li><strong>Submitted at:</strong> ${new Date(orderData.timestamp).toLocaleString()}</li>
+              ${orderData.quantity ? `<li><strong>Quantity:</strong> ${orderData.quantity}</li>` : ''}
+              ${orderData.product_number ? `<li><strong>Product:</strong> ${orderData.product_number}</li>` : ''}
+              ${orderData.description ? `<li><strong>Description:</strong> ${orderData.description}</li>` : ''}
+            </ul>
+          </div>
+          
+          <p style="margin-bottom: 20px;">No further action is needed at this time. You will receive additional notifications as your order progresses through our fulfillment process.</p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          
+          <p style="color: #6b7280; font-size: 14px; margin-bottom: 0;">
+            This is an automated message from the Conlan Tire Ordering System.<br>
+            Please do not reply to this email.
+          </p>
+        </div>
+      </div>
+    `;
+
+    // Send emails to all recipients
+    const emailResults = [];
+    
+    for (const recipient of recipients) {
+      try {
+        console.log(`Sending email to ${recipient.recipient_email} for store ${storeNumber}`);
+        
+        const emailResponse = await resend.emails.send({
+          from: `Conlan Tire System <${fromEmail}>`,
+          to: [recipient.recipient_email],
+          subject: subject,
+          html: emailBody,
+        });
+
+        console.log(`Email sent successfully to ${recipient.recipient_email}:`, emailResponse);
+        
+        // Log success
+        await supabase.from('ordering_email_logs').insert({
+          store_number: storeNumber,
+          recipient_email: recipient.recipient_email,
+          email_type: 'order_confirmation',
+          order_type: orderData.order_type,
+          order_id: orderData.order_id,
+          status: 'success',
+          response: JSON.stringify(emailResponse)
+        });
+
+        emailResults.push({
+          recipient: recipient.recipient_email,
+          success: true,
+          messageId: emailResponse.id
+        });
+
+      } catch (emailError) {
+        console.error(`Error sending email to ${recipient.recipient_email}:`, emailError);
+        
+        // Log failure
+        await supabase.from('ordering_email_logs').insert({
+          store_number: storeNumber,
+          recipient_email: recipient.recipient_email,
+          email_type: 'order_confirmation',
+          order_type: orderData.order_type,
+          order_id: orderData.order_id,
+          status: 'failed',
+          error_details: emailError.message
+        });
+
+        emailResults.push({
+          recipient: recipient.recipient_email,
+          success: false,
+          error: emailError.message
+        });
+      }
+    }
+
+    const successCount = emailResults.filter(r => r.success).length;
+    const totalCount = emailResults.length;
+
+    console.log(`Email sending complete: ${successCount}/${totalCount} successful`);
+
+    return new Response(
+      JSON.stringify({
+        success: successCount > 0,
+        message: `Sent ${successCount}/${totalCount} confirmation emails`,
+        results: emailResults
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+
+  } catch (error) {
+    console.error('Error in ordering-confirmation-email function:', error);
+    
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+  }
+});
