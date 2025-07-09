@@ -18,8 +18,9 @@ import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, User, Building, Calendar as CalendarIcon2, Mail, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getCurrentDateTime } from "@/utils/dateTime";
+import { getStoreEmailRecipients } from "@/services/emailRouting";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -28,6 +29,48 @@ interface ContactSectionProps {
 export function ContactSection({ form }: ContactSectionProps) {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin || false;
+  const [managerEmails, setManagerEmails] = useState<string>("");
+  const [isLoadingEmails, setIsLoadingEmails] = useState(false);
+  
+  // Function to extract store number from store name
+  const extractStoreNumber = (storeName: string): string => {
+    if (storeName === "Admin") return "admin";
+    const match = storeName.match(/\d+/);
+    return match ? match[0] : "";
+  };
+
+  // Function to fetch manager emails from database
+  const fetchManagerEmails = async (storeName: string) => {
+    if (!storeName || storeName === "Admin") {
+      setManagerEmails("admin@conlantire.com");
+      return;
+    }
+
+    setIsLoadingEmails(true);
+    try {
+      const storeNumber = extractStoreNumber(storeName);
+      const result = await getStoreEmailRecipients(storeNumber, 'transfer');
+      
+      if (result.recipients.length > 0) {
+        const emailsString = result.recipients.join(', ');
+        setManagerEmails(emailsString);
+        form.setValue("managersEmail", emailsString);
+      } else {
+        // Fallback to legacy method
+        const legacyEmail = getManagerEmail(storeName) || "";
+        setManagerEmails(legacyEmail);
+        form.setValue("managersEmail", legacyEmail);
+      }
+    } catch (error) {
+      console.error("Error fetching manager emails:", error);
+      // Fallback to legacy method on error
+      const legacyEmail = getManagerEmail(storeName) || "";
+      setManagerEmails(legacyEmail);
+      form.setValue("managersEmail", legacyEmail);
+    } finally {
+      setIsLoadingEmails(false);
+    }
+  };
   
   // Set the store to the user's store on component mount for non-admin users
   // Also set the current date and time
@@ -38,14 +81,18 @@ export function ContactSection({ form }: ContactSectionProps) {
     if (user && user.store && !isAdmin) {
       // Set store
       form.setValue("store", user.store);
-      
-      // Set manager email
-      const managerEmail = getManagerEmail(user.store);
-      if (managerEmail) {
-        form.setValue("managersEmail", managerEmail);
-      }
+      // Fetch and set manager emails
+      fetchManagerEmails(user.store);
     }
   }, [user, isAdmin, form]);
+
+  // Watch for store changes and update manager emails
+  const watchedStore = form.watch("store");
+  useEffect(() => {
+    if (watchedStore) {
+      fetchManagerEmails(watchedStore);
+    }
+  }, [watchedStore]);
   
   return (
     <>
@@ -82,13 +129,8 @@ export function ContactSection({ form }: ContactSectionProps) {
                 Store*
                 {!isAdmin && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
               </FormLabel>
-              <Select 
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  // Update manager email when store changes
-                  const managerEmail = getManagerEmail(value);
-                  form.setValue("managersEmail", managerEmail || "");
-                }} 
+               <Select 
+                onValueChange={field.onChange}
                 defaultValue={field.value}
                 value={field.value}
                 disabled={!isAdmin}
@@ -124,11 +166,11 @@ export function ContactSection({ form }: ContactSectionProps) {
                 Manager's Email
                 <Lock className="h-3 w-3 ml-1 text-gray-500" />
               </FormLabel>
-              <FormControl>
+               <FormControl>
                 <Input 
                   disabled={true} 
-                  placeholder="Manager's email will be automatically set" 
-                  {...field} 
+                  placeholder={isLoadingEmails ? "Loading manager emails..." : "Manager's email will be automatically set"} 
+                  value={managerEmails}
                   className="bg-gray-100 transition-all border-gray-300" 
                 />
               </FormControl>
