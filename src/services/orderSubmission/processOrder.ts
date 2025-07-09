@@ -4,7 +4,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { storeData } from "@/config/storeData";
 import { OrderType } from "@/services/webhook/config";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { getTransferEmailRecipients, getRefurbishedEmailRecipients } from "@/config/contactSystem";
+import { getStoreEmailRecipients } from "@/services/emailRouting";
 import type { OrderData } from "@/types/supabase-extensions";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,14 +168,20 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
     }
     
-    // Send email notifications for ALL stores
+    // Send email notifications for ALL stores using centralized routing
     if (storeNumber) {
       let emailRecipients: string[] = [];
+      let emailType: 'transfer' | 'mto' | 'wheel' = 'transfer';
       
       if (orderType === 'TRANSFER') {
-        emailRecipients = getTransferEmailRecipients(storeNumber);
+        emailType = 'transfer';
+        const emailResult = await getStoreEmailRecipients(storeNumber, emailType);
+        emailRecipients = emailResult.recipients;
         
-        console.log("📧 SUBMIT - Transfer email recipients:", emailRecipients);
+        console.log(`📧 SUBMIT - Transfer email recipients (${emailResult.source}):`, emailRecipients);
+        if (emailResult.source === 'fallback') {
+          console.warn(`📧 SUBMIT - Using fallback routing: ${emailResult.fallbackReason}`);
+        }
         
         if (emailRecipients.length > 0) {
           try {
@@ -208,9 +214,14 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
           }
         }
       } else if (orderType === 'WHEEL_POWDER_COATING') {
-        emailRecipients = getRefurbishedEmailRecipients(storeNumber);
+        emailType = 'wheel';
+        const emailResult = await getStoreEmailRecipients(storeNumber, emailType);
+        emailRecipients = emailResult.recipients;
         
-        console.log("📧 SUBMIT - Refurbished email recipients:", emailRecipients);
+        console.log(`📧 SUBMIT - Wheel email recipients (${emailResult.source}):`, emailRecipients);
+        if (emailResult.source === 'fallback') {
+          console.warn(`📧 SUBMIT - Using fallback routing: ${emailResult.fallbackReason}`);
+        }
         
         if (emailRecipients.length > 0) {
           try {

@@ -9,7 +9,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { getTransferEmailRecipients } from "@/config/contactSystem";
+import { getStoreEmailRecipients } from "@/services/emailRouting";
 import type { OrderData } from "@/types/supabase-extensions";
 
 export function useOrderFormSubmit() {
@@ -91,10 +91,22 @@ export function useOrderFormSubmit() {
           try {
             console.log("📧 ORDER SUBMIT - Sending confirmation email for store:", storeNumber);
             
-            // Get email recipients based on order type
-            const emailRecipients = getTransferEmailRecipients(storeNumber);
+            // Determine email type based on order type
+            let emailType: 'transfer' | 'mto' | 'wheel' = 'transfer';
+            if (orderType === 'MTO') {
+              emailType = 'mto';
+            } else if (orderType === 'WHEEL_POWDER_COATING') {
+              emailType = 'wheel';
+            }
             
-            console.log("📧 ORDER SUBMIT - Email recipients:", emailRecipients);
+            // Get email recipients from centralized database system
+            const emailResult = await getStoreEmailRecipients(storeNumber, emailType);
+            const emailRecipients = emailResult.recipients;
+            
+            console.log(`📧 ORDER SUBMIT - Email recipients (${emailResult.source}):`, emailRecipients);
+            if (emailResult.source === 'fallback') {
+              console.warn(`📧 ORDER SUBMIT - Using fallback routing: ${emailResult.fallbackReason}`);
+            }
             
             if (emailRecipients.length > 0) {
               // Call the transfer-notification edge function (now using Resend)

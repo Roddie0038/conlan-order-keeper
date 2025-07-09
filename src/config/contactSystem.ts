@@ -372,6 +372,8 @@ export function getPlantPersonnel(plant: string, role: Contact['role']): Contact
 /**
  * Get all email recipients for warranty submissions
  * Recipients: Store Manager + Regional Retread Managers + Regional Warehouse Coordinators
+ * @deprecated Use getStoreEmailRecipients(storeNumber, 'warranty') from @/services/emailRouting instead
+ * TODO: Remove after full migration to database-driven routing
  */
 export function getWarrantyEmailRecipients(storeNumber: string): string[] {
   const emails: string[] = [];
@@ -398,6 +400,8 @@ export function getWarrantyEmailRecipients(storeNumber: string): string[] {
 /**
  * Get all email recipients for MTO orders
  * Recipients: Store Manager + Plant Warehouse Manager + Plant Retread Managers + Regional Warehouse Coordinators
+ * @deprecated Use getStoreEmailRecipients(storeNumber, 'mto') from @/services/emailRouting instead
+ * TODO: Remove after full migration to database-driven routing
  */
 export function getMTOEmailRecipients(storeNumber: string): string[] {
   const emails: string[] = [];
@@ -426,6 +430,8 @@ export function getMTOEmailRecipients(storeNumber: string): string[] {
 /**
  * Get all email recipients for Transfer Requests  
  * Recipients: Store Manager + Plant Warehouse Manager + Plant Warehouse Coordinator
+ * @deprecated Use getStoreEmailRecipients(storeNumber, 'transfer') from @/services/emailRouting instead
+ * TODO: Remove after full migration to database-driven routing
  */
 export function getTransferEmailRecipients(storeNumber: string): string[] {
   const emails: string[] = [];
@@ -450,8 +456,10 @@ export function getTransferEmailRecipients(storeNumber: string): string[] {
 }
 
 /**
- * Get all email recipients for Refurbished Orders
+ * Get all email recipients for Refurbished Orders (Wheel orders)
  * Recipients: Store Manager + Plant Warehouse Manager + Plant Warehouse Coordinator
+ * @deprecated Use getStoreEmailRecipients(storeNumber, 'wheel') from @/services/emailRouting instead
+ * TODO: Remove after full migration to database-driven routing
  */
 export function getRefurbishedEmailRecipients(storeNumber: string): string[] {
   // Same as transfer requests

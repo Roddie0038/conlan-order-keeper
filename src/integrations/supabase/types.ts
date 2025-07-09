@@ -1342,6 +1342,51 @@ export type Database = {
         }
         Relationships: []
       }
+      store_email_recipients: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email_type: Database["public"]["Enums"]["email_type_enum"]
+          id: string
+          is_active: boolean | null
+          platform_source: string | null
+          recipient_email: string
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          store_name: string
+          store_number: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email_type: Database["public"]["Enums"]["email_type_enum"]
+          id?: string
+          is_active?: boolean | null
+          platform_source?: string | null
+          recipient_email: string
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          store_name: string
+          store_number: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email_type?: Database["public"]["Enums"]["email_type_enum"]
+          id?: string
+          is_active?: boolean | null
+          platform_source?: string | null
+          recipient_email?: string
+          recipient_role?: Database["public"]["Enums"]["recipient_role_enum"]
+          store_name?: string
+          store_number?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           created_at: string | null
@@ -1909,6 +1954,15 @@ export type Database = {
       }
     }
     Enums: {
+      email_type_enum:
+        | "transfer"
+        | "mto"
+        | "wheel"
+        | "warranty"
+        | "completion"
+        | "cross_dock"
+        | "out_of_stock"
+        | "message"
       ot_user_role:
         | "super_admin"
         | "operations_manager"
@@ -1928,6 +1982,15 @@ export type Database = {
         | "pending_verification"
         | "locked"
       platform_type: "ordering_platform" | "ot_platform"
+      recipient_role_enum:
+        | "store_manager"
+        | "coordinator"
+        | "retread_manager"
+        | "warehouse_manager"
+        | "office_manager"
+        | "plant_admin"
+        | "assistant_manager"
+        | "operations_coordinator"
       user_role:
         | "super_admin"
         | "operations_manager"
@@ -2063,6 +2126,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      email_type_enum: [
+        "transfer",
+        "mto",
+        "wheel",
+        "warranty",
+        "completion",
+        "cross_dock",
+        "out_of_stock",
+        "message",
+      ],
       ot_user_role: [
         "super_admin",
         "operations_manager",
@@ -2084,6 +2157,16 @@ export const Constants = {
         "locked",
       ],
       platform_type: ["ordering_platform", "ot_platform"],
+      recipient_role_enum: [
+        "store_manager",
+        "coordinator",
+        "retread_manager",
+        "warehouse_manager",
+        "office_manager",
+        "plant_admin",
+        "assistant_manager",
+        "operations_coordinator",
+      ],
       user_role: [
         "super_admin",
         "operations_manager",

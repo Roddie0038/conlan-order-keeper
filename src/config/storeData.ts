@@ -1,4 +1,6 @@
 // Store data configuration - MASTER REFERENCE: Store Name Store Number format
+// @deprecated This hardcoded mapping is being replaced by the store_email_recipients table
+// TODO: Remove managerEmails field after full migration to database-driven routing
 export const storeData = [
   // Mulberry 099 Plant Stores (001-011)
   { storeNumber: "001", name: "Fort Myers 001", plant: "Mulberry 099", managerEmails: "conlantire99@gmail.com" },

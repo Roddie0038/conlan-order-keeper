@@ -8,7 +8,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { getManagerEmail } from "@/components/order-form/formConfig";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { getMTOEmailRecipients } from "@/config/contactSystem";
+import { getStoreEmailRecipients } from "@/services/emailRouting";
 import type { MTOOrderData } from "@/types/supabase-extensions";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
@@ -80,15 +80,20 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       const result = await submitToGoogleSheets(mtoOrderData, user);
       console.log("🔍 MTO FORM - Google Sheets result:", result);
 
-      // Send email notifications using new contact system for ALL stores
+      // Send email notifications using centralized database routing for ALL stores
       const storeNumber = formData.store.match(/\d+$/)?.[0] || "";
       if (storeNumber) {
-        // Use new contact system for ALL stores (including Grand Prairie)
-        const emailRecipients = getMTOEmailRecipients(storeNumber);
-        console.log("🔍 MTO FORM - Email recipients:", emailRecipients);
-        
-        if (emailRecipients.length > 0) {
-          try {
+        try {
+          const emailResult = await getStoreEmailRecipients(storeNumber, 'mto');
+          const emailRecipients = emailResult.recipients;
+          
+          console.log(`🔍 MTO FORM - Email recipients (${emailResult.source}):`, emailRecipients);
+          if (emailResult.source === 'fallback') {
+            console.warn(`🔍 MTO FORM - Using fallback routing: ${emailResult.fallbackReason}`);
+          }
+          
+          if (emailRecipients.length > 0) {
+            try {
             const emailResponse = await fetch(
               `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/mto-notification`,
               {
@@ -110,9 +115,12 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
             } else {
               console.error("❌ MTO FORM - Email notification failed");
             }
-          } catch (emailError) {
-            console.error("❌ MTO FORM - Error sending email notification:", emailError);
+            } catch (emailError) {
+              console.error("❌ MTO FORM - Error sending email notification:", emailError);
+            }
           }
+        } catch (emailRoutingError) {
+          console.error("❌ MTO FORM - Error getting email recipients:", emailRoutingError);
         }
       }
 
