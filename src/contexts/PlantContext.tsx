@@ -69,6 +69,17 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
   const [defaultPlant, setDefaultPlant] = useState<Plant>('Grand Prairie 97');
   const [loading, setLoading] = useState(true);
 
+  // Synchronized setter functions
+  const setSelectedPlantSync = (plant: Plant) => {
+    setSelectedPlant(plant);
+    setCurrentPlant(plant);
+  };
+
+  const setCurrentPlantSync = (plant: Plant) => {
+    setCurrentPlant(plant);
+    setSelectedPlant(plant);
+  };
+
   // Check if current order is cross-plant
   const isCrossPlantOrder = currentPlant !== defaultPlant;
 
@@ -106,8 +117,7 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        setSelectedPlant(plantToUse);
-        setCurrentPlant(plantToUse);
+        setSelectedPlantSync(plantToUse);
         console.log("🔍 PLANT CONTEXT - Initialized with plant:", plantToUse);
         console.log("🔍 PLANT CONTEXT - Plant webhooks:", PLANT_WEBHOOKS[plantToUse]);
       } catch (error) {
@@ -115,8 +125,7 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
         // Fallback to localStorage
         const savedPlant = localStorage.getItem('selectedPlant');
         const plantToUse = (savedPlant as Plant) || 'Grand Prairie 97';
-        setSelectedPlant(plantToUse);
-        setCurrentPlant(plantToUse);
+        setSelectedPlantSync(plantToUse);
       } finally {
         setLoading(false);
       }
@@ -191,9 +200,9 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
   return (
     <PlantContext.Provider value={{ 
       selectedPlant, 
-      setSelectedPlant, 
+      setSelectedPlant: setSelectedPlantSync, 
       currentPlant,
-      setCurrentPlant,
+      setCurrentPlant: setCurrentPlantSync,
       defaultPlant,
       isCrossPlantOrder,
       PLANT_WEBHOOKS,

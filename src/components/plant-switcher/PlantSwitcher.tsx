@@ -19,7 +19,7 @@ const PLANT_COLORS = {
 const PLANT_OPTIONS: Plant[] = ['Grand Prairie 97', 'Romulus 98', 'Mulberry 99'];
 
 export function PlantSwitcher() {
-  const { currentPlant, setCurrentPlant, defaultPlant, isCrossPlantOrder } = usePlant();
+  const { currentPlant, setCurrentPlant, selectedPlant, setSelectedPlant, defaultPlant, isCrossPlantOrder } = usePlant();
   const { user } = useAuth();
   const { logPlantSwitch, updateUserPreferences } = usePlantSwitching();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -38,7 +38,12 @@ export function PlantSwitcher() {
 
   const confirmPlantSwitch = async (newPlant: Plant) => {
     const oldPlant = currentPlant;
+    
+    // Update both plant states to ensure synchronization
     setCurrentPlant(newPlant);
+    setSelectedPlant(newPlant);
+    
+    console.log('🔄 Plant switching:', { from: oldPlant, to: newPlant });
     
     // Log the plant switch
     await logPlantSwitch({
@@ -53,7 +58,7 @@ export function PlantSwitcher() {
     // Show success toast
     toast({
       title: "✅ Plant Switched Successfully",
-      description: `Switched to ${newPlant}`,
+      description: `Dashboard updated to ${newPlant}`,
       variant: "default"
     });
     

@@ -3,15 +3,15 @@ import { motion } from "framer-motion";
 import { usePlant } from "@/contexts/PlantContext";
 
 export function DashboardBanner() {
-  const { selectedPlant } = usePlant();
+  const { currentPlant } = usePlant();
   
   // Determine which banner image to display based on the plant
   const getBannerImage = () => {
-    if (selectedPlant === "Romulus 98") {
+    if (currentPlant === "Romulus 98") {
       return "/lovable-uploads/80253a3f-2864-4be4-a0f1-1c7bdb20b826.png";
-    } else if (selectedPlant === "Mulberry 99") {
+    } else if (currentPlant === "Mulberry 99") {
       return "/lovable-uploads/24736eac-5076-4f51-ad76-b6615849fe69.png";
-    } else if (selectedPlant === "Grand Prairie 97") {
+    } else if (currentPlant === "Grand Prairie 97") {
       return "/lovable-uploads/6ddbd3d3-6d33-4a42-97a8-746ec6d6767e.png";
     }
     // Default image for other plants
@@ -36,7 +36,7 @@ export function DashboardBanner() {
       <div className="relative">
         <img 
           src={getBannerImage()} 
-          alt={`${selectedPlant} - Conlan Tire`} 
+          alt={`${currentPlant} - Conlan Tire`} 
           className="w-full h-auto rounded-lg shadow-2xl" 
         />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 rounded-b-lg">
