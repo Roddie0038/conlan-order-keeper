@@ -1,42 +1,94 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from "../_shared/cors.ts";
 import { sendEmail } from "../_shared/mailer.ts";
 
-// Plant Manager mapping by plant code
-const PLANT_MANAGER_MAP: Record<string, string> = {
-  '97': 'gsumodobila@conlantire.com', // Gabriel Sumodobila - Grand Prairie
-  '98': 'bperry@conlantire.com',      // Brody Perry - Romulus  
-  '99': 'dlee@conlantire.com',        // David Lee - Mulberry
-};
+// Initialize Supabase client for database queries
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
 
-// Active Retread Managers (all plants)
-const RETREAD_MANAGERS = [
-  'jesquivel@conlantire.com',  // Jesus Esquivel - Grand Prairie
-  'jpalos@conlantire.com',     // John Palos - Grand Prairie
-  'wsettles@conlantire.com',   // Wayne Settles - Mulberry
-  'cperez@conlantire.com',     // Carlos Perez - Mulberry
-  'chynds@conlantire.com',     // Cameron Hynds - Romulus
-];
-
-// Function to determine plant code from store number
-function getPlantCodeFromStore(storeNumber: string): string {
-  const storeNum = parseInt(storeNumber);
+/**
+ * Normalize store number from various formats
+ */
+function normalizeStoreNumber(store: string): string {
+  if (!store) return '';
   
-  if (storeNum >= 22 && storeNum <= 39) {
-    return "97"; // Grand Prairie plant
-  } else if ([1, 2, 3, 4, 5, 6, 7, 9, 15, 23, 40].includes(storeNum)) {
-    return "99"; // Mulberry plant
-  } else if (storeNum >= 8 && storeNum <= 18) {
-    return "98"; // Romulus plant
+  // If it's already just a number
+  if (/^\d+$/.test(store.trim())) {
+    return store.trim().replace(/^0+/, '') || '0'; // Remove leading zeros
   }
   
-  // Default fallback to Grand Prairie
-  return "97";
+  // Extract number from store name like "Fort Worth 22"
+  const match = store.match(/\d+/);
+  return match ? match[0] : '';
 }
 
-// Email notification for warranty claims with correct recipient routing
+/**
+ * Get email recipients for warranty orders from store_email_recipients table
+ * NO hardcoded emails - uses database only
+ */
+async function getWarrantyOrderRecipients(storeNumber: string): Promise<string[]> {
+  if (!storeNumber) {
+    console.warn('⚠️ WARRANTY NOTIFICATION - No store number provided');
+    return [];
+  }
+
+  console.log(`🔍 WARRANTY NOTIFICATION - Looking up recipients for store ${storeNumber}`);
+
+  try {
+    // Query store_email_recipients table for warranty order recipients
+    const { data: storeRecipients, error: storeError } = await supabase
+      .from('store_email_recipients')
+      .select('recipient_email, recipient_role, store_number, store_name')
+      .eq('store_number', storeNumber)
+      .eq('email_type', 'warranty')
+      .eq('is_active', true);
+
+    if (storeError) {
+      console.error('❌ WARRANTY NOTIFICATION - Error querying store_email_recipients:', storeError);
+    } else if (storeRecipients && storeRecipients.length > 0) {
+      const emails = storeRecipients.map(r => r.recipient_email);
+      console.log(`✅ WARRANTY NOTIFICATION - Found ${emails.length} recipients from store_email_recipients:`, 
+        storeRecipients.map(r => ({ email: r.recipient_email, role: r.recipient_role })));
+      return emails;
+    }
+
+    // Fallback: Query platform_users for active users assigned to this store
+    console.log(`⚠️ WARRANTY NOTIFICATION - No recipients in store_email_recipients for store ${storeNumber}, checking platform_users...`);
+    
+    const { data: platformUsers, error: platformError } = await supabase
+      .from('platform_users')
+      .select('email, role, store')
+      .eq('platform', 'ordering_platform')
+      .eq('status', 'active')
+      .eq('store', storeNumber)
+      .in('role', ['store_manager', 'service_manager', 'warehouse_staff', 'team_lead']);
+
+    if (platformError) {
+      console.error('❌ WARRANTY NOTIFICATION - Error querying platform_users:', platformError);
+      return [];
+    }
+
+    if (platformUsers && platformUsers.length > 0) {
+      const emails = platformUsers.map(u => u.email);
+      console.log(`✅ WARRANTY NOTIFICATION - Found ${emails.length} recipients from platform_users:`, 
+        platformUsers.map(u => ({ email: u.email, role: u.role })));
+      return emails;
+    }
+
+    console.log(`❌ WARRANTY NOTIFICATION - No recipients found for store ${storeNumber}`);
+    return [];
+
+  } catch (error) {
+    console.error('❌ WARRANTY NOTIFICATION - Error getting recipients:', error);
+    return [];
+  }
+}
+
+// Email notification for warranty claims with database-driven recipient routing
 serve(async (req) => {
   console.log("🚀 WARRANTY NOTIFICATION - Edge function called");
   console.log("🚀 WARRANTY NOTIFICATION - Request method:", req.method);
@@ -58,58 +110,34 @@ serve(async (req) => {
     console.log("📧 WARRANTY NOTIFICATION - Processing warranty:", warrantyId);
     console.log("📧 WARRANTY NOTIFICATION - Warranty data:", warrantyData);
 
-    // Build recipient list for WARRANTY TIRE ORDERS ONLY
-    const recipients: string[] = [];
-    
     // Extract store number from store name
-    const storeNumber = warrantyData.store.match(/\d+$/)?.[0] || "";
-    console.log("📧 WARRANTY NOTIFICATION - Store number:", storeNumber);
+    const storeNumber = normalizeStoreNumber(warrantyData.store || '');
+    console.log("📧 WARRANTY NOTIFICATION - Extracted store number:", storeNumber);
     
-    if (storeNumber) {
-      // 1. Always include Brad Perry for WARRANTY orders
-      recipients.push('bperry@conlantire.com');
-      console.log("📧 WARRANTY NOTIFICATION - Added Brad Perry for warranty order");
-      
-      // 2. Include all Retread Managers
-      recipients.push(...RETREAD_MANAGERS);
-      console.log("📧 WARRANTY NOTIFICATION - Added retread managers:", RETREAD_MANAGERS);
-      
-      // 3. Determine and add Plant Manager based on store's plant
-      const plantCode = getPlantCodeFromStore(storeNumber);
-      const plantManagerEmail = PLANT_MANAGER_MAP[plantCode];
-      
-      if (plantManagerEmail && !recipients.includes(plantManagerEmail)) {
-        recipients.push(plantManagerEmail);
-        console.log("📧 WARRANTY NOTIFICATION - Added plant manager:", plantManagerEmail, "for plant:", plantCode);
-      }
-      
-      // 4. Add submitting store manager
-      if (warrantyData.email && !recipients.includes(warrantyData.email)) {
-        recipients.push(warrantyData.email);
-        console.log("📧 WARRANTY NOTIFICATION - Added submitting store manager:", warrantyData.email);
-      }
-    } else {
-      console.warn("⚠️ WARRANTY NOTIFICATION - Could not determine store number, using fallback recipients");
-      // Fallback: Brad Perry + submitting manager only
-      recipients.push('bperry@conlantire.com');
-      if (warrantyData.email) recipients.push(warrantyData.email);
+    // Get recipients from database (NO hardcoded fallbacks)
+    let recipients = customRecipients;
+    if (!recipients || recipients.length === 0) {
+      recipients = await getWarrantyOrderRecipients(storeNumber);
     }
     
-    // Remove duplicates
-    const uniqueRecipients = [...new Set(recipients)];
-    console.log("📧 WARRANTY NOTIFICATION - Final recipient list:", uniqueRecipients);
-    
-    if (uniqueRecipients.length === 0) {
-      console.log("⚠️ WARRANTY NOTIFICATION - No email recipients found");
+    if (!recipients || recipients.length === 0) {
+      console.log("⚠️ WARRANTY NOTIFICATION - No email recipients found in database for warranty:", warrantyId);
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'No recipients configured',
-        store: warrantyData.store
+        message: 'No recipients found in database',
+        store: warrantyData.store,
+        storeNumber: storeNumber,
+        warrantyId: warrantyId,
+        source: 'database_query'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Remove duplicates
+    const uniqueRecipients = [...new Set(recipients)];
+    console.log("📧 WARRANTY NOTIFICATION - Final recipient list from database:", uniqueRecipients);
 
     const emailSubject = `Retread Warranty Claim - ${warrantyData.customer_name} - ${warrantyData.work_order}`;
     
@@ -159,6 +187,10 @@ serve(async (req) => {
             <p style="margin: 0; color: #0c4a6e; font-weight: bold;">⚡ Action Required</p>
             <p style="margin: 5px 0 0 0; color: #075985;">Please review this warranty claim and process within 2 weeks as per Local Book policy. Contact the submitter directly if additional information is needed.</p>
           </div>
+
+          <div style="margin-top: 20px; padding: 15px; background-color: #e8f5e8; border-radius: 6px; border: 1px solid #10b981;">
+            <p style="margin: 0; color: #047857; font-size: 14px;">📧 Recipients pulled from database for store ${storeNumber}</p>
+          </div>
         </div>
 
         <div style="background-color: #f8fafc; padding: 20px; border-radius: 0 0 8px 8px; text-align: center; border-top: 1px solid #e2e8f0;">
@@ -168,7 +200,7 @@ serve(async (req) => {
       </div>
     `;
 
-    console.log("📧 WARRANTY NOTIFICATION - Sending email via mailer to:", uniqueRecipients);
+    console.log("📧 WARRANTY NOTIFICATION - Sending email via database routing to:", uniqueRecipients);
     console.log("📧 WARRANTY NOTIFICATION - Email subject:", emailSubject);
     
     // Send email via centralized mailer
@@ -179,26 +211,29 @@ serve(async (req) => {
     });
 
     if (!emailResponse.success) {
-      console.error("❌ WARRANTY NOTIFICATION - Mailer failed:", emailResponse.error);
+      console.error("❌ WARRANTY NOTIFICATION - Email sending failed:", emailResponse.error);
       return new Response(JSON.stringify({ 
         success: false, 
-        error: `Failed to send email: ${emailResponse.error}` 
+        error: `Failed to send email: ${emailResponse.error}`,
+        store: warrantyData.store,
+        storeNumber: storeNumber
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log("✅ WARRANTY NOTIFICATION - Email sent successfully via mailer");
+    console.log("✅ WARRANTY NOTIFICATION - Email sent successfully via database routing");
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Warranty notification sent successfully',
+      message: 'Warranty notification sent successfully via database routing',
       recipients: uniqueRecipients.length,
       store: warrantyData.store,
+      storeNumber: storeNumber,
       warrantyId: warrantyId,
-      plantCode: storeNumber ? getPlantCodeFromStore(storeNumber) : 'unknown',
-      finalRecipients: uniqueRecipients
+      finalRecipients: uniqueRecipients,
+      source: 'database_query'
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

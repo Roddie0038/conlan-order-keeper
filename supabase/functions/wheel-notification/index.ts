@@ -1,74 +1,91 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendEmail, createEmailTemplate, logEmailNotification } from "../_shared/mailer.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
-// Contact system functions for getting email recipients
-function getRefurbishedEmailRecipients(storeNumber: string): string[] {
-  // Store Manager mappings
-  const STORE_MANAGERS: Record<string, string> = {
-    "22": "roderickdemarais@aol.com", // Fort Worth
-    "27": "rdemarais@conlantire.com", // Grand Prairie
-    "28": "jhughes@conlantire.com", // Houston
-    "29": "rpetty@conlantire.com", // San Antonio
-    "30": "dbaumgardner@conlantire.com", // OKC
-    "32": "jmilliken@conlantire.com", // Little Rock
-    "33": "rowilson@conlantire.com", // Kansas
-    "35": "lguerra@conlantire.com", // Laredo
-    "36": "kbrown@conlantire.com", // Tulsa
-    "39": "borozco@conlantire.com", // Austin
-    "007": "jriggins@conlantire.com", // Pompano Beach
-    "009": "speetz@conlantire.com", // Fort Myers
-    "003": "jvazquez@conlantire.com", // Miami
-    "002": "tdouglas@conlantire.com", // Jacksonville
-    "005": "kejensen@conlantire.com", // Ocala
-    "015": "aechavarria@conlantire.com", // Tallahassee
-    "001": "lparson@conlantire.com", // Mulberry Service
-    "004": "jranoni@conlantire.com", // Orlando
-    "023": "rlacross@conlantire.com", // Sarasota
-    "006": "sfigueroa@conlantire.com", // Tampa
-    "040": "dcespedes@conlantire.com", // Tampa Foam Fill
-  };
+// Initialize Supabase client for database queries
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
 
-  // Store to Plant mapping
-  const STORE_TO_PLANT_MAP: Record<string, string> = {
-    "22": "Grand Prairie 97", "27": "Grand Prairie 97", "28": "Grand Prairie 97", "29": "Grand Prairie 97",
-    "30": "Grand Prairie 97", "32": "Grand Prairie 97", "33": "Grand Prairie 97", "35": "Grand Prairie 97",
-    "36": "Grand Prairie 97", "39": "Grand Prairie 97",
-    "003": "Mulberry 99", "007": "Mulberry 99", "009": "Mulberry 99", "002": "Mulberry 99",
-    "005": "Mulberry 99", "015": "Mulberry 99", "001": "Mulberry 99", "004": "Mulberry 99",
-    "006": "Mulberry 99", "023": "Mulberry 99", "040": "Mulberry 99"
-  };
-
-  // Plant personnel 
-  const PLANT_PERSONNEL: Record<string, string[]> = {
-    "Grand Prairie 97": [
-      "nchilds@conlantire.com", // Nathan Childs - Warehouse Manager
-      "rdemarais@conlantire.com", // Roderick Demarais - Warehouse Manager
-      "gmoreno@conlantire.com" // Gerardo Moreno - Warehouse Coordinator
-    ],
-    "Mulberry 99": [
-      "ogull@conlantire.com", // Omar Gull - Warehouse Manager
-      "ewashington@conlantire.com", // Eddie Washington - Warehouse Coordinator
-      "kbriglin@conlantire.com" // K. Briglin - Warehouse Coordinator
-    ]
-  };
-
-  const emails: string[] = [];
+/**
+ * Normalize store number from various formats
+ */
+function normalizeStoreNumber(store: string): string {
+  if (!store) return '';
   
-  // Add store manager
-  const storeManagerEmail = STORE_MANAGERS[storeNumber];
-  if (storeManagerEmail) {
-    emails.push(storeManagerEmail);
+  // If it's already just a number
+  if (/^\d+$/.test(store.trim())) {
+    return store.trim().replace(/^0+/, '') || '0'; // Remove leading zeros
   }
   
-  // Get plant personnel
-  const plant = STORE_TO_PLANT_MAP[storeNumber];
-  if (plant && PLANT_PERSONNEL[plant]) {
-    emails.push(...PLANT_PERSONNEL[plant]);
+  // Extract number from store name like "Fort Worth 22"
+  const match = store.match(/\d+/);
+  return match ? match[0] : '';
+}
+
+/**
+ * Get email recipients for wheel orders from store_email_recipients table
+ * NO hardcoded emails - uses database only
+ */
+async function getWheelOrderRecipients(storeNumber: string): Promise<string[]> {
+  if (!storeNumber) {
+    console.warn('⚠️ WHEEL NOTIFICATION - No store number provided');
+    return [];
   }
-  
-  return [...new Set(emails)]; // Remove duplicates
+
+  console.log(`🔍 WHEEL NOTIFICATION - Looking up recipients for store ${storeNumber}`);
+
+  try {
+    // Query store_email_recipients table for wheel order recipients
+    const { data: storeRecipients, error: storeError } = await supabase
+      .from('store_email_recipients')
+      .select('recipient_email, recipient_role, store_number, store_name')
+      .eq('store_number', storeNumber)
+      .eq('email_type', 'wheel')
+      .eq('is_active', true);
+
+    if (storeError) {
+      console.error('❌ WHEEL NOTIFICATION - Error querying store_email_recipients:', storeError);
+    } else if (storeRecipients && storeRecipients.length > 0) {
+      const emails = storeRecipients.map(r => r.recipient_email);
+      console.log(`✅ WHEEL NOTIFICATION - Found ${emails.length} recipients from store_email_recipients:`, 
+        storeRecipients.map(r => ({ email: r.recipient_email, role: r.recipient_role })));
+      return emails;
+    }
+
+    // Fallback: Query platform_users for active users assigned to this store
+    console.log(`⚠️ WHEEL NOTIFICATION - No recipients in store_email_recipients for store ${storeNumber}, checking platform_users...`);
+    
+    const { data: platformUsers, error: platformError } = await supabase
+      .from('platform_users')
+      .select('email, role, store')
+      .eq('platform', 'ordering_platform')
+      .eq('status', 'active')
+      .eq('store', storeNumber)
+      .in('role', ['store_manager', 'service_manager', 'warehouse_staff', 'team_lead']);
+
+    if (platformError) {
+      console.error('❌ WHEEL NOTIFICATION - Error querying platform_users:', platformError);
+      return [];
+    }
+
+    if (platformUsers && platformUsers.length > 0) {
+      const emails = platformUsers.map(u => u.email);
+      console.log(`✅ WHEEL NOTIFICATION - Found ${emails.length} recipients from platform_users:`, 
+        platformUsers.map(u => ({ email: u.email, role: u.role })));
+      return emails;
+    }
+
+    console.log(`❌ WHEEL NOTIFICATION - No recipients found for store ${storeNumber}`);
+    return [];
+
+  } catch (error) {
+    console.error('❌ WHEEL NOTIFICATION - Error getting recipients:', error);
+    return [];
+  }
 }
 
 // Email notification for Wheel Orders
@@ -95,18 +112,16 @@ serve(async (req) => {
     const { wheelData, orderId, recipients } = requestBody;
     
     console.log("📧 WHEEL NOTIFICATION - Processing wheel order:", orderId);
-    console.log("📧 WHEEL NOTIFICATION - Recipients:", recipients);
     console.log("📧 WHEEL NOTIFICATION - Wheel data:", wheelData);
 
-    // If recipients not provided, get them from contact system
+    // Extract store number from wheel data
+    const storeNumber = normalizeStoreNumber(wheelData.storeName || wheelData.store || '');
+    console.log("📧 WHEEL NOTIFICATION - Extracted store number:", storeNumber);
+
+    // Get recipients from database (NO hardcoded fallbacks)
     let emailRecipients = recipients;
     if (!recipients || recipients.length === 0) {
-      // Extract store number from wheel data
-      const storeNumber = wheelData.storeName?.match(/\d+$/)?.[0] || wheelData.store?.match(/\d+$/)?.[0];
-      if (storeNumber) {
-        emailRecipients = getRefurbishedEmailRecipients(storeNumber);
-        console.log("📧 WHEEL NOTIFICATION - Retrieved email recipients from contact system:", emailRecipients);
-      }
+      emailRecipients = await getWheelOrderRecipients(storeNumber);
     }
     
     if (!emailRecipients || emailRecipients.length === 0) {
@@ -119,13 +134,17 @@ serve(async (req) => {
         recipients: [],
         status: 'failed',
         notificationType: 'wheel_order_submitted',
-        errorMessage: 'No recipients available'
+        errorMessage: 'No recipients found in database',
+        store: storeNumber,
+        plant: wheelData.plant || 'unknown'
       });
       
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'No recipients available',
-        orderId: orderId
+        message: 'No recipients available in database',
+        orderId: orderId,
+        store: storeNumber,
+        source: 'database_query'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -159,7 +178,7 @@ serve(async (req) => {
       isCrossDock: false // Wheel orders are not cross-dock
     });
 
-    console.log("📧 WHEEL NOTIFICATION - Sending email via centralized mailer to:", emailRecipients);
+    console.log("📧 WHEEL NOTIFICATION - Sending email to:", emailRecipients);
     console.log("📧 WHEEL NOTIFICATION - Email subject:", emailSubject);
     
     // Send email via centralized mailer (Resend)
@@ -170,7 +189,7 @@ serve(async (req) => {
     });
 
     if (emailResult.success) {
-      console.log("✅ WHEEL NOTIFICATION - Email sent successfully via Resend:", emailResult.data);
+      console.log("✅ WHEEL NOTIFICATION - Email sent successfully via database routing:", emailResult.data);
       
       // Log successful email
       await logEmailNotification({
@@ -179,17 +198,20 @@ serve(async (req) => {
         recipients: emailResult.sentTo || emailRecipients,
         status: 'sent',
         notificationType: 'wheel_order_submitted',
-        emailProvider: 'resend'
+        emailProvider: 'resend',
+        store: storeNumber,
+        plant: wheelData.plant || 'unknown'
       });
       
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'Wheel order notification sent successfully via Resend',
+        message: 'Wheel order notification sent successfully via database routing',
         recipients: (emailResult.sentTo || emailRecipients).length,
         orderId: orderId,
         orderType: 'WHEEL_POWDER_COATING',
-        store: wheelData.storeName || wheelData.store,
-        emailId: emailResult.data?.id
+        store: storeNumber,
+        emailId: emailResult.data?.id,
+        source: 'database_query'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -205,13 +227,16 @@ serve(async (req) => {
         status: 'failed',
         notificationType: 'wheel_order_submitted',
         emailProvider: 'resend',
-        errorMessage: emailResult.error
+        errorMessage: emailResult.error,
+        store: storeNumber,
+        plant: wheelData.plant || 'unknown'
       });
       
       return new Response(JSON.stringify({ 
         success: false, 
         error: `Email sending failed: ${emailResult.error}`,
-        orderId: orderId
+        orderId: orderId,
+        store: storeNumber
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

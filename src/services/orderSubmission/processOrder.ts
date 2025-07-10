@@ -19,10 +19,9 @@ import { supabase } from "@/integrations/supabase/client";
 export const processOrder = async (order: OrderSummary, selectedPlant: string) => {
   console.log("🔍 SUBMIT - Processing order:", order.id);
   
-  // Find the store manager email from storeData
+  // Get store manager email from database (no hardcoded emails)
   const storeNumber = order.store.match(/\d+$/)?.[0] || "";
-  const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
-  const storeManagerEmail = matchedStore?.managerEmails || "";
+  const storeManagerEmail = ""; // Will be retrieved from database during email routing
   
   // Determine correct plant based on store - this is critical for cross-platform routing
   const plant = getPlantForStore(order.store);
@@ -68,11 +67,10 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       }
     }
     
-    // Get the destination manager email
+    // Destination manager email will be retrieved from database during email routing
     const destStoreNumber = formattedCrossDockDestination.match(/\d+$/)?.[0] || "";
-    const destStore = storeData.find(s => s.storeNumber === destStoreNumber);
-    destinationManagerEmail = destStore?.managerEmails || "";
-    console.log(`🔍 SUBMIT - Destination manager email: ${destinationManagerEmail}`);
+    destinationManagerEmail = ""; // Will be retrieved from database
+    console.log(`🔍 SUBMIT - Cross-dock destination store: ${destStoreNumber}`);
   }
   
   // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
