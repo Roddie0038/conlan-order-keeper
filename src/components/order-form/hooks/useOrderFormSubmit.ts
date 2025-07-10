@@ -51,9 +51,8 @@ export function useOrderFormSubmit() {
         
         console.log("📧 STORE EMAIL DEBUG - Original store:", order.store, "→ Extracted store number:", storeNumber);
         
-        // Find the store manager email from storeData (legacy system)
-        const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
-        const storeManagerEmail = matchedStore?.managerEmails || "";
+        // REMOVED: No longer using hardcoded storeData lookup
+        // Now using dynamic platform_users lookup in the edge function
         
         // Determine the plant based on the store
         const plant = getPlantForStore(order.store);
@@ -83,7 +82,7 @@ export function useOrderFormSubmit() {
           notes: order.notes,
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
-          email: storeManagerEmail,
+          email: user?.email || "", // Use the submitting user's email
           plant: plant,
           timestamp: new Date().toISOString(),
           type: orderType // Use the determined order type for correct routing

@@ -53,45 +53,92 @@ serve(async (req) => {
       extracted_store_number: storeNumber
     });
 
-    // PHASE 3: Improved DB Query Logic with fallback for different formats
+    // PHASE 3: Dynamic Recipients from platform_users (PRIMARY) with ordering_email_recipients fallback
     let recipients = [];
     let recipientsError = null;
 
-    // Try exact match first
     console.log('📧 EDGE FUNCTION - Querying recipients for store:', storeNumber);
-    const { data: exactRecipients, error: exactError } = await supabase
-      .from('ordering_email_recipients')
-      .select('*')
-      .eq('store_number', storeNumber)
-      .eq('is_active', true)
-      .eq('email_type', 'order_confirmation');
 
-    if (exactError) {
-      console.error('📧 EDGE FUNCTION - Error in exact query:', exactError);
-      recipientsError = exactError;
-    } else if (exactRecipients && exactRecipients.length > 0) {
-      recipients = exactRecipients;
-      console.log('📧 EDGE FUNCTION - Found recipients with exact match:', recipients.length);
+    // PRIMARY: Query platform_users for current active users by store and role
+    const { data: platformUsers, error: platformError } = await supabase
+      .from('platform_users')
+      .select('email, role, store')
+      .eq('platform', 'ordering_platform')
+      .eq('status', 'active')
+      .eq('store', storeNumber);
+
+    console.log('📧 EDGE FUNCTION - Platform users query result:', {
+      store_number: storeNumber,
+      platform_users_found: platformUsers?.length || 0,
+      platform_users: platformUsers?.map(u => ({ email: u.email, role: u.role, store: u.store }))
+    });
+
+    if (platformError) {
+      console.error('📧 EDGE FUNCTION - Error querying platform_users:', platformError);
+      recipientsError = platformError;
+    } else if (platformUsers && platformUsers.length > 0) {
+      // Convert platform_users format to match recipients interface
+      recipients = platformUsers.map(user => ({
+        recipient_email: user.email,
+        role: user.role,
+        store_number: user.store,
+        is_active: true,
+        email_type: 'order_confirmation'
+      }));
+      console.log('📧 EDGE FUNCTION - Using platform_users recipients:', recipients.length);
     } else {
-      // Try with zero-padded format (e.g., "22" → "022")
-      const paddedStoreNumber = storeNumber.padStart(3, '0');
-      console.log('📧 EDGE FUNCTION - Trying padded store number:', paddedStoreNumber);
+      // FALLBACK: Try ordering_email_recipients table
+      console.log('📧 EDGE FUNCTION - No platform_users found, trying ordering_email_recipients fallback');
       
-      const { data: paddedRecipients, error: paddedError } = await supabase
+      const { data: exactRecipients, error: exactError } = await supabase
         .from('ordering_email_recipients')
         .select('*')
-        .eq('store_number', paddedStoreNumber)
+        .eq('store_number', storeNumber)
         .eq('is_active', true)
         .eq('email_type', 'order_confirmation');
 
-      if (paddedError) {
-        console.error('📧 EDGE FUNCTION - Error in padded query:', paddedError);
-        recipientsError = paddedError;
-      } else if (paddedRecipients && paddedRecipients.length > 0) {
-        recipients = paddedRecipients;
-        console.log('📧 EDGE FUNCTION - Found recipients with padded match:', recipients.length);
+      if (exactError) {
+        console.error('📧 EDGE FUNCTION - Error in exact query:', exactError);
+        recipientsError = exactError;
+      } else if (exactRecipients && exactRecipients.length > 0) {
+        recipients = exactRecipients;
+        console.log('📧 EDGE FUNCTION - Found recipients with exact match:', recipients.length);
       } else {
-        console.log('📧 EDGE FUNCTION - No recipients found for either format');
+        // Try with zero-padded format (e.g., "22" → "022")
+        const paddedStoreNumber = storeNumber.padStart(3, '0');
+        console.log('📧 EDGE FUNCTION - Trying padded store number:', paddedStoreNumber);
+        
+        const { data: paddedRecipients, error: paddedError } = await supabase
+          .from('ordering_email_recipients')
+          .select('*')
+          .eq('store_number', paddedStoreNumber)
+          .eq('is_active', true)
+          .eq('email_type', 'order_confirmation');
+
+        if (paddedError) {
+          console.error('📧 EDGE FUNCTION - Error in padded query:', paddedError);
+          recipientsError = paddedError;
+        } else if (paddedRecipients && paddedRecipients.length > 0) {
+          recipients = paddedRecipients;
+          console.log('📧 EDGE FUNCTION - Found recipients with padded match:', recipients.length);
+        } else {
+          console.log('📧 EDGE FUNCTION - No recipients found in either table for store:', storeNumber);
+        }
+      }
+    }
+
+    // Also include the submitting user if they have a valid email
+    if (orderData.email && orderData.email.includes('@')) {
+      const submitterExists = recipients.some(r => r.recipient_email === orderData.email);
+      if (!submitterExists) {
+        recipients.push({
+          recipient_email: orderData.email,
+          role: 'submitter',
+          store_number: storeNumber,
+          is_active: true,
+          email_type: 'order_confirmation'
+        });
+        console.log('📧 EDGE FUNCTION - Added submitting user to recipients:', orderData.email);
       }
     }
 
@@ -114,10 +161,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('📧 EDGE FUNCTION - Recipients found:', {
+    console.log('📧 EDGE FUNCTION - Final recipients list:', {
       store_number: storeNumber,
       recipients_count: recipients.length,
-      recipient_emails: recipients.map(r => ({ email: r.recipient_email, role: r.role }))
+      recipient_emails: recipients.map(r => ({ email: r.recipient_email, role: r.role })),
+      source: platformUsers?.length > 0 ? 'platform_users' : 'ordering_email_recipients'
     });
 
     // Generate email content
