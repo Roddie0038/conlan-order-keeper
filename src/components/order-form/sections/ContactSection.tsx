@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { stores, getManagerEmail } from "@/components/order-form/formConfig";
+import { stores } from "@/components/order-form/formConfig";
+import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -57,16 +58,16 @@ export function ContactSection({ form }: ContactSectionProps) {
         form.setValue("managersEmail", emailsString);
       } else {
         // Fallback to legacy method
-        const legacyEmail = getManagerEmail(storeName) || "";
-        setManagerEmails(legacyEmail);
-        form.setValue("managersEmail", legacyEmail);
+        const dynamicEmail = await getFirstManagerEmail(storeName);
+        setManagerEmails(dynamicEmail);
+        form.setValue("managersEmail", dynamicEmail);
       }
     } catch (error) {
       console.error("Error fetching manager emails:", error);
       // Fallback to legacy method on error
-      const legacyEmail = getManagerEmail(storeName) || "";
-      setManagerEmails(legacyEmail);
-      form.setValue("managersEmail", legacyEmail);
+      const dynamicEmail = await getFirstManagerEmail(storeName);
+      setManagerEmails(dynamicEmail);
+      form.setValue("managersEmail", dynamicEmail);
     } finally {
       setIsLoadingEmails(false);
     }

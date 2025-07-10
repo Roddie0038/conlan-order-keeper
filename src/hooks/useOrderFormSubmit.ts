@@ -38,10 +38,21 @@ export function useOrderFormSubmit() {
     try {
       // Process each order individually to handle emails properly
       for (const order of selectedOrders) {
-        // Find the store manager email from storeData
-        const storeNumber = order.store.match(/\d+$/)?.[0] || "";
-        const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
-        const storeManagerEmail = matchedStore?.managerEmails || "";
+        // PHASE 1: Enhanced Store Number Extraction and normalization
+        let storeNumber = "";
+        if (/^\d+$/.test(order.store)) {
+          // Pure number like "22"
+          storeNumber = order.store;
+        } else {
+          // Store name with number like "Fort Worth 22"
+          const match = order.store.match(/\d+$/);
+          storeNumber = match ? match[0] : "";
+        }
+        
+        console.log("📧 ORDER SUBMIT - Store extraction:", {
+          original_store: order.store,
+          extracted_store_number: storeNumber
+        });
         
         // Determine the plant based on the store
         const plant = getPlantForStore(order.store);
@@ -71,7 +82,7 @@ export function useOrderFormSubmit() {
           notes: order.notes,
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
-          email: storeManagerEmail,
+          email: user?.email || "", // Use submitting user's email
           plant: plant,
           timestamp: new Date().toISOString(),
           type: orderType // Use the determined order type
@@ -88,9 +99,10 @@ export function useOrderFormSubmit() {
 
         console.log("✅ ORDER SUBMIT - Order saved to Supabase:", savedOrder.data);
 
-        // 🔹 Send Order Confirmation Email (New Ordering Platform System)
+        // 🔹 PHASE 4: Send Order Confirmation Email (Dynamic Platform Users System)
         try {
           console.log("📧 ORDER SUBMIT - Sending order confirmation email via ordering system...");
+          console.log("📧 ORDER SUBMIT - Store number for email routing:", storeNumber);
           
           const orderConfirmationData = {
             store_number: storeNumber,
@@ -99,13 +111,17 @@ export function useOrderFormSubmit() {
             order_id: savedOrder.data?.id?.toString() || 'Unknown',
             timestamp: new Date().toISOString(),
             name: order.yourName || 'Unknown',
-            email: storeManagerEmail || 'unknown@email.com',
+            email: user?.email || 'unknown@email.com', // Submitting user email
             quantity: parseInt(order.quantity.toString()) || 0,
             product_number: order.productNumber,
             description: order.description
           };
 
+          console.log("📧 ORDER SUBMIT - Email data being sent:", orderConfirmationData);
+
           const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
+          
+          console.log("📧 ORDER SUBMIT - Email result:", confirmationResult);
           
           if (confirmationResult.success) {
             console.log(`✅ ORDER SUBMIT - Order confirmation email sent for order ${savedOrder.data?.id}`);

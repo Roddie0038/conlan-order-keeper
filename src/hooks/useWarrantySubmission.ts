@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { uploadFileToSupabase, uploadMultipleFiles } from "@/services/storageService";
 import { submitRetreadWarranty } from "@/services/warrantyService";
 import { validateWarrantyForm } from "@/utils/warrantyValidation";
-import { getManagerEmail } from "@/components/order-form/formConfig";
+import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { RetreadWarrantyFormData } from "./useRetreadWarrantyForm";
 
 export const useWarrantySubmission = () => {
@@ -32,7 +32,7 @@ export const useWarrantySubmission = () => {
       console.log("🚀 Starting warranty claim submission...");
       
       // Get the proper manager email and store name using the same logic as other forms
-      const managerEmail = getManagerEmail(user?.store || "");
+      const managerEmail = await getFirstManagerEmail(user?.store || "");
       const storeName = user?.store || "";
       const submitterName = user?.name || "Store Manager";
       

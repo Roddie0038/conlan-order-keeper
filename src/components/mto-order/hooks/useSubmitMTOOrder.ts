@@ -6,7 +6,7 @@ import { usePlant } from "@/contexts/PlantContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
-import { getManagerEmail } from "@/components/order-form/formConfig";
+import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
@@ -37,7 +37,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       console.log("🔍 MTO FORM - Starting MTO submission");
       
       // Get manager email and plant
-      const managerEmail = getManagerEmail(formData.store);
+      const managerEmail = await getFirstManagerEmail(formData.store);
       const plant = getPlantForStore(formData.store);
       const tireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       const timestamp = new Date().toISOString();

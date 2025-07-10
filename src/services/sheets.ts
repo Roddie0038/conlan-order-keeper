@@ -75,11 +75,10 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
       let sheetsPayload = mapOrderToGoogleSheets(data, user);
       console.log("🔍 SHEETS - Transfer mapped payload:", JSON.stringify(sheetsPayload, null, 2));
       
-      // For crossDock="Yes" orders, ensure we have the destination manager email
+      // REMOVED: hardcoded email lookup - cross dock email routing now handled dynamically in edge function
       if ('crossDock' in sheetsPayload && sheetsPayload.crossDock === "Yes" && sheetsPayload.crossDockDestination && !sheetsPayload.destinationManagerEmail) {
-        const { getManagerEmail } = await import('@/components/order-form/formConfig');
-        sheetsPayload.destinationManagerEmail = getManagerEmail(sheetsPayload.crossDockDestination);
-        console.log("🔍 SHEETS - Added destinationManagerEmail:", sheetsPayload.destinationManagerEmail);
+        sheetsPayload.destinationManagerEmail = ""; // Email routing handled in edge function
+        console.log("🔍 SHEETS - Cross dock destination noted - email routing handled dynamically");
       }
       
       const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.transferRequests;

@@ -3,7 +3,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { useState, useEffect } from "react";
 import { OrderForm } from "@/components/order-form";
-import { getManagerEmail } from "@/components/order-form/formConfig";
+// REMOVED: import { getManagerEmail } from "@/components/order-form/formConfig";
+// Now using dynamic email routing through ordering-confirmation-email edge function
 import { LogoutButton } from "@/components/LogoutButton";
 import { 
   PendingOrdersHeader, 
@@ -47,14 +48,11 @@ export default function PendingOrders() {
           (!order.plant || order.plant === selectedPlant)
         )
         .map((order: Order) => {
-          // Ensure we have manager email
-          const managerEmail = order.managerEmail || getManagerEmail(order.store);
+          // REMOVED: hardcoded email lookup - email routing now handled dynamically in edge function
+          const managerEmail = order.managerEmail || "";
           
           // Add destination manager email if missing but have cross dock destination
           let destEmail = order.destinationManagerEmail;
-          if (order.crossDock === "Yes" && order.crossDockDestination && !destEmail) {
-            destEmail = getManagerEmail(order.crossDockDestination);
-          }
           
           return {
             ...order,
@@ -70,15 +68,12 @@ export default function PendingOrders() {
     const allPendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
     const orderToComplete = allPendingOrders.find((o: Order) => o.id === orderId);
     if (orderToComplete) {
-      // Ensure destination manager email is set for cross dock orders
-      if (orderToComplete.crossDock === "Yes" && orderToComplete.crossDockDestination && !orderToComplete.destinationManagerEmail) {
-        orderToComplete.destinationManagerEmail = getManagerEmail(orderToComplete.crossDockDestination);
-      }
+      // REMOVED: hardcoded email lookup - email routing now handled dynamically in edge function
       
       const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
       completedOrders.push({
         ...orderToComplete,
-        managerEmail: orderToComplete.managerEmail || getManagerEmail(orderToComplete.store),
+        managerEmail: orderToComplete.managerEmail || "",
         plant: selectedPlant
       });
       localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
@@ -92,10 +87,8 @@ export default function PendingOrders() {
         )
         .map((order: Order) => ({
           ...order,
-          managerEmail: order.managerEmail || getManagerEmail(order.store),
-          destinationManagerEmail: order.destinationManagerEmail || 
-            (order.crossDock === "Yes" && order.crossDockDestination ? 
-              getManagerEmail(order.crossDockDestination) : undefined)
+          managerEmail: order.managerEmail || "",
+          destinationManagerEmail: order.destinationManagerEmail || ""
         }))
       );
     }

@@ -14,19 +14,9 @@ export const stores = [
   { id: "39", name: "Austin 39" },
 ];
 
-export const storeManagerEmails: Record<string, string> = {
-  "22": "roderickdemarais@aol.com, rdemarais@conlantire.com",
-  "27": "rdemarais@conlantire.com, roderickdemarais@aol.com",
-  "28": "jhughes@conlantire.com, eblais@conlantire.com",
-  "29": "rpetty@conlantire.com, pvallejo@conlantire.com",
-  "30": "dbaumgardner@conlantire.com, bhunt@conlantire.com",
-  "32": "jmilliken@conlantire.com",
-  "33": "rowilson@conlantire.com, lallen@conlantire.com",
-  "35": "lguerra@conlantire.com, hgamez@conlantire.com",
-  "36": "kbrown@conlantire.com",
-  "39": "borozco@conlantire.com",
-  "Admin": "Roderickdemarais@aol.com"
-};
+// REMOVED: Hardcoded email mappings - now using dynamic platform_users lookup
+// export const storeManagerEmails: Record<string, string> = { ... };
+// This has been replaced with dynamic database lookups in the user management system
 
 // Store to color mapping for wheel orders
 export const storeColors: Record<string, string> = {
@@ -43,13 +33,9 @@ export const storeColors: Record<string, string> = {
   "Admin": "Yellow"
 };
 
-// Export the getManagerEmail function to be used by other components
-export const getManagerEmail = (store: string) => {
-  if (store === "Admin") return storeManagerEmails["Admin"];
-  const match = store.match(/\d+$/);
-  const storeNumber = match ? match[0] : '';
-  return storeManagerEmails[storeNumber] || '';
-};
+// REMOVED: getManagerEmail function - now using dynamic platform_users lookup
+// This hardcoded function has been replaced with dynamic database queries
+// All email routing now happens through the ordering-confirmation-email edge function
 
 // Export the getStoreColor function for wheel orders
 export const getStoreColor = (store: string): string => {

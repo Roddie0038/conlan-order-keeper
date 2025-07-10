@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { MTOFormData, initialMTOFormData } from "../mto-form-config";
-import { getManagerEmail } from "@/components/order-form/formConfig";
+import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 
 interface SessionValues {
   name: string;
@@ -21,7 +21,7 @@ export const useMTOForm = () => {
     return {
       ...initialMTOFormData,
       store: user?.store || "",
-      managerEmail: user?.store ? getManagerEmail(user.store) : "",
+      managerEmail: "", // Will be populated dynamically
     };
   });
 
@@ -41,12 +41,15 @@ export const useMTOForm = () => {
 
   useEffect(() => {
     if (user?.store) {
-      const managerEmail = getManagerEmail(user.store);
-      setFormData(prev => ({
-        ...prev,
-        store: user.store,
-        managerEmail: managerEmail
-      }));
+      const loadManagerEmail = async () => {
+        const managerEmail = await getFirstManagerEmail(user.store);
+        setFormData(prev => ({
+          ...prev,
+          store: user.store,
+          managerEmail: managerEmail
+        }));
+      };
+      loadManagerEmail();
     }
   }, [user?.store]);
 
@@ -70,7 +73,7 @@ export const useMTOForm = () => {
     setFormData({
       ...initialMTOFormData,
       store: user?.store || "",
-      managerEmail: user?.store ? getManagerEmail(user.store) : "",
+      managerEmail: "", // Will be populated dynamically
       name: sessionValues.name,
     });
   };

@@ -1,7 +1,8 @@
 
 import { FormField } from "./FormField";
 import { Button } from "@/components/ui/button";
-import { scheduleOptions, crossDockOptions, stores, type FormData, storeManagerEmails } from "./formConfig";
+import { scheduleOptions, crossDockOptions, stores, type FormData } from "./formConfig";
+// REMOVED: storeManagerEmails - now using dynamic email routing
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchInventory } from "@/services/inventoryService";
@@ -38,20 +39,12 @@ export const OrderFormInputs = ({
       onChange("store", user.store);
       
       // Set manager email when store changes
-      const managersEmail = getManagerEmail(user.store);
-      if (managersEmail && formData.managersEmail !== managersEmail) {
-        onChange("managersEmail", managersEmail);
-      }
+      // REMOVED: hardcoded email lookup - now handled dynamically in edge function
     }
   }, [user, formData.store]);
 
   // Helper function to get manager email
-  const getManagerEmail = (store: string) => {
-    if (store === "Admin") return storeManagerEmails["Admin"];
-    const match = store.match(/\d+$/);
-    const storeNumber = match ? match[0] : '';
-    return storeManagerEmails[storeNumber] || '';
-  };
+  // REMOVED: getManagerEmail function - now using dynamic email routing in edge function
 
   // Fetch inventory on component mount
   useEffect(() => {
@@ -164,8 +157,8 @@ export const OrderFormInputs = ({
                   onChange("store", value);
                   
                   // Set manager email when store changes
-                  const managersEmail = getManagerEmail(value);
-                  onChange("managersEmail", managersEmail);
+                  // REMOVED: hardcoded email lookup - handled dynamically in edge function
+                  onChange("managersEmail", "");
                 }} 
                 options={stores} 
                 disabled={!user?.isAdmin}
@@ -309,8 +302,8 @@ export const OrderFormInputs = ({
                   onChange={value => {
                     onChange("crossDockDestination", value);
                     // Set manager email based on selected store ID
-                    const managersEmail = storeManagerEmails[value] || '';
-                    onChange("managersEmail", managersEmail);
+                    // REMOVED: hardcoded email lookup - handled dynamically in edge function
+                    onChange("managersEmail", "");
                   }} 
                   options={stores} 
                   placeholder="Select destination" 

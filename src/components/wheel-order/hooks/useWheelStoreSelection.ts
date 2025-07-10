@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { stores, getManagerEmail, getStoreColor } from "@/components/order-form/formConfig";
+import { stores, getStoreColor } from "@/components/order-form/formConfig";
+import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { WheelFormData } from "../types";
 
 export function useWheelStoreSelection(formData: WheelFormData, setFormData: React.Dispatch<React.SetStateAction<WheelFormData>>) {
@@ -28,12 +29,15 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
         }));
       }
 
-      const email = getManagerEmail(user.store);
-      setManagerEmail(email);
+      const loadEmail = async () => {
+        const email = await getFirstManagerEmail(user.store);
+        setManagerEmail(email);
+      };
+      loadEmail();
     }
   }, [user?.store, setFormData]);
 
-  const handleStoreChange = (value: string) => {
+  const handleStoreChange = async (value: string) => {
     if (!user?.isAdmin) {
       toast({
         title: "Unauthorized",
@@ -54,7 +58,7 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
         storeColors: storeColor  // Set the store colors automatically
       }));
       
-      const email = getManagerEmail(selectedStore.name);
+      const email = await getFirstManagerEmail(selectedStore.name);
       setManagerEmail(email);
     }
   };

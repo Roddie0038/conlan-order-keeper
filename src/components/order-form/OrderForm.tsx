@@ -14,7 +14,8 @@ import { formSchema } from "./order-form-schema";
 import { OrderSummaryTable } from "./OrderSummaryTable";
 import { OrderSubmissionHandler } from "./OrderSubmissionHandler";
 import { toast } from "@/hooks/use-toast";
-import { getManagerEmail } from "./formConfig";
+// REMOVED: import { getManagerEmail } from "./formConfig";
+// Now using dynamic email routing through ordering-confirmation-email edge function
 import { getCurrentDateTime } from "@/utils/dateTime";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { OrderTemplate } from "../order-templates/OrderTemplate";
@@ -26,8 +27,7 @@ export function OrderForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSummaries, setOrderSummaries] = useState<any[]>([]);
 
-  // Get manager email for the user's store
-  const managerEmail = user?.store ? getManagerEmail(user.store) : "";
+  // REMOVED: Hardcoded manager email lookup - now handled dynamically in edge function
 
   const defaultValues = {
     yourName: "",
@@ -43,7 +43,7 @@ export function OrderForm() {
     receiverNo: "",
     etaDate: "",
     crossDockConfirmation: false,
-    managersEmail: managerEmail,
+    managersEmail: "", // Now handled dynamically in edge function
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -51,12 +51,11 @@ export function OrderForm() {
     defaultValues,
   });
 
-  // Update store and manager email when user changes
+  // Update store when user changes - email routing now handled dynamically
   useEffect(() => {
     if (user?.store && !user?.isAdmin) {
       form.setValue("store", user.store);
-      const managerEmail = getManagerEmail(user.store);
-      form.setValue("managersEmail", managerEmail || "");
+      form.setValue("managersEmail", ""); // Email routing handled in edge function
     }
   }, [user, form]);
 
@@ -121,8 +120,7 @@ export function OrderForm() {
     // Ensure store is still set for non-admin users
     if (user && user.store && !user?.isAdmin) {
       form.setValue("store", user.store);
-      const managerEmail = getManagerEmail(user.store);
-      form.setValue("managersEmail", managerEmail || "");
+      form.setValue("managersEmail", ""); // Email routing handled in edge function
     }
     
     toast({
