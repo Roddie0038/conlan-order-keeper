@@ -10,6 +10,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
 import type { OrderData } from "@/types/supabase-extensions";
 
 export function useOrderFormSubmit() {
@@ -36,8 +37,21 @@ export function useOrderFormSubmit() {
     try {
       // Process each order with proper type detection and dual mapping strategy
       for (const order of selectedOrders) {
-        // Find the store manager email from storeData
-        const storeNumber = order.store.match(/\d+$/)?.[0] || "";
+        // PHASE 1: Fix Store Number Extraction
+        // Extract store number whether it's "22" or "Fort Worth 22" format
+        let storeNumber = "";
+        if (/^\d+$/.test(order.store)) {
+          // Pure number like "22"
+          storeNumber = order.store;
+        } else {
+          // Store name with number like "Fort Worth 22"
+          const match = order.store.match(/\d+$/);
+          storeNumber = match ? match[0] : "";
+        }
+        
+        console.log("📧 STORE EMAIL DEBUG - Original store:", order.store, "→ Extracted store number:", storeNumber);
+        
+        // Find the store manager email from storeData (legacy system)
         const matchedStore = storeData.find(s => s.storeNumber === storeNumber);
         const storeManagerEmail = matchedStore?.managerEmails || "";
         
@@ -78,10 +92,43 @@ export function useOrderFormSubmit() {
         console.log("🔍 ORDER FORM SUBMIT - Submitting with type:", orderType);
 
         // Submit to Supabase (uses mapOrderToSupabase internally for snake_case)
-        await saveOrderToSupabase(orderData, user);
+        const savedOrderResult = await saveOrderToSupabase(orderData, user);
         
         // Submit to Google Sheets (uses mapOrderToGoogleSheets internally for camelCase)
         await submitToGoogleSheets(orderData, user);
+
+        // PHASE 4: Send Order Confirmation Email to Store Recipients
+        if (storeNumber && savedOrderResult?.data?.id) {
+          try {
+            console.log("📧 STORE EMAIL DEBUG - Calling sendOrderConfirmationEmail for store:", storeNumber);
+            
+            const emailResult = await sendOrderConfirmationEmail({
+              store_number: storeNumber,
+              store_name: order.store,
+              order_type: orderType,
+              order_id: savedOrderResult.data.id.toString(),
+              timestamp: orderData.timestamp,
+              name: orderData.name,
+              email: orderData.email,
+              quantity: orderData.quantity,
+              product_number: orderData.productNumber,
+              description: orderData.description
+            });
+            
+            console.log("📧 STORE EMAIL DEBUG - sendOrderConfirmationEmail result:", emailResult);
+            
+            if (emailResult.success) {
+              console.log("✅ Store confirmation email sent successfully:", emailResult.message);
+            } else {
+              console.warn("⚠️ Store confirmation email failed:", emailResult.message);
+            }
+          } catch (emailError) {
+            console.error("❌ Error sending store confirmation email:", emailError);
+            // Don't block order submission for email failures
+          }
+        } else {
+          console.warn("⚠️ Skipping store confirmation email - missing store number or order ID");
+        }
       }
 
       toast({

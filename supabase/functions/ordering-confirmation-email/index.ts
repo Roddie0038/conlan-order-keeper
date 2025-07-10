@@ -37,22 +37,63 @@ serve(async (req) => {
     const fromEmail = Deno.env.get('FROM_EMAIL') || 'onboarding@resend.dev';
 
     const orderData: OrderData = await req.json();
-    console.log('Processing order confirmation email for:', orderData);
+    console.log('📧 EDGE FUNCTION - Processing order confirmation email for:', orderData);
 
-    // Extract store number from store name if needed
+    // PHASE 2: Enhanced Store Number Extraction
     let storeNumber = orderData.store_number;
     if (!storeNumber && orderData.store_name) {
+      // Extract number from store name
       const match = orderData.store_name.match(/\d+/);
       storeNumber = match ? match[0] : '';
     }
 
-    // Get email recipients for this store
-    const { data: recipients, error: recipientsError } = await supabase
+    console.log('📧 EDGE FUNCTION - Store number extraction:', {
+      original_store_number: orderData.store_number,
+      store_name: orderData.store_name,
+      extracted_store_number: storeNumber
+    });
+
+    // PHASE 3: Improved DB Query Logic with fallback for different formats
+    let recipients = [];
+    let recipientsError = null;
+
+    // Try exact match first
+    console.log('📧 EDGE FUNCTION - Querying recipients for store:', storeNumber);
+    const { data: exactRecipients, error: exactError } = await supabase
       .from('ordering_email_recipients')
       .select('*')
       .eq('store_number', storeNumber)
       .eq('is_active', true)
       .eq('email_type', 'order_confirmation');
+
+    if (exactError) {
+      console.error('📧 EDGE FUNCTION - Error in exact query:', exactError);
+      recipientsError = exactError;
+    } else if (exactRecipients && exactRecipients.length > 0) {
+      recipients = exactRecipients;
+      console.log('📧 EDGE FUNCTION - Found recipients with exact match:', recipients.length);
+    } else {
+      // Try with zero-padded format (e.g., "22" → "022")
+      const paddedStoreNumber = storeNumber.padStart(3, '0');
+      console.log('📧 EDGE FUNCTION - Trying padded store number:', paddedStoreNumber);
+      
+      const { data: paddedRecipients, error: paddedError } = await supabase
+        .from('ordering_email_recipients')
+        .select('*')
+        .eq('store_number', paddedStoreNumber)
+        .eq('is_active', true)
+        .eq('email_type', 'order_confirmation');
+
+      if (paddedError) {
+        console.error('📧 EDGE FUNCTION - Error in padded query:', paddedError);
+        recipientsError = paddedError;
+      } else if (paddedRecipients && paddedRecipients.length > 0) {
+        recipients = paddedRecipients;
+        console.log('📧 EDGE FUNCTION - Found recipients with padded match:', recipients.length);
+      } else {
+        console.log('📧 EDGE FUNCTION - No recipients found for either format');
+      }
+    }
 
     if (recipientsError) {
       console.error('Error fetching email recipients:', recipientsError);
@@ -73,7 +114,11 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Found ${recipients.length} recipients for store ${storeNumber}`);
+    console.log('📧 EDGE FUNCTION - Recipients found:', {
+      store_number: storeNumber,
+      recipients_count: recipients.length,
+      recipient_emails: recipients.map(r => ({ email: r.recipient_email, role: r.role }))
+    });
 
     // Generate email content
     const subject = `✅ Order Confirmation – ${orderData.order_type} Order Received`;
