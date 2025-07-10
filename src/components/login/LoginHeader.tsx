@@ -11,8 +11,8 @@ export const LoginHeader = () => {
           className="w-full h-full object-contain drop-shadow-lg rounded-2xl animate-float max-w-none" 
         />
       </div>
-      <h1 className="mt-4 text-3xl font-bold text-zinc-100">Order Tracking System</h1>
-      <p className="mt-2 text-zinc-300">Manage inventory and orders with ease</p>
+      <h1 className="mt-4 text-3xl font-bold uppercase text-zinc-100">ORDERING PLATFORM</h1>
+      <p className="mt-2 text-lg italic text-zinc-300">"Your Orders. Our Priority. One Platform."</p>
     </div>
   );
 };
