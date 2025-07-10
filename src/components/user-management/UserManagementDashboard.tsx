@@ -182,9 +182,13 @@ export function UserManagementDashboard() {
                     <SelectContent>
                       <SelectItem value="all">All Roles</SelectItem>
                       <SelectItem value="super_admin">Super Admin</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="plant_admin">Plant Admin</SelectItem>
+                      <SelectItem value="store_manager">Store Manager</SelectItem>
+                      <SelectItem value="warehouse_manager">Warehouse Manager</SelectItem>
+                      <SelectItem value="operations_manager">Operations Manager</SelectItem>
+                      <SelectItem value="service_manager">Service Manager</SelectItem>
+                      <SelectItem value="team_lead">Team Lead</SelectItem>
+                      <SelectItem value="warehouse_staff">Warehouse Staff</SelectItem>
                     </SelectContent>
                   </Select>
                   

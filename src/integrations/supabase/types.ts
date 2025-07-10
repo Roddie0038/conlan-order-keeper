@@ -2050,6 +2050,7 @@ export type Database = {
         | "plant_manager"
         | "office_manager"
         | "service_manager"
+        | "team_lead"
       ot_user_status:
         | "active"
         | "inactive"
@@ -2073,6 +2074,8 @@ export type Database = {
         | "warehouse_manager"
         | "store_manager"
         | "warehouse_staff"
+        | "team_lead"
+        | "service_manager"
       user_status: "active" | "inactive" | "suspended" | "pending"
     }
     CompositeTypes: {
@@ -2223,6 +2226,7 @@ export const Constants = {
         "plant_manager",
         "office_manager",
         "service_manager",
+        "team_lead",
       ],
       ot_user_status: [
         "active",
@@ -2249,6 +2253,8 @@ export const Constants = {
         "warehouse_manager",
         "store_manager",
         "warehouse_staff",
+        "team_lead",
+        "service_manager",
       ],
       user_status: ["active", "inactive", "suspended", "pending"],
     },
