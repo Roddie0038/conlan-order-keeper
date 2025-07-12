@@ -8,6 +8,9 @@ import { OrderTemplate } from "../order-templates/OrderTemplate";
 import { Card } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCustomFormPersistence } from "@/hooks/useCustomFormPersistence";
+import { ClearFormButton } from "@/components/ui/clear-form-button";
+import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 
 export const MTOOrderForm = () => {
   const { user } = useAuth();
@@ -21,6 +24,18 @@ export const MTOOrderForm = () => {
     isAdmin,
     setFormData
   } = useMTOForm();
+
+  // Form persistence (only for non-admin users)
+  const { lastSaved, isRestoring, clearPersistedData } = useCustomFormPersistence(
+    formData,
+    setFormData,
+    {
+      storageKey: 'ordering-platform-mto-form',
+      excludeFields: ['timestamp'], // Exclude auto-generated timestamp
+      enabled: !user?.isAdmin, // Only enable for non-admin users
+      debounceMs: 2000,
+    }
+  );
   
   // Ensure the store is set to the logged-in user's store
   React.useEffect(() => {
@@ -48,9 +63,21 @@ export const MTOOrderForm = () => {
       description: "The template has been loaded successfully."
     });
   };
+
+  const handleClearForm = () => {
+    // Reset form and clear persistence
+    resetForm();
+    clearPersistedData();
+  };
   
   return (
-    <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
+    <div className="space-y-4">
+      {/* Form persistence feedback - only show for non-admin users */}
+      {!user?.isAdmin && (
+        <FormRestorationBanner isRestoring={isRestoring} lastSaved={lastSaved} />
+      )}
+      
+      <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
       {/* Colored Header Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 flex items-center">
         <img 
@@ -62,7 +89,20 @@ export const MTOOrderForm = () => {
       </div>
       
       <div className="p-6 border-b border-gray-100">
-        <OrderTemplate type="mto" currentData={formData} onLoadTemplate={handleLoadTemplate} />
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <OrderTemplate type="mto" currentData={formData} onLoadTemplate={handleLoadTemplate} />
+          </div>
+          {!user?.isAdmin && (
+            <div className="ml-4">
+              <ClearFormButton 
+                onClear={handleClearForm}
+                lastSaved={lastSaved}
+                disabled={isRestoring}
+              />
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Form Content with Section Headers */}
@@ -130,5 +170,6 @@ export const MTOOrderForm = () => {
         </Button>
       </div>
     </Card>
+    </div>
   );
 };

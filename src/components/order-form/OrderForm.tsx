@@ -20,6 +20,9 @@ import { getCurrentDateTime } from "@/utils/dateTime";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { OrderTemplate } from "../order-templates/OrderTemplate";
 import { Card } from "@/components/ui/card";
+import { useOrderFormPersistence } from "@/hooks/useOrderFormPersistence";
+import { ClearFormButton } from "@/components/ui/clear-form-button";
+import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 
 export function OrderForm() {
   const { user } = useAuth();
@@ -51,6 +54,14 @@ export function OrderForm() {
     defaultValues,
   });
 
+  // Form persistence (only for non-admin users)
+  const { lastSaved, isRestoring, clearPersistedData } = useOrderFormPersistence(form, {
+    storageKey: 'ordering-platform-order-form',
+    excludeFields: ['managersEmail'], // Exclude auto-generated fields
+    enabled: !user?.isAdmin, // Only enable for non-admin users
+    debounceMs: 2000, // Save every 2 seconds after user stops typing
+  });
+
   // Update store when user changes - email routing now handled dynamically
   useEffect(() => {
     if (user?.store && !user?.isAdmin) {
@@ -76,7 +87,8 @@ export function OrderForm() {
     setOrderSummaries(prev => [...prev, newOrder]);
     
     // Show toast notification
-    toast.success("Item Added", {
+    toast({
+      title: "Item Added",
       description: "The item has been added to your order. You can add more items or submit the order.",
     });
     
@@ -129,6 +141,13 @@ export function OrderForm() {
     });
   };
 
+  const handleClearForm = () => {
+    // Clear form and persistence
+    form.reset(defaultValues);
+    clearPersistedData();
+    setOrderSummaries([]);
+  };
+
   // Get current form data for template saving
   const getCurrentFormData = () => {
     return form.getValues();
@@ -138,6 +157,13 @@ export function OrderForm() {
     <OrderFormWrapper>
       <OrderFormHeader />
       
+      {/* Form persistence feedback - only show for non-admin users */}
+      {!user?.isAdmin && (
+        <div className="mb-4">
+          <FormRestorationBanner isRestoring={isRestoring} lastSaved={lastSaved} />
+        </div>
+      )}
+      
       {/* Order Templates Section */}
       <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden mb-6">
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 flex items-center">
@@ -145,11 +171,24 @@ export function OrderForm() {
         </div>
         
         <div className="p-6 border-b border-gray-100">
-          <OrderTemplate 
-            type="regular" 
-            currentData={getCurrentFormData()} 
-            onLoadTemplate={handleLoadTemplate} 
-          />
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <OrderTemplate 
+                type="regular" 
+                currentData={getCurrentFormData()} 
+                onLoadTemplate={handleLoadTemplate} 
+              />
+            </div>
+            {!user?.isAdmin && (
+              <div className="ml-4">
+                <ClearFormButton 
+                  onClear={handleClearForm}
+                  lastSaved={lastSaved}
+                  disabled={isRestoring}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </Card>
       
