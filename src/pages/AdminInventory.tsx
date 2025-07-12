@@ -31,7 +31,7 @@ export default function AdminInventory() {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/dashboard');
   };
 
   if (!user?.isAdmin) {

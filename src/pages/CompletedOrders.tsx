@@ -49,7 +49,7 @@ export default function CompletedOrders() {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const handleDelete = (orderId: string) => {

@@ -33,7 +33,7 @@ export default function RelentlessInventory() {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const handleDashboard = () => {

@@ -32,6 +32,13 @@ const Index = () => {
             >
               Place MTO Order
             </Button>
+            <Button 
+              variant="secondary"
+              onClick={() => navigate("/dashboard")}
+              className="rounded-full px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/30 backdrop-blur-sm transition-all"
+            >
+              Dashboard
+            </Button>
           </div>
         </div>
       </header>

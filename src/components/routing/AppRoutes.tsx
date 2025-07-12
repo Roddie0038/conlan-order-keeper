@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import { HomeRedirect } from '@/components/routing/HomeRedirect';
 
 // Page imports
 import Index from '@/pages/Index';
@@ -33,8 +34,10 @@ import AdminEmailRouting from '@/pages/AdminEmailRouting';
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={
-        <AuthGuard requireAuth={false}>
+      <Route path="/" element={<HomeRedirect />} />
+      
+      <Route path="/new-order" element={
+        <AuthGuard>
           <Index />
         </AuthGuard>
       } />

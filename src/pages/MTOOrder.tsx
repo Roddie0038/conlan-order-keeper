@@ -15,7 +15,7 @@ const MTOOrder = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/dashboard');
   };
 
   if (!user) {

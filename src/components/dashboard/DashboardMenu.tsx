@@ -19,7 +19,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       {
         title: "NEW ORDER",
         icon: null,
-        path: "/pending-orders",
+        path: "/new-order",
         color: "",
         borderColor: "border-yellow-500",
         delay: 0.1,
