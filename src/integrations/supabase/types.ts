@@ -14,6 +14,79 @@ export type Database = {
   }
   public: {
     Tables: {
+      adjustments: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          qty_after: number
+          qty_before: number
+          reason: string
+          sku_id: string
+          status: string
+          updated_at: string
+          user_id: string
+          variance: number | null
+          zone_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          qty_after: number
+          qty_before: number
+          reason: string
+          sku_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          variance?: number | null
+          zone_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          qty_after?: number
+          qty_before?: number
+          reason?: string
+          sku_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          variance?: number | null
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adjustments_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "skus"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "adjustments_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zone_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "adjustments_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_audit_log: {
         Row: {
           action: string | null
@@ -47,6 +120,45 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reason?: string | null
+        }
+        Relationships: []
+      }
+      alert_log: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          recipient_email: string
+          sent_at: string | null
+          sku_id: string
+          status: string
+          trigger_reason: string
+          zone_id: string
+        }
+        Insert: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          recipient_email: string
+          sent_at?: string | null
+          sku_id: string
+          status?: string
+          trigger_reason: string
+          zone_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          recipient_email?: string
+          sent_at?: string | null
+          sku_id?: string
+          status?: string
+          trigger_reason?: string
+          zone_id?: string
         }
         Relationships: []
       }
@@ -217,6 +329,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_email: string
+          status: string
+          target_id: string
+          target_type: string
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_email: string
+          status: string
+          target_id: string
+          target_type: string
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_email?: string
+          status?: string
+          target_id?: string
+          target_type?: string
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           created_at: string | null
@@ -250,6 +398,139 @@ export type Database = {
         }
         Relationships: []
       }
+      email_trigger_usage_log: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          order_id: string | null
+          plant: string
+          recipient_email: string
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          timestamp: string
+          trigger_source: string
+          trigger_type: Database["public"]["Enums"]["email_type_enum"]
+          triggered_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          plant: string
+          recipient_email: string
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          timestamp?: string
+          trigger_source: string
+          trigger_type: Database["public"]["Enums"]["email_type_enum"]
+          triggered_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          plant?: string
+          recipient_email?: string
+          recipient_role?: Database["public"]["Enums"]["recipient_role_enum"]
+          timestamp?: string
+          trigger_source?: string
+          trigger_type?: Database["public"]["Enums"]["email_type_enum"]
+          triggered_by?: string
+        }
+        Relationships: []
+      }
+      global_email_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: boolean
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: boolean
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: boolean
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      inventory_counts: {
+        Row: {
+          created_at: string
+          id: string
+          last_counted_at: string | null
+          last_counted_by: string | null
+          qty_on_hand: number
+          sku_id: string
+          target_qty: number | null
+          updated_at: string
+          variance_threshold: number | null
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_counted_at?: string | null
+          last_counted_by?: string | null
+          qty_on_hand?: number
+          sku_id: string
+          target_qty?: number | null
+          updated_at?: string
+          variance_threshold?: number | null
+          zone_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_counted_at?: string | null
+          last_counted_by?: string | null
+          qty_on_hand?: number
+          sku_id?: string
+          target_qty?: number | null
+          updated_at?: string
+          variance_threshold?: number | null
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_counts_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "skus"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_counts_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zone_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_counts_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           description: string
@@ -265,6 +546,42 @@ export type Database = {
           description?: string
           product_number?: string
           quantity?: number
+        }
+        Relationships: []
+      }
+      inventory_users: {
+        Row: {
+          auth_user_id: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          plant: string
+          role: Database["public"]["Enums"]["inventory_user_role"]
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          plant: string
+          role?: Database["public"]["Enums"]["inventory_user_role"]
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          plant?: string
+          role?: Database["public"]["Enums"]["inventory_user_role"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1252,6 +1569,60 @@ export type Database = {
         }
         Relationships: []
       }
+      plant_admins: {
+        Row: {
+          created_at: string
+          id: string
+          plant: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plant: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plant?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      plant_email_recipients: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          plant_manager_email: string
+          plant_name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          plant_manager_email: string
+          plant_name: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          plant_manager_email?: string
+          plant_name?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       plant_switch_logs: {
         Row: {
           created_at: string | null
@@ -1417,6 +1788,121 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_events: {
+        Row: {
+          device_id: string | null
+          id: string
+          notes: string | null
+          qty_scanned: number
+          scan_type: string
+          sku_id: string
+          synced_at: string | null
+          timestamp: string
+          user_id: string
+          zone_id: string
+        }
+        Insert: {
+          device_id?: string | null
+          id?: string
+          notes?: string | null
+          qty_scanned: number
+          scan_type?: string
+          sku_id: string
+          synced_at?: string | null
+          timestamp?: string
+          user_id: string
+          zone_id: string
+        }
+        Update: {
+          device_id?: string | null
+          id?: string
+          notes?: string | null
+          qty_scanned?: number
+          scan_type?: string
+          sku_id?: string
+          synced_at?: string | null
+          timestamp?: string
+          user_id?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_events_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "skus"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_events_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zone_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_events_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skus: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          is_active: boolean
+          location: string | null
+          part_number: string
+          ply_rating: string | null
+          product_code: string
+          size: string | null
+          uom: string
+          updated_at: string
+          warehouse: string | null
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          part_number: string
+          ply_rating?: string | null
+          product_code: string
+          size?: string | null
+          uom?: string
+          updated_at?: string
+          warehouse?: string | null
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          part_number?: string
+          ply_rating?: string | null
+          product_code?: string
+          size?: string | null
+          uom?: string
+          updated_at?: string
+          warehouse?: string | null
+        }
+        Relationships: []
+      }
       store_email_recipients: {
         Row: {
           created_at: string | null
@@ -1426,6 +1912,7 @@ export type Database = {
           is_active: boolean | null
           platform_source: string | null
           recipient_email: string
+          recipient_name: string | null
           recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
           store_name: string
           store_number: string
@@ -1440,6 +1927,7 @@ export type Database = {
           is_active?: boolean | null
           platform_source?: string | null
           recipient_email: string
+          recipient_name?: string | null
           recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
           store_name: string
           store_number: string
@@ -1454,6 +1942,7 @@ export type Database = {
           is_active?: boolean | null
           platform_source?: string | null
           recipient_email?: string
+          recipient_name?: string | null
           recipient_role?: Database["public"]["Enums"]["recipient_role_enum"]
           store_name?: string
           store_number?: string
@@ -1658,6 +2147,297 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      variance_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          sent_to: string[] | null
+          sku_id: string
+          threshold_exceeded: boolean
+          variance_amount: number
+          variance_percentage: number
+          zone_id: string
+        }
+        Insert: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sent_to?: string[] | null
+          sku_id: string
+          threshold_exceeded?: boolean
+          variance_amount: number
+          variance_percentage: number
+          zone_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sent_to?: string[] | null
+          sku_id?: string
+          threshold_exceeded?: boolean
+          variance_amount?: number
+          variance_percentage?: number
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variance_alerts_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "skus"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variance_alerts_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zone_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variance_alerts_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouse_email_admins: {
+        Row: {
+          assigned_by: string
+          assigned_plants: string[]
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by: string
+          assigned_plants?: string[]
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string
+          assigned_plants?: string[]
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      warehouse_email_message_threads: {
+        Row: {
+          attachments: Json | null
+          created_at: string | null
+          id: string
+          message_body: string
+          order_id: string | null
+          plant: string
+          read: boolean | null
+          recipient_role:
+            | Database["public"]["Enums"]["recipient_role_enum"]
+            | null
+          sent_by: string
+          status:
+            | Database["public"]["Enums"]["trigger_review_status_enum"]
+            | null
+          timestamp: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string | null
+          id?: string
+          message_body: string
+          order_id?: string | null
+          plant: string
+          read?: boolean | null
+          recipient_role?:
+            | Database["public"]["Enums"]["recipient_role_enum"]
+            | null
+          sent_by: string
+          status?:
+            | Database["public"]["Enums"]["trigger_review_status_enum"]
+            | null
+          timestamp?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string | null
+          id?: string
+          message_body?: string
+          order_id?: string | null
+          plant?: string
+          read?: boolean | null
+          recipient_role?:
+            | Database["public"]["Enums"]["recipient_role_enum"]
+            | null
+          sent_by?: string
+          status?:
+            | Database["public"]["Enums"]["trigger_review_status_enum"]
+            | null
+          timestamp?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      warehouse_email_recipients: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          plant: string
+          recipient_email: string
+          recipient_name: string
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          responsibilities: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          plant: string
+          recipient_email: string
+          recipient_name: string
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          responsibilities?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          plant?: string
+          recipient_email?: string
+          recipient_name?: string
+          recipient_role?: Database["public"]["Enums"]["recipient_role_enum"]
+          responsibilities?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      warehouse_email_triggers: {
+        Row: {
+          category: Database["public"]["Enums"]["trigger_category"] | null
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          plant: string
+          recipient_email: string
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          trigger_type: Database["public"]["Enums"]["email_type_enum"]
+          updated_at: string
+          updated_by: string | null
+          use_default_settings: boolean | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["trigger_category"] | null
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          plant: string
+          recipient_email: string
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          trigger_type: Database["public"]["Enums"]["email_type_enum"]
+          updated_at?: string
+          updated_by?: string | null
+          use_default_settings?: boolean | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["trigger_category"] | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          plant?: string
+          recipient_email?: string
+          recipient_role?: Database["public"]["Enums"]["recipient_role_enum"]
+          trigger_type?: Database["public"]["Enums"]["email_type_enum"]
+          updated_at?: string
+          updated_by?: string | null
+          use_default_settings?: boolean | null
+        }
+        Relationships: []
+      }
+      warehouse_trigger_notes: {
+        Row: {
+          added_by: string
+          created_at: string | null
+          id: string
+          note: string
+          status:
+            | Database["public"]["Enums"]["trigger_review_status_enum"]
+            | null
+          trigger_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          added_by: string
+          created_at?: string | null
+          id?: string
+          note: string
+          status?:
+            | Database["public"]["Enums"]["trigger_review_status_enum"]
+            | null
+          trigger_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          added_by?: string
+          created_at?: string | null
+          id?: string
+          note?: string
+          status?:
+            | Database["public"]["Enums"]["trigger_review_status_enum"]
+            | null
+          trigger_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_trigger_notes_trigger_id_fkey"
+            columns: ["trigger_id"]
+            isOneToOne: false
+            referencedRelation: "email_trigger_usage_log"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       warranty_orders: {
         Row: {
@@ -1899,9 +2679,62 @@ export type Database = {
         }
         Relationships: []
       }
+      zones: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          last_scanned_at: string | null
+          location: string
+          plant: string
+          sku_default: string | null
+          updated_at: string
+          zone_alert_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          last_scanned_at?: string | null
+          location: string
+          plant: string
+          sku_default?: string | null
+          updated_at?: string
+          zone_alert_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          last_scanned_at?: string | null
+          location?: string
+          plant?: string
+          sku_default?: string | null
+          updated_at?: string
+          zone_alert_status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      zone_summary_view: {
+        Row: {
+          avg_fill_rate: number | null
+          id: string | null
+          label: string | null
+          last_scan_activity: string | null
+          last_scanned_at: string | null
+          location: string | null
+          plant: string | null
+          sku_count: number | null
+          total_items: number | null
+          zone_alert_status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       approve_user_registration: {
@@ -1937,6 +2770,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_current_inventory_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["inventory_user_role"]
+      }
       get_current_ot_user: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1967,6 +2804,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["ot_user_role"]
       }
+      get_current_user_plant: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_notification_recipients: {
         Args: {
           p_notification_type: string
@@ -1977,6 +2818,22 @@ export type Database = {
           user_email: string
           user_name: string
           user_role: Database["public"]["Enums"]["ot_user_role"]
+        }[]
+      }
+      get_zone_summaries: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          label: string
+          location: string
+          plant: string
+          last_scanned_at: string
+          zone_alert_status: string
+          total_items: number
+          sku_count: number
+          avg_fill_rate: number
+          last_scan_activity: string
+          minutes_since_scan: number
         }[]
       }
       has_plant_access: {
@@ -1995,6 +2852,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_inventory_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_inventory_lead_or_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_ot_operations_manager: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -2002,6 +2867,19 @@ export type Database = {
       is_ot_super_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      log_email_trigger_usage: {
+        Args: {
+          p_trigger_type: Database["public"]["Enums"]["email_type_enum"]
+          p_plant: string
+          p_recipient_email: string
+          p_recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          p_trigger_source: string
+          p_triggered_by: string
+          p_order_id?: string
+          p_metadata?: Json
+        }
+        Returns: string
       }
       log_ot_auth_event: {
         Args: {
@@ -2018,6 +2896,18 @@ export type Database = {
       normalize_plant_name: {
         Args: { input_plant: string }
         Returns: string
+      }
+      normalize_store_format: {
+        Args: { input_store: string }
+        Returns: string
+      }
+      normalize_store_name: {
+        Args: { input_store: string }
+        Returns: string
+      }
+      refresh_zone_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       set_temporary_password: {
         Args: {
@@ -2038,6 +2928,8 @@ export type Database = {
         | "cross_dock"
         | "out_of_stock"
         | "message"
+        | "customer_complaints"
+      inventory_user_role: "staff" | "lead" | "admin"
       ot_user_role:
         | "super_admin"
         | "operations_manager"
@@ -2067,6 +2959,18 @@ export type Database = {
         | "plant_admin"
         | "assistant_manager"
         | "operations_coordinator"
+        | "service_manager"
+      trigger_category:
+        | "inventory"
+        | "production"
+        | "fleet_completion"
+        | "warranty_qa"
+        | "customer_messaging"
+      trigger_review_status_enum:
+        | "pending"
+        | "in_review"
+        | "resolved"
+        | "flagged"
       user_role:
         | "super_admin"
         | "operations_manager"
@@ -2213,7 +3117,9 @@ export const Constants = {
         "cross_dock",
         "out_of_stock",
         "message",
+        "customer_complaints",
       ],
+      inventory_user_role: ["staff", "lead", "admin"],
       ot_user_role: [
         "super_admin",
         "operations_manager",
@@ -2245,6 +3151,20 @@ export const Constants = {
         "plant_admin",
         "assistant_manager",
         "operations_coordinator",
+        "service_manager",
+      ],
+      trigger_category: [
+        "inventory",
+        "production",
+        "fleet_completion",
+        "warranty_qa",
+        "customer_messaging",
+      ],
+      trigger_review_status_enum: [
+        "pending",
+        "in_review",
+        "resolved",
+        "flagged",
       ],
       user_role: [
         "super_admin",
