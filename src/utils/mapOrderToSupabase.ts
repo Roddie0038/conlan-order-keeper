@@ -1,18 +1,19 @@
 
 import type { OrderData } from "@/types/supabase-extensions";
+import { normalizeStoreForSubmission } from './storeNormalization';
 
 export function mapOrderToSupabase(form: any, user: any): any {
   return {
     timestamp: new Date().toISOString(),
     name: form.yourName || form.name,
-    store: form.store,
+    store: normalizeStoreForSubmission(form.store),
     product_number: form.productNumber,
     description: form.description,
     quantity: Number(form.quantity),
     schedule_arrival: form.scheduleArrival,
     notes: form.notes || '',
     cross_dock_type: form.crossDock,
-    cross_dock_destination: form.crossDockDestination,
+    cross_dock_destination: normalizeStoreForSubmission(form.crossDockDestination),
     cross_dock_receiver_number: form.receiverNo,
     cross_dock_eta_date: form.etaDate,
     email: form.managersEmail || form.email,

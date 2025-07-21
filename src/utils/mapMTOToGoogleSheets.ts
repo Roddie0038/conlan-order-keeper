@@ -1,9 +1,11 @@
 
+import { normalizeStoreForSubmission } from './storeNormalization';
+
 export function mapMTOToGoogleSheets(form: any, user: any): any {
   return {
     timestamp: new Date().toISOString(),
     name: form.name,
-    store: form.store,
+    store: normalizeStoreForSubmission(form.store),
     productNumber: form.productNumber,
     casingGrade: form.casingGrade,
     tireSize: form.tireSize,

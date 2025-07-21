@@ -1,9 +1,11 @@
 
+import { normalizeStoreForSubmission } from './storeNormalization';
+
 export function mapMTOToSupabase(form: any, user: any): any {
   return {
     timestamp: new Date().toISOString(),
     name: form.name,
-    store: form.store,
+    store: normalizeStoreForSubmission(form.store),
     product_number: form.productNumber,
     casing_grade: form.casingGrade,
     tire_size: form.tireSize,
