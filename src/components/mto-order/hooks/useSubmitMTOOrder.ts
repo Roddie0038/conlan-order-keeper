@@ -11,6 +11,7 @@ import { getPlantForStore } from "@/utils/plantMapping";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
 import type { MTOOrderData } from "@/types/supabase-extensions";
+import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
   const { user } = useAuth();
@@ -36,19 +37,26 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
     try {
       console.log("🔍 MTO FORM - Starting MTO submission");
       
-      // Get manager email and plant
-      const managerEmail = await getFirstManagerEmail(formData.store);
-      const plant = getPlantForStore(formData.store);
+      // CRITICAL: Normalize store to "Store XX" format BEFORE any processing
+      const normalizedStore = normalizeStoreForSubmission(formData.store);
+      console.log("🔄 MTO FORM STORE NORMALIZATION:", {
+        original: formData.store,
+        normalized: normalizedStore
+      });
+      
+      // Get manager email and plant using normalized store
+      const managerEmail = await getFirstManagerEmail(normalizedStore);
+      const plant = getPlantForStore(normalizedStore);
       const tireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       const timestamp = new Date().toISOString();
       
       console.log("🔍 MTO FORM - Manager email:", managerEmail);
       console.log("🔍 MTO FORM - Plant:", plant);
 
-      // Create order data in camelCase (internal format)
-      const mtoOrderData: MTOOrderData = {
+      // Create order data in camelCase (internal format) with normalized store
+      const baseMTOOrder: MTOOrderData = {
         name: formData.name,
-        store: formData.store,
+        store: normalizedStore, // ✅ Normalized
         productNumber: formData.productNumber,
         casingGrade: formData.casingGrade.join(", "),
         tireSize: tireSize,
@@ -65,8 +73,11 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         status: "open", 
         description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`,
       };
+      
+      // Apply comprehensive normalization to all store fields
+      const mtoOrderData = normalizeOrderStoreFields(baseMTOOrder);
 
-      console.log("🔍 MTO FORM - Submission data:", mtoOrderData);
+      console.log("🔍 MTO FORM - Submission data with normalized stores:", mtoOrderData);
 
       // Submit to Supabase (uses mapMTOToSupabase internally for snake_case)
       const savedOrder = await saveOrderToSupabase(mtoOrderData, user);
@@ -81,10 +92,10 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       try {
         console.log("📧 MTO FORM - Sending order confirmation email...");
         
-        const storeNumber = formData.store.match(/\d+$/)?.[0] || "";
+        const storeNumber = extractStoreNumber(normalizedStore);
         const orderConfirmationData = {
           store_number: storeNumber,
-          store_name: formData.store,
+          store_name: normalizedStore, // ✅ Normalized
           order_type: 'MTO',
           order_id: savedOrder.data?.id?.toString() || 'Unknown',
           timestamp: timestamp,
@@ -109,7 +120,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       console.log("🔍 MTO FORM - Google Sheets result:", result);
 
       // Send workflow notification emails using centralized database routing
-      const storeNumberForNotification = formData.store.match(/\d+$/)?.[0] || "";
+      const storeNumberForNotification = extractStoreNumber(normalizedStore);
       if (storeNumberForNotification) {
         try {
           const emailResult = await getStoreEmailRecipients(storeNumberForNotification, 'mto');

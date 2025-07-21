@@ -6,6 +6,8 @@ import { submitRetreadWarranty } from "@/services/warrantyService";
 import { validateWarrantyForm } from "@/utils/warrantyValidation";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { RetreadWarrantyFormData } from "./useRetreadWarrantyForm";
+import { getPlantForStore } from "@/utils/plantMapping";
+import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
 
 export const useWarrantySubmission = () => {
   const { user } = useAuth();
@@ -31,12 +33,19 @@ export const useWarrantySubmission = () => {
     try {
       console.log("🚀 Starting warranty claim submission...");
       
-      // Get the proper manager email and store name using the same logic as other forms
-      const managerEmail = await getFirstManagerEmail(user?.store || "");
-      const storeName = user?.store || "";
+      // CRITICAL: Normalize store to "Store XX" format BEFORE any processing
+      const normalizedStore = normalizeStoreForSubmission(user?.store || "");
+      console.log("🔄 WARRANTY STORE NORMALIZATION:", {
+        original: user?.store,
+        normalized: normalizedStore
+      });
+      
+      // Get the proper manager email and store name using normalized store
+      const managerEmail = await getFirstManagerEmail(normalizedStore);
+      const storeName = normalizedStore;
       const submitterName = user?.name || "Store Manager";
       
-      console.log("📧 WARRANTY SUBMISSION - Using email:", managerEmail, "for store:", storeName);
+      console.log("📧 WARRANTY SUBMISSION - Using email:", managerEmail, "for normalized store:", storeName);
       
       // Upload invoice file if provided
       let invoiceUrl = "";
@@ -53,10 +62,10 @@ export const useWarrantySubmission = () => {
         ? await uploadMultipleFiles(form.photoFiles, "warranty-photos", user?.id)
         : [];
 
-      // Submit warranty claim with proper email and store information
+      // Submit warranty claim with proper email and normalized store information
       const result = await submitRetreadWarranty({
-        plant: user?.plant || "Grand Prairie 97",
-        store: storeName,
+        plant: getPlantForStore(normalizedStore) || "Grand Prairie 097",
+        store: normalizedStore, // ✅ Normalized
         tire_type: "Retread",
         dot_number: form.dotNumber,
         condition: form.condition,

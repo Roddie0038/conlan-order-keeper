@@ -8,6 +8,7 @@ import { getStoreEmailRecipients } from "@/services/emailRouting";
 import type { OrderData } from "@/types/supabase-extensions";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage
@@ -19,17 +20,24 @@ import { supabase } from "@/integrations/supabase/client";
 export const processOrder = async (order: OrderSummary, selectedPlant: string) => {
   console.log("🔍 SUBMIT - Processing order:", order.id);
   
+  // CRITICAL: Normalize store to "Store XX" format BEFORE any processing
+  const normalizedStore = normalizeStoreForSubmission(order.store);
+  console.log("🔄 PROCESS ORDER STORE NORMALIZATION:", {
+    original: order.store,
+    normalized: normalizedStore
+  });
+  
   // Get store manager email from database (no hardcoded emails)
-  const storeNumber = order.store.match(/\d+$/)?.[0] || "";
+  const storeNumber = extractStoreNumber(normalizedStore);
   const storeManagerEmail = ""; // Will be retrieved from database during email routing
   
-  // Determine correct plant based on store - this is critical for cross-platform routing
-  const plant = getPlantForStore(order.store);
-  console.log(`🔍 SUBMIT - Determined plant '${plant}' for store: ${order.store}`);
+  // Determine correct plant based on normalized store - this is critical for cross-platform routing
+  const plant = getPlantForStore(normalizedStore);
+  console.log(`🔍 SUBMIT - Determined plant '${plant}' for normalized store: ${normalizedStore}`);
   
   // Validate plant determination
   if (!plant) {
-    console.warn(`⚠️ SUBMIT - Could not determine plant for store: ${order.store}`);
+    console.warn(`⚠️ SUBMIT - Could not determine plant for normalized store: ${normalizedStore}`);
     console.warn(`⚠️ SUBMIT - Defaulting to selected plant: ${selectedPlant}`);
   }
   
@@ -76,9 +84,10 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
   const formattedTimestamp = formatDateForSupabase(new Date());
   
-  // Create Google Sheets payload (camelCase format)
-  const googleSheetsPayload = {
+  // Create Google Sheets payload (camelCase format) with normalized store
+  const baseGoogleSheetsPayload = {
     ...order,
+    store: normalizedStore, // ✅ Normalized
     plant: plant || selectedPlant,
     type: orderType, // Use the determined order type for proper routing
     name: order.yourName || order.name || "Unknown",
@@ -86,7 +95,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     
     // Keep the frontend field names for Google Sheets/Zapier (camelCase)
     crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", 
-    crossDockDestination: formattedCrossDockDestination,
+    crossDockDestination: normalizeStoreForSubmission(formattedCrossDockDestination), // ✅ Normalized
     receiverNo: order.receiverNo || null,
     etaDate: order.etaDate || null,
     
@@ -98,11 +107,14 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     managerEmail: storeManagerEmail,
     managersEmail: storeManagerEmail
   };
+  
+  // Apply comprehensive normalization to all store fields
+  const googleSheetsPayload = normalizeOrderStoreFields(baseGoogleSheetsPayload);
 
   // Create Supabase payload (snake_case format) - CRITICAL FIX: Remove dateReceived
-  let supabaseOrder: any = {
+  let baseSupabaseOrder: any = {
     name: order.yourName || order.name || "Unknown",
-    store: order.store,
+    store: normalizedStore, // ✅ Normalized
     product_number: order.productNumber, // snake_case for Supabase
     description: order.description,
     quantity: parseInt(order.quantity?.toString() || "0") || 0,
@@ -116,12 +128,15 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     status_updated_at: new Date().toISOString()
   };
   
+  // Apply comprehensive normalization to all store fields
+  let supabaseOrder = normalizeOrderStoreFields(baseSupabaseOrder);
+  
   // Only add cross dock fields for regular transfer orders (not MTO/Wheel)
   if (orderType === 'TRANSFER') {
     supabaseOrder = {
       ...supabaseOrder,
       cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
-      cross_dock_destination: formattedCrossDockDestination,
+      cross_dock_destination: normalizeStoreForSubmission(formattedCrossDockDestination), // ✅ Normalized
       cross_dock_receiver_number: order.receiverNo || null,
       cross_dock_eta_date: order.etaDate || null,
       destination_manager_email: destinationManagerEmail

@@ -13,6 +13,7 @@ import { getStoreEmailRecipients } from "@/services/emailRouting";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
 import { supabase } from "@/integrations/supabase/client";
 import type { OrderData } from "@/types/supabase-extensions";
+import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 
 export function useOrderFormSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,24 +39,24 @@ export function useOrderFormSubmit() {
     try {
       // Process each order individually to handle emails properly
       for (const order of selectedOrders) {
-        // PHASE 1: Enhanced Store Number Extraction and normalization
-        let storeNumber = "";
-        if (/^\d+$/.test(order.store)) {
-          // Pure number like "22"
-          storeNumber = order.store;
-        } else {
-          // Store name with number like "Fort Worth 22"
-          const match = order.store.match(/\d+$/);
-          storeNumber = match ? match[0] : "";
-        }
+        // CRITICAL: Normalize store to "Store XX" format BEFORE any processing
+        const normalizedStore = normalizeStoreForSubmission(order.store);
+        console.log("🔄 STORE NORMALIZATION:", {
+          original: order.store,
+          normalized: normalizedStore
+        });
+        
+        // PHASE 1: Enhanced Store Number Extraction from normalized store
+        const storeNumber = extractStoreNumber(normalizedStore);
         
         console.log("📧 ORDER SUBMIT - Store extraction:", {
           original_store: order.store,
+          normalized_store: normalizedStore,
           extracted_store_number: storeNumber
         });
         
-        // Determine the plant based on the store
-        const plant = getPlantForStore(order.store);
+        // Determine the plant based on the normalized store
+        const plant = getPlantForStore(normalizedStore);
         
         // Determine order type based on order properties
         let orderType = "TRANSFER"; // Default to TRANSFER
@@ -71,24 +72,27 @@ export function useOrderFormSubmit() {
         
         console.log("🔍 ORDER SUBMIT - Determined order type:", orderType, "for order:", order);
         
-        // Format the order for submission - Using camelCase field names
-        const formattedOrder: OrderData = {
+        // Format the order for submission - NORMALIZE ALL STORE FIELDS
+        const baseOrder: OrderData = {
           name: order.yourName,
-          store: order.store,
+          store: normalizedStore, // ✅ Normalized
           productNumber: order.productNumber,
           description: order.description,
           quantity: parseInt(order.quantity.toString()) || 0,
           scheduleArrival: order.scheduleArrival,
           notes: order.notes,
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
-          crossDockDestination: SHOW_CROSS_DOCK ? order.crossDockDestination : "",
+          crossDockDestination: SHOW_CROSS_DOCK ? normalizeStoreForSubmission(order.crossDockDestination || "") : "", // ✅ Normalized
           email: user?.email || "", // Use submitting user's email
           plant: plant,
           timestamp: new Date().toISOString(),
           type: orderType // Use the determined order type
         };
+        
+        // Apply comprehensive normalization to all store fields
+        const formattedOrder = normalizeOrderStoreFields(baseOrder);
 
-        console.log("🔍 ORDER SUBMIT - Submitting order:", formattedOrder);
+        console.log("🔍 ORDER SUBMIT - Submitting order with normalized stores:", formattedOrder);
 
         // Submit to Supabase
         const savedOrder = await saveOrderToSupabase(formattedOrder);

@@ -11,6 +11,7 @@ import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import { getPlantForStore } from "@/utils/plantMapping";
 import type { OrderData } from "@/types/supabase-extensions";
+import { normalizeStoreForSubmission, normalizeOrderStoreFields } from "@/utils/storeNormalization";
 
 // Helper function to format dates as MM/DD/YYYY hh:mm AM/PM
 const formatTimestamp = (dateString: string): string => {
@@ -60,9 +61,16 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         qtyWheels: formData.qtyWheels
       });
       
-      // Determine plant based on store
-      const plant = getPlantForStore(formData.storeName);
-      console.log(`🔍 WHEEL FORM - ✅ PLANT DETERMINED - '${plant}' for store: ${formData.storeName}`);
+      // CRITICAL: Normalize store to "Store XX" format BEFORE any processing
+      const normalizedStoreName = normalizeStoreForSubmission(formData.storeName);
+      console.log("🔄 WHEEL FORM STORE NORMALIZATION:", {
+        original: formData.storeName,
+        normalized: normalizedStoreName
+      });
+      
+      // Determine plant based on normalized store
+      const plant = getPlantForStore(normalizedStoreName);
+      console.log(`🔍 WHEEL FORM - ✅ PLANT DETERMINED - '${plant}' for store: ${normalizedStoreName}`);
       
       // Format timestamps properly
       const currentTimestamp = formatTimestamp(new Date().toISOString());
@@ -70,9 +78,9 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       const formattedReceivedAt = formatTimestamp(formData.dateReceived);
       
       // Create the order data with EXACT field names that the webhook expects
-      const supabaseOrder: OrderData = {
+      const baseOrder: OrderData = {
         name: formData.yourName,
-        store: formData.storeName,
+        store: normalizedStoreName, // ✅ Normalized
         productNumber: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
         quantity: parseInt(formData.qtyWheels) || 0,
@@ -101,10 +109,14 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         managersEmail: managerEmail,
         storeColors: formData.storeColors || "Yellow"
       };
+      
+      // Apply comprehensive normalization to all store fields
+      const supabaseOrder = normalizeOrderStoreFields(baseOrder);
 
       console.log("🔍 WHEEL FORM - ✅ ORDER DATA CREATED - Final order data being submitted:", JSON.stringify(supabaseOrder, null, 2));
       console.log("🔍 WHEEL FORM - ✅ CRITICAL FIELDS verification:", {
         type: supabaseOrder.type,
+        store: supabaseOrder.store, // Should be normalized now
         customerName: supabaseOrder.customerName,
         wheelMaterial: supabaseOrder.wheelMaterial,
         wheelType: supabaseOrder.wheelType,
