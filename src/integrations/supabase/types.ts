@@ -585,6 +585,42 @@ export type Database = {
         }
         Relationships: []
       }
+      label_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          elements: Json
+          height: number
+          id: string
+          is_shared: boolean | null
+          name: string
+          updated_at: string | null
+          width: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          elements: Json
+          height: number
+          id?: string
+          is_shared?: boolean | null
+          name: string
+          updated_at?: string | null
+          width: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          elements?: Json
+          height?: number
+          id?: string
+          is_shared?: boolean | null
+          name?: string
+          updated_at?: string | null
+          width?: number
+        }
+        Relationships: []
+      }
       managers: {
         Row: {
           created_at: string | null
@@ -2221,6 +2257,7 @@ export type Database = {
           assigned_plants: string[]
           created_at: string
           email: string
+          email_triggers: string[] | null
           full_name: string
           id: string
           is_active: boolean
@@ -2232,6 +2269,7 @@ export type Database = {
           assigned_plants?: string[]
           created_at?: string
           email: string
+          email_triggers?: string[] | null
           full_name: string
           id?: string
           is_active?: boolean
@@ -2243,6 +2281,7 @@ export type Database = {
           assigned_plants?: string[]
           created_at?: string
           email?: string
+          email_triggers?: string[] | null
           full_name?: string
           id?: string
           is_active?: boolean
