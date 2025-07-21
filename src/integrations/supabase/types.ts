@@ -585,13 +585,61 @@ export type Database = {
         }
         Relationships: []
       }
+      label_template_versions: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          elements: Json
+          height: number
+          id: string
+          template_id: string | null
+          version_name: string
+          width: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          elements: Json
+          height: number
+          id?: string
+          template_id?: string | null
+          version_name: string
+          width: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          elements?: Json
+          height?: number
+          id?: string
+          template_id?: string | null
+          version_name?: string
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "label_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "label_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       label_templates: {
         Row: {
           created_at: string | null
           created_by: string
+          description: string | null
+          element_count: number | null
           elements: Json
           height: number
           id: string
+          is_favorite: boolean | null
+          is_featured: boolean | null
           is_shared: boolean | null
           name: string
           updated_at: string | null
@@ -600,9 +648,13 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by: string
+          description?: string | null
+          element_count?: number | null
           elements: Json
           height: number
           id?: string
+          is_favorite?: boolean | null
+          is_featured?: boolean | null
           is_shared?: boolean | null
           name: string
           updated_at?: string | null
@@ -611,9 +663,13 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string
+          description?: string | null
+          element_count?: number | null
           elements?: Json
           height?: number
           id?: string
+          is_favorite?: boolean | null
+          is_featured?: boolean | null
           is_shared?: boolean | null
           name?: string
           updated_at?: string | null
