@@ -3,6 +3,7 @@ import { WheelFormData } from "./types";
 import { ContactInformation } from "./sections/ContactInformation";
 import { OrderDetails } from "./sections/OrderDetails";
 import { WheelSpecifications } from "./sections/WheelSpecifications";
+import { MandatoryPlantSelector } from "@/components/ui/mandatory-plant-selector";
 
 interface WheelFormInputsProps {
   formData: WheelFormData;
@@ -10,6 +11,7 @@ interface WheelFormInputsProps {
   onInputChange: (name: string, value: string) => void;
   onStoreChange: (value: string) => void;
   user: any;
+  plantError?: string;
 }
 
 export function WheelFormInputs({ 
@@ -17,7 +19,8 @@ export function WheelFormInputs({
   managerEmail, 
   onInputChange, 
   onStoreChange, 
-  user 
+  user,
+  plantError
 }: WheelFormInputsProps) {
   return (
     <div className="space-y-8">
@@ -28,6 +31,18 @@ export function WheelFormInputs({
         onStoreChange={onStoreChange}
         user={user}
       />
+
+      {/* Mandatory Plant Selector */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+          🎯 Destination Plant
+        </h3>
+        <MandatoryPlantSelector
+          value={formData.destinationPlant || ""}
+          onChange={(value) => onInputChange("destinationPlant", value)}
+          error={plantError}
+        />
+      </div>
       
       <OrderDetails 
         formData={formData}

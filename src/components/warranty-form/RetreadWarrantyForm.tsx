@@ -12,6 +12,8 @@ export default function RetreadWarrantyForm() {
     form,
     loading,
     setLoading,
+    errors,
+    setErrors,
     handleChange,
     handleFileChange,
     handleCheckbox,
@@ -21,7 +23,7 @@ export default function RetreadWarrantyForm() {
   const { submitWarranty } = useWarrantySubmission();
 
   const handleSubmit = () => {
-    submitWarranty(form, setLoading, resetForm);
+    submitWarranty(form, setLoading, resetForm, setErrors);
   };
 
   return (
@@ -42,7 +44,7 @@ export default function RetreadWarrantyForm() {
           guideUrl="/lovable-uploads/6bf42604-5925-4802-bdef-1c34ebff45f3.png"
         />
         
-        <BasicFormFields form={form} onChange={handleChange} />
+        <BasicFormFields form={form} onChange={handleChange} errors={errors} />
         <FileUploadFields onFileChange={handleFileChange} />
         <AcknowledgmentSection 
           acknowledged={form.acknowledged}

@@ -1,81 +1,69 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { MTOFormData, initialMTOFormData } from "../mto-form-config";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
-
-interface SessionValues {
-  name: string;
-}
+import { MTOFormData } from "../mto-form-config";
 
 export const useMTOForm = () => {
-  const { toast } = useToast();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sessionValues, setSessionValues] = useState<SessionValues>({
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [formData, setFormData] = useState<MTOFormData>({
+    store: user?.store || "",
     name: "",
+    timestamp: new Date().toLocaleString(),
+    productNumber: "",
+    casingGrade: [],
+    tireSize: "",
+    customTireSize: "",
+    tireTreadNeeded: "",
+    quantity: "",
+    notes: "",
+    managerEmail: "",
+    destinationPlant: "", // ✅ Empty by default - user must select
   });
-  
-  const [formData, setFormData] = useState<MTOFormData>(() => {
-    return {
-      ...initialMTOFormData,
-      store: user?.store || "",
-      managerEmail: "", // Will be populated dynamically
-    };
-  });
-
-  useEffect(() => {
-    const storedName = sessionStorage.getItem('mtoOrderName');
-    
-    if (storedName) {
-      setFormData(prev => ({
-        ...prev,
-        name: storedName || '',
-      }));
-      setSessionValues({
-        name: storedName || '',
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (user?.store) {
-      const loadManagerEmail = async () => {
-        const managerEmail = await getFirstManagerEmail(user.store);
-        setFormData(prev => ({
-          ...prev,
-          store: user.store,
-          managerEmail: managerEmail
-        }));
-      };
-      loadManagerEmail();
-    }
-  }, [user?.store]);
 
   const handleChange = (field: string, value: string | string[]) => {
-    if (field === 'store' && !user?.isAdmin) {
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
-    if (field === 'name') {
-      sessionStorage.setItem('mtoOrderName', value as string);
-      setSessionValues(prev => ({ ...prev, name: value as string }));
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear error when field is updated
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
     }
   };
 
   const resetForm = () => {
     setFormData({
-      ...initialMTOFormData,
       store: user?.store || "",
-      managerEmail: "", // Will be populated dynamically
-      name: sessionValues.name,
+      name: "",
+      timestamp: new Date().toLocaleString(),
+      productNumber: "",
+      casingGrade: [],
+      tireSize: "",
+      customTireSize: "",
+      tireTreadNeeded: "",
+      quantity: "",
+      notes: "",
+      managerEmail: "",
+      destinationPlant: "",
     });
+    setErrors({});
+  };
+
+  // Get manager email when needed
+  const getManagerEmail = async () => {
+    if (formData.store) {
+      try {
+        return await getFirstManagerEmail(formData.store);
+      } catch (error) {
+        console.error("Error getting manager email:", error);
+        return "";
+      }
+    }
+    return "";
   };
 
   return {
@@ -83,10 +71,12 @@ export const useMTOForm = () => {
     setFormData,
     isSubmitting,
     setIsSubmitting,
-    sessionValues,
+    errors,
+    setErrors,
     handleChange,
     resetForm,
+    getManagerEmail,
     toast,
-    isAdmin: user?.isAdmin || false
+    isAdmin: user?.isAdmin || false,
   };
 };

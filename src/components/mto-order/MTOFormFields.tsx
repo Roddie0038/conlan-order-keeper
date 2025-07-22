@@ -6,28 +6,27 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { getPlantForStore } from "@/utils/plantMapping";
+import { MandatoryPlantSelector } from "@/components/ui/mandatory-plant-selector";
 
 interface MTOFormFieldsProps {
   formData: MTOFormData;
   onChange: (field: string, value: string | string[]) => void;
   isAdmin?: boolean;
   section?: "store" | "product" | "order" | "all";
+  plantError?: string;
 }
 
 export const MTOFormFields = ({
   formData,
   onChange,
   isAdmin = false,
-  section = "all"
+  section = "all",
+  plantError
 }: MTOFormFieldsProps) => {
   const handleCasingGradeChange = (grade: string, checked: boolean) => {
     const updatedGrades = checked ? [...formData.casingGrade, grade] : formData.casingGrade.filter(g => g !== grade);
     onChange("casingGrade", updatedGrades);
   };
-
-  // Calculate plant based on selected store
-  const plant = formData.store ? getPlantForStore(formData.store) : "";
   
   // Store Information Fields
   const renderStoreFields = () => (
@@ -56,15 +55,6 @@ export const MTOFormFields = ({
         />
       )}
 
-      {/* Plant Field - Read-only, auto-fills based on store */}
-      <FormField 
-        label="Plant" 
-        value={plant || ""} 
-        onChange={() => {}} 
-        disabled={true} 
-        placeholder="Plant will be automatically assigned" 
-      />
-
       <FormField 
         label="Timestamp" 
         value={formData.timestamp} 
@@ -89,6 +79,15 @@ export const MTOFormFields = ({
         placeholder="Manager's email will be automatically set" 
       />
     </div>
+  );
+  
+  // Plant Selection Field (separate from store fields)
+  const renderPlantSelector = () => (
+    <MandatoryPlantSelector
+      value={formData.destinationPlant || ""}
+      onChange={(value) => onChange("destinationPlant", value)}
+      error={plantError}
+    />
   );
   
   // Product Details Fields
@@ -190,6 +189,7 @@ export const MTOFormFields = ({
   
   // Render appropriate sections based on the prop
   if (section === "store") return renderStoreFields();
+  if (section === "plant") return renderPlantSelector();
   if (section === "product") return renderProductFields();
   if (section === "order") return renderOrderFields();
   
@@ -197,6 +197,7 @@ export const MTOFormFields = ({
   return (
     <div className="space-y-6">
       {renderStoreFields()}
+      {renderPlantSelector()}
       {renderProductFields()}
       {renderOrderFields()}
     </div>

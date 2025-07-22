@@ -2,18 +2,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePlant } from "@/contexts/PlantContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
-import { WEBHOOK_URLS } from "@/services/webhook/config";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
-import { getPlantForStore } from "@/utils/plantMapping";
 import type { OrderData } from "@/types/supabase-extensions";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields } from "@/utils/storeNormalization";
 
-// Helper function to format dates as MM/DD/YYYY hh:mm AM/PM
 const formatTimestamp = (dateString: string): string => {
   const date = new Date(dateString);
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -23,16 +19,20 @@ const formatTimestamp = (dateString: string): string => {
   let hours = date.getHours();
   const ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12;
-  hours = hours ? hours : 12; // Convert 0 to 12
+  hours = hours ? hours : 12;
   
   const minutes = String(date.getMinutes()).padStart(2, '0');
   
   return `${month}/${day}/${year} ${hours}:${minutes} ${ampm}`;
 };
 
-export function useWheelFormSubmission(formData: WheelFormData, managerEmail: string) {
+export function useWheelFormSubmission(
+  formData: WheelFormData, 
+  managerEmail: string, 
+  errors: Record<string, string>,
+  setErrors: (errors: Record<string, string>) => void
+) {
   const { user } = useAuth();
-  const { selectedPlant } = usePlant(); // ✅ Get selected plant from context
   const navigate = useNavigate();
   const { toast } = useToast();
   const { validateForm } = useWheelFormValidation();
@@ -40,55 +40,45 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    console.log("🔍 WHEEL FORM SUBMISSION - ✅ SUBMIT TRIGGERED - Raw form data received:", JSON.stringify(formData, null, 2));
+    
+    // Validation including plant selection
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.destinationPlant) {
+      newErrors.destinationPlant = "Please select a destination plant";
+    }
 
     if (!validateForm(formData, user?.isAdmin)) {
-      setIsSubmitting(false);
+      newErrors.general = "Please fill in all required fields";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast({
+        title: "Validation Error",
+        description: "Please complete all required fields before submitting.",
+        variant: "destructive",
+      });
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      console.log("🔍 WHEEL FORM - ✅ VALIDATION PASSED - Preparing wheel order submission");
-      console.log("🔍 WHEEL FORM - ✅ FORM DATA VERIFICATION before submission:", {
-        customerName: formData.customerName,
-        wheelMaterial: formData.wheelMaterial,
-        wheelType: formData.wheelType,
-        handHoles: formData.handHoles,
-        wheelSize: formData.wheelSize,
-        wheelColor: formData.wheelColor,
-        qtyWheels: formData.qtyWheels
-      });
+      console.log("🔍 WHEEL FORM - Starting submission with plant:", formData.destinationPlant);
       
-      // CRITICAL: Normalize store to "Store XX" format BEFORE any processing
       const normalizedStoreName = normalizeStoreForSubmission(formData.storeName);
-      console.log("🔄 WHEEL FORM STORE NORMALIZATION:", {
-        original: formData.storeName,
-        normalized: normalizedStoreName
-      });
       
-      // ✅ CRITICAL FIX: Use selectedPlant first, then fallback to store mapping
-      const mappedPlant = getPlantForStore(normalizedStoreName);
-      const finalPlant = selectedPlant || mappedPlant || 'Grand Prairie 097';
+      console.log("✅ WHEEL FORM - Using selected plant:", formData.destinationPlant);
       
-      console.log("🔍 WHEEL FORM - Plant selection logic:", {
-        selectedPlant,
-        mappedPlant,
-        finalPlant,
-        store: normalizedStoreName
-      });
-      console.log("✅ Final Plant Used:", finalPlant);
-      
-      // Format timestamps properly
       const currentTimestamp = formatTimestamp(new Date().toISOString());
       const formattedScheduleArrival = formData.scheduleArrival ? formatTimestamp(formData.scheduleArrival) : formatTimestamp(formData.dateReceived);
       const formattedReceivedAt = formatTimestamp(formData.dateReceived);
       
-      // Create the order data with EXACT field names that the webhook expects
+      // Create order data using the selected plant directly
       const baseOrder: OrderData = {
         name: formData.yourName,
-        store: normalizedStoreName, // ✅ Normalized
+        store: normalizedStoreName,
         productNumber: "WHEEL-COATING",
         description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
         quantity: parseInt(formData.qtyWheels) || 0,
@@ -97,12 +87,12 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         email: managerEmail,
         timestamp: currentTimestamp,
         type: "WHEEL_POWDER_COATING",
-        plant: finalPlant, // ✅ Use selected plant with fallback
+        plant: formData.destinationPlant, // ✅ Use selected plant directly
         status: "open",
         crossDock: "No" as const,
         crossDockType: "No" as const,
         
-        // CRITICAL: Ensure all wheel specification fields are properly mapped
+        // Wheel specification fields
         customerName: formData.customerName || "",
         wheelMaterial: formData.wheelMaterial || "",
         wheelType: formData.wheelType || "",
@@ -111,58 +101,28 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         wheelColor: formData.wheelColor || "",
         qtyWheels: formData.qtyWheels || "",
         
-        // Additional fields for webhook processing
+        // Additional fields
         yourName: formData.yourName,
         dateReceived: formData.dateReceived,
         managersEmail: managerEmail,
         storeColors: formData.storeColors || "Yellow"
       };
       
-      // Apply comprehensive normalization to all store fields
       const supabaseOrder = normalizeOrderStoreFields(baseOrder);
 
-      console.log("🔍 WHEEL FORM - ✅ ORDER DATA CREATED - Final order data being submitted:", JSON.stringify(supabaseOrder, null, 2));
-      console.log("🔍 WHEEL FORM - ✅ CRITICAL FIELDS verification:", {
-        type: supabaseOrder.type,
-        store: supabaseOrder.store, // Should be normalized now
-        customerName: supabaseOrder.customerName,
-        wheelMaterial: supabaseOrder.wheelMaterial,
-        wheelType: supabaseOrder.wheelType,
-        handHoles: supabaseOrder.handHoles,
-        wheelSize: supabaseOrder.wheelSize,
-        wheelColor: supabaseOrder.wheelColor,
-        qtyWheels: supabaseOrder.qtyWheels,
-        plant: supabaseOrder.plant
+      console.log("🔍 WHEEL FORM - Final order data:", {
+        plant: supabaseOrder.plant,
+        store: supabaseOrder.store,
+        type: supabaseOrder.type
       });
       
-      // Validate that all critical wheel data is present before submission
-      if (!formData.wheelMaterial || !formData.wheelType || !formData.wheelSize || !formData.wheelColor || !formData.handHoles || !formData.customerName) {
-        console.error("❌ WHEEL FORM - Missing critical wheel specification data:", {
-          customerName: formData.customerName,
-          wheelMaterial: formData.wheelMaterial,
-          wheelType: formData.wheelType,
-          wheelSize: formData.wheelSize,
-          wheelColor: formData.wheelColor,
-          handHoles: formData.handHoles
-        });
-        
-        toast({
-          title: "Missing Required Fields",
-          description: "Please fill in all required fields before submitting.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      console.log("🔍 WHEEL FORM - ✅ ALL VALIDATIONS PASSED - About to call submitToGoogleSheets");
-      console.log("🔍 WHEEL FORM - ✅ CRITICAL: This should trigger the wheel webhook to Google Sheets");
+      console.log("🔍 WHEEL FORM - Submitting to Google Sheets...");
       
       const result = await submitToGoogleSheets(supabaseOrder);
       
-      console.log("🔍 WHEEL FORM - ✅ GOOGLE SHEETS CALL COMPLETED - Result:", result);
+      console.log("✅ WHEEL FORM - Google Sheets result:", result);
       
-      // Save to Supabase with properly typed data
+      // Save to Supabase
       await saveOrderToSupabase(supabaseOrder);
       
       if (result.status === 'success' || result.status === 'partial_success') {
@@ -175,7 +135,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
 
         toast({
           title: "🔧 Wheel order submitted successfully! 🔧",
-          description: "Your wheel powder coating order has been submitted and is ready for processing!",
+          description: `Your wheel powder coating order has been submitted to ${formData.destinationPlant}!`,
         });
         navigate('/dashboard');
       } else {

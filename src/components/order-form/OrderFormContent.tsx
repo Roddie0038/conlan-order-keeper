@@ -6,6 +6,7 @@ import { ContactSection } from "./sections/ContactSection";
 import { ProductSection } from "./sections/ProductSection";
 import { ScheduleSection } from "./sections/ScheduleSection";
 import { CrossDockSection } from "./sections/CrossDockSection";
+import { MandatoryPlantSelector } from "@/components/ui/mandatory-plant-selector";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 
 interface OrderFormContentProps {
@@ -26,6 +27,13 @@ export function OrderFormContent({
         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-6 border border-gray-100 dark:border-gray-800">
           <ContactSection form={form} />
         </div>
+        
+        {/* Mandatory Plant Selector */}
+        <MandatoryPlantSelector
+          value={form.watch("destinationPlant") || ""}
+          onChange={(value) => form.setValue("destinationPlant", value)}
+          error={form.formState.errors.destinationPlant?.message}
+        />
         
         {/* Order Details */}
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-100 dark:border-blue-900/30">

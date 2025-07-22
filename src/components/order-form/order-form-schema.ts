@@ -20,6 +20,7 @@ export const formSchema = z
     etaDate: z.string().optional(),
     crossDockConfirmation: z.boolean().optional().default(false),
     managersEmail: z.string(),
+    destinationPlant: z.string().min(1, "Please select a destination plant"),
   })
   .superRefine((data, ctx) => {
     if (data.crossDock === "Yes") {

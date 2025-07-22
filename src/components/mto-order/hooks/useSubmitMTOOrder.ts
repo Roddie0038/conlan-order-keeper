@@ -2,72 +2,59 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePlant } from "@/contexts/PlantContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
-import { getPlantForStore } from "@/utils/plantMapping";
-import { getStoreEmailRecipients } from "@/services/emailRouting";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
 import type { MTOOrderData } from "@/types/supabase-extensions";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 
-export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
+export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast, errors, setErrors }: any) => {
   const { user } = useAuth();
-  const { selectedPlant } = usePlant(); // ✅ Get selected plant from context
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
+    
     // Validation
-    if (!formData.store || !formData.name || !formData.productNumber || 
-        !formData.tireSize || !formData.tireTreadNeeded || !formData.quantity || 
-        formData.casingGrade.length === 0) {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.store) newErrors.store = "Store is required";
+    if (!formData.name) newErrors.name = "Name is required";
+    if (!formData.productNumber) newErrors.productNumber = "Product number is required";
+    if (!formData.tireSize) newErrors.tireSize = "Tire size is required";
+    if (!formData.tireTreadNeeded) newErrors.tireTreadNeeded = "Tire tread needed is required";
+    if (!formData.quantity) newErrors.quantity = "Quantity is required";
+    if (formData.casingGrade.length === 0) newErrors.casingGrade = "At least one casing grade must be selected";
+    if (!formData.destinationPlant) newErrors.destinationPlant = "Please select a destination plant";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
         variant: "destructive",
       });
-      setIsSubmitting(false);
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      console.log("🔍 MTO FORM - Starting MTO submission");
+      console.log("🔍 MTO FORM - Starting MTO submission with plant:", formData.destinationPlant);
       
-      // CRITICAL: Normalize store to "Store XX" format BEFORE any processing
       const normalizedStore = normalizeStoreForSubmission(formData.store);
-      console.log("🔄 MTO FORM STORE NORMALIZATION:", {
-        original: formData.store,
-        normalized: normalizedStore
-      });
-      
-      // Get manager email and plant using normalized store
       const managerEmail = await getFirstManagerEmail(normalizedStore);
-      
-      // ✅ CRITICAL FIX: Use selectedPlant first, then fallback to store mapping
-      const mappedPlant = getPlantForStore(normalizedStore);
-      const finalPlant = selectedPlant || mappedPlant || 'Grand Prairie 097';
-      
-      console.log("🔍 MTO FORM - Plant selection logic:", {
-        selectedPlant,
-        mappedPlant,
-        finalPlant,
-        store: normalizedStore
-      });
-      console.log("✅ Final Plant Used:", finalPlant);
       
       const tireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       const timestamp = new Date().toISOString();
       
-      console.log("🔍 MTO FORM - Manager email:", managerEmail);
+      console.log("✅ MTO FORM - Using selected plant:", formData.destinationPlant);
 
-      // Create order data in camelCase (internal format) with normalized store
+      // Create order data using the selected plant directly
       const baseMTOOrder: MTOOrderData = {
         name: formData.name,
-        store: normalizedStore, // ✅ Normalized
+        store: normalizedStore,
         productNumber: formData.productNumber,
         casingGrade: formData.casingGrade.join(", "),
         tireSize: tireSize,
@@ -77,7 +64,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         notes: formData.notes || "",
         email: managerEmail,
         managerEmail: managerEmail,
-        plant: finalPlant, // ✅ Use selected plant with fallback
+        plant: formData.destinationPlant, // ✅ Use selected plant directly
         timestamp: timestamp,
         type: "MTO",
         orderType: "MTO",
@@ -85,28 +72,28 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`,
       };
       
-      // Apply comprehensive normalization to all store fields
       const mtoOrderData = normalizeOrderStoreFields(baseMTOOrder);
 
-      console.log("🔍 MTO FORM - Submission data with normalized stores:", mtoOrderData);
+      console.log("🔍 MTO FORM - Final submission data:", {
+        plant: mtoOrderData.plant,
+        store: mtoOrderData.store
+      });
 
-      // Submit to Supabase (uses mapMTOToSupabase internally for snake_case)
+      // Submit to Supabase
       const savedOrder = await saveOrderToSupabase(mtoOrderData, user);
       
       if (savedOrder.error) {
         throw new Error("Failed to submit MTO order to database");
       }
       
-      console.log("🔍 MTO FORM - Saved to Supabase successfully:", savedOrder.data);
+      console.log("✅ MTO FORM - Saved to Supabase with plant:", mtoOrderData.plant);
 
       // Send order confirmation email
       try {
-        console.log("📧 MTO FORM - Sending order confirmation email...");
-        
         const storeNumber = extractStoreNumber(normalizedStore);
         const orderConfirmationData = {
           store_number: storeNumber,
-          store_name: normalizedStore, // ✅ Normalized
+          store_name: normalizedStore,
           order_type: 'MTO',
           order_id: savedOrder.data?.id?.toString() || 'Unknown',
           timestamp: timestamp,
@@ -120,64 +107,20 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
         
         if (confirmationResult.success) {
-          console.log(`✅ MTO FORM - Order confirmation email sent for order ${savedOrder.data?.id}`);
+          console.log(`✅ MTO FORM - Order confirmation email sent for plant ${mtoOrderData.plant}`);
         }
       } catch (emailError) {
         console.error("❌ MTO FORM - Error sending order confirmation email:", emailError);
       }
 
-      // Submit to Google Sheets (uses mapMTOToGoogleSheets internally for camelCase)
+      // Submit to Google Sheets
       const result = await submitToGoogleSheets(mtoOrderData, user);
       console.log("🔍 MTO FORM - Google Sheets result:", result);
-
-      // Send workflow notification emails using centralized database routing
-      const storeNumberForNotification = extractStoreNumber(normalizedStore);
-      if (storeNumberForNotification) {
-        try {
-          const emailResult = await getStoreEmailRecipients(storeNumberForNotification, 'mto');
-          const emailRecipients = emailResult.recipients;
-          
-          console.log(`🔍 MTO FORM - Email recipients (${emailResult.source}):`, emailRecipients);
-          if (emailResult.source === 'fallback') {
-            console.warn(`🔍 MTO FORM - Using fallback routing: ${emailResult.fallbackReason}`);
-          }
-          
-          if (emailRecipients.length > 0) {
-            try {
-            const emailResponse = await fetch(
-              `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/mto-notification`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
-                },
-                body: JSON.stringify({
-                  mtoData: mtoOrderData,
-                  orderId: savedOrder.data?.id || 'unknown',
-                  recipients: emailRecipients
-                })
-              }
-            );
-            
-            if (emailResponse.ok) {
-              console.log("✅ MTO FORM - Email notification sent successfully");
-            } else {
-              console.error("❌ MTO FORM - Email notification failed");
-            }
-            } catch (emailError) {
-              console.error("❌ MTO FORM - Error sending email notification:", emailError);
-            }
-          }
-        } catch (emailRoutingError) {
-          console.error("❌ MTO FORM - Error getting email recipients:", emailRoutingError);
-        }
-      }
 
       if (result.status === 'success' || result.status === 'partial_success') {
         toast({
           title: "🎉 MTO order submitted successfully! 🎉",
-          description: "Your MTO order has been submitted and is being processed with excitement!",
+          description: `Your MTO order has been submitted to ${formData.destinationPlant}!`,
         });
         resetForm();
       } else {

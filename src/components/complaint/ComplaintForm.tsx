@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultipleFileUploader } from "./MultipleFileUploader";
+import { MandatoryPlantSelector } from "@/components/ui/mandatory-plant-selector";
 import { uploadMultipleFiles } from "@/services/storageService";
 import { supabase } from "@/integrations/supabase/client";
 import { getComplaintNotificationRecipients } from "@/services/managerService";
@@ -21,6 +22,7 @@ interface ComplaintFormData {
   identifiedConcern: string;
   salesPerson: string;
   attachments: File[];
+  destinationPlant: string;
 }
 
 const COMPLAINT_TYPES = [{
@@ -53,7 +55,8 @@ export function ComplaintForm() {
     orderId: "",
     identifiedConcern: "",
     salesPerson: "",
-    attachments: []
+    attachments: [],
+    destinationPlant: ""
   });
   const [errors, setErrors] = useState<Partial<ComplaintFormData>>({});
 
@@ -67,6 +70,9 @@ export function ComplaintForm() {
     }
     if (!formData.identifiedConcern.trim()) {
       newErrors.identifiedConcern = "Identified concern is required";
+    }
+    if (!formData.destinationPlant) {
+      newErrors.destinationPlant = "Please select a destination plant";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -94,7 +100,7 @@ export function ComplaintForm() {
 
     setIsSubmitting(true);
     try {
-      console.log("🚀 Starting complaint submission...");
+      console.log("🚀 Starting complaint submission for plant:", formData.destinationPlant);
 
       // Upload attachments if any
       let attachmentUrls: string[] = [];
@@ -104,7 +110,6 @@ export function ComplaintForm() {
         console.log("✅ Attachments uploaded:", attachmentUrls);
       }
 
-      // Extract store number from store name for plant code mapping
       const storeNumber = user.store.match(/\d+/)?.[0] || "22";
 
       // Submit complaint to database
@@ -124,7 +129,12 @@ export function ComplaintForm() {
           status: 'Open',
           submitted_by_name: user.name,
           submitted_by_email: user.email,
-          date_submitted: new Date().toISOString()
+          date_submitted: new Date().toISOString(),
+          notes: JSON.stringify([{
+            plant: formData.destinationPlant,
+            timestamp: new Date().toISOString(),
+            note: `Complaint submitted for plant: ${formData.destinationPlant}`
+          }])
         })
         .select()
         .single();
@@ -135,7 +145,7 @@ export function ComplaintForm() {
       }
       console.log("✅ Complaint inserted successfully:", complaintData.id);
 
-      // Get notification recipients using new function with store manager auto-inclusion
+      // Get notification recipients
       const recipients = await getComplaintNotificationRecipients(storeNumber, user.email);
 
       // Send email notification
@@ -144,20 +154,20 @@ export function ComplaintForm() {
         body: {
           complaint: complaintData,
           recipients: recipients,
-          attachmentUrls: attachmentUrls
+          attachmentUrls: attachmentUrls,
+          destinationPlant: formData.destinationPlant
         }
       });
 
       if (emailError) {
         console.error("❌ Email notification error:", emailError);
-        // Don't throw - complaint is still submitted successfully
       } else {
         console.log("✅ Email notification sent successfully");
       }
 
       toast({
         title: "Complaint Submitted Successfully",
-        description: "Your complaint has been submitted and the appropriate managers have been notified."
+        description: `Your complaint has been submitted for ${formData.destinationPlant} and the appropriate managers have been notified.`
       });
 
       // Reset form
@@ -168,7 +178,8 @@ export function ComplaintForm() {
         orderId: "",
         identifiedConcern: "",
         salesPerson: "",
-        attachments: []
+        attachments: [],
+        destinationPlant: ""
       });
       setErrors({});
     } catch (error) {
@@ -222,6 +233,13 @@ export function ComplaintForm() {
               <p className="text-sm">{user.name} ({user.email})</p>
             </div>
           </div>
+
+          {/* Mandatory Plant Selector */}
+          <MandatoryPlantSelector
+            value={formData.destinationPlant}
+            onChange={(value) => updateFormData('destinationPlant', value)}
+            error={errors.destinationPlant}
+          />
 
           {/* Required Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

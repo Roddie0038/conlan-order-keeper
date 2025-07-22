@@ -6,7 +6,6 @@ import { submitRetreadWarranty } from "@/services/warrantyService";
 import { validateWarrantyForm } from "@/utils/warrantyValidation";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { RetreadWarrantyFormData } from "./useRetreadWarrantyForm";
-import { getPlantForStore } from "@/utils/plantMapping";
 import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
 
 export const useWarrantySubmission = () => {
@@ -16,36 +15,41 @@ export const useWarrantySubmission = () => {
   const submitWarranty = async (
     form: RetreadWarrantyFormData,
     setLoading: (loading: boolean) => void,
-    resetForm: () => void
+    resetForm: () => void,
+    setErrors: (errors: Record<string, string>) => void
   ) => {
     // Validation
+    const newErrors: Record<string, string> = {};
+    
+    if (!form.destinationPlant) {
+      newErrors.destinationPlant = "Please select a destination plant";
+    }
+
     const validation = validateWarrantyForm(form);
     if (!validation.isValid) {
+      newErrors.general = validation.errors[0];
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       toast({ 
         variant: "destructive", 
         title: "Validation Error",
-        description: validation.errors[0]
+        description: "Please complete all required fields"
       });
       return;
     }
 
     setLoading(true);
     try {
-      console.log("🚀 Starting warranty claim submission...");
+      console.log("🚀 Starting warranty claim submission for plant:", form.destinationPlant);
       
-      // CRITICAL: Normalize store to "Store XX" format BEFORE any processing
       const normalizedStore = normalizeStoreForSubmission(user?.store || "");
-      console.log("🔄 WARRANTY STORE NORMALIZATION:", {
-        original: user?.store,
-        normalized: normalizedStore
-      });
-      
-      // Get the proper manager email and store name using normalized store
       const managerEmail = await getFirstManagerEmail(normalizedStore);
       const storeName = normalizedStore;
       const submitterName = user?.name || "Store Manager";
       
-      console.log("📧 WARRANTY SUBMISSION - Using email:", managerEmail, "for normalized store:", storeName);
+      console.log("✅ WARRANTY FORM - Using selected plant:", form.destinationPlant);
       
       // Upload invoice file if provided
       let invoiceUrl = "";
@@ -62,10 +66,10 @@ export const useWarrantySubmission = () => {
         ? await uploadMultipleFiles(form.photoFiles, "warranty-photos", user?.id)
         : [];
 
-      // Submit warranty claim with proper email and normalized store information
+      // Submit warranty claim using the selected plant directly
       const result = await submitRetreadWarranty({
-        plant: getPlantForStore(normalizedStore) || "Grand Prairie 097",
-        store: normalizedStore, // ✅ Normalized
+        plant: form.destinationPlant, // ✅ Use selected plant directly
+        store: normalizedStore,
         tire_type: "Retread",
         dot_number: form.dotNumber,
         condition: form.condition,
@@ -83,9 +87,11 @@ export const useWarrantySubmission = () => {
         throw result.error;
       }
 
+      console.log("✅ WARRANTY FORM - Submitted to plant:", form.destinationPlant);
+
       toast({ 
         title: "Success!",
-        description: "Warranty claim submitted successfully. You will be notified once credit is processed." 
+        description: `Warranty claim submitted successfully to ${form.destinationPlant}. You will be notified once credit is processed.` 
       });
       
       resetForm();

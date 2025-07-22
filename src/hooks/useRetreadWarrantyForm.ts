@@ -2,71 +2,81 @@
 import { useState } from "react";
 
 export interface RetreadWarrantyFormData {
-  customerName: string;
-  workOrder: string;
   dotNumber: string;
-  tireSize: string;
   condition: string;
   notes: string;
+  customerName: string;
+  workOrder: string;
+  tireSize: string;
   invoiceFile: File | null;
   photoFiles: File[];
   acknowledged: boolean;
+  destinationPlant: string;
 }
 
 export const useRetreadWarrantyForm = () => {
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
   const [form, setForm] = useState<RetreadWarrantyFormData>({
-    customerName: "",
-    workOrder: "",
     dotNumber: "",
-    tireSize: "",
     condition: "",
     notes: "",
+    customerName: "",
+    workOrder: "",
+    tireSize: "",
     invoiceFile: null,
     photoFiles: [],
     acknowledged: false,
+    destinationPlant: ""
   });
 
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+  const handleChange = (field: keyof RetreadWarrantyFormData, value: any) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    
+    // Clear error when field is updated
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "invoice" | "photos") => {
-    if (type === "invoice") {
-      setForm({ ...form, invoiceFile: e.target.files?.[0] || null });
+  const handleFileChange = (field: 'invoiceFile' | 'photoFiles', files: File | File[] | null) => {
+    if (field === 'invoiceFile') {
+      setForm(prev => ({ ...prev, [field]: files as File | null }));
     } else {
-      setForm({ ...form, photoFiles: Array.from(e.target.files || []) });
+      setForm(prev => ({ ...prev, [field]: files as File[] }));
     }
   };
 
   const handleCheckbox = (checked: boolean) => {
-    setForm({ ...form, acknowledged: checked });
+    setForm(prev => ({ ...prev, acknowledged: checked }));
+    if (errors.acknowledged) {
+      setErrors(prev => ({ ...prev, acknowledged: "" }));
+    }
   };
 
   const resetForm = () => {
     setForm({
-      customerName: "",
-      workOrder: "",
       dotNumber: "",
-      tireSize: "",
       condition: "",
       notes: "",
+      customerName: "",
+      workOrder: "",
+      tireSize: "",
       invoiceFile: null,
       photoFiles: [],
       acknowledged: false,
+      destinationPlant: ""
     });
-    
-    // Reset file inputs
-    const fileInputs = document.querySelectorAll('input[type="file"]') as NodeListOf<HTMLInputElement>;
-    fileInputs.forEach(input => input.value = '');
+    setErrors({});
   };
 
   return {
     form,
     loading,
     setLoading,
+    errors,
+    setErrors,
     handleChange,
     handleFileChange,
     handleCheckbox,
