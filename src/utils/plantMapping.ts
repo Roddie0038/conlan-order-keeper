@@ -9,7 +9,7 @@ export const PLANT_STORE_MAP = {
   // Plant 098 – Romulus (Midwest)  
   "Romulus 098": [
     "Store 20", "Store 21", "Store 22", "Store 23", "Store 24", 
-    "Store 25", "Store 26", "Store 28", "Store 29", 
+    "Store 25", "Store 26", "Store 28", 
     "Store 30", "Store 31", "Store 32", "Store 33", "Store 34", 
     "Store 35", "Store 36", "Store 37", "Store 38", "Store 39", 
     "Store 40", "Store 41", "Store 42", "Store 43", "Store 44", 
@@ -17,7 +17,7 @@ export const PLANT_STORE_MAP = {
   ],
   // Plant 097 – Grand Prairie (Texas)
   "Grand Prairie 097": [
-    "Store 27", "Store 97"
+    "Store 27", "Store 29", "Store 97"
   ]
 };
 
@@ -50,14 +50,14 @@ export function getPlantForStore(store: string): string | undefined {
       return "Mulberry 099";
     }
     
-    // Grand Prairie 097: stores 27 and 97
-    if (num === 27 || num === 97) {
+    // Grand Prairie 097: stores 27, 29, and 97
+    if (num === 27 || num === 29 || num === 97) {
       console.log(`✅ PLANT MAPPING - Mapped to Grand Prairie 097`);
       return "Grand Prairie 097";
     }
     
-    // Romulus 098: stores 20-50 (excluding 27)
-    if (num >= 20 && num <= 50 && num !== 27) {
+    // Romulus 098: stores 20-50 (excluding 27, 29)
+    if (num >= 20 && num <= 50 && num !== 27 && num !== 29) {
       console.log(`✅ PLANT MAPPING - Mapped to Romulus 098`);
       return "Romulus 098";
     }
