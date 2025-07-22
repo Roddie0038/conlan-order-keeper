@@ -3000,6 +3000,10 @@ export type Database = {
         Args: { input_store: string }
         Returns: string
       }
+      normalize_store_number_for_email: {
+        Args: { input_store: string }
+        Returns: string
+      }
       refresh_zone_alerts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
