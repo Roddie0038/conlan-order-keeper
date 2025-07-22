@@ -1,3 +1,4 @@
+
 // Store data configuration - MASTER REFERENCE: Store XX format
 // Email routing now handled by store_email_recipients table and dynamicEmailService.ts
 export const storeData = [
@@ -14,7 +15,7 @@ export const storeData = [
   { storeNumber: "10", name: "Store 10", plant: "Mulberry 099" },
   { storeNumber: "11", name: "Store 11", plant: "Mulberry 099" },
   
-  // Romulus 098 Plant Stores (20-50)
+  // Romulus 098 Plant Stores (20-50, excluding 27)
   { storeNumber: "20", name: "Store 20", plant: "Romulus 098" },
   { storeNumber: "21", name: "Store 21", plant: "Romulus 098" },
   { storeNumber: "22", name: "Store 22", plant: "Romulus 098" },
@@ -22,7 +23,6 @@ export const storeData = [
   { storeNumber: "24", name: "Store 24", plant: "Romulus 098" },
   { storeNumber: "25", name: "Store 25", plant: "Romulus 098" },
   { storeNumber: "26", name: "Store 26", plant: "Romulus 098" },
-  { storeNumber: "27", name: "Store 27", plant: "Romulus 098" },
   { storeNumber: "28", name: "Store 28", plant: "Romulus 098" },
   { storeNumber: "29", name: "Store 29", plant: "Romulus 098" },
   { storeNumber: "30", name: "Store 30", plant: "Romulus 098" },
@@ -47,6 +47,7 @@ export const storeData = [
   { storeNumber: "49", name: "Store 49", plant: "Romulus 098" },
   { storeNumber: "50", name: "Store 50", plant: "Romulus 098" },
   
-  // Grand Prairie 097 Plant Stores (97)
+  // Grand Prairie 097 Plant Stores (27, 97)
+  { storeNumber: "27", name: "Store 27", plant: "Grand Prairie 097" },
   { storeNumber: "97", name: "Store 97", plant: "Grand Prairie 097" },
 ];
