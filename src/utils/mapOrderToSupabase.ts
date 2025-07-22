@@ -2,7 +2,7 @@
 import type { OrderData } from "@/types/supabase-extensions";
 import { normalizeStoreForSubmission } from './storeNormalization';
 
-export function mapOrderToSupabase(form: any, user: any): any {
+export function mapOrderToSupabase(form: any, user: any, selectedPlant?: string): any {
   return {
     timestamp: new Date().toISOString(),
     name: form.yourName || form.name,
@@ -20,7 +20,7 @@ export function mapOrderToSupabase(form: any, user: any): any {
     destination_manager_email: form.destinationManagerEmail,
     order_type: form.type || 'TRANSFER',
     status: 'pending',
-    plant: user?.assignedPlant || form.plant || '',
+    plant: selectedPlant || user?.assignedPlant || form.plant || '', // ✅ Use selectedPlant first
     status_updated_at: new Date().toISOString()
     // Removed dateReceived field as it doesn't exist in the orders table schema
   };

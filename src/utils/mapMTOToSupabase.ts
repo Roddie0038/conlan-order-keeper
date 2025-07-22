@@ -1,7 +1,7 @@
 
 import { normalizeStoreForSubmission } from './storeNormalization';
 
-export function mapMTOToSupabase(form: any, user: any): any {
+export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): any {
   return {
     timestamp: new Date().toISOString(),
     name: form.name,
@@ -13,7 +13,7 @@ export function mapMTOToSupabase(form: any, user: any): any {
     quantity: Number(form.quantity),
     notes: form.notes || '',
     email: form.email || form.managerEmail,
-    plant: user?.assignedPlant || form.plant || '',
+    plant: selectedPlant || user?.assignedPlant || form.plant || '', // ✅ Use selectedPlant first
     order_type: 'MTO',
     type: 'MTO',
     status: 'open', // FIXED: Changed from "pending" to "open" to match Supabase constraint

@@ -32,7 +32,7 @@ const formatTimestamp = (dateString: string): string => {
 
 export function useWheelFormSubmission(formData: WheelFormData, managerEmail: string) {
   const { user } = useAuth();
-  const { selectedPlant } = usePlant();
+  const { selectedPlant } = usePlant(); // ✅ Get selected plant from context
   const navigate = useNavigate();
   const { toast } = useToast();
   const { validateForm } = useWheelFormValidation();
@@ -68,9 +68,17 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         normalized: normalizedStoreName
       });
       
-      // Determine plant based on normalized store
-      const plant = getPlantForStore(normalizedStoreName);
-      console.log(`🔍 WHEEL FORM - ✅ PLANT DETERMINED - '${plant}' for store: ${normalizedStoreName}`);
+      // ✅ CRITICAL FIX: Use selectedPlant first, then fallback to store mapping
+      const mappedPlant = getPlantForStore(normalizedStoreName);
+      const finalPlant = selectedPlant || mappedPlant || 'Grand Prairie 097';
+      
+      console.log("🔍 WHEEL FORM - Plant selection logic:", {
+        selectedPlant,
+        mappedPlant,
+        finalPlant,
+        store: normalizedStoreName
+      });
+      console.log("✅ Final Plant Used:", finalPlant);
       
       // Format timestamps properly
       const currentTimestamp = formatTimestamp(new Date().toISOString());
@@ -89,7 +97,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         email: managerEmail,
         timestamp: currentTimestamp,
         type: "WHEEL_POWDER_COATING",
-        plant: plant,
+        plant: finalPlant, // ✅ Use selected plant with fallback
         status: "open",
         crossDock: "No" as const,
         crossDockType: "No" as const,
@@ -123,7 +131,8 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         handHoles: supabaseOrder.handHoles,
         wheelSize: supabaseOrder.wheelSize,
         wheelColor: supabaseOrder.wheelColor,
-        qtyWheels: supabaseOrder.qtyWheels
+        qtyWheels: supabaseOrder.qtyWheels,
+        plant: supabaseOrder.plant
       });
       
       // Validate that all critical wheel data is present before submission

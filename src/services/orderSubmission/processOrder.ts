@@ -1,3 +1,4 @@
+
 import { OrderSummary } from "@/hooks/useOrderSubmission";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
@@ -14,7 +15,7 @@ import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNum
  * Process an individual order - handle Google Sheets submission and Supabase storage
  * 
  * @param order - The order to process
- * @param selectedPlant - The currently selected plant
+ * @param selectedPlant - The currently selected plant from PlantContext
  * @returns The processed order with additional metadata
  */
 export const processOrder = async (order: OrderSummary, selectedPlant: string) => {
@@ -31,14 +32,22 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const storeNumber = extractStoreNumber(normalizedStore);
   const storeManagerEmail = ""; // Will be retrieved from database during email routing
   
-  // Determine correct plant based on normalized store - this is critical for cross-platform routing
-  const plant = getPlantForStore(normalizedStore);
-  console.log(`🔍 SUBMIT - Determined plant '${plant}' for normalized store: ${normalizedStore}`);
+  // CRITICAL FIX: Use selectedPlant first, then fallback to store mapping
+  const mappedPlant = getPlantForStore(normalizedStore);
+  const finalPlant = selectedPlant || mappedPlant || 'Grand Prairie 097';
+  
+  console.log("🔍 SUBMIT - Plant selection logic:", {
+    selectedPlant,
+    mappedPlant,
+    finalPlant,
+    store: normalizedStore
+  });
+  console.log("✅ Final Plant Used:", finalPlant);
   
   // Validate plant determination
-  if (!plant) {
+  if (!mappedPlant && !selectedPlant) {
     console.warn(`⚠️ SUBMIT - Could not determine plant for normalized store: ${normalizedStore}`);
-    console.warn(`⚠️ SUBMIT - Defaulting to selected plant: ${selectedPlant}`);
+    console.warn(`⚠️ SUBMIT - Using fallback plant: Grand Prairie 097`);
   }
   
   // CRITICAL FIX: Determine order type based on order properties
@@ -88,7 +97,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const baseGoogleSheetsPayload = {
     ...order,
     store: normalizedStore, // ✅ Normalized
-    plant: plant || selectedPlant,
+    plant: finalPlant, // ✅ Use selected plant with fallback
     type: orderType, // Use the determined order type for proper routing
     name: order.yourName || order.name || "Unknown",
     email: storeManagerEmail,
@@ -121,7 +130,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     schedule_arrival: order.scheduleArrival, // snake_case for Supabase
     notes: order.notes,
     email: storeManagerEmail,
-    plant: plant || selectedPlant,
+    plant: finalPlant, // ✅ Use selected plant with fallback
     order_type: orderType,
     timestamp: formattedTimestamp, // Use formatted timestamp - NO dateReceived
     status: 'pending',

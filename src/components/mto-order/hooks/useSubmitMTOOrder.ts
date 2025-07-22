@@ -15,7 +15,7 @@ import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNum
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
   const { user } = useAuth();
-  const { selectedPlant } = usePlant();
+  const { selectedPlant } = usePlant(); // ✅ Get selected plant from context
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,12 +46,23 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       
       // Get manager email and plant using normalized store
       const managerEmail = await getFirstManagerEmail(normalizedStore);
-      const plant = getPlantForStore(normalizedStore);
+      
+      // ✅ CRITICAL FIX: Use selectedPlant first, then fallback to store mapping
+      const mappedPlant = getPlantForStore(normalizedStore);
+      const finalPlant = selectedPlant || mappedPlant || 'Grand Prairie 097';
+      
+      console.log("🔍 MTO FORM - Plant selection logic:", {
+        selectedPlant,
+        mappedPlant,
+        finalPlant,
+        store: normalizedStore
+      });
+      console.log("✅ Final Plant Used:", finalPlant);
+      
       const tireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       const timestamp = new Date().toISOString();
       
       console.log("🔍 MTO FORM - Manager email:", managerEmail);
-      console.log("🔍 MTO FORM - Plant:", plant);
 
       // Create order data in camelCase (internal format) with normalized store
       const baseMTOOrder: MTOOrderData = {
@@ -66,7 +77,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         notes: formData.notes || "",
         email: managerEmail,
         managerEmail: managerEmail,
-        plant: plant,
+        plant: finalPlant, // ✅ Use selected plant with fallback
         timestamp: timestamp,
         type: "MTO",
         orderType: "MTO",

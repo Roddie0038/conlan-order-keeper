@@ -1,7 +1,7 @@
 
 import { normalizeStoreForSubmission } from './storeNormalization';
 
-export function mapMTOToGoogleSheets(form: any, user: any): any {
+export function mapMTOToGoogleSheets(form: any, user: any, selectedPlant?: string): any {
   return {
     timestamp: new Date().toISOString(),
     name: form.name,
@@ -15,7 +15,7 @@ export function mapMTOToGoogleSheets(form: any, user: any): any {
     notes: form.notes || '',
     email: form.email || form.managerEmail,
     managerEmail: form.managerEmail,
-    plant: user?.assignedPlant || form.plant || '',
+    plant: selectedPlant || user?.assignedPlant || form.plant || '', // ✅ Use selectedPlant first
     type: 'MTO',
     orderType: 'MTO',
     status: 'pending',

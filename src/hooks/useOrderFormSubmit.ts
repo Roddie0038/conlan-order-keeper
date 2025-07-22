@@ -18,7 +18,7 @@ import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNum
 export function useOrderFormSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
-  const { selectedPlant } = usePlant();
+  const { selectedPlant } = usePlant(); // ✅ Get selected plant from context
   const { toast } = useToast();
 
   const handleSubmitOrders = async (
@@ -55,8 +55,17 @@ export function useOrderFormSubmit() {
           extracted_store_number: storeNumber
         });
         
-        // Determine the plant based on the normalized store
-        const plant = getPlantForStore(normalizedStore);
+        // ✅ CRITICAL FIX: Use selectedPlant first, then fallback to store mapping
+        const mappedPlant = getPlantForStore(normalizedStore);
+        const finalPlant = selectedPlant || mappedPlant || 'Grand Prairie 097';
+        
+        console.log("🔍 ORDER SUBMIT - Plant selection logic:", {
+          selectedPlant,
+          mappedPlant,
+          finalPlant,
+          store: normalizedStore
+        });
+        console.log("✅ Final Plant Used:", finalPlant);
         
         // Determine order type based on order properties
         let orderType = "TRANSFER"; // Default to TRANSFER
@@ -84,7 +93,7 @@ export function useOrderFormSubmit() {
           crossDock: SHOW_CROSS_DOCK ? (order.crossDock === "Yes" ? "Yes" : "No") : "No" as "Yes" | "No",
           crossDockDestination: SHOW_CROSS_DOCK ? normalizeStoreForSubmission(order.crossDockDestination || "") : "", // ✅ Normalized
           email: user?.email || "", // Use submitting user's email
-          plant: plant,
+          plant: finalPlant, // ✅ Use selected plant with fallback
           timestamp: new Date().toISOString(),
           type: orderType // Use the determined order type
         };

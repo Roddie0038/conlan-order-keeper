@@ -3,6 +3,7 @@ import { FormField } from "../../order-form/FormField";
 import { stores, getStoreColor } from "../../order-form/formConfig";
 import { WheelFormData } from "../types";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { usePlant } from "@/contexts/PlantContext";
 
 interface ContactInformationProps {
   formData: WheelFormData;
@@ -19,8 +20,18 @@ export function ContactInformation({
   onStoreChange, 
   user 
 }: ContactInformationProps) {
-  // Calculate plant based on selected store
-  const plant = formData.storeName ? getPlantForStore(formData.storeName) : "";
+  const { selectedPlant } = usePlant(); // ✅ Get selected plant from context
+  
+  // ✅ CRITICAL FIX: Use selectedPlant first, then fallback to store mapping
+  const mappedPlant = formData.storeName ? getPlantForStore(formData.storeName) : "";
+  const finalPlant = selectedPlant || mappedPlant || "";
+  
+  console.log("🔍 CONTACT INFO - Plant selection logic:", {
+    selectedPlant,
+    mappedPlant,
+    finalPlant,
+    store: formData.storeName
+  });
   
   // Calculate store color based on selected store
   const storeColor = formData.storeName ? getStoreColor(formData.storeName) : "";
@@ -49,10 +60,10 @@ export function ContactInformation({
         required
       />
 
-      {/* Plant Field - Read-only, auto-fills based on store */}
+      {/* Plant Field - Read-only, shows selected plant or auto-fills based on store */}
       <FormField
         label="Plant"
-        value={plant || ""}
+        value={finalPlant}
         onChange={() => {}}
         disabled={true}
         placeholder="Plant will be automatically assigned"

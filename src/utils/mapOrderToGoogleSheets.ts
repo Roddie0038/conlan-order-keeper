@@ -1,7 +1,7 @@
 
 import { normalizeStoreForSubmission } from './storeNormalization';
 
-export function mapOrderToGoogleSheets(form: any, user: any): any {
+export function mapOrderToGoogleSheets(form: any, user: any, selectedPlant?: string): any {
   return {
     timestamp: new Date().toISOString(),
     yourName: form.yourName || form.name,
@@ -19,6 +19,6 @@ export function mapOrderToGoogleSheets(form: any, user: any): any {
     destinationManagerEmail: form.destinationManagerEmail,
     type: form.type || 'TRANSFER',
     status: 'pending',
-    plant: user?.assignedPlant || form.plant || ''
+    plant: selectedPlant || user?.assignedPlant || form.plant || '' // ✅ Use selectedPlant first
   };
 }
