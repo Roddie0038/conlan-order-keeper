@@ -6,22 +6,30 @@ export function useWheelFormValidation() {
   const { toast } = useToast();
 
   const validateForm = (formData: WheelFormData, isAdmin: boolean | undefined) => {
+    const missingFields: string[] = [];
+
+    console.log("🔍 WHEEL VALIDATION - Starting validation with data:", {
+      yourName: formData.yourName,
+      storeId: formData.storeId,
+      storeName: formData.storeName,
+      userStore: formData.userStore,
+      qtyWheels: formData.qtyWheels,
+      customerName: formData.customerName,
+      wheelMaterial: formData.wheelMaterial,
+      wheelType: formData.wheelType,
+      handHoles: formData.handHoles,
+      wheelSize: formData.wheelSize,
+      wheelColor: formData.wheelColor,
+      isAdmin: isAdmin
+    });
+
     if (!formData.yourName) {
-      toast({
-        title: "Missing Name",
-        description: "Please enter your name.",
-        variant: "destructive",
-      });
-      return false;
+      missingFields.push("Your Name");
     }
 
     if (!formData.storeId) {
-      toast({
-        title: "Missing Store",
-        description: "Please select a store.",
-        variant: "destructive",
-      });
-      return false;
+      missingFields.push("Store");
+      console.warn("🚨 WHEEL VALIDATION - Missing storeId");
     }
 
     // Fix: Check if user is not admin and the store name doesn't match the user's store
@@ -31,73 +39,63 @@ export function useWheelFormValidation() {
         description: "You can only submit orders for your own store.",
         variant: "destructive",
       });
+      console.warn("🚨 WHEEL VALIDATION - Store mismatch:", {
+        storeName: formData.storeName,
+        userStore: formData.userStore
+      });
       return false;
     }
 
     if (!formData.qtyWheels) {
-      toast({
-        title: "Missing Quantity",
-        description: "Please enter quantity of wheels.",
-        variant: "destructive",
-      });
-      return false;
+      missingFields.push("Quantity of Wheels");
     }
 
     if (!formData.customerName) {
-      toast({
-        title: "Missing Customer Name",
-        description: "Please enter the customer name.",
-        variant: "destructive",
-      });
-      return false;
+      missingFields.push("Customer Name");
     }
 
     // CRITICAL: Validate all wheel specification fields
     if (!formData.wheelMaterial) {
-      toast({
-        title: "Missing Wheel Material",
-        description: "Please select the wheel material.",
-        variant: "destructive",
-      });
-      return false;
+      missingFields.push("Wheel Material");
     }
 
     if (!formData.wheelType) {
-      toast({
-        title: "Missing Wheel Type",
-        description: "Please select the wheel type.",
-        variant: "destructive",
-      });
-      return false;
+      missingFields.push("Wheel Type");
     }
 
     if (!formData.handHoles) {
-      toast({
-        title: "Missing Hand Holes",
-        description: "Please enter the number of hand holes.",
-        variant: "destructive",
-      });
-      return false;
+      missingFields.push("Hand Holes");
     }
 
     if (!formData.wheelSize) {
-      toast({
-        title: "Missing Wheel Size",
-        description: "Please select the wheel size.",
-        variant: "destructive",
-      });
-      return false;
+      missingFields.push("Wheel Size");
     }
 
     if (!formData.wheelColor) {
-      toast({
-        title: "Missing Wheel Color",
-        description: "Please select the desired wheel color.",
-        variant: "destructive",
-      });
+      missingFields.push("Wheel Color");
+    }
+
+    // Show comprehensive validation feedback
+    if (missingFields.length > 0) {
+      console.warn("🚨 WHEEL VALIDATION - Missing fields:", missingFields);
+      
+      if (missingFields.length === 1) {
+        toast({
+          title: "Missing Required Field",
+          description: `Please fill in: ${missingFields[0]}`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Missing Required Fields",
+          description: `Please fill in: ${missingFields.join(", ")}`,
+          variant: "destructive",
+        });
+      }
       return false;
     }
 
+    console.log("✅ WHEEL VALIDATION - All fields valid");
     return true;
   };
 

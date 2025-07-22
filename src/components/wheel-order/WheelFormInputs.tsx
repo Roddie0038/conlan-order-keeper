@@ -22,6 +22,12 @@ export function WheelFormInputs({
   user,
   plantError
 }: WheelFormInputsProps) {
+  // Helper function to check if a field is missing for visual feedback
+  const isFieldMissing = (fieldName: keyof WheelFormData): boolean => {
+    const value = formData[fieldName];
+    return !value || (typeof value === 'string' && value.trim() === '');
+  };
+
   return (
     <div className="space-y-8">
       <ContactInformation 
@@ -42,6 +48,9 @@ export function WheelFormInputs({
           onChange={(value) => onInputChange("destinationPlant", value)}
           error={plantError}
         />
+        {!formData.destinationPlant && (
+          <p className="text-sm text-red-600 mt-1">⚠️ Please select a destination plant</p>
+        )}
       </div>
       
       <OrderDetails 
@@ -53,6 +62,17 @@ export function WheelFormInputs({
         formData={formData}
         onInputChange={onInputChange}
       />
+
+      {/* Debug info for development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 p-4 bg-gray-100 rounded text-xs text-gray-600">
+          <strong>Debug Info:</strong>
+          <br />Store ID: {formData.storeId || 'MISSING'}
+          <br />Store Name: {formData.storeName || 'MISSING'}
+          <br />User Store: {formData.userStore || 'MISSING'}
+          <br />Destination Plant: {formData.destinationPlant || 'MISSING'}
+        </div>
+      )}
     </div>
   );
 }

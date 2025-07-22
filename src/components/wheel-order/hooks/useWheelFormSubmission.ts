@@ -41,15 +41,26 @@ export function useWheelFormSubmission(
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log("🔍 WHEEL FORM - Starting submission with form data:", formData);
+    
+    // Critical debug: Check storeId
+    if (!formData.storeId) {
+      console.warn("🚨 WHEEL FORM - storeId is missing at submission!");
+    }
+    
     // Validation including plant selection
     const newErrors: Record<string, string> = {};
     
     if (!formData.destinationPlant) {
       newErrors.destinationPlant = "Please select a destination plant";
+      console.warn("🚨 WHEEL FORM - Missing destination plant");
     }
 
     if (!validateForm(formData, user?.isAdmin)) {
       newErrors.general = "Please fill in all required fields";
+      setErrors(newErrors);
+      console.warn("🚨 WHEEL FORM - Validation failed");
+      return;
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -70,6 +81,7 @@ export function useWheelFormSubmission(
       const normalizedStoreName = normalizeStoreForSubmission(formData.storeName);
       
       console.log("✅ WHEEL FORM - Using selected plant:", formData.destinationPlant);
+      console.log("✅ WHEEL FORM - Submitting with storeId:", formData.storeId);
       
       const currentTimestamp = formatTimestamp(new Date().toISOString());
       const formattedScheduleArrival = formData.scheduleArrival ? formatTimestamp(formData.scheduleArrival) : formatTimestamp(formData.dateReceived);
@@ -113,7 +125,8 @@ export function useWheelFormSubmission(
       console.log("🔍 WHEEL FORM - Final order data:", {
         plant: supabaseOrder.plant,
         store: supabaseOrder.store,
-        type: supabaseOrder.type
+        type: supabaseOrder.type,
+        storeId: formData.storeId
       });
       
       console.log("🔍 WHEEL FORM - Submitting to Google Sheets...");
