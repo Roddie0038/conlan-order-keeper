@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getPlantForStore } from '@/utils/plantMapping';
 
 export type Plant = 'Grand Prairie 97' | 'Romulus 98' | 'Mulberry 99';
 
@@ -62,6 +63,17 @@ console.log("🔍 PLANT CONTEXT - Loading plant webhooks:", PLANT_WEBHOOKS);
 console.log("🔍 PLANT CONTEXT - Transfer webhook for Grand Prairie 97:", PLANT_WEBHOOKS["Grand Prairie 97"].transferRequests);
 console.log("🔍 PLANT CONTEXT - Admin webhook for Grand Prairie 97:", PLANT_WEBHOOKS["Grand Prairie 97"].adminOrders);
 
+// Helper function to convert plant names between formats
+const convertPlantName = (plantName: string): Plant => {
+  // Convert from plantMapping format to PlantContext format
+  if (plantName === 'Grand Prairie 097') return 'Grand Prairie 97';
+  if (plantName === 'Romulus 098') return 'Romulus 98';
+  if (plantName === 'Mulberry 099') return 'Mulberry 99';
+  
+  // Return as-is if already in correct format
+  return plantName as Plant;
+};
+
 export function PlantProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [selectedPlant, setSelectedPlant] = useState<Plant>('Grand Prairie 97');
@@ -92,9 +104,23 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        // First, get default plant from user auth metadata
-        const userDefaultPlant = (user.plant as Plant) || 'Grand Prairie 97';
-        setDefaultPlant(userDefaultPlant);
+        // CRITICAL FIX: Determine default plant based on user's store
+        let storeBasedPlant: Plant = 'Grand Prairie 97'; // fallback
+        
+        if (user.store) {
+          console.log("🔍 PLANT CONTEXT - Determining plant for user store:", user.store);
+          const mappedPlant = getPlantForStore(user.store);
+          storeBasedPlant = convertPlantName(mappedPlant || 'Grand Prairie 097');
+          console.log("🔍 PLANT CONTEXT - Store-based plant mapping:", {
+            userStore: user.store,
+            mappedPlant,
+            convertedPlant: storeBasedPlant
+          });
+        }
+
+        // Set the store-based plant as the default
+        setDefaultPlant(storeBasedPlant);
+        console.log("🔍 PLANT CONTEXT - Default plant set to:", storeBasedPlant);
 
         // Try to load current plant from Supabase user_preferences
         const { data: preferences, error } = await supabase
@@ -103,28 +129,45 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
           .eq('user_id', user.id)
           .single();
 
-        let plantToUse: Plant = userDefaultPlant;
+        let plantToUse: Plant = storeBasedPlant; // Default to store-based plant
 
         if (!error && preferences?.current_plant) {
           plantToUse = preferences.current_plant as Plant;
-          console.log("🔍 PLANT CONTEXT - Loaded plant from Supabase:", plantToUse);
+          console.log("🔍 PLANT CONTEXT - Loaded saved plant preference from Supabase:", plantToUse);
         } else {
           // Fallback to localStorage
           const savedPlant = localStorage.getItem('selectedPlant');
           if (savedPlant && savedPlant !== 'null') {
             plantToUse = savedPlant as Plant;
             console.log("🔍 PLANT CONTEXT - Loaded plant from localStorage:", plantToUse);
+          } else {
+            console.log("🔍 PLANT CONTEXT - No saved preference, using store-based default:", storeBasedPlant);
           }
         }
 
         setSelectedPlantSync(plantToUse);
-        console.log("🔍 PLANT CONTEXT - Initialized with plant:", plantToUse);
+        console.log("🔍 PLANT CONTEXT - Final initialization:", {
+          defaultPlant: storeBasedPlant,
+          selectedPlant: plantToUse,
+          userStore: user.store
+        });
         console.log("🔍 PLANT CONTEXT - Plant webhooks:", PLANT_WEBHOOKS[plantToUse]);
       } catch (error) {
         console.error("🔍 PLANT CONTEXT - Error loading preferences:", error);
-        // Fallback to localStorage
+        // Fallback to localStorage or store-based default
         const savedPlant = localStorage.getItem('selectedPlant');
-        const plantToUse = (savedPlant as Plant) || 'Grand Prairie 97';
+        let plantToUse: Plant = 'Grand Prairie 97';
+        
+        if (user.store) {
+          const mappedPlant = getPlantForStore(user.store);
+          plantToUse = convertPlantName(mappedPlant || 'Grand Prairie 097');
+        }
+        
+        if (savedPlant && savedPlant !== 'null') {
+          plantToUse = savedPlant as Plant;
+        }
+        
+        setDefaultPlant(plantToUse);
         setSelectedPlantSync(plantToUse);
       } finally {
         setLoading(false);
