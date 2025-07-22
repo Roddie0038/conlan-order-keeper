@@ -7,9 +7,8 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchInventory } from "@/services/inventoryService";
 import { InventoryItem } from "@/types/inventory";
-import { Info, Package, Calendar, Truck, Building, Mail, MapPin } from "lucide-react";
+import { Info, Package, Calendar, Truck, Building, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getPlantForStore } from "@/utils/plantMapping";
 
 interface OrderFormInputsProps {
   formData: FormData;
@@ -30,8 +29,7 @@ export const OrderFormInputs = ({
   } | null>(null);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
 
-  // Calculate plant based on selected store
-  const plant = formData.store ? getPlantForStore(formData.store) : "";
+  // Plant selection now handled by MandatoryPlantSelector in OrderFormContent
 
   // Set the store to the user's store on component mount for non-admin users
   useEffect(() => {
@@ -165,20 +163,7 @@ export const OrderFormInputs = ({
               />
             </div>
 
-            {/* Plant Field - Read-only, auto-fills based on store */}
-            <div className="space-y-2 group transition-all duration-200">
-              <label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-gray-400" />
-                Plant
-              </label>
-              <FormField 
-                label="" 
-                value={plant || ""} 
-                onChange={() => {}} 
-                disabled={true} 
-                placeholder="Plant will be automatically assigned" 
-              />
-            </div>
+            {/* Plant Field removed - replaced by MandatoryPlantSelector in OrderFormContent */}
 
             <div className="space-y-2 group transition-all duration-200">
               <label className="block text-sm font-medium text-gray-100 group-hover:text-gray-50 transition-colors flex items-center gap-2">
