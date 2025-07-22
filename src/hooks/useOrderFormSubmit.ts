@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { OrderFormValues } from "../components/order-form/order-form-schema";
-import { OrderSummary } from "./useOrderSubmission";
+import type { OrderSummary } from "./useOrderSubmission";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
