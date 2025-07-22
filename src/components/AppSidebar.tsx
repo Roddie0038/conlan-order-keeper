@@ -160,7 +160,9 @@ export function AppSidebar() {
       }}
     >
       <SidebarContent className="bg-transparent">
-        {/* Plant Info */}
+        {/* TEMPORARILY HIDDEN: Plant Info to avoid confusion during transition to mandatory form-specific plant selectors */}
+        {/* Each order form now has its own required "Destination Plant" dropdown that overrides this display */}
+        {/* 
         <SidebarGroup>
           <SidebarGroupLabel className="text-blue-100 font-semibold">Current Plant</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -170,6 +172,7 @@ export function AppSidebar() {
             </div>
           </SidebarGroupContent>
         </SidebarGroup>
+        */}
 
         {/* Main Navigation */}
         <SidebarGroup>

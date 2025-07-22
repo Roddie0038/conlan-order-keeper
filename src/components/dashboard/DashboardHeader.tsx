@@ -28,9 +28,12 @@ export function DashboardHeader() {
           )}
         </div>
       </div>
+      {/* TEMPORARILY HIDDEN: Plant Switcher during transition to mandatory form-specific plant selectors */}
+      {/* 
       <div className="w-full md:w-auto md:max-w-sm">
         <PlantSwitcher />
       </div>
+      */}
     </header>
   );
 }
