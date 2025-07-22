@@ -24,9 +24,8 @@ export const MTOFormFields = ({
   section = "all",
   plantError
 }: MTOFormFieldsProps) => {
-  const handleCasingGradeChange = (grade: string, checked: boolean) => {
-    const updatedGrades = checked ? [...formData.casingGrade, grade] : formData.casingGrade.filter(g => g !== grade);
-    onChange("casingGrade", updatedGrades);
+  const handleCasingGradeChange = (grade: string) => {
+    onChange("casingGrade", grade);
   };
   
   // Store Information Fields
@@ -108,17 +107,20 @@ export const MTOFormFields = ({
       />
       
       <div className="space-y-3">
-        <Label className="text-sm font-medium text-gray-700">Casing Grade <span className="text-red-500">*</span></Label>
+        <Label className="text-sm font-medium text-gray-700">Select a Casing Grade (A, B, or C): <span className="text-red-500">*</span></Label>
         <Card className="p-4 border border-gray-200 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {casingGrades.map(grade => (
               <div key={grade.value} className="flex items-center space-x-3 group">
                 <div className="relative">
-                  <Checkbox 
-                    id={grade.value} 
-                    checked={formData.casingGrade.includes(grade.value)} 
-                    onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)} 
-                    className="h-5 w-5 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 transition-all" 
+                  <input
+                    type="radio"
+                    id={grade.value}
+                    name="casingGrade"
+                    value={grade.value}
+                    checked={formData.casingGrade === grade.value}
+                    onChange={() => handleCasingGradeChange(grade.value)}
+                    className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                   />
                 </div>
                 <Label 

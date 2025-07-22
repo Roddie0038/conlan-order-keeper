@@ -6,7 +6,7 @@ export interface MTOFormData {
   name: string;
   timestamp: string;
   productNumber: string;
-  casingGrade: string[];
+  casingGrade: string;
   tireSize: string;
   customTireSize: string;
   tireTreadNeeded: string;
@@ -22,11 +22,9 @@ export const stores = [
 ];
 
 export const casingGrades = [
-  { name: "Grade 1", value: "grade1" },
-  { name: "Grade 2", value: "grade2" },
-  { name: "Grade 3", value: "grade3" },
-  { name: "Grade 4", value: "grade4" },
-  { name: "Grade 5", value: "grade5" },
+  { name: "Casing A", value: "casingA" },
+  { name: "Casing B", value: "casingB" },
+  { name: "Casing C", value: "casingC" },
 ];
 
 export const tireSizes = [
