@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePlant } from "@/contexts/PlantContext";
 import { useOrderSubmission, OrderSummary } from "@/hooks/useOrderSubmission";
 import { OrderCountSummary } from "./OrderCountSummary";
 import { OrderSubmitButton } from "./OrderSubmitButton";
@@ -9,14 +8,15 @@ import { OrderSubmitButton } from "./OrderSubmitButton";
 interface OrderSubmissionHandlerProps {
   orderSummaries: OrderSummary[];
   setOrderSummaries: React.Dispatch<React.SetStateAction<OrderSummary[]>>;
+  destinationPlant: string;
 }
 
 export function OrderSubmissionHandler({ 
   orderSummaries, 
-  setOrderSummaries 
+  setOrderSummaries,
+  destinationPlant 
 }: OrderSubmissionHandlerProps) {
   const { user } = useAuth();
-  const { selectedPlant } = usePlant();
   const isAdmin = user?.isAdmin || false;
   
   // Always enable notifications - testMode is always true
@@ -35,7 +35,8 @@ export function OrderSubmissionHandler({
   
   // Submit orders handler
   const submitOrders = () => {
-    handleSubmitOrders(selectedOrders, testMode, handleSubmissionSuccess);
+    console.log("✅ Order submitted to plant:", destinationPlant);
+    handleSubmitOrders(selectedOrders, testMode, destinationPlant, handleSubmissionSuccess);
   };
   
   if (orderSummaries.length === 0) {

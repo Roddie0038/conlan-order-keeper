@@ -205,10 +205,11 @@ export function OrderForm() {
         </div>
       )}
       
-      <OrderSubmissionHandler 
-        orderSummaries={orderSummaries}
-        setOrderSummaries={setOrderSummaries}
-      />
+        <OrderSubmissionHandler 
+          orderSummaries={orderSummaries}
+          setOrderSummaries={setOrderSummaries}
+          destinationPlant={form.watch("destinationPlant") || ""}
+        />
       
       <OrderFormActions 
         isSubmitting={isSubmitting}

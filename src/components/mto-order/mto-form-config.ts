@@ -1,4 +1,6 @@
 
+export type MTOFormSection = "store" | "product" | "order" | "all" | "plant";
+
 export interface MTOFormData {
   store: string;
   name: string;

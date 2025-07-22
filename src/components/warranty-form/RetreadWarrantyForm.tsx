@@ -45,7 +45,16 @@ export default function RetreadWarrantyForm() {
         />
         
         <BasicFormFields form={form} onChange={handleChange} errors={errors} />
-        <FileUploadFields onFileChange={handleFileChange} />
+        <FileUploadFields 
+          onFileChange={(e, type) => {
+            const files = e.target.files;
+            if (type === "invoice") {
+              handleFileChange("invoiceFile", files ? files[0] : null);
+            } else if (type === "photos") {
+              handleFileChange("photoFiles", files ? Array.from(files) : null);
+            }
+          }}
+        />
         <AcknowledgmentSection 
           acknowledged={form.acknowledged}
           onCheckboxChange={handleCheckbox}

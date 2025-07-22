@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePlant } from "@/contexts/PlantContext";
+import { PLANT_WEBHOOKS } from "@/contexts/PlantContext";
 import { processOrder } from "@/services/orderSubmission/processOrder";
 import { processWebhook } from "@/services/orderSubmission/processWebhook";
 import { storeCompletedOrders } from "@/services/orderSubmission/storeStorage";
@@ -25,6 +25,7 @@ export type OrderSummary = {
   receiverNo?: string;
   etaDate?: string;
   dateReceived?: string;
+  destinationPlant?: string;
   [key: string]: any;
 };
 
@@ -32,13 +33,13 @@ export function useOrderSubmission() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
-  const { selectedPlant, PLANT_WEBHOOKS } = usePlant();
   const isAdmin = user?.isAdmin || false;
 
-  // Main submission handler
+  // Main submission handler - now requires explicit plant parameter
   const handleSubmitOrders = async (
     selectedOrders: OrderSummary[],
     testMode: boolean,
+    destinationPlant: string,
     onSuccess: (orders: OrderSummary[]) => void
   ) => {
     if (selectedOrders.length === 0) {
@@ -54,7 +55,7 @@ export function useOrderSubmission() {
     console.log("🔍 SUBMIT - Starting order submission process");
     console.log("🔍 SUBMIT - Admin user:", isAdmin);
     console.log("🔍 SUBMIT - Test mode:", testMode);
-    console.log("🔍 SUBMIT - Selected plant:", selectedPlant);
+    console.log("✅ Order submitted to plant:", destinationPlant);
     
     try {
       console.log("🔍 SUBMIT - Processing orders with notifications");
@@ -63,7 +64,7 @@ export function useOrderSubmission() {
       
       for (const order of selectedOrders) {
         try {
-          const processedOrder = await processOrder(order, selectedPlant);
+          const processedOrder = await processOrder(order, destinationPlant);
           processedOrders.push(processedOrder);
           
           // Always process webhook for all orders regardless of admin status
@@ -71,7 +72,7 @@ export function useOrderSubmission() {
             processedOrder, 
             true, // Always send notifications (testMode=true)
             isAdmin, 
-            selectedPlant, 
+            destinationPlant, 
             PLANT_WEBHOOKS
           );
         } catch (error) {
@@ -81,7 +82,7 @@ export function useOrderSubmission() {
       }
       
       // Store successfully processed orders in local storage
-      storeCompletedOrders(processedOrders, selectedPlant);
+      storeCompletedOrders(processedOrders, destinationPlant);
       
       // Call success callback with processed orders
       onSuccess(processedOrders);
