@@ -25,22 +25,32 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
     const destStore = form.watch("crossDockDestination");
     if (destStore) {
       const loadEmail = async () => {
+        console.log("🔍 CROSS-DOCK - Loading manager email for store:", destStore);
         const email = await getFirstManagerEmail(destStore);
+        console.log("🔍 CROSS-DOCK - Got manager email:", email);
         setDestManagerEmail(email || "");
+        // ✅ Update the form field with the email
+        form.setValue("destinationManagerEmail", email || "");
       };
       loadEmail();
     }
-  }, [form.watch("crossDockDestination")]);
+  }, [form.watch("crossDockDestination"), form]);
 
   const handleDestinationChange = async (value: string) => {
+    console.log("🔍 CROSS-DOCK - Destination store changed to:", value);
     const email = await getFirstManagerEmail(value);
+    console.log("🔍 CROSS-DOCK - Setting destination manager email to:", email);
     setDestManagerEmail(email || "");
+    // ✅ Update the form field with the email
+    form.setValue("destinationManagerEmail", email || "");
   };
 
   // Auto-validate that FROM and TO stores are different
   useEffect(() => {
     const fromStore = form.watch("store");
     const toStore = form.watch("crossDockDestination");
+    
+    console.log("🔍 CROSS-DOCK - Store validation:", { fromStore, toStore });
     
     if (fromStore && toStore && fromStore === toStore) {
       form.setError("crossDockDestination", {

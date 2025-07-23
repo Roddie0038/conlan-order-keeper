@@ -9,7 +9,7 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Mail, FileText, Calendar, Lock } from "lucide-react";
+import { Mail, FileText, Calendar } from "lucide-react";
 
 interface OrderInfoFieldsProps {
   form: UseFormReturn<OrderFormValues>;
@@ -37,21 +37,28 @@ export function OrderInfoFields({ form, destManagerEmail, isAdmin }: OrderInfoFi
         )}
       />
 
-      {/* We're removing the FormField for destinationManagerEmail since it's not in our schema */}
-      <div className="form-item">
-        <FormLabel className="flex items-center">
-          <Mail className="h-4 w-4 mr-1 text-gray-400" />
-          Destination Manager Email
-        </FormLabel>
-        <FormControl>
-          <Input 
-            value={destManagerEmail} 
-            disabled={true} 
-            className="bg-gray-100 border-gray-300" 
-            onChange={() => {}} // Empty handler since it's disabled
-          />
-        </FormControl>
-      </div>
+      <FormField
+        control={form.control}
+        name="destinationManagerEmail"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="flex items-center">
+              <Mail className="h-4 w-4 mr-1 text-gray-400" />
+              Destination Manager Email
+            </FormLabel>
+            <FormControl>
+              <Input 
+                {...field}
+                value={destManagerEmail}
+                onChange={(e) => field.onChange(e.target.value)}
+                disabled={true} 
+                className="bg-gray-100 border-gray-300" 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <FormField
         control={form.control}

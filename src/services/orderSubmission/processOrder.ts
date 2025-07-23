@@ -20,12 +20,15 @@ import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNum
  */
 export const processOrder = async (order: OrderSummary, selectedPlant: string) => {
   console.log("🔍 SUBMIT - Processing order:", order.id);
+  console.log("🔍 SUBMIT - Original order data:", order);
   
-  // CRITICAL: Normalize store to "Store XX" format BEFORE any processing
-  const normalizedStore = normalizeStoreForSubmission(order.store);
-  console.log("🔄 PROCESS ORDER STORE NORMALIZATION:", {
-    original: order.store,
-    normalized: normalizedStore
+  // CRITICAL: Preserve the original store value - do not override it
+  const originalStore = order.store;
+  const normalizedStore = normalizeStoreForSubmission(originalStore);
+  console.log("🔄 PROCESS ORDER STORE PRESERVATION:", {
+    original: originalStore,
+    normalized: normalizedStore,
+    shouldNotChange: true
   });
   
   // Get store manager email from database (no hardcoded emails)
@@ -42,7 +45,6 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     finalPlant,
     store: normalizedStore
   });
-  console.log("✅ Final Plant Used:", finalPlant);
   
   // Validate plant determination
   if (!mappedPlant && !selectedPlant) {
@@ -64,55 +66,46 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   
   console.log("🔍 SUBMIT - Determined order type:", orderType, "for order:", order.id);
   
-  // Get destination manager email for cross dock orders
+  // ✅ CRITICAL FIX: Properly handle cross-dock fields from the order
   let destinationManagerEmail = "";
-  let formattedCrossDockDestination = order.crossDockDestination || "";
+  let formattedCrossDockDestination = "";
   
   if (order.crossDock === "Yes" && order.crossDockDestination) {
-    // Check if crossDockDestination already contains store name
-    if (!/\s/.test(order.crossDockDestination) && /^\d+$/.test(order.crossDockDestination.trim())) {
-      // If it only contains a number, we need to find the full store name
-      const destStoreNumber = order.crossDockDestination.trim();
-      const destStore = storeData.find(s => s.storeNumber === destStoreNumber);
-      
-      if (destStore) {
-        // Use the full store name with number from storeData
-        formattedCrossDockDestination = destStore.name;
-        console.log(`🔍 SUBMIT - Formatted cross dock destination: ${formattedCrossDockDestination}`);
-      } else {
-        console.warn(`🔍 SUBMIT - Could not find store with number ${destStoreNumber}, using original value`);
-      }
-    }
+    // Use the destination manager email from the form if available
+    destinationManagerEmail = order.destinationManagerEmail || "";
     
-    // Destination manager email will be retrieved from database during email routing
-    const destStoreNumber = formattedCrossDockDestination.match(/\d+$/)?.[0] || "";
-    destinationManagerEmail = ""; // Will be retrieved from database
-    console.log(`🔍 SUBMIT - Cross-dock destination store: ${destStoreNumber}`);
+    // Normalize the cross-dock destination
+    formattedCrossDockDestination = normalizeStoreForSubmission(order.crossDockDestination);
+    
+    console.log("🔍 SUBMIT - Cross-dock processing:", {
+      crossDockDestination: order.crossDockDestination,
+      formattedCrossDockDestination,
+      destinationManagerEmail,
+      receiverNo: order.receiverNo,
+      etaDate: order.etaDate
+    });
   }
   
   // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
   const formattedTimestamp = formatDateForSupabase(new Date());
   
-  // Create Google Sheets payload (camelCase format) with normalized store
+  // Create Google Sheets payload (camelCase format) with preserved store
   const baseGoogleSheetsPayload = {
     ...order,
-    store: normalizedStore, // ✅ Normalized
-    plant: finalPlant, // ✅ Use selected plant with fallback
-    type: orderType, // Use the determined order type for proper routing
+    store: normalizedStore, // ✅ Use preserved original store
+    plant: finalPlant,
+    type: orderType,
     name: order.yourName || order.name || "Unknown",
     email: storeManagerEmail,
     
-    // Keep the frontend field names for Google Sheets/Zapier (camelCase)
+    // ✅ CRITICAL FIX: Use actual cross-dock values from the order
     crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", 
-    crossDockDestination: normalizeStoreForSubmission(formattedCrossDockDestination), // ✅ Normalized
-    receiverNo: order.receiverNo || null,
-    etaDate: order.etaDate || null,
-    
-    // Include destination manager email for cross-dock orders
+    crossDockDestination: formattedCrossDockDestination,
+    receiverNo: order.receiverNo || "",
+    etaDate: order.etaDate || "",
     destinationManagerEmail: destinationManagerEmail,
     
     timestamp: formattedTimestamp,
-    // Add manager email fields for webhook compatibility
     managerEmail: storeManagerEmail,
     managersEmail: storeManagerEmail
   };
@@ -120,19 +113,19 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Apply comprehensive normalization to all store fields
   const googleSheetsPayload = normalizeOrderStoreFields(baseGoogleSheetsPayload);
 
-  // Create Supabase payload (snake_case format) - CRITICAL FIX: Remove dateReceived
+  // Create Supabase payload (snake_case format)
   let baseSupabaseOrder: any = {
     name: order.yourName || order.name || "Unknown",
-    store: normalizedStore, // ✅ Normalized
-    product_number: order.productNumber, // snake_case for Supabase
+    store: normalizedStore, // ✅ Use preserved original store
+    product_number: order.productNumber,
     description: order.description,
     quantity: parseInt(order.quantity?.toString() || "0") || 0,
-    schedule_arrival: order.scheduleArrival, // snake_case for Supabase
+    schedule_arrival: order.scheduleArrival,
     notes: order.notes,
     email: storeManagerEmail,
-    plant: finalPlant, // ✅ Use selected plant with fallback
+    plant: finalPlant,
     order_type: orderType,
-    timestamp: formattedTimestamp, // Use formatted timestamp - NO dateReceived
+    timestamp: formattedTimestamp,
     status: 'pending',
     status_updated_at: new Date().toISOString()
   };
@@ -140,21 +133,20 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Apply comprehensive normalization to all store fields
   let supabaseOrder = normalizeOrderStoreFields(baseSupabaseOrder);
   
-  // Only add cross dock fields for regular transfer orders (not MTO/Wheel)
+  // ✅ CRITICAL FIX: Only add cross dock fields for transfer orders and use actual values
   if (orderType === 'TRANSFER') {
     supabaseOrder = {
       ...supabaseOrder,
       cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
-      cross_dock_destination: normalizeStoreForSubmission(formattedCrossDockDestination), // ✅ Normalized
-      cross_dock_receiver_number: order.receiverNo || null,
-      cross_dock_eta_date: order.etaDate || null,
+      cross_dock_destination: formattedCrossDockDestination,
+      cross_dock_receiver_number: order.receiverNo || "",
+      cross_dock_eta_date: order.etaDate || "",
       destination_manager_email: destinationManagerEmail
     };
   }
   
-  console.log("🔍 SUBMIT - Using sheets service with order type:", orderType);
-  console.log("🔍 SUBMIT - Google Sheets payload:", googleSheetsPayload);
-  console.log("🔍 SUBMIT - Supabase payload (NO dateReceived):", supabaseOrder);
+  console.log("🔍 SUBMIT - Final Google Sheets payload:", googleSheetsPayload);
+  console.log("🔍 SUBMIT - Final Supabase payload:", supabaseOrder);
   
   // Force the network request by adding a random parameter to avoid caching
   try {
@@ -170,7 +162,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     const result = await submitToGoogleSheets(webhookData as any);
     console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
     
-    // Save the order to Supabase using the properly formatted data (snake_case, NO dateReceived)
+    // Save the order to Supabase using the properly formatted data
     console.log("🔍 SUBMIT - Saving order to Supabase with type:", orderType);
     
     // Use the appropriate table based on order type

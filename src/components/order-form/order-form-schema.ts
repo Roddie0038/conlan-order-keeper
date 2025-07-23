@@ -21,6 +21,7 @@ export const formSchema = z
     crossDockConfirmation: z.boolean().optional().default(false),
     managersEmail: z.string(),
     destinationPlant: z.string().min(1, "Please select a destination plant"),
+    destinationManagerEmail: z.string().optional(), // ✅ Added missing field
   })
   .superRefine((data, ctx) => {
     if (data.crossDock === "Yes") {
@@ -45,6 +46,14 @@ export const formSchema = z
           path: ["crossDockConfirmation"],
           code: z.ZodIssueCode.custom,
           message: "Please confirm the Cross Dock paperwork is attached",
+        });
+      }
+
+      if (!data.crossDockDestination || data.crossDockDestination.trim() === "") {
+        ctx.addIssue({
+          path: ["crossDockDestination"],
+          code: z.ZodIssueCode.custom,
+          message: "Destination store is required when Cross Dock is Yes",
         });
       }
     }
