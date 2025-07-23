@@ -1,11 +1,13 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { getTransferEmailRecipients, getMTOEmailRecipients, getRefurbishedEmailRecipients, getWarrantyEmailRecipients } from "@/config/contactSystem";
+import { getStoreNumberVariants, logStoreFormatTransformation } from "@/utils/storeSanitization";
 
 export type EmailType = 'transfer' | 'mto' | 'wheel' | 'warranty' | 'completion';
 
 /**
  * Get store email recipients from the centralized store_email_recipients table
- * Filtered by platform_source = 'ordering_platform'
+ * Now handles both 2-digit and 3-digit store number formats
  */
 export async function getStoreEmailRecipients(
   storeNumber: string,
@@ -18,35 +20,45 @@ export async function getStoreEmailRecipients(
   try {
     console.log(`📧 EMAIL ROUTING - Querying database for store ${storeNumber}, type ${emailType}`);
     
-    const { data, error } = await supabase
-      .from('store_email_recipients')
-      .select('recipient_email')
-      .eq('store_number', storeNumber)
-      .eq('email_type', emailType)
-      .eq('is_active', true)
-      .eq('platform_source', 'ordering_platform');
+    // Get all possible store number variants (e.g., "27", "027")
+    const storeVariants = getStoreNumberVariants(storeNumber);
+    logStoreFormatTransformation('EMAIL_LOOKUP', storeNumber, storeVariants.join(', '), 'store variants');
+    
+    // Try each variant until we find recipients
+    for (const variant of storeVariants) {
+      console.log(`📧 EMAIL ROUTING - Trying store variant: ${variant}`);
+      
+      const { data, error } = await supabase
+        .from('store_email_recipients')
+        .select('recipient_email')
+        .eq('store_number', variant)
+        .eq('email_type', emailType)
+        .eq('is_active', true)
+        .eq('platform_source', 'ordering_platform');
 
-    if (error) {
-      console.error('📧 EMAIL ROUTING - Database query error:', error);
-      return await getFallbackRecipients(storeNumber, emailType, 'database_error');
+      if (error) {
+        console.error(`📧 EMAIL ROUTING - Database query error for variant ${variant}:`, error);
+        continue; // Try next variant
+      }
+
+      const recipients = data?.map(row => row.recipient_email) || [];
+      
+      if (recipients.length > 0) {
+        console.log(`📧 EMAIL ROUTING - Found ${recipients.length} database recipients for variant ${variant}:`, recipients);
+        
+        // Log the successful database routing
+        await logEmailRouting(storeNumber, emailType, recipients, 'database');
+        
+        return {
+          recipients,
+          source: 'database'
+        };
+      }
     }
-
-    const recipients = data?.map(row => row.recipient_email) || [];
     
-    if (recipients.length === 0) {
-      console.log(`📧 EMAIL ROUTING - No database recipients found for store ${storeNumber}, type ${emailType}, using fallback`);
-      return await getFallbackRecipients(storeNumber, emailType, 'no_recipients');
-    }
-
-    console.log(`📧 EMAIL ROUTING - Found ${recipients.length} database recipients:`, recipients);
-    
-    // Log the database-driven routing
-    await logEmailRouting(storeNumber, emailType, recipients, 'database');
-    
-    return {
-      recipients,
-      source: 'database'
-    };
+    // No recipients found for any variant
+    console.log(`📧 EMAIL ROUTING - No database recipients found for any variant of store ${storeNumber}, type ${emailType}, using fallback`);
+    return await getFallbackRecipients(storeNumber, emailType, 'no_recipients');
   } catch (error) {
     console.error('📧 EMAIL ROUTING - Unexpected error:', error);
     return await getFallbackRecipients(storeNumber, emailType, 'exception');
@@ -83,7 +95,6 @@ async function getFallbackRecipients(
       recipients = getWarrantyEmailRecipients(storeNumber);
       break;
     case 'completion':
-      // For completion emails, use transfer recipients as default
       recipients = getTransferEmailRecipients(storeNumber);
       break;
     default:
@@ -124,11 +135,12 @@ async function logEmailRouting(
       ...(fallbackReason && { fallback_reason: fallbackReason })
     };
 
+    // Use service role for logging to avoid RLS issues
     await supabase
       .from('notification_logs')
       .insert({
         notification_type: 'email_routing_query',
-        order_id: `store-${storeNumber}-${emailType}-${Date.now()}`, // Unique identifier
+        order_id: `store-${storeNumber}-${emailType}-${Date.now()}`,
         recipient_email: recipients.join(', ') || 'none',
         status: 'success',
         platform: 'ordering_platform',
@@ -154,28 +166,16 @@ export async function getTransferRecipientsDatabase(storeNumber: string): Promis
   return result.recipients;
 }
 
-/**
- * Get email recipients for MTO orders (legacy wrapper for backward compatibility)
- * @deprecated Use getStoreEmailRecipients(storeNumber, 'mto') instead
- */
 export async function getMTORecipientsDatabase(storeNumber: string): Promise<string[]> {
   const result = await getStoreEmailRecipients(storeNumber, 'mto');
   return result.recipients;
 }
 
-/**
- * Get email recipients for wheel orders (legacy wrapper for backward compatibility)
- * @deprecated Use getStoreEmailRecipients(storeNumber, 'wheel') instead
- */
 export async function getWheelRecipientsDatabase(storeNumber: string): Promise<string[]> {
   const result = await getStoreEmailRecipients(storeNumber, 'wheel');
   return result.recipients;
 }
 
-/**
- * Get email recipients for warranty orders (legacy wrapper for backward compatibility)
- * @deprecated Use getStoreEmailRecipients(storeNumber, 'warranty') instead
- */
 export async function getWarrantyRecipientsDatabase(storeNumber: string): Promise<string[]> {
   const result = await getStoreEmailRecipients(storeNumber, 'warranty');
   return result.recipients;

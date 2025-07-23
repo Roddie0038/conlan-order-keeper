@@ -26,6 +26,7 @@ export type OrderSummary = {
   etaDate?: string;
   dateReceived?: string;
   destinationPlant?: string;
+  destinationManagerEmail?: string;
   [key: string]: any;
 };
 
@@ -35,7 +36,6 @@ export function useOrderSubmission() {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin || false;
 
-  // Main submission handler - now requires explicit plant parameter
   const handleSubmitOrders = async (
     selectedOrders: OrderSummary[],
     testMode: boolean,
@@ -58,44 +58,88 @@ export function useOrderSubmission() {
     console.log("✅ Order submitted to plant:", destinationPlant);
     
     try {
-      console.log("🔍 SUBMIT - Processing orders with notifications");
-      // Submit all orders with notifications enabled
+      console.log("🔍 SUBMIT - Processing orders with enhanced error handling");
       const processedOrders: OrderSummary[] = [];
+      const failedOrders: { order: OrderSummary; error: string }[] = [];
       
       for (const order of selectedOrders) {
         try {
+          console.log(`🔍 SUBMIT - Processing order ${order.id}...`);
+          
           const processedOrder = await processOrder(order, destinationPlant);
           processedOrders.push(processedOrder);
           
-          // Always process webhook for all orders regardless of admin status
+          console.log(`✅ SUBMIT - Successfully processed order ${order.id}`);
+          
+          // Process webhook for successfully processed orders
           await processWebhook(
             processedOrder, 
-            true, // Always send notifications (testMode=true)
+            true, // Always send notifications
             isAdmin, 
             destinationPlant, 
             PLANT_WEBHOOKS
           );
+          
+          console.log(`✅ SUBMIT - Successfully sent webhook for order ${order.id}`);
+          
         } catch (error) {
-          console.error(`Error processing order ${order.id}:`, error);
-          // Continue with other orders even if one fails
+          console.error(`❌ SUBMIT - Error processing order ${order.id}:`, error);
+          
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          failedOrders.push({ order, error: errorMessage });
+          
+          // Check if this is a Supabase RLS error
+          if (errorMessage.includes('row-level security') || errorMessage.includes('42501')) {
+            console.error(`❌ SUBMIT - RLS Error for order ${order.id}:`, {
+              orderId: order.id,
+              store: order.store,
+              error: errorMessage,
+              context: 'This may be due to authentication or store format issues'
+            });
+          }
         }
       }
       
-      // Store successfully processed orders in local storage
-      storeCompletedOrders(processedOrders, destinationPlant);
+      // Store successfully processed orders
+      if (processedOrders.length > 0) {
+        storeCompletedOrders(processedOrders, destinationPlant);
+        onSuccess(processedOrders);
+      }
       
-      // Call success callback with processed orders
-      onSuccess(processedOrders);
+      // Show appropriate toast messages
+      if (processedOrders.length === selectedOrders.length) {
+        // All orders succeeded
+        toast({
+          title: "🚚 Transfer request submitted! 🚚",
+          description: `${processedOrders.length} transfer order(s) have been submitted successfully and are being processed.`
+        });
+      } else if (processedOrders.length > 0) {
+        // Partial success
+        toast({
+          title: "⚠️ Partial Success",
+          description: `${processedOrders.length} of ${selectedOrders.length} orders submitted successfully. ${failedOrders.length} orders failed.`,
+          variant: "destructive"
+        });
+        
+        // Log failed orders for debugging
+        console.error("❌ SUBMIT - Failed orders summary:", failedOrders);
+      } else {
+        // All orders failed
+        toast({
+          title: "❌ All Orders Failed",
+          description: `None of the ${selectedOrders.length} orders could be submitted. Please check the console for details.`,
+          variant: "destructive"
+        });
+      }
       
-      toast({
-        title: "🚚 Transfer request submitted! 🚚",
-        description: `${processedOrders.length} transfer order(s) have been submitted successfully and are being processed.`
-      });
     } catch (error) {
-      console.error("❌ SUBMIT - Error submitting orders:", error);
+      console.error("❌ SUBMIT - Critical error in order submission:", error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
       toast({
         title: "Error submitting orders",
-        description: "There was an error submitting the orders. Please try again.",
+        description: `Critical error: ${errorMessage}. Please try again or contact support.`,
         variant: "destructive"
       });
     } finally {

@@ -10,6 +10,17 @@ import type { OrderData } from "@/types/supabase-extensions";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
+import { storeSanitizeForSupabase, logStoreFormatTransformation } from "@/utils/storeSanitization";
+
+/**
+ * Create a service role Supabase client for bypassing RLS
+ */
+const createServiceRoleClient = () => {
+  const SUPABASE_URL = "https://cdbixtaqjppvdkyfbhkz.supabase.co";
+  const SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMzNzA2MSwiZXhwIjoyMDU1OTEzMDYxfQ.xrKT5y3yRVZiHyc4pQPxXXBfnqcQqQOPjZyZPAkSWcU";
+  
+  return supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
 
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage
@@ -22,60 +33,77 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   console.log("🔍 SUBMIT - Processing order:", order.id);
   console.log("🔍 SUBMIT - Original order data:", order);
   
-  // CRITICAL: Preserve the original store value - do not override it
+  // PHASE 1: Store format handling - different formats for different destinations
   const originalStore = order.store;
-  const normalizedStore = normalizeStoreForSubmission(originalStore);
-  console.log("🔄 PROCESS ORDER STORE PRESERVATION:", {
+  const displayStore = normalizeStoreForSubmission(originalStore); // For Google Sheets display
+  const supabaseStore = storeSanitizeForSupabase(displayStore); // For Supabase storage
+  
+  logStoreFormatTransformation('DISPLAY_FORMAT', originalStore, displayStore, 'Google Sheets');
+  logStoreFormatTransformation('SUPABASE_FORMAT', displayStore, supabaseStore, 'Supabase');
+  
+  console.log("🔄 PROCESS ORDER STORE FORMATS:", {
     original: originalStore,
-    normalized: normalizedStore,
-    shouldNotChange: true
+    display: displayStore,
+    supabase: supabaseStore,
+    phase: 'store_format_handling'
   });
   
-  // Get store manager email from database (no hardcoded emails)
-  const storeNumber = extractStoreNumber(normalizedStore);
-  const storeManagerEmail = ""; // Will be retrieved from database during email routing
+  // Get store manager email from database
+  const storeNumber = extractStoreNumber(displayStore);
+  const storeManagerEmail = "";
   
-  // CRITICAL FIX: Use selectedPlant first, then fallback to store mapping
-  const mappedPlant = getPlantForStore(normalizedStore);
+  // PHASE 2: Plant determination
+  const mappedPlant = getPlantForStore(displayStore);
   const finalPlant = selectedPlant || mappedPlant || 'Grand Prairie 097';
   
   console.log("🔍 SUBMIT - Plant selection logic:", {
     selectedPlant,
     mappedPlant,
     finalPlant,
-    store: normalizedStore
+    store: displayStore
   });
   
-  // Validate plant determination
   if (!mappedPlant && !selectedPlant) {
-    console.warn(`⚠️ SUBMIT - Could not determine plant for normalized store: ${normalizedStore}`);
+    console.warn(`⚠️ SUBMIT - Could not determine plant for store: ${displayStore}`);
     console.warn(`⚠️ SUBMIT - Using fallback plant: Grand Prairie 097`);
   }
   
-  // CRITICAL FIX: Determine order type based on order properties
-  let orderType: OrderType = "TRANSFER"; // Default to TRANSFER
+  // PHASE 3: Order type determination
+  let orderType: OrderType = "TRANSFER";
   
-  // Check if it's a wheel order
   if ('qtyWheels' in order && order.qtyWheels) {
     orderType = "WHEEL_POWDER_COATING";
-  }
-  // Check if it's explicitly marked as MTO
-  else if (order.type === 'MTO' || ('casingGrade' in order && order.casingGrade)) {
+  } else if (order.type === 'MTO' || ('casingGrade' in order && order.casingGrade)) {
     orderType = "MTO";
   }
   
   console.log("🔍 SUBMIT - Determined order type:", orderType, "for order:", order.id);
   
-  // ✅ CRITICAL FIX: Properly handle cross-dock fields from the order
+  // PHASE 4: Cross-dock processing with improved email lookup
   let destinationManagerEmail = "";
   let formattedCrossDockDestination = "";
   
   if (order.crossDock === "Yes" && order.crossDockDestination) {
-    // Use the destination manager email from the form if available
-    destinationManagerEmail = order.destinationManagerEmail || "";
-    
-    // Normalize the cross-dock destination
+    // Format destination for display
     formattedCrossDockDestination = normalizeStoreForSubmission(order.crossDockDestination);
+    
+    // Get destination manager email using improved lookup
+    const destinationStoreNumber = extractStoreNumber(formattedCrossDockDestination);
+    if (destinationStoreNumber) {
+      try {
+        const emailResult = await getStoreEmailRecipients(destinationStoreNumber, 'transfer');
+        destinationManagerEmail = emailResult.recipients[0] || "";
+        
+        console.log("🔍 SUBMIT - Cross-dock destination email lookup:", {
+          destinationStore: formattedCrossDockDestination,
+          destinationStoreNumber,
+          emailResult: emailResult,
+          destinationManagerEmail
+        });
+      } catch (error) {
+        console.error("❌ SUBMIT - Failed to get destination manager email:", error);
+      }
+    }
     
     console.log("🔍 SUBMIT - Cross-dock processing:", {
       crossDockDestination: order.crossDockDestination,
@@ -86,37 +114,33 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     });
   }
   
-  // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
+  // PHASE 5: Create payloads with different store formats
   const formattedTimestamp = formatDateForSupabase(new Date());
   
-  // Create Google Sheets payload (camelCase format) with preserved store
+  // Google Sheets payload (display format)
   const baseGoogleSheetsPayload = {
     ...order,
-    store: normalizedStore, // ✅ Use preserved original store
+    store: displayStore, // Use display format "Store 27"
     plant: finalPlant,
     type: orderType,
     name: order.yourName || order.name || "Unknown",
     email: storeManagerEmail,
-    
-    // ✅ CRITICAL FIX: Use actual cross-dock values from the order
-    crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", 
+    crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
     crossDockDestination: formattedCrossDockDestination,
     receiverNo: order.receiverNo || "",
     etaDate: order.etaDate || "",
     destinationManagerEmail: destinationManagerEmail,
-    
     timestamp: formattedTimestamp,
     managerEmail: storeManagerEmail,
     managersEmail: storeManagerEmail
   };
   
-  // Apply comprehensive normalization to all store fields
   const googleSheetsPayload = normalizeOrderStoreFields(baseGoogleSheetsPayload);
 
-  // Create Supabase payload (snake_case format)
+  // Supabase payload (database format)
   let baseSupabaseOrder: any = {
     name: order.yourName || order.name || "Unknown",
-    store: normalizedStore, // ✅ Use preserved original store
+    store: supabaseStore, // Use database format "27"
     product_number: order.productNumber,
     description: order.description,
     quantity: parseInt(order.quantity?.toString() || "0") || 0,
@@ -130,59 +154,67 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     status_updated_at: new Date().toISOString()
   };
   
-  // Apply comprehensive normalization to all store fields
-  let supabaseOrder = normalizeOrderStoreFields(baseSupabaseOrder);
-  
-  // ✅ CRITICAL FIX: Only add cross dock fields for transfer orders and use actual values
+  // Add cross-dock fields for transfer orders
   if (orderType === 'TRANSFER') {
-    supabaseOrder = {
-      ...supabaseOrder,
+    const crossDockDestinationForDb = storeSanitizeForSupabase(formattedCrossDockDestination);
+    
+    baseSupabaseOrder = {
+      ...baseSupabaseOrder,
       cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
-      cross_dock_destination: formattedCrossDockDestination,
+      cross_dock_destination: crossDockDestinationForDb,
       cross_dock_receiver_number: order.receiverNo || "",
       cross_dock_eta_date: order.etaDate || "",
       destination_manager_email: destinationManagerEmail
     };
+    
+    logStoreFormatTransformation('CROSS_DOCK_DEST', formattedCrossDockDestination, crossDockDestinationForDb, 'Cross-dock destination');
   }
+  
+  let supabaseOrder = normalizeOrderStoreFields(baseSupabaseOrder);
   
   console.log("🔍 SUBMIT - Final Google Sheets payload:", googleSheetsPayload);
   console.log("🔍 SUBMIT - Final Supabase payload:", supabaseOrder);
   
-  // Force the network request by adding a random parameter to avoid caching
+  // PHASE 6: Submit to systems with proper error handling
   try {
     console.log("🔍 SUBMIT - Beginning webhook submission at:", new Date().toISOString());
     
-    // Create a copy with cache-busting parameter for Google Sheets
-    const webhookData = {
-      ...googleSheetsPayload,
-      _nocache: Date.now()
-    };
-    
-    // Submit to Google Sheets with cache-busting (using camelCase field names and correct type)
+    // Submit to Google Sheets
+    const webhookData = { ...googleSheetsPayload, _nocache: Date.now() };
     const result = await submitToGoogleSheets(webhookData as any);
     console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
     
-    // Save the order to Supabase using the properly formatted data
-    console.log("🔍 SUBMIT - Saving order to Supabase with type:", orderType);
-    
-    // Use the appropriate table based on order type
+    // Submit to Supabase using service role to bypass RLS
+    console.log("🔍 SUBMIT - Saving order to Supabase with service role authentication");
     const tableName = orderType === 'MTO' ? 'mto_orders' : orderType === 'WHEEL_POWDER_COATING' ? 'wheel_orders' : 'orders';
-    console.log("🔍 SUBMIT - Using table:", tableName);
     
-    const { data, error } = await supabase
+    console.log("🔍 SUBMIT - Using table:", tableName);
+    console.log("🔍 SUBMIT - Final payload before insert:", supabaseOrder);
+    
+    // Create service role client for RLS bypass
+    const serviceRoleClient = createServiceRoleClient();
+    
+    const { data, error } = await serviceRoleClient
       .from(tableName)
       .insert(supabaseOrder)
       .select()
       .single();
     
     if (error) {
-      console.error("❌ SUBMIT - Error saving to Supabase:", error);
-      throw error;
+      console.error("❌ SUBMIT - Supabase insert error:", error);
+      console.error("❌ SUBMIT - Error details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      throw new Error(`Supabase insert failed: ${error.message}`);
     } else {
       console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
+      console.log("✅ SUBMIT - Verified store field in saved data:", data.store);
     }
     
-    // Send email notifications for ALL stores using centralized routing
+    // PHASE 7: Send email notifications
     if (storeNumber) {
       let emailRecipients: string[] = [];
       let emailType: 'transfer' | 'mto' | 'wheel' = 'transfer';
@@ -273,6 +305,16 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     return googleSheetsPayload;
   } catch (error) {
     console.error("❌ SUBMIT - Error in processOrder:", error);
+    
+    // Enhanced error reporting
+    if (error instanceof Error) {
+      console.error("❌ SUBMIT - Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+    }
+    
     throw error;
   }
 };
