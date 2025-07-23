@@ -11,12 +11,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 
 const PLANT_COLORS = {
-  'Grand Prairie 97': 'bg-blue-500',
-  'Romulus 98': 'bg-green-500', 
-  'Mulberry 99': 'bg-orange-500'
+  'Grand Prairie 097': 'bg-blue-500',
+  'Romulus 098': 'bg-green-500', 
+  'Mulberry 099': 'bg-orange-500'
 };
 
-const PLANT_OPTIONS: Plant[] = ['Grand Prairie 97', 'Romulus 98', 'Mulberry 99'];
+const PLANT_OPTIONS: Plant[] = ['Grand Prairie 097', 'Romulus 098', 'Mulberry 099'];
 
 export function PlantSwitcher() {
   const { currentPlant, setCurrentPlant, selectedPlant, setSelectedPlant, defaultPlant, isCrossPlantOrder } = usePlant();
