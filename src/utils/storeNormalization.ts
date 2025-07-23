@@ -7,19 +7,19 @@
 import { storeSanitizeForSupabase } from './storeSanitization';
 
 /**
- * Store name mapping for display format
+ * Store name mapping for display format - Updated to 3-digit format
  */
 const STORE_NAME_MAP: Record<string, string> = {
   "22": "Fort Worth 022",
-  "27": "Grand Prairie 27",
-  "28": "Houston 28",
-  "29": "San Antonio 29",
-  "30": "OKC 30",
-  "32": "Little Rock 32",
-  "33": "Kansas 33",
-  "35": "Laredo 35",
-  "36": "Tulsa 36",
-  "39": "Austin 39",
+  "27": "Grand Prairie 027",
+  "28": "Houston 028",
+  "29": "San Antonio 029",
+  "30": "Oklahoma City 030",
+  "32": "Little Rock 032",
+  "33": "Kansas City 033",
+  "35": "Laredo 035",
+  "36": "Tulsa 036",
+  "39": "Austin 039",
 };
 
 /**
@@ -47,8 +47,8 @@ export function normalizeStoreForSubmission(storeValue: string): string {
       return mappedName;
     }
     
-    // Fallback: pad to 2 digits and return in "Store XX" format
-    const paddedNumber = storeNumber.padStart(2, '0');
+    // Fallback: pad to 3 digits and return in "Store XXX" format
+    const paddedNumber = storeNumber.padStart(3, '0');
     return `Store ${paddedNumber}`;
   }
   

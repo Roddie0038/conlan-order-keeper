@@ -1,53 +1,16 @@
 
-// Store data configuration - MASTER REFERENCE: Store XX format
+// Store data configuration - MASTER REFERENCE: 3-digit format
 // Email routing now handled by store_email_recipients table and dynamicEmailService.ts
 export const storeData = [
-  // Mulberry 099 Plant Stores (01-11)
-  { storeNumber: "01", name: "Store 01", plant: "Mulberry 099" },
-  { storeNumber: "02", name: "Store 02", plant: "Mulberry 099" },
-  { storeNumber: "03", name: "Store 03", plant: "Mulberry 099" },
-  { storeNumber: "04", name: "Store 04", plant: "Mulberry 099" },
-  { storeNumber: "05", name: "Store 05", plant: "Mulberry 099" },
-  { storeNumber: "06", name: "Store 06", plant: "Mulberry 099" },
-  { storeNumber: "07", name: "Store 07", plant: "Mulberry 099" },
-  { storeNumber: "08", name: "Store 08", plant: "Mulberry 099" },
-  { storeNumber: "09", name: "Store 09", plant: "Mulberry 099" },
-  { storeNumber: "10", name: "Store 10", plant: "Mulberry 099" },
-  { storeNumber: "11", name: "Store 11", plant: "Mulberry 099" },
-  
-  // Romulus 098 Plant Stores (20-50, excluding 27)
-  { storeNumber: "20", name: "Store 20", plant: "Romulus 098" },
-  { storeNumber: "21", name: "Store 21", plant: "Romulus 098" },
-  { storeNumber: "22", name: "Fort Worth 022", plant: "Romulus 098" },
-  { storeNumber: "23", name: "Store 23", plant: "Romulus 098" },
-  { storeNumber: "24", name: "Store 24", plant: "Romulus 098" },
-  { storeNumber: "25", name: "Store 25", plant: "Romulus 098" },
-  { storeNumber: "26", name: "Store 26", plant: "Romulus 098" },
-  { storeNumber: "28", name: "Store 28", plant: "Romulus 098" },
-  { storeNumber: "29", name: "Store 29", plant: "Romulus 098" },
-  { storeNumber: "30", name: "Store 30", plant: "Romulus 098" },
-  { storeNumber: "31", name: "Store 31", plant: "Romulus 098" },
-  { storeNumber: "32", name: "Store 32", plant: "Romulus 098" },
-  { storeNumber: "33", name: "Store 33", plant: "Romulus 098" },
-  { storeNumber: "34", name: "Store 34", plant: "Romulus 098" },
-  { storeNumber: "35", name: "Store 35", plant: "Romulus 098" },
-  { storeNumber: "36", name: "Store 36", plant: "Romulus 098" },
-  { storeNumber: "37", name: "Store 37", plant: "Romulus 098" },
-  { storeNumber: "38", name: "Store 38", plant: "Romulus 098" },
-  { storeNumber: "39", name: "Store 39", plant: "Romulus 098" },
-  { storeNumber: "40", name: "Store 40", plant: "Romulus 098" },
-  { storeNumber: "41", name: "Store 41", plant: "Romulus 098" },
-  { storeNumber: "42", name: "Store 42", plant: "Romulus 098" },
-  { storeNumber: "43", name: "Store 43", plant: "Romulus 098" },
-  { storeNumber: "44", name: "Store 44", plant: "Romulus 098" },
-  { storeNumber: "45", name: "Store 45", plant: "Romulus 098" },
-  { storeNumber: "46", name: "Store 46", plant: "Romulus 098" },
-  { storeNumber: "47", name: "Store 47", plant: "Romulus 098" },
-  { storeNumber: "48", name: "Store 48", plant: "Romulus 098" },
-  { storeNumber: "49", name: "Store 49", plant: "Romulus 098" },
-  { storeNumber: "50", name: "Store 50", plant: "Romulus 098" },
-  
-  // Grand Prairie 097 Plant Stores (27, 97)
-  { storeNumber: "27", name: "Store 27", plant: "Grand Prairie 097" },
-  { storeNumber: "97", name: "Store 97", plant: "Grand Prairie 097" },
+  // Grand Prairie 097 Plant Stores (ALL CURRENT STORES)
+  { storeNumber: "22", name: "Fort Worth 022", plant: "Grand Prairie 097" },
+  { storeNumber: "27", name: "Grand Prairie 027", plant: "Grand Prairie 097" },
+  { storeNumber: "28", name: "Houston 028", plant: "Grand Prairie 097" },
+  { storeNumber: "29", name: "San Antonio 029", plant: "Grand Prairie 097" },
+  { storeNumber: "30", name: "Oklahoma City 030", plant: "Grand Prairie 097" },
+  { storeNumber: "32", name: "Little Rock 032", plant: "Grand Prairie 097" },
+  { storeNumber: "33", name: "Kansas City 033", plant: "Grand Prairie 097" },
+  { storeNumber: "35", name: "Laredo 035", plant: "Grand Prairie 097" },
+  { storeNumber: "36", name: "Tulsa 036", plant: "Grand Prairie 097" },
+  { storeNumber: "39", name: "Austin 039", plant: "Grand Prairie 097" },
 ];

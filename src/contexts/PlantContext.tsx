@@ -1,10 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getPlantForStore } from '@/utils/plantMapping';
 
-export type Plant = 'Grand Prairie 97' | 'Romulus 98' | 'Mulberry 99';
+export type Plant = 'Grand Prairie 097' | 'Romulus 098' | 'Mulberry 099';
 
 interface PlantContextType {
   selectedPlant: Plant;
@@ -20,19 +19,19 @@ interface PlantContextType {
 const PlantContext = createContext<PlantContextType | undefined>(undefined);
 
 export const PLANT_WEBHOOKS = {
-  "Grand Prairie 97": {
+  "Grand Prairie 097": {
     wheelOrders: "https://hooks.zapier.com/hooks/catch/21741437/2c1zjty/",
     mtoOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wax8rh/",
     transferRequests: "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
     adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
   },
-  "Mulberry 99": {
+  "Mulberry 099": {
     wheelOrders: "",
     mtoOrders: "",
     transferRequests: "",
     adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
   },
-  "Romulus 98": {
+  "Romulus 098": {
     wheelOrders: "",
     mtoOrders: "",
     transferRequests: "",
@@ -40,35 +39,27 @@ export const PLANT_WEBHOOKS = {
   }
 };
 
-// Official Plant-Store Mapping (Master Reference)
+// Official Plant-Store Mapping (Updated with correct format)
 export const PLANT_STORE_MAP = {
-  "Grand Prairie 97": [
-    "Fort Worth 22", "Grand Prairie Service 27", "Grand Prairie 97", "Houston 28", 
-    "San Antonio 29", "Laredo 35", "Austin 39", "Oklahoma City 30", 
-    "Little Rock 32", "Kansas City 33", "Tulsa 36"
+  "Grand Prairie 097": [
+    "Fort Worth 022", "Grand Prairie 027", "Houston 028", "San Antonio 029", 
+    "Oklahoma City 030", "Little Rock 032", "Kansas City 033", "Laredo 035", 
+    "Tulsa 036", "Austin 039"
   ],
-  "Romulus 98": [
-    "Romulus 98", "Toledo 8", "Detroit 11", "Grand Rapids 13", 
-    "Cleveland 18", "Chicago 41"
-  ],
-  "Mulberry 99": [
-    "Miami 3", "Pompano Beach 7", "Fort Myers 9", "Jacksonville 002", 
-    "Ocala 5", "Tallahassee 15", "Mulberry Service 1", "Mulberry 99", 
-    "New Orleans 4", "Tampa 6", "Vero Beach 21", "Sarasota 23", 
-    "Tampa Foam Fill 40"
-  ]
+  "Romulus 098": [],
+  "Mulberry 099": []
 };
 
 console.log("🔍 PLANT CONTEXT - Loading plant webhooks:", PLANT_WEBHOOKS);
-console.log("🔍 PLANT CONTEXT - Transfer webhook for Grand Prairie 97:", PLANT_WEBHOOKS["Grand Prairie 97"].transferRequests);
-console.log("🔍 PLANT CONTEXT - Admin webhook for Grand Prairie 97:", PLANT_WEBHOOKS["Grand Prairie 97"].adminOrders);
+console.log("🔍 PLANT CONTEXT - Transfer webhook for Grand Prairie 097:", PLANT_WEBHOOKS["Grand Prairie 097"].transferRequests);
+console.log("🔍 PLANT CONTEXT - Admin webhook for Grand Prairie 097:", PLANT_WEBHOOKS["Grand Prairie 097"].adminOrders);
 
 // Helper function to convert plant names between formats
 const convertPlantName = (plantName: string): Plant => {
   // Convert from plantMapping format to PlantContext format
-  if (plantName === 'Grand Prairie 097') return 'Grand Prairie 97';
-  if (plantName === 'Romulus 098') return 'Romulus 98';
-  if (plantName === 'Mulberry 099') return 'Mulberry 99';
+  if (plantName === 'Grand Prairie 097') return 'Grand Prairie 097';
+  if (plantName === 'Romulus 098') return 'Romulus 098';
+  if (plantName === 'Mulberry 099') return 'Mulberry 099';
   
   // Return as-is if already in correct format
   return plantName as Plant;
@@ -76,9 +67,9 @@ const convertPlantName = (plantName: string): Plant => {
 
 export function PlantProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [selectedPlant, setSelectedPlant] = useState<Plant>('Grand Prairie 97');
-  const [currentPlant, setCurrentPlant] = useState<Plant>('Grand Prairie 97');
-  const [defaultPlant, setDefaultPlant] = useState<Plant>('Grand Prairie 97');
+  const [selectedPlant, setSelectedPlant] = useState<Plant>('Grand Prairie 097');
+  const [currentPlant, setCurrentPlant] = useState<Plant>('Grand Prairie 097');
+  const [defaultPlant, setDefaultPlant] = useState<Plant>('Grand Prairie 097');
   const [loading, setLoading] = useState(true);
 
   // Synchronized setter functions
@@ -105,7 +96,7 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
 
       try {
         // CRITICAL FIX: Determine default plant based on user's store
-        let storeBasedPlant: Plant = 'Grand Prairie 97'; // fallback
+        let storeBasedPlant: Plant = 'Grand Prairie 097'; // Default for all current stores
         
         if (user.store) {
           console.log("🔍 PLANT CONTEXT - Determining plant for user store:", user.store);
@@ -154,18 +145,8 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
         console.log("🔍 PLANT CONTEXT - Plant webhooks:", PLANT_WEBHOOKS[plantToUse]);
       } catch (error) {
         console.error("🔍 PLANT CONTEXT - Error loading preferences:", error);
-        // Fallback to localStorage or store-based default
-        const savedPlant = localStorage.getItem('selectedPlant');
-        let plantToUse: Plant = 'Grand Prairie 97';
-        
-        if (user.store) {
-          const mappedPlant = getPlantForStore(user.store);
-          plantToUse = convertPlantName(mappedPlant || 'Grand Prairie 097');
-        }
-        
-        if (savedPlant && savedPlant !== 'null') {
-          plantToUse = savedPlant as Plant;
-        }
+        // Fallback to Grand Prairie 097 for all current stores
+        const plantToUse: Plant = 'Grand Prairie 097';
         
         setDefaultPlant(plantToUse);
         setSelectedPlantSync(plantToUse);

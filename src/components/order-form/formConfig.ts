@@ -3,15 +3,15 @@ import { CrossDockFields } from "@/types/cross-dock.types";
 
 export const stores = [
   { id: "22", name: "Fort Worth 022" },
-  { id: "27", name: "Grand Prairie 27" },
-  { id: "28", name: "Houston 28" },
-  { id: "29", name: "San Antonio 29" },
-  { id: "30", name: "OKC 30" },
-  { id: "32", name: "Little Rock 32" },
-  { id: "33", name: "Kansas 33" },
-  { id: "35", name: "Laredo 35" },
-  { id: "36", name: "Tulsa 36" },
-  { id: "39", name: "Austin 39" },
+  { id: "27", name: "Grand Prairie 027" },
+  { id: "28", name: "Houston 028" },
+  { id: "29", name: "San Antonio 029" },
+  { id: "30", name: "Oklahoma City 030" },
+  { id: "32", name: "Little Rock 032" },
+  { id: "33", name: "Kansas City 033" },
+  { id: "35", name: "Laredo 035" },
+  { id: "36", name: "Tulsa 036" },
+  { id: "39", name: "Austin 039" },
 ];
 
 // REMOVED: Hardcoded email mappings - now using dynamic platform_users lookup

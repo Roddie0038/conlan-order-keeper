@@ -11,9 +11,9 @@ interface PlantSelectProps {
 }
 
 const plants = [
-  { value: "Grand Prairie 97", label: "Grand Prairie 97" },
-  { value: "Romulus 98", label: "Romulus 98" },
-  { value: "Mulberry 99", label: "Mulberry 99" }
+  { value: "Grand Prairie 097", label: "Grand Prairie 097" },
+  { value: "Romulus 098", label: "Romulus 098" },
+  { value: "Mulberry 099", label: "Mulberry 099" }
 ];
 
 export const PlantSelect = ({ selectedPlant, setSelectedPlant }: PlantSelectProps) => {
