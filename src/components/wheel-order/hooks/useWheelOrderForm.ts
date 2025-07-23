@@ -66,7 +66,7 @@ export function useWheelOrderForm() {
 
       setFormData(prev => ({
         ...prev,
-        storeName: user.store || "",
+        storeName: userStoreObj?.name || user.store || "", // Use the display name from stores config
         storeId: storeId, // ✅ Fixed storeId mapping
         userStore: user.store || "",
         yourName: user.name || "",
@@ -99,7 +99,7 @@ export function useWheelOrderForm() {
     if (selectedStore) {
       setFormData(prev => ({ 
         ...prev, 
-        storeName: selectedStore.name,
+        storeName: selectedStore.name, // This will now be "Fort Worth 022" for store 22
         storeId: value, // ✅ Set storeId from selection
         userStore: user?.store || ""
       }));

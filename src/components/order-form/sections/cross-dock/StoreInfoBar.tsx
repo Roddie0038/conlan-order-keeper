@@ -3,21 +3,26 @@ import { UseFormReturn } from "react-hook-form";
 import { OrderFormValues } from "../../order-form-schema";
 import { InfoIcon } from "lucide-react";
 import { useWatch } from "react-hook-form";
+import { stores } from "../../formConfig";
 
 interface StoreInfoBarProps {
   form: UseFormReturn<OrderFormValues>;
 }
 
 export function StoreInfoBar({ form }: StoreInfoBarProps) {
-  const store = useWatch({
+  const storeId = useWatch({
     control: form.control,
     name: "store",
   });
   
-  const crossDockStore = useWatch({
+  const crossDockStoreId = useWatch({
     control: form.control,
     name: "crossDockDestination",
   });
+  
+  // Get store names from IDs
+  const store = stores.find(s => s.id === storeId)?.name || storeId;
+  const crossDockStore = stores.find(s => s.id === crossDockStoreId)?.name || crossDockStoreId;
   
   // Skip showing this message if in admin mode with no store
   if (!store || store === "Admin") {

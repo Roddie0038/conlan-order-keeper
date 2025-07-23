@@ -7,20 +7,31 @@
 import { storeSanitizeForSupabase } from './storeSanitization';
 
 /**
- * Normalize store value to "Store XX" format for display (Google Sheets)
+ * Store name mapping for display format
+ */
+const STORE_NAME_MAP: Record<string, string> = {
+  "22": "Fort Worth 022",
+  "27": "Grand Prairie 27",
+  "28": "Houston 28",
+  "29": "San Antonio 29",
+  "30": "OKC 30",
+  "32": "Little Rock 32",
+  "33": "Kansas 33",
+  "35": "Laredo 35",
+  "36": "Tulsa 36",
+  "39": "Austin 39",
+};
+
+/**
+ * Normalize store value to proper display format for Google Sheets
  * @param storeValue - Raw store value from forms or user input
- * @returns Normalized store value in "Store XX" format
+ * @returns Normalized store value in proper display format
  */
 export function normalizeStoreForSubmission(storeValue: string): string {
   if (!storeValue) return storeValue;
   
   // Trim whitespace
   const trimmed = storeValue.trim();
-  
-  // If already in correct "Store XX" format, return as-is
-  if (/^Store \d{2}$/.test(trimmed)) {
-    return trimmed;
-  }
   
   // Extract store number from various formats:
   // "Fort Worth 022" → "22"
@@ -30,7 +41,13 @@ export function normalizeStoreForSubmission(storeValue: string): string {
   const storeNumber = trimmed.match(/\d+/)?.[0];
   
   if (storeNumber) {
-    // Pad to 2 digits and return in "Store XX" format
+    // Check if we have a mapping for this store number
+    const mappedName = STORE_NAME_MAP[storeNumber];
+    if (mappedName) {
+      return mappedName;
+    }
+    
+    // Fallback: pad to 2 digits and return in "Store XX" format
     const paddedNumber = storeNumber.padStart(2, '0');
     return `Store ${paddedNumber}`;
   }
@@ -41,7 +58,7 @@ export function normalizeStoreForSubmission(storeValue: string): string {
 
 /**
  * Extract store number from normalized store format
- * @param normalizedStore - Store in "Store XX" format
+ * @param normalizedStore - Store in display format
  * @returns Store number as string (e.g., "25")
  */
 export function extractStoreNumber(normalizedStore: string): string {
@@ -70,7 +87,7 @@ export function normalizeOrderStoreFields<T extends Record<string, any>>(
       const displayFormat = normalizeStoreForSubmission(value);
       return storeSanitizeForSupabase(displayFormat);
     } else {
-      // For display: Convert to "Store XX" format
+      // For display: Convert to proper display format
       return normalizeStoreForSubmission(value);
     }
   };

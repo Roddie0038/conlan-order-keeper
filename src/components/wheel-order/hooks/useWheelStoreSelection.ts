@@ -22,7 +22,7 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
         const storeColor = getStoreColor(user.store);
         setFormData(prev => ({
           ...prev,
-          storeName: user.store,
+          storeName: storeObj.name, // This will now be "Fort Worth 022" for store 22
           storeId: storeId,
           userStore: user.store,  // Set the userStore field based on the authenticated user
           storeColors: storeColor  // Set the store colors automatically
@@ -53,7 +53,7 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
       setFormData(prev => ({ 
         ...prev, 
         storeId: value,
-        storeName: selectedStore.name,
+        storeName: selectedStore.name, // This will now be "Fort Worth 022" for store 22
         userStore: user?.store || "",  // Preserve the user's actual store for validation
         storeColors: storeColor  // Set the store colors automatically
       }));

@@ -2,7 +2,7 @@
 import { CrossDockFields } from "@/types/cross-dock.types";
 
 export const stores = [
-  { id: "22", name: "Fort Worth 22" },
+  { id: "22", name: "Fort Worth 022" },
   { id: "27", name: "Grand Prairie 27" },
   { id: "28", name: "Houston 28" },
   { id: "29", name: "San Antonio 29" },

@@ -18,7 +18,7 @@ export const storeData = [
   // Romulus 098 Plant Stores (20-50, excluding 27)
   { storeNumber: "20", name: "Store 20", plant: "Romulus 098" },
   { storeNumber: "21", name: "Store 21", plant: "Romulus 098" },
-  { storeNumber: "22", name: "Store 22", plant: "Romulus 098" },
+  { storeNumber: "22", name: "Fort Worth 022", plant: "Romulus 098" },
   { storeNumber: "23", name: "Store 23", plant: "Romulus 098" },
   { storeNumber: "24", name: "Store 24", plant: "Romulus 098" },
   { storeNumber: "25", name: "Store 25", plant: "Romulus 098" },

@@ -8,7 +8,7 @@ export const PLANT_STORE_MAP = {
   ],
   // Plant 098 – Romulus (Midwest)  
   "Romulus 098": [
-    "Store 20", "Store 21", "Store 22", "Store 23", "Store 24", 
+    "Store 20", "Store 21", "Fort Worth 022", "Store 23", "Store 24", 
     "Store 25", "Store 26", "Store 28", 
     "Store 30", "Store 31", "Store 32", "Store 33", "Store 34", 
     "Store 35", "Store 36", "Store 37", "Store 38", "Store 39", 
@@ -48,6 +48,12 @@ export function getPlantForStore(store: string): string | undefined {
     if (num >= 1 && num <= 11) {
       console.log(`✅ PLANT MAPPING - Mapped to Mulberry 099`);
       return "Mulberry 099";
+    }
+    
+    // Store 22 (Fort Worth 022) maps to Romulus 098
+    if (num === 22) {
+      console.log(`✅ PLANT MAPPING - Mapped Fort Worth 022 to Romulus 098`);
+      return "Romulus 098";
     }
     
     // Grand Prairie 097: stores 27, 29, and 97
