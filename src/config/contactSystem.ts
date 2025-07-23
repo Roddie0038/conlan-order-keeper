@@ -21,34 +21,34 @@ export const PLANT_PERSONNEL: Record<string, Contact[]> = {};
 
 // Store to Plant mapping (updated to include Grand Prairie stores)
 export const STORE_TO_PLANT_MAP: Record<string, string> = {
-  // Grand Prairie stores -> Grand Prairie 97
-  "22": "Grand Prairie 97", // Fort Worth
-  "27": "Grand Prairie 97", // Grand Prairie
-  "28": "Grand Prairie 97", // Houston
-  "29": "Grand Prairie 97", // San Antonio
-  "30": "Grand Prairie 97", // OKC
-  "32": "Grand Prairie 97", // Little Rock
-  "33": "Grand Prairie 97", // Kansas
-  "35": "Grand Prairie 97", // Laredo
-  "36": "Grand Prairie 97", // Tulsa
-  "39": "Grand Prairie 97", // Austin
+  // Grand Prairie stores -> Grand Prairie 097
+  "22": "Grand Prairie 097", // Fort Worth
+  "27": "Grand Prairie 097", // Grand Prairie
+  "28": "Grand Prairie 097", // Houston
+  "29": "Grand Prairie 097", // San Antonio
+  "30": "Grand Prairie 097", // OKC
+  "32": "Grand Prairie 097", // Little Rock
+  "33": "Grand Prairie 097", // Kansas
+  "35": "Grand Prairie 097", // Laredo
+  "36": "Grand Prairie 097", // Tulsa
+  "39": "Grand Prairie 097", // Austin
   
-  // South FL stores -> Mulberry 99
-  "003": "Mulberry 99", // Miami
-  "007": "Mulberry 99", // Pompano Beach
-  "009": "Mulberry 99", // Fort Myers
+  // South FL stores -> Mulberry 099
+  "003": "Mulberry 099", // Miami
+  "007": "Mulberry 099", // Pompano Beach
+  "009": "Mulberry 099", // Fort Myers
   
-  // North FL stores -> Mulberry 99  
-  "002": "Mulberry 99", // Jacksonville
-  "005": "Mulberry 99", // Ocala
-  "015": "Mulberry 99", // Tallahassee
+  // North FL stores -> Mulberry 099  
+  "002": "Mulberry 099", // Jacksonville
+  "005": "Mulberry 099", // Ocala
+  "015": "Mulberry 099", // Tallahassee
   
-  // Central FL stores -> Mulberry 99
-  "001": "Mulberry 99", // Mulberry Service
-  "004": "Mulberry 99", // Orlando
-  "006": "Mulberry 99", // Tampa
-  "023": "Mulberry 99", // Sarasota
-  "040": "Mulberry 99", // Tampa Foam Fill
+  // Central FL stores -> Mulberry 099
+  "001": "Mulberry 099", // Mulberry Service
+  "004": "Mulberry 099", // Orlando
+  "006": "Mulberry 099", // Tampa
+  "023": "Mulberry 099", // Sarasota
+  "040": "Mulberry 099", // Tampa Foam Fill
 };
 
 // Store to Region mapping (updated to include Grand Prairie stores)

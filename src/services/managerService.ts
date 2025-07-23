@@ -15,15 +15,15 @@ export const getPlantCodeFromStore = (storeNumber: string): string => {
   const storeNum = parseInt(storeNumber);
   
   if (storeNum >= 22 && storeNum <= 39) {
-    return "97"; // Grand Prairie plant
+    return "097"; // Grand Prairie plant
   } else if (storeNum >= 2 && storeNum <= 23) {
-    return "99"; // Mulberry plant
+    return "099"; // Mulberry plant
   } else if (storeNum >= 8 && storeNum <= 98) {
-    return "98"; // Romulus plant
+    return "098"; // Romulus plant
   }
   
   // Default fallback to Grand Prairie
-  return "97";
+  return "097";
 };
 
 export const getManagersByPlantCode = async (plantCode: string): Promise<Manager[]> => {

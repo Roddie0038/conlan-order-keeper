@@ -183,7 +183,7 @@ export function EditUserDialog({ open, onOpenChange, user, onUserUpdated }: Edit
                 id="plant"
                 value={formData.plant}
                 onChange={(e) => setFormData(prev => ({ ...prev, plant: e.target.value }))}
-                placeholder="Grand Prairie 97"
+                placeholder="Grand Prairie 097"
                 className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
               />
             </div>

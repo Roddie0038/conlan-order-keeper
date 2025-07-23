@@ -14,47 +14,44 @@ import { validateEmail, validatePassword } from '@/utils/validation';
 const ALLOWED_DOMAINS = ['@conlantire.com'];
 
 const PLANTS = [
-  { code: '97', name: 'Grand Prairie 97' },
-  { code: '98', name: 'Romulus 98' },
-  { code: '99', name: 'Mulberry 99' }
+  { code: '097', name: 'Grand Prairie 097' },
+  { code: '098', name: 'Romulus 098' },
+  { code: '099', name: 'Mulberry 099' }
 ];
 
 const STORES_BY_PLANT: Record<string, Array<{ number: string; name: string }>> = {
-  '97': [
-    { number: '22', name: 'Fort Worth 22' },
-    { number: '27', name: 'Grand Prairie Service 27' },
-    { number: '97', name: 'Grand Prairie 97' },
-    { number: '28', name: 'Houston 28' },
-    { number: '29', name: 'San Antonio 29' },
-    { number: '35', name: 'Laredo 35' },
-    { number: '39', name: 'Austin 39' },
-    { number: '30', name: 'Oklahoma City 30' },
-    { number: '32', name: 'Little Rock 32' },
-    { number: '33', name: 'Kansas City 33' },
-    { number: '36', name: 'Tulsa 36' }
+  '097': [
+    { number: '22', name: 'Fort Worth 022' },
+    { number: '27', name: 'Grand Prairie 027' },
+    { number: '28', name: 'Houston 028' },
+    { number: '29', name: 'San Antonio 029' },
+    { number: '35', name: 'Laredo 035' },
+    { number: '39', name: 'Austin 039' },
+    { number: '30', name: 'Oklahoma City 030' },
+    { number: '32', name: 'Little Rock 032' },
+    { number: '33', name: 'Kansas City 033' },
+    { number: '36', name: 'Tulsa 036' }
   ],
-  '98': [
-    { number: '98', name: 'Romulus 98' },
-    { number: '8', name: 'Toledo 8' },
-    { number: '11', name: 'Detroit 11' },
-    { number: '13', name: 'Grand Rapids 13' },
-    { number: '18', name: 'Cleveland 18' },
-    { number: '41', name: 'Chicago 41' }
+  '098': [
+    { number: '8', name: 'Toledo 008' },
+    { number: '11', name: 'Detroit 011' },
+    { number: '13', name: 'Grand Rapids 013' },
+    { number: '18', name: 'Cleveland 018' },
+    { number: '41', name: 'Chicago 041' }
   ],
-  '99': [
-    { number: '3', name: 'Miami 3' },
-    { number: '7', name: 'Pompano Beach 7' },
-    { number: '9', name: 'Fort Myers 9' },
+  '099': [
+    { number: '3', name: 'Miami 003' },
+    { number: '7', name: 'Pompano Beach 007' },
+    { number: '9', name: 'Fort Myers 009' },
     { number: '002', name: 'Jacksonville 002' },
-    { number: '5', name: 'Ocala 5' },
-    { number: '15', name: 'Tallahassee 15' },
-    { number: '1', name: 'Mulberry Service 1' },
-    { number: '99', name: 'Mulberry 99' },
-    { number: '4', name: 'New Orleans 4' },
-    { number: '6', name: 'Tampa 6' },
-    { number: '21', name: 'Vero Beach 21' },
-    { number: '23', name: 'Sarasota 23' },
-    { number: '40', name: 'Tampa Foam Fill 40' }
+    { number: '5', name: 'Ocala 005' },
+    { number: '15', name: 'Tallahassee 015' },
+    { number: '1', name: 'Mulberry Service 001' },
+    { number: '4', name: 'New Orleans 004' },
+    { number: '6', name: 'Tampa 006' },
+    { number: '21', name: 'Vero Beach 021' },
+    { number: '23', name: 'Sarasota 023' },
+    { number: '40', name: 'Tampa Foam Fill 040' }
   ]
 };
 

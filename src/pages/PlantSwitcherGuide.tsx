@@ -184,10 +184,10 @@ const PlantSwitcherGuide = () => {
                       </div>
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                        <span className="text-white font-semibold">Grand Prairie 97</span>
+                        <span className="text-white font-semibold">Grand Prairie 097</span>
                       </div>
                       <div className="text-sm text-gray-400">
-                        Default Plant: <span className="text-blue-300">Grand Prairie 97</span>
+                        Default Plant: <span className="text-blue-300">Grand Prairie 097</span>
                       </div>
                     </div>
                   </div>
@@ -230,9 +230,9 @@ const PlantSwitcherGuide = () => {
                       Choose from the three available options:
                     </p>
                     <ul className="text-sm space-y-1 text-muted-foreground ml-4">
-                      <li>• <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2"></span>Grand Prairie 97 (Texas/Oklahoma region)</li>
-                      <li>• <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>Romulus 98 (Michigan/Ohio region)</li>
-                      <li>• <span className="inline-block w-2 h-2 rounded-full bg-orange-500 mr-2"></span>Mulberry 99 (Florida/Louisiana region)</li>
+                      <li>• <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2"></span>Grand Prairie 097 (Texas/Oklahoma region)</li>
+                      <li>• <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>Romulus 098 (Michigan/Ohio region)</li>
+                      <li>• <span className="inline-block w-2 h-2 rounded-full bg-orange-500 mr-2"></span>Mulberry 099 (Florida/Louisiana region)</li>
                     </ul>
                   </div>
                   
@@ -290,7 +290,7 @@ const PlantSwitcherGuide = () => {
                         <span className="text-sm font-medium">Cross-Plant Order Alert</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        You're ordering from <strong>Romulus 98</strong> instead of your default plant (<strong>Grand Prairie 97</strong>).
+                        You're ordering from <strong>Romulus 098</strong> instead of your default plant (<strong>Grand Prairie 097</strong>).
                       </p>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -306,7 +306,7 @@ const PlantSwitcherGuide = () => {
                         <span className="text-sm font-medium">Plant Switch Confirmation</span>
                       </div>
                       <p className="text-xs text-muted-foreground mb-2">
-                        You're switching from <strong>Grand Prairie 97</strong> to <strong>Romulus 98</strong>. 
+                        You're switching from <strong>Grand Prairie 097</strong> to <strong>Romulus 098</strong>. 
                         This will affect which plant processes your orders.
                       </p>
                       <div className="flex gap-2">
@@ -327,7 +327,7 @@ const PlantSwitcherGuide = () => {
                         <CheckCircle className="h-4 w-4 text-green-600" />
                         <span className="text-sm font-medium text-green-700">Plant Switched Successfully</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Switched to Romulus 98</p>
+                      <p className="text-xs text-muted-foreground mt-1">Switched to Romulus 098</p>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Green toast notification confirms your plant switch was successful.
@@ -338,7 +338,7 @@ const PlantSwitcherGuide = () => {
                     <h3 className="font-semibold text-gray-700 dark:text-gray-300">🏠 Default Plant Indicator</h3>
                     <div className="p-3 bg-gray-100 border border-gray-300 rounded">
                       <div className="text-sm text-muted-foreground">
-                        Default Plant: <span className="text-blue-600 font-medium">Grand Prairie 97</span>
+                        Default Plant: <span className="text-blue-600 font-medium">Grand Prairie 097</span>
                       </div>
                       <button className="text-xs text-blue-600 underline mt-1">Switch back to default</button>
                     </div>
@@ -527,11 +527,11 @@ const PlantSwitcherGuide = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                          <span className="text-sm font-medium">Plant: Grand Prairie 97</span>
+                          <span className="text-sm font-medium">Plant: Grand Prairie 097</span>
                           <CheckCircle className="h-4 w-4 text-green-500" />
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          ✅ Correct: Fort Worth 22 is served by Grand Prairie 97. 
+                          ✅ Correct: Fort Worth 22 is served by Grand Prairie 097. 
                           Orders will process normally with standard shipping.
                         </p>
                       </div>
@@ -548,11 +548,11 @@ const PlantSwitcherGuide = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                          <span className="text-sm font-medium">Plant: Romulus 98</span>
+                          <span className="text-sm font-medium">Plant: Romulus 098</span>
                           <X className="h-4 w-4 text-red-500" />
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          ❌ Incorrect: Fort Worth should use Grand Prairie 97. 
+                          ❌ Incorrect: Fort Worth should use Grand Prairie 097. 
                           This will cause delays and potential cross-plant fees.
                         </p>
                       </div>

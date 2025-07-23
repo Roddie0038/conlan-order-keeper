@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: data.email,
         role: data.role || 'Store Manager',
         store_number: data.store_number || 'Unassigned',
-        plant_code: data.plant_code || 'Grand Prairie 97',
+        plant_code: data.plant_code || 'Grand Prairie 097',
         is_active: data.is_active
       } : null;
     } catch (error) {
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get plant and store info from user metadata if available
     const userMetadata = authUser.user_metadata || {};
     const storeNameNumber = userMetadata.store_name_number || storeManager?.store_number || 'Unassigned';
-    const defaultPlant = userMetadata.default_plant || storeManager?.plant_code || 'Grand Prairie 97';
+    const defaultPlant = userMetadata.default_plant || storeManager?.plant_code || 'Grand Prairie 097';
     
     if (storeManager) {
       return {
