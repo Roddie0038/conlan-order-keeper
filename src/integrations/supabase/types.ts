@@ -3008,6 +3008,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      save_label_template: {
+        Args: {
+          p_name: string
+          p_width: number
+          p_height: number
+          p_elements: Json
+          p_is_shared?: boolean
+        }
+        Returns: {
+          id: string
+          created_at: string
+        }[]
+      }
       set_temporary_password: {
         Args: {
           p_user_id: string
