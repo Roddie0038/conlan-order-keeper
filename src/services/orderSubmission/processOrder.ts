@@ -1,4 +1,3 @@
-
 import { OrderSummary } from "@/hooks/useOrderSubmission";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
@@ -8,19 +7,9 @@ import { getPlantForStore } from "@/utils/plantMapping";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
 import type { OrderData } from "@/types/supabase-extensions";
 import { formatDateForSupabase } from "@/utils/dateTime";
-import { supabase } from "@/integrations/supabase/client";
+import { createServiceRoleClient } from "@/integrations/supabase/client";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 import { storeSanitizeForSupabase, logStoreFormatTransformation } from "@/utils/storeSanitization";
-
-/**
- * Create a service role Supabase client for bypassing RLS
- */
-const createServiceRoleClient = () => {
-  const SUPABASE_URL = "https://cdbixtaqjppvdkyfbhkz.supabase.co";
-  const SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMzNzA2MSwiZXhwIjoyMDU1OTEzMDYxfQ.xrKT5y3yRVZiHyc4pQPxXXBfnqcQqQOPjZyZPAkSWcU";
-  
-  return supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-};
 
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage

@@ -11,8 +11,11 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+// Service role key for bypassing RLS when needed
+const SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMzNzA2MSwiZXhwIjoyMDU1OTEzMDYxfQ.xrKT5y3yRVZiHyc4pQPxXXBfnqcQqQOPjZyZPAkSWcU";
+
 // Create a service role client for bypassing RLS when needed
 // This should only be used in server-side contexts or where RLS bypass is required
-supabase.createClient = (url?: string, key?: string) => {
-  return createClient<Database>(url || SUPABASE_URL, key || SUPABASE_PUBLISHABLE_KEY);
+export const createServiceRoleClient = () => {
+  return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 };
