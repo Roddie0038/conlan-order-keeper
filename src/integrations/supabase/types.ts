@@ -2815,20 +2815,11 @@ export type Database = {
       }
     }
     Views: {
-      store_normalization_summary: {
-        Row: {
-          status: string | null
-          table_name: string | null
-          total_occurrences: number | null
-          unique_store_values: number | null
-        }
-        Relationships: []
-      }
       store_normalization_verification: {
         Row: {
           column_name: string | null
           normalized_value: string | null
-          occurrence_count: number | null
+          record_count: number | null
           status: string | null
           store_value: string | null
           table_name: string | null
