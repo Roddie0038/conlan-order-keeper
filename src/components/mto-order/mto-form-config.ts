@@ -17,8 +17,8 @@ export interface MTOFormData {
 }
 
 export const stores = [
-  "Store 22", "Store 27", "Store 28", "Store 29", "Store 30", "Store 32", 
-  "Store 33", "Store 35", "Store 36", "Store 39"
+  "Fort Worth 022", "Grand Prairie 027", "Houston 028", "San Antonio 029", "Oklahoma City 030", "Little Rock 032", 
+  "Kansas City 033", "Laredo 035", "Tulsa 036", "Austin 039"
 ];
 
 export const casingGrades = [

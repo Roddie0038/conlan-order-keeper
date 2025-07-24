@@ -109,7 +109,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Google Sheets payload (display format)
   const baseGoogleSheetsPayload = {
     ...order,
-    store: displayStore, // Use display format "Store 27"
+    store: displayStore, // Use display format "Grand Prairie 027"
     plant: finalPlant,
     type: orderType,
     name: order.yourName || order.name || "Unknown",

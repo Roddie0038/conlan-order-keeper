@@ -58,8 +58,8 @@ export function OrdersOverview() {
     setOrders(allOrders);
   }, []);
 
-  const stores = ["Fort Worth 22", "Grand Prairie 27", "Houston 28", "San Antonio 29", "Oklahoma 30", 
-    "Little Rock 32", "Kansas 33", "Laredo 35", "Tulsa 36", "Austin 39"];
+  const stores = ["Fort Worth 022", "Grand Prairie 027", "Houston 028", "San Antonio 029", "Oklahoma City 030", 
+    "Little Rock 032", "Kansas City 033", "Laredo 035", "Tulsa 036", "Austin 039"];
 
   // Memoized filtering for better performance
   const filteredOrders = useMemoizedFilter(

@@ -118,7 +118,7 @@ function AddRecipientForm({ onSuccess, editingRecipient, onCancel }: AddRecipien
             id="store_name"
             value={formData.store_name}
             onChange={(e) => setFormData(prev => ({ ...prev, store_name: e.target.value }))}
-            placeholder="e.g., Grand Prairie 27"
+            placeholder="e.g., Grand Prairie 027"
           />
         </div>
       </div>
