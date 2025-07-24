@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getTransferEmailRecipients, getMTOEmailRecipients, getRefurbishedEmailRecipients, getWarrantyEmailRecipients } from "@/config/contactSystem";
 import { getStoreNumberVariants, logStoreFormatTransformation } from "@/utils/storeSanitization";
+import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
 
 export type EmailType = 'transfer' | 'mto' | 'wheel' | 'warranty' | 'completion';
 
@@ -22,10 +23,18 @@ export async function getStoreEmailRecipients(
     
     // Get all possible store number variants (e.g., "27", "027")
     const storeVariants = getStoreNumberVariants(storeNumber);
-    logStoreFormatTransformation('EMAIL_LOOKUP', storeNumber, storeVariants.join(', '), 'store variants');
+    
+    // Also try normalized store formats (like "Grand Prairie 027")
+    const normalizedStore = normalizeStoreForSubmission(storeNumber);
+    const allVariants = [...storeVariants, normalizedStore, storeNumber];
+    
+    // Remove duplicates and empty values
+    const uniqueVariants = [...new Set(allVariants)].filter(Boolean);
+    
+    logStoreFormatTransformation('EMAIL_LOOKUP', storeNumber, uniqueVariants.join(', '), 'all store variants including normalized');
     
     // Try each variant until we find recipients
-    for (const variant of storeVariants) {
+    for (const variant of uniqueVariants) {
       console.log(`📧 EMAIL ROUTING - Trying store variant: ${variant}`);
       
       const { data, error } = await supabase

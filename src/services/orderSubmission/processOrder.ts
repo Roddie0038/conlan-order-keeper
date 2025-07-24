@@ -182,12 +182,21 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     
     // Create service role client for RLS bypass
     const serviceRoleClient = createServiceRoleClient();
+    console.log("🔍 SUBMIT - Service role client created successfully");
     
-    const { data, error } = await serviceRoleClient
-      .from(tableName)
-      .insert(supabaseOrder)
-      .select()
-      .single();
+    let supabaseInsertResult;
+    try {
+      supabaseInsertResult = await serviceRoleClient
+        .from(tableName)
+        .insert(supabaseOrder)
+        .select()
+        .single();
+    } catch (insertError) {
+      console.error("❌ SUBMIT - Service role insert error:", insertError);
+      throw new Error(`Service role insert failed: ${insertError.message || 'Unknown error'}`);
+    }
+    
+    const { data, error } = supabaseInsertResult;
     
     if (error) {
       console.error("❌ SUBMIT - Supabase insert error:", error);
