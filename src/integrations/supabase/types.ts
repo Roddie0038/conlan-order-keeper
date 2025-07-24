@@ -2815,14 +2815,13 @@ export type Database = {
       }
     }
     Views: {
-      store_normalization_verification: {
+      plant_normalization_verification: {
         Row: {
-          column_name: string | null
-          normalized_value: string | null
-          record_count: number | null
-          status: string | null
-          store_value: string | null
+          non_normalized_plants: number | null
+          normalized_plants: number | null
           table_name: string | null
+          total_records: number | null
+          unique_plant_values: string[] | null
         }
         Relationships: []
       }
@@ -2926,6 +2925,31 @@ export type Database = {
           user_role: Database["public"]["Enums"]["ot_user_role"]
         }[]
       }
+      get_secure_zone_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          label: string
+          location: string
+          plant: string
+          last_scanned_at: string
+          zone_alert_status: string
+          total_items: number
+          sku_count: number
+          avg_fill_rate: number
+          last_scan_activity: string
+        }[]
+      }
+      get_store_normalization_verification: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          table_name: string
+          store_value: string
+          normalized_value: string
+          status: string
+          occurrences: number
+        }[]
+      }
       get_zone_summaries: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2948,6 +2972,10 @@ export type Database = {
       }
       has_store_access: {
         Args: { target_store: string }
+        Returns: boolean
+      }
+      is_cross_plant_order: {
+        Args: { order_plant: string; user_default_plant: string }
         Returns: boolean
       }
       is_cross_platform_super_admin: {
