@@ -7,7 +7,7 @@ import { getPlantForStore } from "@/utils/plantMapping";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
 import type { OrderData } from "@/types/supabase-extensions";
 import { formatDateForSupabase } from "@/utils/dateTime";
-import { createServiceRoleClient } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 import { storeSanitizeForSupabase, logStoreFormatTransformation } from "@/utils/storeSanitization";
 
@@ -180,36 +180,38 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     console.log("🔍 SUBMIT - Using table:", tableName);
     console.log("🔍 SUBMIT - Final payload before insert:", supabaseOrder);
     
-    // Create service role client for RLS bypass
-    const serviceRoleClient = createServiceRoleClient();
-    console.log("🔍 SUBMIT - Service role client created successfully");
+    // SECURITY FIX: Use edge function for secure order processing
+    console.log("🔒 SUBMIT - Using secure edge function for order processing");
     
-    let supabaseInsertResult;
+    let insertedData: any;
+    
     try {
-      supabaseInsertResult = await serviceRoleClient
-        .from(tableName)
-        .insert(supabaseOrder)
-        .select()
-        .single();
+      const { data, error } = await supabase.functions.invoke('secure-order-processing', {
+        body: {
+          orderData: supabaseOrder,
+          tableName,
+          action: 'create_order'
+        }
+      });
+
+      if (error) {
+        console.error("❌ SUBMIT - Edge function error:", error);
+        throw new Error(`Secure order processing failed: ${error.message}`);
+      }
+
+      console.log("✅ SUBMIT - Order processed securely via edge function");
+      insertedData = data.data;
+
+      if (!insertedData) {
+        console.error("❌ SUBMIT - No data returned from secure processing");
+        throw new Error('Secure order processing failed: No data returned');
+      }
+
+      console.log("✅ SUBMIT - Successfully saved to Supabase:", insertedData);
+      console.log("✅ SUBMIT - Verified store field in saved data:", insertedData.store);
     } catch (insertError) {
       console.error("❌ SUBMIT - Service role insert error:", insertError);
       throw new Error(`Service role insert failed: ${insertError.message || 'Unknown error'}`);
-    }
-    
-    const { data, error } = supabaseInsertResult;
-    
-    if (error) {
-      console.error("❌ SUBMIT - Supabase insert error:", error);
-      console.error("❌ SUBMIT - Error details:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
-      });
-      throw new Error(`Supabase insert failed: ${error.message}`);
-    } else {
-      console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
-      console.log("✅ SUBMIT - Verified store field in saved data:", data.store);
     }
     
     // PHASE 7: Send email notifications
@@ -240,7 +242,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
                 },
                 body: JSON.stringify({
                   transferData: googleSheetsPayload,
-                  orderId: data?.id || 'unknown',
+                  orderId: insertedData?.id || 'unknown',
                   recipients: emailRecipients
                 })
               }
@@ -280,7 +282,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
                 },
                 body: JSON.stringify({
                   transferData: { ...googleSheetsPayload, orderType: 'Refurbished' },
-                  orderId: data?.id || 'unknown', 
+                  orderId: insertedData?.id || 'unknown', 
                   recipients: emailRecipients
                 })
               }

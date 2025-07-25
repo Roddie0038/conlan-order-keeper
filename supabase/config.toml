@@ -12,3 +12,6 @@ verify_jwt = false
 
 [functions.ordering-confirmation-email]
 verify_jwt = false
+
+[functions.secure-order-processing]
+verify_jwt = false

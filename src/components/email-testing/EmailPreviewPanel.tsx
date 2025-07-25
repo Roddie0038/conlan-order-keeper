@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Code } from "lucide-react";
+import DOMPurify from 'dompurify';
 
 interface EmailPreviewPanelProps {
   templateType: string;
@@ -132,7 +133,12 @@ This is an automated message from the Conlan Tire Ordering Platform
           
           <TabsContent value="html" className="space-y-4">
             <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-              <div dangerouslySetInnerHTML={{ __html: getEmailHTML(templateType) }} />
+              <div dangerouslySetInnerHTML={{ 
+                __html: DOMPurify.sanitize(getEmailHTML(templateType), {
+                  ALLOWED_TAGS: ['div', 'p', 'span', 'strong', 'em', 'br', 'table', 'tr', 'td', 'th', 'thead', 'tbody'],
+                  ALLOWED_ATTR: ['style', 'class']
+                })
+              }} />
             </div>
           </TabsContent>
           

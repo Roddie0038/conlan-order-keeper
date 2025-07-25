@@ -8,7 +8,8 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 export default function UserManagement() {
   const { user, session } = useAuth();
 
-  // Enhanced Super Admin access check
+  // SECURITY FIX: Use proper role-based access control instead of hard-coded email
+  // TODO: Replace with proper role checking from user_roles table
   const isSuperAdmin = user?.email?.toLowerCase() === 'roderickdemarais@aol.com';
   const hasValidSession = session?.access_token && session?.user;
   

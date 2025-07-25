@@ -11,11 +11,9 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-// Service role key for bypassing RLS when needed
-const SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMzNzA2MSwiZXhwIjoyMDU1OTEzMDYxfQ.xrKT5y3yRVZiHyc4pQPxXXBfnqcQqQOPjZyZPAkSWcU";
-
-// Create a service role client for bypassing RLS when needed
-// This should only be used in server-side contexts or where RLS bypass is required
+// SECURITY FIX: Service role key removed from frontend
+// Service role operations have been moved to edge functions for security
+// This function now throws an error to prevent usage
 export const createServiceRoleClient = () => {
-  return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  throw new Error('Service role client cannot be used from frontend for security reasons. Use edge functions instead.');
 };
