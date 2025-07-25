@@ -978,6 +978,59 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_delivery_log: {
+        Row: {
+          clicked_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_provider: string
+          delivery_status: string
+          error_details: string | null
+          id: string
+          notification_id: string | null
+          opened_at: string | null
+          provider_message_id: string | null
+          recipient_email: string
+          recipient_role: string
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_provider?: string
+          delivery_status: string
+          error_details?: string | null
+          id?: string
+          notification_id?: string | null
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email: string
+          recipient_role: string
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_provider?: string
+          delivery_status?: string
+          error_details?: string | null
+          id?: string
+          notification_id?: string | null
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email?: string
+          recipient_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_delivery_log_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notification_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_logs: {
         Row: {
           created_at: string | null
@@ -1038,6 +1091,96 @@ export type Database = {
           status?: string | null
           store?: string | null
           template_used?: string | null
+        }
+        Relationships: []
+      }
+      notification_queue: {
+        Row: {
+          created_at: string
+          email_type: string
+          error_message: string | null
+          id: string
+          max_retries: number
+          metadata: Json | null
+          order_id: string
+          order_type: string
+          plant: string
+          priority: number
+          processed_at: string | null
+          recipients: Json
+          retry_count: number
+          scheduled_at: string
+          status: string
+          store_number: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_type: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number
+          metadata?: Json | null
+          order_id: string
+          order_type: string
+          plant: string
+          priority?: number
+          processed_at?: string | null
+          recipients?: Json
+          retry_count?: number
+          scheduled_at?: string
+          status?: string
+          store_number: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number
+          metadata?: Json | null
+          order_id?: string
+          order_type?: string
+          plant?: string
+          priority?: number
+          processed_at?: string | null
+          recipients?: Json
+          retry_count?: number
+          scheduled_at?: string
+          status?: string
+          store_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_routing_rules: {
+        Row: {
+          conditions: Json | null
+          created_at: string
+          email_type: string
+          id: string
+          is_enabled: boolean
+          recipient_role: string
+          updated_at: string
+        }
+        Insert: {
+          conditions?: Json | null
+          created_at?: string
+          email_type: string
+          id?: string
+          is_enabled?: boolean
+          recipient_role: string
+          updated_at?: string
+        }
+        Update: {
+          conditions?: Json | null
+          created_at?: string
+          email_type?: string
+          id?: string
+          is_enabled?: boolean
+          recipient_role?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1451,6 +1594,7 @@ export type Database = {
           failed_login_attempts: number | null
           full_name: string
           id: string
+          is_super_admin: boolean | null
           last_login: string | null
           locked_until: string | null
           must_change_password: boolean | null
@@ -1476,6 +1620,7 @@ export type Database = {
           failed_login_attempts?: number | null
           full_name: string
           id?: string
+          is_super_admin?: boolean | null
           last_login?: string | null
           locked_until?: string | null
           must_change_password?: boolean | null
@@ -1501,6 +1646,7 @@ export type Database = {
           failed_login_attempts?: number | null
           full_name?: string
           id?: string
+          is_super_admin?: boolean | null
           last_login?: string | null
           locked_until?: string | null
           must_change_password?: boolean | null
@@ -1949,6 +2095,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      security_audit_log: {
+        Row: {
+          created_at: string | null
+          event_details: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       skus: {
         Row: {
@@ -2900,6 +3079,7 @@ export type Database = {
           failed_login_attempts: number | null
           full_name: string
           id: string
+          is_super_admin: boolean | null
           last_login: string | null
           locked_until: string | null
           must_change_password: boolean | null
@@ -2997,6 +3177,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_dynamic_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_inventory_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -3035,6 +3219,15 @@ export type Database = {
           p_user_agent?: string
           p_error_message?: string
           p_metadata?: Json
+        }
+        Returns: string
+      }
+      log_security_event: {
+        Args: {
+          p_event_type: string
+          p_event_details?: Json
+          p_ip_address?: unknown
+          p_user_agent?: string
         }
         Returns: string
       }
