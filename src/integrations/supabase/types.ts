@@ -1446,6 +1446,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           email: string
+          email_group: string | null
           email_verified: boolean | null
           failed_login_attempts: number | null
           full_name: string
@@ -1457,6 +1458,7 @@ export type Database = {
           password_reset_token: string | null
           plant: string | null
           role: Database["public"]["Enums"]["ot_user_role"]
+          role_classification: string | null
           status: Database["public"]["Enums"]["ot_user_status"] | null
           store: string | null
           temporary_password_expires_at: string | null
@@ -1469,6 +1471,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           email: string
+          email_group?: string | null
           email_verified?: boolean | null
           failed_login_attempts?: number | null
           full_name: string
@@ -1480,6 +1483,7 @@ export type Database = {
           password_reset_token?: string | null
           plant?: string | null
           role: Database["public"]["Enums"]["ot_user_role"]
+          role_classification?: string | null
           status?: Database["public"]["Enums"]["ot_user_status"] | null
           store?: string | null
           temporary_password_expires_at?: string | null
@@ -1492,6 +1496,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           email?: string
+          email_group?: string | null
           email_verified?: boolean | null
           failed_login_attempts?: number | null
           full_name?: string
@@ -1503,6 +1508,7 @@ export type Database = {
           password_reset_token?: string | null
           plant?: string | null
           role?: Database["public"]["Enums"]["ot_user_role"]
+          role_classification?: string | null
           status?: Database["public"]["Enums"]["ot_user_status"] | null
           store?: string | null
           temporary_password_expires_at?: string | null
@@ -1856,6 +1862,7 @@ export type Database = {
           email: string
           id: string
           name: string | null
+          plant_code: string | null
           role: string
           store: string
           updated_at: string | null
@@ -1865,6 +1872,7 @@ export type Database = {
           email: string
           id: string
           name?: string | null
+          plant_code?: string | null
           role: string
           store: string
           updated_at?: string | null
@@ -1874,6 +1882,7 @@ export type Database = {
           email?: string
           id?: string
           name?: string | null
+          plant_code?: string | null
           role?: string
           store?: string
           updated_at?: string | null
@@ -2886,6 +2895,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           email: string
+          email_group: string | null
           email_verified: boolean | null
           failed_login_attempts: number | null
           full_name: string
@@ -2897,6 +2907,7 @@ export type Database = {
           password_reset_token: string | null
           plant: string | null
           role: Database["public"]["Enums"]["ot_user_role"]
+          role_classification: string | null
           status: Database["public"]["Enums"]["ot_user_status"] | null
           store: string | null
           temporary_password_expires_at: string | null
@@ -3045,6 +3056,16 @@ export type Database = {
       }
       refresh_zone_alerts: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      rpc_send_transfer_notification: {
+        Args: {
+          order_id: number
+          store: string
+          email: string
+          role: string
+          full_name: string
+        }
         Returns: undefined
       }
       save_label_template: {
