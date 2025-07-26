@@ -129,8 +129,8 @@ export async function getManagerEmail(store: string): Promise<string> {
  * Legacy function for backward compatibility
  * Returns first manager email found
  */
-export async function getFirstManagerEmail(store: string): Promise<string> {
-  const recipients = await getOrderingEmailRecipients(store, 'transfer');
+export async function getFirstManagerEmail(store: string, emailType: EmailType = 'transfer'): Promise<string> {
+  const recipients = await getOrderingEmailRecipients(store, emailType);
   const manager = recipients.find(r => r.role === 'store_manager') || recipients[0];
   return manager?.email || '';
 }

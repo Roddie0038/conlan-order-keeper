@@ -23,7 +23,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
     
     if (!formData.store) newErrors.store = "Store is required";
     if (!formData.name) newErrors.name = "Name is required";
-    if (!formData.productNumber) newErrors.productNumber = "Product number is required";
+    if (!formData.productNumber || formData.productNumber.trim() === '') newErrors.productNumber = "Product number is required";
     if (!formData.tireSize) newErrors.tireSize = "Tire size is required";
     if (!formData.tireTreadNeeded) newErrors.tireTreadNeeded = "Tire tread needed is required";
     if (!formData.quantity) newErrors.quantity = "Quantity is required";
@@ -46,7 +46,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       console.log("🔍 MTO FORM - Starting MTO submission with plant:", formData.destinationPlant);
       
       const normalizedStore = normalizeStoreForSubmission(formData.store);
-      const managerEmail = await getFirstManagerEmail(normalizedStore);
+      const managerEmail = await getFirstManagerEmail(normalizedStore, 'mto');
       
       const tireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       const timestamp = new Date().toISOString();
