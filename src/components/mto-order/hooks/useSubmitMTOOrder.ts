@@ -10,6 +10,7 @@ import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
 import { sendMTONotificationEmail } from "@/services/mtoNotificationService";
 import type { MTOOrderData } from "@/types/supabase-extensions";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
+import { mapMTOToSupabase } from "@/utils/mapMTOToSupabase";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast, errors, setErrors }: any) => {
   const { user } = useAuth();
@@ -52,28 +53,25 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       
       console.log("✅ MTO FORM - Using selected plant:", formData.destinationPlant);
 
-      // Create order data using the selected plant directly
-      const baseMTOOrder: MTOOrderData = {
-        name: formData.name,
-        store: normalizedStore,
-        productNumber: formData.productNumber,
-        casingGrade: Array.isArray(formData.casingGrade) ? formData.casingGrade.join(", ") : formData.casingGrade || "",
-        tireSize: tireSize,
-        tread: formData.tireTreadNeeded,
-        tireTreadNeeded: formData.tireTreadNeeded,
-        quantity: parseInt(formData.quantity) || 0,
-        notes: formData.notes || "",
+      // Create order data using mapMTOToSupabase with proper store sanitization
+      const formDataWithPlant = {
+        ...formData,
+        plant: formData.destinationPlant,
         email: managerEmail,
         managerEmail: managerEmail,
-        plant: formData.destinationPlant, // ✅ Use selected plant directly
-        timestamp: timestamp,
-        type: "MTO",
-        orderType: "MTO",
-        status: "open", 
-        description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`,
+        tireSize: tireSize,
+        tread: formData.tireTreadNeeded
       };
       
-      const mtoOrderData = normalizeOrderStoreFields(baseMTOOrder);
+      const mtoOrderData = mapMTOToSupabase(formDataWithPlant, user, formData.destinationPlant);
+      
+      // Log store format transformation for debugging
+      console.log("🔄 STORE FORMAT TRANSFORMATION:", {
+        original: formData.store,
+        sanitized: mtoOrderData.store,
+        plant: mtoOrderData.plant,
+        normalizedStore: normalizedStore
+      });
 
       console.log("🔍 MTO FORM - Final submission data:", {
         plant: mtoOrderData.plant,
@@ -118,7 +116,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       try {
         const mtoNotificationData = {
           id: savedOrder.data?.id?.toString() || 'Unknown',
-          store: normalizedStore,
+          store: mtoOrderData.store, // Use sanitized store format
           plant: mtoOrderData.plant
         };
 
