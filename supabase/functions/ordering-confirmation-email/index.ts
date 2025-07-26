@@ -1,12 +1,14 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { Resend } from "npm:resend@2.0.0";
 
+// CORS Headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// OrderData Interface
 interface OrderData {
   store_number: string;
   store_name: string;
@@ -18,6 +20,15 @@ interface OrderData {
   quantity?: number;
   product_number?: string;
   description?: string;
+  plant?: string;
+}
+
+interface EmailRecipient {
+  email: string;
+  name?: string;
+  role: string;
+  store?: string;
+  plant?: string;
 }
 
 serve(async (req) => {
@@ -39,134 +50,33 @@ serve(async (req) => {
     const orderData: OrderData = await req.json();
     console.log('📧 EDGE FUNCTION - Processing order confirmation email for:', orderData);
 
-    // PHASE 2: Enhanced Store Number Extraction
+    // Extract store number from store_name if store_number is missing
     let storeNumber = orderData.store_number;
     if (!storeNumber && orderData.store_name) {
-      // Extract number from store name
-      const match = orderData.store_name.match(/\d+/);
-      storeNumber = match ? match[0] : '';
+      const match = orderData.store_name.match(/(\d+)/);
+      storeNumber = match ? match[1] : '';
     }
 
-    console.log('📧 EDGE FUNCTION - Store number extraction:', {
-      original_store_number: orderData.store_number,
-      store_name: orderData.store_name,
-      extracted_store_number: storeNumber
-    });
-
-    // PHASE 3: Dynamic Recipients from platform_users (PRIMARY) with ordering_email_recipients fallback
-    let recipients = [];
-    let recipientsError = null;
-
-    console.log('📧 EDGE FUNCTION - Querying recipients for store:', storeNumber);
-
-    // PRIMARY: Query platform_users for current active users by store and role
-    const { data: platformUsers, error: platformError } = await supabase
-      .from('platform_users')
-      .select('email, role, store')
-      .eq('platform', 'ordering_platform')
-      .eq('status', 'active')
-      .eq('store', storeNumber);
-
-    console.log('📧 EDGE FUNCTION - Platform users query result:', {
-      store_number: storeNumber,
-      platform_users_found: platformUsers?.length || 0,
-      platform_users: platformUsers?.map(u => ({ email: u.email, role: u.role, store: u.store }))
-    });
-
-    if (platformError) {
-      console.error('📧 EDGE FUNCTION - Error querying platform_users:', platformError);
-      recipientsError = platformError;
-    } else if (platformUsers && platformUsers.length > 0) {
-      // Convert platform_users format to match recipients interface
-      recipients = platformUsers.map(user => ({
-        recipient_email: user.email,
-        role: user.role,
-        store_number: user.store,
-        is_active: true,
-        email_type: 'order_confirmation'
-      }));
-      console.log('📧 EDGE FUNCTION - Using platform_users recipients:', recipients.length);
-    } else {
-      // FALLBACK: Try ordering_email_recipients table
-      console.log('📧 EDGE FUNCTION - No platform_users found, trying ordering_email_recipients fallback');
-      
-      const { data: exactRecipients, error: exactError } = await supabase
-        .from('ordering_email_recipients')
-        .select('*')
-        .eq('store_number', storeNumber)
-        .eq('is_active', true)
-        .eq('email_type', 'order_confirmation');
-
-      if (exactError) {
-        console.error('📧 EDGE FUNCTION - Error in exact query:', exactError);
-        recipientsError = exactError;
-      } else if (exactRecipients && exactRecipients.length > 0) {
-        recipients = exactRecipients;
-        console.log('📧 EDGE FUNCTION - Found recipients with exact match:', recipients.length);
-      } else {
-        // Try with zero-padded format (e.g., "22" → "022")
-        const paddedStoreNumber = storeNumber.padStart(3, '0');
-        console.log('📧 EDGE FUNCTION - Trying padded store number:', paddedStoreNumber);
-        
-        const { data: paddedRecipients, error: paddedError } = await supabase
-          .from('ordering_email_recipients')
-          .select('*')
-          .eq('store_number', paddedStoreNumber)
-          .eq('is_active', true)
-          .eq('email_type', 'order_confirmation');
-
-        if (paddedError) {
-          console.error('📧 EDGE FUNCTION - Error in padded query:', paddedError);
-          recipientsError = paddedError;
-        } else if (paddedRecipients && paddedRecipients.length > 0) {
-          recipients = paddedRecipients;
-          console.log('📧 EDGE FUNCTION - Found recipients with padded match:', recipients.length);
-        } else {
-          console.log('📧 EDGE FUNCTION - No recipients found in either table for store:', storeNumber);
-        }
-      }
+    if (!storeNumber) {
+      throw new Error('Could not determine store number from order data');
     }
 
-    // Also include the submitting user if they have a valid email
-    if (orderData.email && orderData.email.includes('@')) {
-      const submitterExists = recipients.some(r => r.recipient_email === orderData.email);
-      if (!submitterExists) {
-        recipients.push({
-          recipient_email: orderData.email,
-          role: 'submitter',
-          store_number: storeNumber,
-          is_active: true,
-          email_type: 'order_confirmation'
-        });
-        console.log('📧 EDGE FUNCTION - Added submitting user to recipients:', orderData.email);
-      }
-    }
+    // Get email recipients using role-based routing
+    const recipients = await getEmailRecipients(supabase, storeNumber, orderData.order_type, orderData.plant);
+    
+    console.log(`📧 ORDER EMAIL - Found ${recipients.length} recipients for ${orderData.order_type} notification`);
 
-    if (recipientsError) {
-      console.error('Error fetching email recipients:', recipientsError);
-      throw recipientsError;
+    if (recipients.length === 0) {
+      console.log('⚠️ ORDER EMAIL - No recipients found, skipping email');
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'No recipients configured for this order type and store',
+        sent_count: 0
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
     }
-
-    if (!recipients || recipients.length === 0) {
-      console.log(`No email recipients found for store ${storeNumber}`);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: `No email recipients configured for store ${storeNumber}` 
-        }),
-        { 
-          status: 200, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log('📧 EDGE FUNCTION - Final recipients list:', {
-      store_number: storeNumber,
-      recipients_count: recipients.length,
-      recipient_emails: recipients.map(r => ({ email: r.recipient_email, role: r.role })),
-      source: platformUsers?.length > 0 ? 'platform_users' : 'ordering_email_recipients'
-    });
 
     // Generate email content
     const subject = `✅ Order Confirmation – ${orderData.order_type} Order Received`;
@@ -211,85 +121,290 @@ serve(async (req) => {
     
     for (const recipient of recipients) {
       try {
-        console.log(`Sending email to ${recipient.recipient_email} for store ${storeNumber}`);
-        
         const emailResponse = await resend.emails.send({
-          from: `Conlan Tire System <${fromEmail}>`,
-          to: [recipient.recipient_email],
+          from: fromEmail,
+          to: [recipient.email],
           subject: subject,
-          html: emailBody,
+          html: htmlBody,
         });
 
-        console.log(`Email sent successfully to ${recipient.recipient_email}:`, emailResponse);
+        console.log(`✅ ORDER EMAIL - Sent to ${recipient.email} (${recipient.role})`);
         
-        // Log success
-        await supabase.from('ordering_email_logs').insert({
-          store_number: storeNumber,
-          recipient_email: recipient.recipient_email,
-          email_type: 'order_confirmation',
-          order_type: orderData.order_type,
-          order_id: orderData.order_id,
-          status: 'success',
-          response: JSON.stringify(emailResponse)
-        });
-
-        emailResults.push({
-          recipient: recipient.recipient_email,
-          success: true,
-          messageId: emailResponse.id
+        // Log successful delivery
+        await logEmailDelivery(supabase, orderData, recipient, 'sent', emailResponse.data?.id);
+        
+        emailResults.push({ 
+          email: recipient.email, 
+          role: recipient.role,
+          status: 'sent',
+          message_id: emailResponse.data?.id 
         });
 
       } catch (emailError) {
-        console.error(`Error sending email to ${recipient.recipient_email}:`, emailError);
+        console.error(`❌ ORDER EMAIL - Failed to send to ${recipient.email}:`, emailError);
         
-        // Log failure
-        await supabase.from('ordering_email_logs').insert({
-          store_number: storeNumber,
-          recipient_email: recipient.recipient_email,
-          email_type: 'order_confirmation',
-          order_type: orderData.order_type,
-          order_id: orderData.order_id,
+        // Log failed delivery
+        await logEmailDelivery(supabase, orderData, recipient, 'failed', null, emailError.message);
+        
+        emailResults.push({ 
+          email: recipient.email, 
+          role: recipient.role,
           status: 'failed',
-          error_details: emailError.message
-        });
-
-        emailResults.push({
-          recipient: recipient.recipient_email,
-          success: false,
-          error: emailError.message
+          error: emailError.message 
         });
       }
     }
 
-    const successCount = emailResults.filter(r => r.success).length;
-    const totalCount = emailResults.length;
+    const successCount = emailResults.filter(r => r.status === 'sent').length;
+    const failureCount = emailResults.filter(r => r.status === 'failed').length;
 
-    console.log(`Email sending complete: ${successCount}/${totalCount} successful`);
+    console.log(`📊 ORDER EMAIL - Results: ${successCount} sent, ${failureCount} failed`);
 
-    return new Response(
-      JSON.stringify({
-        success: successCount > 0,
-        message: `Sent ${successCount}/${totalCount} confirmation emails`,
-        results: emailResults
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    return new Response(JSON.stringify({
+      success: true,
+      message: `Email notifications processed for ${orderData.order_type} order`,
+      sent_count: successCount,
+      failed_count: failureCount,
+      results: emailResults
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
 
   } catch (error) {
-    console.error('Error in ordering-confirmation-email function:', error);
+    console.error('❌ ORDER EMAIL - Error:', error);
     
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 });
+
+/**
+ * Get email recipients using role-based routing logic
+ */
+async function getEmailRecipients(
+  supabase: any, 
+  storeNumber: string, 
+  orderType: string, 
+  plant?: string
+): Promise<EmailRecipient[]> {
+  
+  console.log(`🔍 EMAIL RECIPIENTS - Looking up for store: ${storeNumber}, type: ${orderType}, plant: ${plant}`);
+  
+  // Generate store variants (e.g., "22", "022", "Store 022")
+  const storeVariants = [storeNumber];
+  if (storeNumber.length === 1) {
+    storeVariants.push(`0${storeNumber}`, `00${storeNumber}`);
+  } else if (storeNumber.length === 2) {
+    storeVariants.push(`0${storeNumber}`);
+  }
+  
+  // First try ordering_email_recipients table
+  const { data: databaseRecipients, error: dbError } = await supabase
+    .from('ordering_email_recipients')
+    .select('*')
+    .or(`store_number.in.(${storeVariants.join(',')}),plant.eq.${plant || 'Grand Prairie 097'}`)
+    .eq('is_active', true);
+
+  if (!dbError && databaseRecipients && databaseRecipients.length > 0) {
+    console.log(`✅ EMAIL RECIPIENTS - Found ${databaseRecipients.length} database recipients`);
+    
+    // Filter based on role and notification type
+    const filteredRecipients = databaseRecipients.filter(recipient => {
+      if (recipient.notification_types && Array.isArray(recipient.notification_types)) {
+        return recipient.notification_types.includes(orderType);
+      }
+      return false;
+    });
+    
+    return filteredRecipients.map(r => ({
+      email: r.recipient_email,
+      name: r.store_name || r.plant,
+      role: r.role,
+      store: r.store_name,
+      plant: r.plant
+    }));
+  }
+
+  // Fallback to ot_platform_users
+  console.log(`⚠️ EMAIL RECIPIENTS - No database recipients, trying ot_platform_users fallback`);
+  
+  const { data: fallbackRecipients, error: fbError } = await supabase
+    .from('ot_platform_users')
+    .select('email, full_name, role, store, plant')
+    .or(`store.in.(${storeVariants.join(',')}),plant.eq.${plant || 'Grand Prairie 097'}`)
+    .eq('status', 'active')
+    .not('email', 'is', null);
+
+  if (fbError) {
+    console.error(`❌ EMAIL RECIPIENTS - Fallback error:`, fbError);
+    return [];
+  }
+
+  const fallbackFiltered = (fallbackRecipients || []).filter(recipient => {
+    return shouldIncludeRecipientByRole(recipient.role, orderType);
+  });
+
+  console.log(`📧 EMAIL RECIPIENTS - Fallback found ${fallbackFiltered.length} recipients`);
+
+  return fallbackFiltered.map(r => ({
+    email: r.email,
+    name: r.full_name,
+    role: r.role,
+    store: r.store,
+    plant: r.plant
+  }));
+}
+
+/**
+ * Role-based inclusion logic
+ */
+function shouldIncludeRecipientByRole(role: string, orderType: string): boolean {
+  const roleRules = {
+    'store_manager': ['transfer', 'cross_dock', 'mto', 'wheel', 'warranty', 'complaint', 'completion', 'out_of_stock', 'message'],
+    'service_manager': ['transfer', 'cross_dock', 'mto', 'wheel', 'warranty', 'complaint', 'completion', 'out_of_stock', 'message'],
+    'warehouse_manager': ['transfer', 'cross_dock', 'mto', 'wheel', 'complaint', 'completion', 'out_of_stock', 'message'],
+    'warehouse_coordinator': ['transfer', 'cross_dock', 'mto', 'wheel', 'completion', 'out_of_stock', 'message'],
+    'retread_manager': ['mto', 'warranty', 'complaint'],
+    'plant_manager': ['warranty', 'complaint'],
+    'operations_manager': ['warranty', 'complaint']
+  };
+  
+  const allowedTypes = roleRules[role] || [];
+  return allowedTypes.includes(orderType);
+}
+
+/**
+ * Generate email subject based on order type
+ */
+function generateEmailSubject(orderData: OrderData): string {
+  const orderTypeMap = {
+    'transfer': 'Transfer Order',
+    'mto': 'MTO Order', 
+    'wheel': 'Wheel Order',
+    'warranty': 'Warranty Claim',
+    'complaint': 'Customer Complaint'
+  };
+  
+  const orderTypeName = orderTypeMap[orderData.order_type] || 'Order';
+  return `${orderTypeName} Notification - ${orderData.store_name} - Order #${orderData.order_id}`;
+}
+
+/**
+ * Generate email body HTML
+ */
+function generateEmailBody(orderData: OrderData): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Order Notification</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+            .order-details { background-color: #ffffff; border: 1px solid #e9ecef; padding: 20px; border-radius: 5px; }
+            .footer { margin-top: 20px; font-size: 12px; color: #666; }
+            h1 { color: #007bff; margin-bottom: 10px; }
+            h2 { color: #495057; border-bottom: 2px solid #007bff; padding-bottom: 5px; }
+            .detail-row { margin-bottom: 10px; }
+            .detail-label { font-weight: bold; display: inline-block; width: 150px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>${generateEmailSubject(orderData)}</h1>
+                <p>A new ${orderData.order_type} order has been submitted and requires your attention.</p>
+            </div>
+            
+            <div class="order-details">
+                <h2>Order Information</h2>
+                <div class="detail-row">
+                    <span class="detail-label">Order ID:</span>
+                    ${orderData.order_id}
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Order Type:</span>
+                    ${orderData.order_type.toUpperCase()}
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Store:</span>
+                    ${orderData.store_name}
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Submitted By:</span>
+                    ${orderData.name}
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email:</span>
+                    ${orderData.email}
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Timestamp:</span>
+                    ${orderData.timestamp}
+                </div>
+                ${orderData.product_number ? `
+                <div class="detail-row">
+                    <span class="detail-label">Product Number:</span>
+                    ${orderData.product_number}
+                </div>
+                ` : ''}
+                ${orderData.description ? `
+                <div class="detail-row">
+                    <span class="detail-label">Description:</span>
+                    ${orderData.description}
+                </div>
+                ` : ''}
+                ${orderData.quantity ? `
+                <div class="detail-row">
+                    <span class="detail-label">Quantity:</span>
+                    ${orderData.quantity}
+                </div>
+                ` : ''}
+            </div>
+            
+            <div class="footer">
+                <p>This is an automated notification from the Conlan Tire Ordering System.</p>
+                <p>Please do not reply to this email. If you have questions, contact your system administrator.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Log email delivery to database
+ */
+async function logEmailDelivery(
+  supabase: any, 
+  orderData: OrderData, 
+  recipient: EmailRecipient, 
+  status: string, 
+  messageId?: string, 
+  errorMessage?: string
+): Promise<void> {
+  try {
+    await supabase
+      .from('ordering_email_logs')
+      .insert({
+        order_id: orderData.order_id,
+        order_type: orderData.order_type,
+        email_type: orderData.order_type,
+        store_number: orderData.store_number,
+        recipient_email: recipient.email,
+        status: status,
+        response: messageId ? `Message ID: ${messageId}` : null,
+        error_details: errorMessage
+      });
+  } catch (error) {
+    console.error('❌ EMAIL LOG - Failed to log delivery:', error);
+  }
+}

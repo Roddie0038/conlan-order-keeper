@@ -1304,10 +1304,13 @@ export type Database = {
           email_type: string | null
           id: number
           is_active: boolean | null
+          notification_types: string[] | null
+          plant: string | null
           recipient_email: string
           role: string | null
           store_name: string | null
-          store_number: string
+          store_number: string | null
+          user_role: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1315,10 +1318,13 @@ export type Database = {
           email_type?: string | null
           id?: never
           is_active?: boolean | null
+          notification_types?: string[] | null
+          plant?: string | null
           recipient_email: string
           role?: string | null
           store_name?: string | null
-          store_number: string
+          store_number?: string | null
+          user_role?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1326,10 +1332,13 @@ export type Database = {
           email_type?: string | null
           id?: never
           is_active?: boolean | null
+          notification_types?: string[] | null
+          plant?: string | null
           recipient_email?: string
           role?: string | null
           store_name?: string | null
-          store_number?: string
+          store_number?: string | null
+          user_role?: string | null
         }
         Relationships: []
       }

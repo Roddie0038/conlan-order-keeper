@@ -131,7 +131,7 @@ export async function getOrderingEmailLogs(limit: number = 100): Promise<Orderin
   return data || [];
 }
 
-// Send order confirmation email
+// Send order confirmation email using role-based routing
 export async function sendOrderConfirmationEmail(orderData: {
   store_number: string;
   store_name: string;
@@ -143,20 +143,28 @@ export async function sendOrderConfirmationEmail(orderData: {
   quantity?: number;
   product_number?: string;
   description?: string;
+  plant?: string;
 }): Promise<{ success: boolean; message: string }> {
   try {
+    console.log('📧 ORDERING EMAIL - Sending confirmation using role-based routing:', {
+      store_number: orderData.store_number,
+      order_type: orderData.order_type,
+      order_id: orderData.order_id
+    });
+
     const { data, error } = await supabase.functions.invoke('ordering-confirmation-email', {
       body: orderData
     });
 
     if (error) {
-      console.error('Error sending order confirmation email:', error);
+      console.error('❌ ORDERING EMAIL - Error sending order confirmation email:', error);
       throw error;
     }
 
+    console.log('✅ ORDERING EMAIL - Successfully invoked email function:', data);
     return data;
   } catch (error) {
-    console.error('Error invoking ordering confirmation email function:', error);
+    console.error('❌ ORDERING EMAIL - Error invoking ordering confirmation email function:', error);
     throw error;
   }
 }

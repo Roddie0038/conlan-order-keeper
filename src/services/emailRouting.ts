@@ -3,74 +3,49 @@ import { supabase } from "@/integrations/supabase/client";
 import { getTransferEmailRecipients, getMTOEmailRecipients, getRefurbishedEmailRecipients, getWarrantyEmailRecipients } from "@/config/contactSystem";
 import { getStoreNumberVariants, logStoreFormatTransformation } from "@/utils/storeSanitization";
 import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
-
-export type EmailType = 'transfer' | 'mto' | 'wheel' | 'warranty' | 'completion';
+import { roleBasedEmailService, type EmailType } from "@/services/roleBasedEmailService";
 
 /**
- * Get store email recipients from the centralized store_email_recipients table
- * Now handles both 2-digit and 3-digit store number formats
+ * Primary email recipient lookup using role-based email service
  */
 export async function getStoreEmailRecipients(
   storeNumber: string,
-  emailType: EmailType
+  emailType: EmailType,
+  plant?: string
 ): Promise<{
   recipients: string[];
   source: 'database' | 'fallback';
   fallbackReason?: string;
 }> {
+  console.log(`📧 EMAIL ROUTING - Using role-based service for store ${storeNumber}, type ${emailType}, plant ${plant}`);
+  
   try {
-    console.log(`📧 EMAIL ROUTING - Querying database for store ${storeNumber}, type ${emailType}`);
+    // Use the new role-based email service
+    const result = await roleBasedEmailService.getEmailRecipients(storeNumber, emailType, plant);
     
-    // Get all possible store number variants (e.g., "27", "027")
-    const storeVariants = getStoreNumberVariants(storeNumber);
+    // Log the routing decision
+    await roleBasedEmailService.logEmailRouting(
+      storeNumber, 
+      emailType, 
+      result.recipients, 
+      result.source, 
+      result.fallbackReason, 
+      result.routingRules
+    );
     
-    // Also try normalized store formats (like "Grand Prairie 027")
-    const normalizedStore = normalizeStoreForSubmission(storeNumber);
-    const allVariants = [...storeVariants, normalizedStore, storeNumber];
+    // Convert to the expected format
+    return {
+      recipients: result.recipients.map(r => r.email),
+      source: result.source,
+      fallbackReason: result.fallbackReason
+    };
     
-    // Remove duplicates and empty values
-    const uniqueVariants = [...new Set(allVariants)].filter(Boolean);
-    
-    logStoreFormatTransformation('EMAIL_LOOKUP', storeNumber, uniqueVariants.join(', '), 'all store variants including normalized');
-    
-    // Try each variant until we find recipients
-    for (const variant of uniqueVariants) {
-      console.log(`📧 EMAIL ROUTING - Trying store variant: ${variant}`);
-      
-      const { data, error } = await supabase
-        .from('store_email_recipients')
-        .select('recipient_email')
-        .eq('store_number', variant)
-        .eq('email_type', emailType)
-        .eq('is_active', true)
-        .eq('platform_source', 'ordering_platform');
-
-      if (error) {
-        console.error(`📧 EMAIL ROUTING - Database query error for variant ${variant}:`, error);
-        continue; // Try next variant
-      }
-
-      const recipients = data?.map(row => row.recipient_email) || [];
-      
-      if (recipients.length > 0) {
-        console.log(`📧 EMAIL ROUTING - Found ${recipients.length} database recipients for variant ${variant}:`, recipients);
-        
-        // Log the successful database routing
-        await logEmailRouting(storeNumber, emailType, recipients, 'database');
-        
-        return {
-          recipients,
-          source: 'database'
-        };
-      }
-    }
-    
-    // No recipients found for any variant
-    console.log(`📧 EMAIL ROUTING - No database recipients found for any variant of store ${storeNumber}, type ${emailType}, using fallback`);
-    return await getFallbackRecipients(storeNumber, emailType, 'no_recipients');
   } catch (error) {
-    console.error('📧 EMAIL ROUTING - Unexpected error:', error);
-    return await getFallbackRecipients(storeNumber, emailType, 'exception');
+    console.error(`❌ EMAIL ROUTING - Error in role-based email service:`, error);
+    
+    // Fallback to legacy system on error
+    const fallbackResult = await getFallbackRecipients(storeNumber, emailType, 'service_error');
+    return fallbackResult;
   }
 }
 
