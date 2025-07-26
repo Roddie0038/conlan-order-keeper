@@ -7,6 +7,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
+import { sendMTONotificationEmail } from "@/services/mtoNotificationService";
 import type { MTOOrderData } from "@/types/supabase-extensions";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 
@@ -111,6 +112,26 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         }
       } catch (emailError) {
         console.error("❌ MTO FORM - Error sending order confirmation email:", emailError);
+      }
+
+      // Send MTO notification to OT Platform (non-blocking)
+      try {
+        const mtoNotificationData = {
+          id: savedOrder.data?.id?.toString() || 'Unknown',
+          store: normalizedStore,
+          plant: mtoOrderData.plant
+        };
+
+        const notificationResult = await sendMTONotificationEmail(mtoNotificationData, "mto_casings_needed");
+        
+        if (notificationResult.success) {
+          console.log(`✅ MTO FORM - MTO notification sent to OT Platform: ${notificationResult.message}`);
+        } else {
+          console.warn(`⚠️ MTO FORM - MTO notification failed: ${notificationResult.message}`);
+        }
+      } catch (notificationError) {
+        console.error("❌ MTO FORM - Error sending MTO notification:", notificationError);
+        // Don't throw - notification failures shouldn't block order submission
       }
 
       // Submit to Google Sheets
