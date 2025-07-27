@@ -15,3 +15,6 @@ verify_jwt = false
 
 [functions.secure-order-processing]
 verify_jwt = false
+
+[functions.receive-mto-order]
+verify_jwt = false

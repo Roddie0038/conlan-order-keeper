@@ -156,18 +156,27 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         // Don't throw - notification failures shouldn't block order submission
       }
 
-      // Submit to Google Sheets
+      // Submit to Google Sheets (✅ KEEP: Google Sheets submission)
       const result = await submitToGoogleSheets(mtoOrderData, user);
       console.log("🔍 MTO FORM - Google Sheets result:", result);
+
+      // 📊 DIAGNOSTIC: Enhanced result checking and user feedback
+      console.log("🔍 MTO FORM - FULL DIAGNOSTIC SUMMARY:");
+      console.log("  ✅ Supabase insert:", savedOrder.data ? "SUCCESS" : "FAILED");
+      console.log("  📧 Email notification:", "ATTEMPTED (check logs above)");
+      console.log("  📊 Google Sheets:", result.status);
+      console.log("  🎯 Order ID:", savedOrder.data?.id);
+      console.log("  🏪 Store format:", mtoOrderData.store);
+      console.log("  🏭 Plant:", mtoOrderData.plant);
 
       if (result.status === 'success' || result.status === 'partial_success') {
         toast({
           title: "🎉 MTO order submitted successfully! 🎉",
-          description: `Your MTO order has been submitted to ${formData.destinationPlant}!`,
+          description: `Order #${savedOrder.data?.id} submitted to ${formData.destinationPlant}. Check both Google Sheets and Supabase for confirmation.`,
         });
         resetForm();
       } else {
-        throw new Error("Failed to submit MTO order");
+        throw new Error("Failed to submit MTO order to Google Sheets");
       }
     } catch (error) {
       console.error("❌ MTO FORM - Error submitting MTO order:", error);

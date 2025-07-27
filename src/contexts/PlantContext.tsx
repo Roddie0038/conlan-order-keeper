@@ -21,19 +21,19 @@ const PlantContext = createContext<PlantContextType | undefined>(undefined);
 export const PLANT_WEBHOOKS = {
   "Grand Prairie 097": {
     wheelOrders: "https://hooks.zapier.com/hooks/catch/21741437/2c1zjty/",
-    mtoOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wax8rh/",
+    mtoOrders: "", // ❌ REMOVED: No longer using Zapier for MTO orders
     transferRequests: "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
     adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
   },
   "Mulberry 099": {
     wheelOrders: "",
-    mtoOrders: "",
+    mtoOrders: "", // ❌ REMOVED: No longer using Zapier for MTO orders
     transferRequests: "",
     adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
   },
   "Romulus 098": {
     wheelOrders: "",
-    mtoOrders: "",
+    mtoOrders: "", // ❌ REMOVED: No longer using Zapier for MTO orders
     transferRequests: "",
     adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
   }
