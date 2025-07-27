@@ -18,11 +18,22 @@ export const saveOrderToSupabase = async (
   console.log("🔍 ORDER SERVICE - Saving order to Supabase:", order);
   
   try {
-    // Ensure we have the required fields
+    // Enhanced field validation with detailed logging
+    console.log("🔍 ORDER SERVICE - Validating fields:", {
+      hasStore: !!order.store,
+      storeValue: order.store,
+      hasProductNumber: !!order.productNumber,
+      productNumberValue: order.productNumber,
+      orderType: order.type,
+      allKeys: Object.keys(order)
+    });
+    
     if (!order.store || !order.productNumber) {
       console.error("❌ ORDER SERVICE - Missing required fields:", { 
         hasStore: !!order.store, 
-        hasProductNumber: !!order.productNumber
+        hasProductNumber: !!order.productNumber,
+        storeValue: order.store,
+        productNumberValue: order.productNumber
       });
       return { 
         data: null, 
@@ -33,7 +44,14 @@ export const saveOrderToSupabase = async (
     // Handle MTO orders
     if (order.type === 'MTO' || order.type === 'mto') {
       const formattedOrder = mapMTOToSupabase(order, user);
-      console.log("🔍 ORDER SERVICE - Inserting into mto_orders table with formatted data:", formattedOrder);
+      
+      console.log("🔍 ORDER SERVICE - Pre-insert MTO validation:", {
+        hasRequiredFields: !!(formattedOrder.store && formattedOrder.product_number),
+        store: formattedOrder.store,
+        product_number: formattedOrder.product_number,
+        userContext: user ? { id: user.id, email: user.email } : 'No user',
+        formattedOrder: formattedOrder
+      });
       
       const { data, error } = await supabase
         .from('mto_orders')
@@ -41,9 +59,21 @@ export const saveOrderToSupabase = async (
         .select()
         .single();
         
+      console.log("🔍 ORDER SERVICE - MTO insert response:", {
+        hasData: !!data,
+        hasError: !!error,
+        data: data,
+        error: error
+      });
+        
       if (error) {
         console.error("❌ ORDER SERVICE - Error saving to mto_orders:", error);
         return { data: null, error };
+      }
+      
+      if (!data) {
+        console.error("❌ ORDER SERVICE - No data returned from mto_orders insert");
+        return { data: null, error: new Error("No data returned from Supabase insert") };
       }
       
       console.log("✅ ORDER SERVICE - Successfully saved to mto_orders:", data);

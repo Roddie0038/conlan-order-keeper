@@ -78,14 +78,35 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         store: mtoOrderData.store
       });
 
-      // Submit to Supabase
+      // Enhanced logging before Supabase insert
+      console.log("🔍 MTO FORM - About to save to Supabase:", {
+        user: user ? { id: user.id, email: user.email } : 'No user',
+        payloadKeys: Object.keys(mtoOrderData),
+        payload: mtoOrderData
+      });
+
+      // Submit to Supabase with enhanced error handling
       const savedOrder = await saveOrderToSupabase(mtoOrderData, user);
       
-      if (savedOrder.error) {
-        throw new Error("Failed to submit MTO order to database");
+      console.log("🔍 MTO FORM - Supabase response:", {
+        hasData: !!savedOrder.data,
+        hasError: !!savedOrder.error,
+        data: savedOrder.data,
+        error: savedOrder.error
+      });
+      
+      // Enhanced error checking - catch silent failures
+      if (savedOrder.error || !savedOrder.data) {
+        const errorMsg = savedOrder.error?.message || "Silent failure - no data returned from Supabase";
+        console.error("❌ MTO FORM - Supabase insert failed:", errorMsg);
+        throw new Error(`Failed to submit MTO order to database: ${errorMsg}`);
       }
       
-      console.log("✅ MTO FORM - Saved to Supabase with plant:", mtoOrderData.plant);
+      console.log("✅ MTO FORM - Successfully saved to Supabase:", {
+        id: savedOrder.data.id,
+        plant: mtoOrderData.plant,
+        store: mtoOrderData.store
+      });
 
       // Send order confirmation email
       try {
