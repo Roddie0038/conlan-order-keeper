@@ -1,12 +1,11 @@
 
 import { normalizeStoreForSubmission } from './storeNormalization';
-import { storeSanitizeForSupabase } from './storeSanitization';
 
 export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): any {
   return {
     timestamp: new Date().toISOString(),
     name: form.name,
-    store: storeSanitizeForSupabase(form.store),
+    store: normalizeStoreForSubmission(form.store), // ✅ FIX: Use display format for OT Platform compatibility
     product_number: form.productNumber,
     casing_grade: form.casingGrade,
     tire_size: form.tireSize,

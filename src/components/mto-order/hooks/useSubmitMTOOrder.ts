@@ -135,12 +135,15 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
 
       // Send MTO notification to OT Platform (non-blocking)
       try {
+        console.log("🔍 MTO FORM - Preparing notification with store format:", mtoOrderData.store);
+        
         const mtoNotificationData = {
           id: savedOrder.data?.id?.toString() || 'Unknown',
-          store: mtoOrderData.store, // Use sanitized store format
+          store: mtoOrderData.store, // Now uses display format (Grand Prairie 027)
           plant: mtoOrderData.plant
         };
 
+        console.log("🔍 MTO FORM - Sending notification with data:", mtoNotificationData);
         const notificationResult = await sendMTONotificationEmail(mtoNotificationData, "mto_casings_needed");
         
         if (notificationResult.success) {
