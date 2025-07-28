@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -87,6 +86,9 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         payload: mtoOrderData
       });
 
+      // PHASE 3: Simplified submission - only Google Sheets + direct Supabase
+      console.log("🔍 MTO FORM - Using simplified dual submission (Google Sheets + Supabase)");
+
       // Submit to Supabase with enhanced error handling
       const savedOrder = await saveOrderToSupabase(mtoOrderData, user);
       
@@ -109,6 +111,10 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         plant: mtoOrderData.plant,
         store: mtoOrderData.store
       });
+
+      // Submit to Google Sheets (✅ KEEP: Google Sheets submission)
+      const result = await submitToGoogleSheets(mtoOrderData, user);
+      console.log("🔍 MTO FORM - Google Sheets result:", result);
 
       // Send order confirmation email
       try {
@@ -158,10 +164,6 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         // Don't throw - notification failures shouldn't block order submission
       }
 
-      // Submit to Google Sheets (✅ KEEP: Google Sheets submission)
-      const result = await submitToGoogleSheets(mtoOrderData, user);
-      console.log("🔍 MTO FORM - Google Sheets result:", result);
-
       // 📊 DIAGNOSTIC: Enhanced result checking and user feedback
       console.log("🔍 MTO FORM - FULL DIAGNOSTIC SUMMARY:");
       console.log("  ✅ Supabase insert:", savedOrder.data ? "SUCCESS" : "FAILED");
@@ -171,7 +173,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       console.log("  🏪 Store format:", mtoOrderData.store);
       console.log("  🏭 Plant:", mtoOrderData.plant);
 
-      if (result.status === 'success' || result.status === 'partial_success') {
+      if (result.status === 'success' || result.status === 'partial_success' || savedOrder.data) {
         toast({
           title: "🎉 MTO order submitted successfully!",
           description: `Order #${savedOrder.data?.id} submitted to ${formData.destinationPlant}. ✅ Supabase: ${savedOrder.data ? 'SUCCESS' : 'FAILED'} | 📊 Google Sheets: ${result.status}`,
@@ -184,7 +186,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       console.error("❌ MTO FORM - Error submitting MTO order:", error);
       toast({
         title: "Error",
-        description: "There was a problem submitting your MTO order. Please try again.",
+        description: `There was a problem submitting your MTO order: ${error.message}. Please try again.`,
         variant: "destructive",
       });
     } finally {

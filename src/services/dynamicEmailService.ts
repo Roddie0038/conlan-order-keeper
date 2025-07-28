@@ -45,13 +45,25 @@ export async function getOrderingEmailRecipients(store: string, emailType: Email
   }
 
   console.log(`🔍 DYNAMIC EMAIL - Looking up recipients for store ${storeNumber}, email type: ${emailType}`);
+  console.log(`🔍 DYNAMIC EMAIL - Original store format: "${store}" → Normalized: "${storeNumber}"`);
 
   try {
-    // Primary: Query store_email_recipients table
+    // Try multiple store number formats for store_email_recipients lookup
+    const storeVariants = [
+      storeNumber,
+      storeNumber.padStart(3, '0'), // e.g., "27" → "027"
+      `Grand Prairie ${storeNumber.padStart(3, '0')}`, // e.g., "Grand Prairie 027"
+      `Store ${storeNumber}`,
+      store // Original format
+    ];
+    
+    console.log(`🔍 DYNAMIC EMAIL - Trying store variants:`, storeVariants);
+
+    // Primary: Query store_email_recipients table with multiple variants
     const { data: storeRecipients, error: storeError } = await supabase
       .from('store_email_recipients')
       .select('recipient_email, recipient_role, store_number, store_name')
-      .eq('store_number', storeNumber)
+      .in('store_number', storeVariants)
       .eq('email_type', emailType)
       .eq('is_active', true);
 
