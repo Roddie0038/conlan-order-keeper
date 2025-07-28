@@ -27,6 +27,7 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     status: 'open', // FIXED: Changed from "pending" to "open" to match Supabase constraint
     status_updated_at: new Date().toISOString(),
     description: form.description || `MTO - ${form.tireTreadNeeded || form.tread} - ${form.tireSize}`
+    // NOTE: Explicitly NOT including 'id' or 'order_id' - let Supabase auto-generate the UUID
   };
 
   console.log("🔍 MTO MAPPING - Output mapped data:", {
@@ -34,7 +35,9 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     productNumber: mapped.product_number,
     hasStore: !!mapped.store,
     store: mapped.store,
-    mappedKeys: Object.keys(mapped)
+    mappedKeys: Object.keys(mapped),
+    hasOrderId: 'order_id' in mapped,
+    hasId: 'id' in mapped
   });
 
   // Defensive validation
@@ -46,5 +49,15 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     });
   }
 
-  return mapped;
+  // Remove any problematic fields that might have been passed from the form
+  const { order_id, id, ...cleanMapped } = mapped as any;
+  
+  if (order_id || id) {
+    console.log("🔍 MTO MAPPING - Removed problematic ID fields:", { 
+      removedOrderId: order_id, 
+      removedId: id 
+    });
+  }
+
+  return cleanMapped;
 }
