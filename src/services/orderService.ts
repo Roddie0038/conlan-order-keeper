@@ -84,7 +84,7 @@ export const saveOrderToSupabase = async (
         hasId: 'id' in formattedOrder,
         dataOrderId: formattedOrder.order_id,
         dataId: formattedOrder.id,
-        fullData: JSON.stringify(formattedOrder, null, 2)
+        actualPayload: formattedOrder
       });
 
       // Double-check for any problematic fields before sending
@@ -95,8 +95,19 @@ export const saveOrderToSupabase = async (
       console.log("🔍 ORDER SERVICE - Cleaned data for insert:", {
         originalKeys: Object.keys(formattedOrder),
         cleanedKeys: Object.keys(cleanData),
-        removedFields: Object.keys(formattedOrder).filter(key => !Object.keys(cleanData).includes(key))
+        removedFields: Object.keys(formattedOrder).filter(key => !Object.keys(cleanData).includes(key)),
+        finalPayload: cleanData
       });
+
+      // Check for any text fields that might contain UUID-like strings
+      const suspiciousFields = Object.entries(cleanData).filter(([key, value]) => 
+        typeof value === 'string' && 
+        (value.includes('store-') || value.includes('transfer-') || value.includes('mto-'))
+      );
+      
+      if (suspiciousFields.length > 0) {
+        console.warn("⚠️ ORDER SERVICE - Found suspicious UUID-like text fields:", suspiciousFields);
+      }
 
       const { data, error } = await supabase
         .from('mto_orders')
