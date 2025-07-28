@@ -18,40 +18,65 @@ export const saveOrderToSupabase = async (
   console.log("🔍 ORDER SERVICE - Saving order to Supabase:", order);
   
   try {
-    // Enhanced field validation with detailed logging
-    console.log("🔍 ORDER SERVICE - Validating fields:", {
-      hasStore: !!order.store,
-      storeValue: order.store,
-      hasProductNumber: !!order.productNumber,
-      productNumberValue: order.productNumber,
-      orderType: order.type,
-      allKeys: Object.keys(order)
-    });
-    
-    if (!order.store || !order.productNumber) {
-      console.error("❌ ORDER SERVICE - Missing required fields:", { 
-        hasStore: !!order.store, 
-        hasProductNumber: !!order.productNumber,
+    // Initial validation for non-MTO orders only
+    if (order.type !== 'MTO' && order.type !== 'mto') {
+      console.log("🔍 ORDER SERVICE - Validating non-MTO fields:", {
+        hasStore: !!order.store,
         storeValue: order.store,
-        productNumberValue: order.productNumber
+        hasProductNumber: !!order.productNumber,
+        productNumberValue: order.productNumber,
+        orderType: order.type,
+        allKeys: Object.keys(order)
       });
-      return { 
-        data: null, 
-        error: new Error("Missing required fields: store and productNumber are required") 
-      };
+      
+      if (!order.store || !order.productNumber) {
+        console.error("❌ ORDER SERVICE - Missing required fields:", { 
+          hasStore: !!order.store, 
+          hasProductNumber: !!order.productNumber,
+          storeValue: order.store,
+          productNumberValue: order.productNumber
+        });
+        return { 
+          data: null, 
+          error: new Error("Missing required fields: store and productNumber are required") 
+        };
+      }
     }
     
     // Handle MTO orders
     if (order.type === 'MTO' || order.type === 'mto') {
+      console.log("🔍 ORDER SERVICE - Processing MTO order with original data:", {
+        hasStore: !!order.store,
+        storeValue: order.store,
+        hasProductNumber: !!order.productNumber,
+        productNumberValue: order.productNumber,
+        orderType: order.type
+      });
+      
       const formattedOrder = mapMTOToSupabase(order, user);
       
-      console.log("🔍 ORDER SERVICE - Pre-insert MTO validation:", {
+      // Validate mapped MTO fields
+      console.log("🔍 ORDER SERVICE - Post-mapping MTO validation:", {
         hasRequiredFields: !!(formattedOrder.store && formattedOrder.product_number),
         store: formattedOrder.store,
         product_number: formattedOrder.product_number,
         userContext: user ? { id: user.id, email: user.email } : 'No user',
         formattedOrder: formattedOrder
       });
+      
+      if (!formattedOrder.store || !formattedOrder.product_number) {
+        console.error("❌ ORDER SERVICE - Missing required fields after mapping:", { 
+          hasStore: !!formattedOrder.store, 
+          hasProductNumber: !!formattedOrder.product_number,
+          storeValue: formattedOrder.store,
+          productNumberValue: formattedOrder.product_number,
+          originalForm: { store: order.store, productNumber: order.productNumber }
+        });
+        return { 
+          data: null, 
+          error: new Error("Missing required fields after mapping: store and product_number are required") 
+        };
+      }
       
       const { data, error } = await supabase
         .from('mto_orders')
