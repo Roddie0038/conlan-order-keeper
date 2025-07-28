@@ -84,12 +84,23 @@ export const saveOrderToSupabase = async (
         hasId: 'id' in formattedOrder,
         dataOrderId: formattedOrder.order_id,
         dataId: formattedOrder.id,
-        fullData: formattedOrder
+        fullData: JSON.stringify(formattedOrder, null, 2)
+      });
+
+      // Double-check for any problematic fields before sending
+      const cleanData = { ...formattedOrder };
+      delete cleanData.order_id;
+      delete cleanData.id;
+      
+      console.log("🔍 ORDER SERVICE - Cleaned data for insert:", {
+        originalKeys: Object.keys(formattedOrder),
+        cleanedKeys: Object.keys(cleanData),
+        removedFields: Object.keys(formattedOrder).filter(key => !Object.keys(cleanData).includes(key))
       });
 
       const { data, error } = await supabase
         .from('mto_orders')
-        .insert(formattedOrder)
+        .insert(cleanData)
         .select()
         .single();
         
