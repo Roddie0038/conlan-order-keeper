@@ -78,6 +78,15 @@ export const saveOrderToSupabase = async (
         };
       }
       
+      console.log("🔍 ORDER SERVICE - Final data being sent to Supabase:", {
+        dataKeys: Object.keys(formattedOrder),
+        hasOrderId: 'order_id' in formattedOrder,
+        hasId: 'id' in formattedOrder,
+        dataOrderId: formattedOrder.order_id,
+        dataId: formattedOrder.id,
+        fullData: formattedOrder
+      });
+
       const { data, error } = await supabase
         .from('mto_orders')
         .insert(formattedOrder)

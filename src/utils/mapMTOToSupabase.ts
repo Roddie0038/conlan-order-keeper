@@ -7,6 +7,10 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     productNumber: form.productNumber,
     hasStore: !!form.store,
     store: form.store,
+    hasOrderId: 'order_id' in form,
+    hasId: 'id' in form,
+    orderId: form.order_id,
+    id: form.id,
     formKeys: Object.keys(form)
   });
 
