@@ -78,36 +78,51 @@ export const saveOrderToSupabase = async (
         };
       }
       
-      console.log("🔍 ORDER SERVICE - Final data being sent to Supabase:", {
-        dataKeys: Object.keys(formattedOrder),
+      // Deep inspection of payload before any processing
+      console.log("🔍 ORDER SERVICE - RAW payload inspection:", {
+        fullPayload: JSON.stringify(formattedOrder, null, 2),
+        allKeys: Object.keys(formattedOrder),
+        idKeys: Object.keys(formattedOrder).filter(key => key.toLowerCase().includes('id')),
         hasOrderId: 'order_id' in formattedOrder,
         hasId: 'id' in formattedOrder,
-        dataOrderId: formattedOrder.order_id,
-        dataId: formattedOrder.id,
-        actualPayload: formattedOrder
+        orderIdValue: formattedOrder.order_id,
+        idValue: formattedOrder.id
       });
 
-      // Double-check for any problematic fields before sending
-      const cleanData = { ...formattedOrder };
-      delete cleanData.order_id;
-      delete cleanData.id;
-      
-      console.log("🔍 ORDER SERVICE - Cleaned data for insert:", {
-        originalKeys: Object.keys(formattedOrder),
-        cleanedKeys: Object.keys(cleanData),
-        removedFields: Object.keys(formattedOrder).filter(key => !Object.keys(cleanData).includes(key)),
-        finalPayload: cleanData
-      });
+      // CRITICAL: Completely scrub any ID fields that could cause UUID conflicts
+      const scrubber = (obj: any): any => {
+        const scrubbed = { ...obj };
+        
+        // Remove any variation of order_id or id
+        delete scrubbed.order_id;
+        delete scrubbed.id;
+        delete scrubbed.orderId;
+        delete scrubbed.ID;
+        delete scrubbed.ORDER_ID;
+        
+        return scrubbed;
+      };
 
-      // Check for any text fields that might contain UUID-like strings
-      const suspiciousFields = Object.entries(cleanData).filter(([key, value]) => 
-        typeof value === 'string' && 
-        (value.includes('store-') || value.includes('transfer-') || value.includes('mto-'))
-      );
+      const cleanData = scrubber(formattedOrder);
       
-      if (suspiciousFields.length > 0) {
-        console.warn("⚠️ ORDER SERVICE - Found suspicious UUID-like text fields:", suspiciousFields);
+      // Assertion safeguard - force delete if somehow still present
+      if ('order_id' in cleanData) {
+        delete cleanData.order_id;
+        console.warn("⚠️ ORDER SERVICE - Forcibly removed order_id that somehow persisted");
       }
+      
+      if ('id' in cleanData) {
+        delete cleanData.id;
+        console.warn("⚠️ ORDER SERVICE - Forcibly removed id that somehow persisted");
+      }
+      
+      console.log("🔍 ORDER SERVICE - Final scrubbed payload:", {
+        originalKeys: Object.keys(formattedOrder),
+        scrubbedKeys: Object.keys(cleanData),
+        removedFields: Object.keys(formattedOrder).filter(key => !Object.keys(cleanData).includes(key)),
+        finalPayload: JSON.stringify(cleanData, null, 2),
+        hasAnyIdFields: Object.keys(cleanData).some(key => key.toLowerCase().includes('id'))
+      });
 
       const { data, error } = await supabase
         .from('mto_orders')
