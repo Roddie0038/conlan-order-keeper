@@ -38,63 +38,9 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
       const sheetsPayload = mapMTOToGoogleSheets(data, user);
       console.log("🔍 SHEETS - MTO mapped payload:", JSON.stringify(sheetsPayload, null, 2));
       
-      // ❌ REMOVED: No longer using Zapier plant-specific MTO webhooks
-      // const plantUrl = PLANT_WEBHOOKS[plant as keyof typeof PLANT_WEBHOOKS]?.mtoOrders;
-      // if (plantUrl) {
-      //   console.log("🔍 SHEETS - Plant MTO webhook URL:", plantUrl);
-      //   const plantWebhookResult = await submitToWebhook(plantUrl, sheetsPayload);
-      //   results.push(plantWebhookResult);
-      // }
-      
       // ✅ KEEP: Continue submitting to Google Sheets
       const mtoOrdersResult = await submitToMTOOrdersWebhook(sheetsPayload);
       results.push(mtoOrdersResult);
-      
-      // 🆕 ADD: Submit to Supabase edge function for database insertion and email notifications
-      try {
-        console.log("🔍 SHEETS - Submitting to Supabase edge function");
-        
-        // Type-safe access to MTO properties
-        const mtoData = data as MTOOrderData;
-        const supabasePayload = {
-          store: mtoData.store,
-          tire_type: mtoData.tireSize || '',
-          quantity: mtoData.quantity,
-          description: mtoData.tread || mtoData.tireTreadNeeded || '',
-          contact: mtoData.name,
-          timestamp: new Date().toLocaleString('en-US', { 
-            month: '2-digit', 
-            day: '2-digit', 
-            year: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            hour12: true 
-          }),
-          email: mtoData.email
-        };
-        
-        const supabaseResponse = await fetch(
-          'https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/receive-mto-order',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(supabasePayload),
-          }
-        );
-        
-        if (supabaseResponse.ok) {
-          console.log("✅ SHEETS - Supabase edge function succeeded");
-          results.push(true);
-        } else {
-          console.error("❌ SHEETS - Supabase edge function failed:", await supabaseResponse.text());
-          results.push(false);
-        }
-      } catch (supabaseError) {
-        console.error("❌ SHEETS - Supabase edge function error:", supabaseError);
-        results.push(false);
-      }
     } 
     else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
       console.log("🚀 SHEETS - ROUTING: WHEEL ORDER DETECTED - Using WHEEL webhook");

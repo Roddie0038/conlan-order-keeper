@@ -46,7 +46,9 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       console.log("🔍 MTO FORM - Starting MTO submission with plant:", formData.destinationPlant);
       
       const normalizedStore = normalizeStoreForSubmission(formData.store);
+      console.log("🔍 MTO FORM - Looking up manager email for store:", normalizedStore, "type: mto");
       const managerEmail = await getFirstManagerEmail(normalizedStore, 'mto');
+      console.log("🔍 MTO FORM - Manager email lookup result:", managerEmail);
       
       const tireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       const timestamp = new Date().toISOString();
