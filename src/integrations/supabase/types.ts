@@ -1194,7 +1194,7 @@ export type Database = {
           message_id: string | null
           message_text: string
           message_type: string | null
-          order_id: string
+          order_id: string | null
           order_type: string
           priority: string | null
           reply_to_email_id: string | null
@@ -1215,7 +1215,7 @@ export type Database = {
           message_id?: string | null
           message_text: string
           message_type?: string | null
-          order_id: string
+          order_id?: string | null
           order_type: string
           priority?: string | null
           reply_to_email_id?: string | null
@@ -1236,7 +1236,7 @@ export type Database = {
           message_id?: string | null
           message_text?: string
           message_type?: string | null
-          order_id?: string
+          order_id?: string | null
           order_type?: string
           priority?: string | null
           reply_to_email_id?: string | null
@@ -2240,6 +2240,51 @@ export type Database = {
         }
         Relationships: []
       }
+      system_admins: {
+        Row: {
+          admin_level: string
+          created_at: string
+          created_by: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          last_login: string | null
+          locked_until: string | null
+          login_attempts: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_level?: string
+          created_at?: string
+          created_by?: string
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          last_login?: string | null
+          locked_until?: string | null
+          login_attempts?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_level?: string
+          created_at?: string
+          created_by?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          last_login?: string | null
+          locked_until?: string | null
+          login_attempts?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           created_at: string | null
@@ -3204,6 +3249,14 @@ export type Database = {
       }
       is_ot_super_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_system_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_system_admin_by_email: {
+        Args: { user_email: string }
         Returns: boolean
       }
       log_email_trigger_usage: {
