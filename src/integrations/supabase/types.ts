@@ -1342,6 +1342,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ordering_email_recipients_backup: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email_type: string | null
+          id: number | null
+          is_active: boolean | null
+          notification_types: string[] | null
+          plant: string | null
+          recipient_email: string | null
+          role: string | null
+          store_name: string | null
+          store_number: string | null
+          user_role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email_type?: string | null
+          id?: number | null
+          is_active?: boolean | null
+          notification_types?: string[] | null
+          plant?: string | null
+          recipient_email?: string | null
+          role?: string | null
+          store_name?: string | null
+          store_number?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email_type?: string | null
+          id?: number | null
+          is_active?: boolean | null
+          notification_types?: string[] | null
+          plant?: string | null
+          recipient_email?: string | null
+          role?: string | null
+          store_name?: string | null
+          store_number?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           archived: boolean | null
