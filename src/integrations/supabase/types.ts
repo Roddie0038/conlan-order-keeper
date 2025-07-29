@@ -1040,7 +1040,7 @@ export type Database = {
           id: string
           metadata: Json | null
           notification_type: string
-          order_id: string
+          order_id: string | null
           order_number: string | null
           order_type: string | null
           plant: string | null
@@ -1060,7 +1060,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           notification_type: string
-          order_id: string
+          order_id?: string | null
           order_number?: string | null
           order_type?: string | null
           plant?: string | null
@@ -1080,12 +1080,75 @@ export type Database = {
           id?: string
           metadata?: Json | null
           notification_type?: string
-          order_id?: string
+          order_id?: string | null
           order_number?: string | null
           order_type?: string | null
           plant?: string | null
           platform?: string | null
           recipient_email?: string
+          recipient_role?: string | null
+          sent_at?: string | null
+          status?: string | null
+          store?: string | null
+          template_used?: string | null
+        }
+        Relationships: []
+      }
+      notification_logs_backup: {
+        Row: {
+          created_at: string | null
+          cross_dock_order: boolean | null
+          email_provider: string | null
+          error_message: string | null
+          id: string | null
+          metadata: Json | null
+          notification_type: string | null
+          order_id: string | null
+          order_number: string | null
+          order_type: string | null
+          plant: string | null
+          platform: string | null
+          recipient_email: string | null
+          recipient_role: string | null
+          sent_at: string | null
+          status: string | null
+          store: string | null
+          template_used: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cross_dock_order?: boolean | null
+          email_provider?: string | null
+          error_message?: string | null
+          id?: string | null
+          metadata?: Json | null
+          notification_type?: string | null
+          order_id?: string | null
+          order_number?: string | null
+          order_type?: string | null
+          plant?: string | null
+          platform?: string | null
+          recipient_email?: string | null
+          recipient_role?: string | null
+          sent_at?: string | null
+          status?: string | null
+          store?: string | null
+          template_used?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cross_dock_order?: boolean | null
+          email_provider?: string | null
+          error_message?: string | null
+          id?: string | null
+          metadata?: Json | null
+          notification_type?: string | null
+          order_id?: string | null
+          order_number?: string | null
+          order_type?: string | null
+          plant?: string | null
+          platform?: string | null
+          recipient_email?: string | null
           recipient_role?: string | null
           sent_at?: string | null
           status?: string | null
@@ -1102,7 +1165,7 @@ export type Database = {
           id: string
           max_retries: number
           metadata: Json | null
-          order_id: string
+          order_id: string | null
           order_type: string
           plant: string
           priority: number
@@ -1121,7 +1184,7 @@ export type Database = {
           id?: string
           max_retries?: number
           metadata?: Json | null
-          order_id: string
+          order_id?: string | null
           order_type: string
           plant: string
           priority?: number
@@ -1140,7 +1203,7 @@ export type Database = {
           id?: string
           max_retries?: number
           metadata?: Json | null
-          order_id?: string
+          order_id?: string | null
           order_type?: string
           plant?: string
           priority?: number
@@ -1151,6 +1214,66 @@ export type Database = {
           status?: string
           store_number?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_queue_backup: {
+        Row: {
+          created_at: string | null
+          email_type: string | null
+          error_message: string | null
+          id: string | null
+          max_retries: number | null
+          metadata: Json | null
+          order_id: string | null
+          order_type: string | null
+          plant: string | null
+          priority: number | null
+          processed_at: string | null
+          recipients: Json | null
+          retry_count: number | null
+          scheduled_at: string | null
+          status: string | null
+          store_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_type?: string | null
+          error_message?: string | null
+          id?: string | null
+          max_retries?: number | null
+          metadata?: Json | null
+          order_id?: string | null
+          order_type?: string | null
+          plant?: string | null
+          priority?: number | null
+          processed_at?: string | null
+          recipients?: Json | null
+          retry_count?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+          store_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_type?: string | null
+          error_message?: string | null
+          id?: string | null
+          max_retries?: number | null
+          metadata?: Json | null
+          order_id?: string | null
+          order_type?: string | null
+          plant?: string | null
+          priority?: number | null
+          processed_at?: string | null
+          recipients?: Json | null
+          retry_count?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+          store_number?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1288,6 +1411,45 @@ export type Database = {
           email_type?: string | null
           error_details?: string | null
           id?: never
+          order_id?: string | null
+          order_type?: string | null
+          recipient_email?: string | null
+          response?: string | null
+          status?: string | null
+          store_number?: string | null
+        }
+        Relationships: []
+      }
+      ordering_email_logs_backup: {
+        Row: {
+          created_at: string | null
+          email_type: string | null
+          error_details: string | null
+          id: number | null
+          order_id: string | null
+          order_type: string | null
+          recipient_email: string | null
+          response: string | null
+          status: string | null
+          store_number: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_type?: string | null
+          error_details?: string | null
+          id?: number | null
+          order_id?: string | null
+          order_type?: string | null
+          recipient_email?: string | null
+          response?: string | null
+          status?: string | null
+          store_number?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_type?: string | null
+          error_details?: string | null
+          id?: number | null
           order_id?: string | null
           order_type?: string | null
           recipient_email?: string | null
