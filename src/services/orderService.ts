@@ -124,40 +124,36 @@ export const saveOrderToSupabase = async (
         hasAnyIdFields: Object.keys(cleanData).some(key => key.toLowerCase().includes('id'))
       });
 
-      // NETWORK DEBUG: Log the exact network request
-      const originalFetch = window.fetch;
+      // COMPREHENSIVE PAYLOAD DEBUG - Before Supabase call
+      console.log("🔍 FINAL PAYLOAD ANALYSIS - About to call Supabase:");
+      console.log("🔍 PAYLOAD - Raw object:", cleanData);
+      console.log("🔍 PAYLOAD - All keys:", Object.keys(cleanData));
+      console.log("🔍 PAYLOAD - ID-related keys:", Object.keys(cleanData).filter(k => k.toLowerCase().includes('id')));
+      console.log("🔍 PAYLOAD - Stringified:", JSON.stringify(cleanData, null, 2));
       
-      window.fetch = function(...args) {
-        const url = args[0] as string;
-        if (url && typeof url === 'string' && url.includes('mto_orders')) {
-          console.log("🔍 NETWORK CAPTURE - URL:", url);
-          console.log("🔍 NETWORK CAPTURE - Options:", args[1]);
-          if (args[1] && (args[1] as any).body) {
-            const body = (args[1] as any).body;
-            console.log("🔍 NETWORK CAPTURE - Body:", body);
-            if (typeof body === 'string') {
-              try {
-                const parsed = JSON.parse(body);
-                console.log("🔍 NETWORK CAPTURE - Parsed Body:", parsed);
-                console.log("🔍 NETWORK CAPTURE - Body Keys:", Object.keys(parsed));
-                console.log("🔍 NETWORK CAPTURE - Has order_id?", 'order_id' in parsed);
-              } catch (e) {
-                console.log("🔍 NETWORK CAPTURE - Could not parse body");
-              }
-            }
-          }
+      // Check for any hidden properties
+      for (const key in cleanData) {
+        if (cleanData.hasOwnProperty(key)) {
+          console.log(`🔍 PAYLOAD - ${key}:`, typeof cleanData[key], cleanData[key]);
         }
-        return originalFetch.apply(this, args);
-      };
+      }
+      
+      // Check prototype chain for hidden properties
+      const allKeys = Object.getOwnPropertyNames(cleanData);
+      console.log("🔍 PAYLOAD - All property names:", allKeys);
+      
+      // Specifically check for order_id
+      if ('order_id' in cleanData) {
+        console.error("🚨 FOUND order_id IN PAYLOAD:", cleanData.order_id);
+        delete cleanData.order_id;
+        console.log("🧹 DELETED order_id from payload");
+      }
 
       const { data, error } = await supabase
         .from('mto_orders')
         .insert(cleanData)
         .select()
         .single();
-        
-      // Restore original fetch
-      window.fetch = originalFetch;
         
       console.log("🔍 ORDER SERVICE - MTO insert response:", {
         hasData: !!data,
