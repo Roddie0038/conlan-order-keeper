@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getStoreNumberVariants } from "@/utils/storeSanitization";
+import { normalizeStoreForSubmission, extractStoreNumber } from "@/utils/storeNormalization";
 
 export interface EmailRoutingAlert {
   id: string;
@@ -234,35 +236,60 @@ export class EmailRoutingMonitor {
       for (const store of allStores) {
         let hasAnyCoverage = false;
         
-        // Check if store has any email recipients configured
-        const { data: recipients } = await supabase
-          .from('ordering_email_recipients')
-          .select('*')
-          .eq('store_number', store)
-          .eq('is_active', true);
+        // Get all possible store format variants for this store
+        const storeVariants = getStoreNumberVariants(store);
+        const normalizedStoreName = normalizeStoreForSubmission(store);
+        
+        // Add more comprehensive store variants
+        const allStoreVariants = [
+          store, // raw number like "022"
+          `Store ${store}`, // "Store 022"
+          `Store ${parseInt(store)}`, // "Store 22"
+          normalizedStoreName, // "Fort Worth 022" etc.
+          ...storeVariants
+        ];
+        
+        // Check if store has any email recipients configured using any variant
+        for (const variant of allStoreVariants) {
+          const { data: recipients } = await supabase
+            .from('ordering_email_recipients')
+            .select('*')
+            .eq('store_number', variant)
+            .eq('is_active', true);
 
-        if (recipients && recipients.length > 0) {
-          hasAnyCoverage = true;
+          if (recipients && recipients.length > 0) {
+            hasAnyCoverage = true;
+            break;
+          }
+        }
+
+        if (hasAnyCoverage && !storesCovered.includes(store)) {
           storesCovered.push(store);
         }
 
-        // Check fallback coverage through ot_platform_users
-        const { data: platformUsers } = await supabase
-          .from('ot_platform_users')
-          .select('*')
-          .eq('store', `Store ${parseInt(store)}`)
-          .eq('status', 'active');
+        // Check fallback coverage through ot_platform_users using variants
+        if (!hasAnyCoverage) {
+          for (const variant of allStoreVariants) {
+            const { data: platformUsers } = await supabase
+              .from('ot_platform_users')
+              .select('*')
+              .eq('store', variant)
+              .eq('status', 'active');
 
-        if (platformUsers && platformUsers.length > 0) {
-          hasAnyCoverage = true;
-          if (!storesCovered.includes(store)) {
-            storesCovered.push(store);
+            if (platformUsers && platformUsers.length > 0) {
+              hasAnyCoverage = true;
+              break;
+            }
           }
+        }
+
+        if (hasAnyCoverage && !storesCovered.includes(store)) {
+          storesCovered.push(store);
         }
 
         if (!hasAnyCoverage) {
           storesMissingCoverage.push(store);
-          issues.push(`Store ${store} has no email routing coverage (neither direct recipients nor platform users)`);
+          issues.push(`Store ${store} has no email routing coverage (checked variants: ${allStoreVariants.join(', ')})`);
         }
       }
 
