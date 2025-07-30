@@ -11,8 +11,18 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     hasId: 'id' in form,
     orderId: form.order_id,
     id: form.id,
-    formKeys: Object.keys(form)
+    formKeys: Object.keys(form),
+    allFormData: JSON.stringify(form, null, 2)
   });
+
+  // CRITICAL: Deep inspection of form data for any hidden ID fields
+  const suspiciousKeys = Object.keys(form).filter(key => 
+    key.toLowerCase().includes('id') || 
+    key.toLowerCase().includes('order')
+  );
+  if (suspiciousKeys.length > 0) {
+    console.warn("⚠️ MTO MAPPING - Suspicious keys found in form:", suspiciousKeys);
+  }
 
   const mapped = {
     timestamp: new Date().toISOString(),
@@ -53,15 +63,39 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     });
   }
 
-  // Remove any problematic fields that might have been passed from the form
-  const { order_id, id, ...cleanMapped } = mapped as any;
+  // AGGRESSIVE ID FIELD SCRUBBING
+  const idFieldsToRemove = [
+    'order_id', 'orderId', 'ORDER_ID', 'id', 'ID', '_id', 'uuid', 'UUID',
+    'orderNumber', 'order_number', 'ORDER_NUMBER'
+  ];
   
-  if (order_id || id) {
-    console.log("🔍 MTO MAPPING - Removed problematic ID fields:", { 
-      removedOrderId: order_id, 
-      removedId: id 
-    });
+  let cleanMapped = { ...mapped };
+  
+  // Remove any ID fields from mapped data
+  idFieldsToRemove.forEach(field => {
+    if (field in cleanMapped) {
+      delete cleanMapped[field];
+      console.log(`🧹 MTO MAPPING - Removed ${field} field from mapped data`);
+    }
+  });
+
+  // Final validation that no ID fields are present
+  const remainingIdFields = Object.keys(cleanMapped).filter(key => 
+    idFieldsToRemove.some(idField => 
+      key.toLowerCase() === idField.toLowerCase()
+    )
+  );
+
+  if (remainingIdFields.length > 0) {
+    console.error("🚨 MTO MAPPING - ID fields still present after cleaning:", remainingIdFields);
+    remainingIdFields.forEach(field => delete cleanMapped[field]);
   }
+
+  console.log("🔍 MTO MAPPING - Final clean data:", {
+    keys: Object.keys(cleanMapped),
+    hasAnyIdFields: Object.keys(cleanMapped).some(key => key.toLowerCase().includes('id')),
+    finalData: cleanMapped
+  });
 
   return cleanMapped;
 }

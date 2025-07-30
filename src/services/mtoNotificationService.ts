@@ -99,8 +99,11 @@ async function logMTONotification(
   errorMessage?: string
 ): Promise<void> {
   try {
+    // FIXED: Use order_id for notification_logs (which expects UUID in order_id column)
+    // but ensure we're getting the UUID string, not trying to insert into mto_orders
     const logData = {
-      order_id: orderId,
+      order_id: orderId, // This goes to notification_logs.order_id (UUID column)
+      order_number: orderId, // Also set order_number for compatibility
       notification_type: 'mto_notification_trigger',
       recipient_email: recipients.join(', ') || 'none',
       store: storeNumber,
@@ -114,9 +117,17 @@ async function logMTONotification(
         recipient_count: recipients.length,
         recipients: recipients,
         timestamp: new Date().toISOString(),
+        mto_order_id: orderId, // Store MTO order ID in metadata for reference
         ...(errorMessage && { error_message: errorMessage })
       }
     };
+
+    console.log(`📝 MTO NOTIFICATION - Logging to notification_logs:`, {
+      orderId,
+      logDataKeys: Object.keys(logData),
+      hasOrderId: 'order_id' in logData,
+      orderIdValue: logData.order_id
+    });
 
     await supabase
       .from('notification_logs')
