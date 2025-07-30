@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Edit, Plus, Mail, Shield, Eye } from 'lucide-react';
+import { Trash2, Edit, Plus, Mail, Shield, Eye, Activity, Users, Settings } from 'lucide-react';
+import { EmailRoutingHealth } from './EmailRoutingHealth';
 import {
   getOrderingEmailRecipients,
   createOrderingEmailRecipient,
@@ -251,54 +252,74 @@ export function OrderingEmailRouting() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Shield className="h-8 w-8 text-red-600" />
-            Order Confirmation Email Routing
+            <Mail className="h-8 w-8" />
+            Email Routing Management
           </h1>
           <p className="text-muted-foreground mt-2">
-            Manage email recipients for order confirmation notifications (Super Admin Only)
+            Comprehensive email routing configuration and monitoring for all order types
           </p>
         </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setEditingRecipient(null)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Recipient
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>
-                {editingRecipient ? 'Edit' : 'Add'} Email Recipient
-              </DialogTitle>
-              <DialogDescription>
-                {editingRecipient ? 'Update' : 'Add'} an email recipient for order confirmation notifications.
-              </DialogDescription>
-            </DialogHeader>
-            <AddRecipientForm 
-              onSuccess={loadData} 
-              editingRecipient={editingRecipient}
-              onCancel={handleDialogClose}
-            />
-          </DialogContent>
-        </Dialog>
+        <Badge variant="outline" className="flex items-center gap-1">
+          <Shield className="h-3 w-3" />
+          Super Admin Only
+        </Badge>
       </div>
 
-      <Tabs defaultValue="recipients" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="recipients">Email Recipients</TabsTrigger>
-          <TabsTrigger value="logs">Delivery Logs</TabsTrigger>
+      <Tabs defaultValue="health" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="health" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            System Health
+          </TabsTrigger>
+          <TabsTrigger value="recipients" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Recipients
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Activity Logs
+          </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="recipients" className="space-y-4">
+
+        <TabsContent value="health" className="space-y-6">
+          <EmailRoutingHealth />
+        </TabsContent>
+
+        <TabsContent value="recipients" className="space-y-6">
+          <div className="flex justify-end mb-4">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => setEditingRecipient(null)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Recipient
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingRecipient ? 'Edit' : 'Add'} Email Recipient
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingRecipient ? 'Update' : 'Add'} an email recipient for order notifications.
+                  </DialogDescription>
+                </DialogHeader>
+                <AddRecipientForm 
+                  onSuccess={loadData} 
+                  editingRecipient={editingRecipient}
+                  onCancel={handleDialogClose}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                Email Recipients
+                <Users className="h-5 w-5" />
+                Email Recipients Configuration
               </CardTitle>
               <CardDescription>
-                Configure who receives order confirmation emails for each store.
+                Configure email recipients for all order types: Transfer, Cross-Dock, MTO, Wheel, Warranty, and Complaints
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -308,6 +329,7 @@ export function OrderingEmailRouting() {
                     <TableHead>Store</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Notification Types</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -328,6 +350,24 @@ export function OrderingEmailRouting() {
                         <Badge variant="secondary">
                           {recipient.role.replace('_', ' ')}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {(recipient as any).notification_types?.slice(0, 3).map((type: string) => (
+                            <Badge key={type} variant="outline" className="text-xs">
+                              {type}
+                            </Badge>
+                          )) || (
+                            <Badge variant="outline" className="text-xs">
+                              {recipient.email_type}
+                            </Badge>
+                          )}
+                          {(recipient as any).notification_types && (recipient as any).notification_types.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{(recipient as any).notification_types.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={recipient.is_active ? "default" : "secondary"}>
@@ -356,7 +396,7 @@ export function OrderingEmailRouting() {
                   ))}
                   {recipients.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         No email recipients configured yet.
                       </TableCell>
                     </TableRow>
@@ -366,58 +406,50 @@ export function OrderingEmailRouting() {
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="logs" className="space-y-4">
+
+        <TabsContent value="activity" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Eye className="h-5 w-5" />
-                Delivery Logs
+                <Settings className="h-5 w-5" />
+                Recent Email Activity
               </CardTitle>
               <CardDescription>
-                View recent order confirmation email delivery logs and status.
+                Email notification logs and delivery status
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Timestamp</TableHead>
-                    <TableHead>Store</TableHead>
-                    <TableHead>Order Type</TableHead>
-                    <TableHead>Recipient</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              {logs.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No recent email activity found
+                </div>
+              ) : (
+                <div className="space-y-3">
                   {logs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell>
-                        {new Date(log.created_at).toLocaleString()}
-                      </TableCell>
-                      <TableCell>#{log.store_number}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {log.order_type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{log.recipient_email}</TableCell>
-                      <TableCell>
-                        <Badge variant={log.status === 'success' ? "default" : "destructive"}>
-                          {log.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+                    <div key={log.id} className="p-4 bg-muted/50 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">{log.email_type}</Badge>
+                          <Badge variant={log.status === 'success' ? 'default' : 'destructive'}>
+                            {log.status}
+                          </Badge>
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(log.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="text-sm space-y-1">
+                        <div><strong>Store:</strong> {log.store_number}</div>
+                        <div><strong>Order Type:</strong> {log.order_type}</div>
+                        <div><strong>Recipient:</strong> {log.recipient_email}</div>
+                        {log.error_details && (
+                          <div className="text-red-600"><strong>Error:</strong> {log.error_details}</div>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                  {logs.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                        No delivery logs available yet.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

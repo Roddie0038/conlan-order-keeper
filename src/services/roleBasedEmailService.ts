@@ -237,7 +237,7 @@ export class RoleBasedEmailService {
     const roleRules = {
       // Store Managers & Service Managers: All notifications for their store
       'store_manager': ['transfer', 'cross_dock', 'mto', 'wheel', 'warranty', 'complaint', 'completion', 'out_of_stock', 'message'],
-      'service_manager': ['transfer', 'cross_dock', 'mto', 'wheel', 'warranty', 'complaint', 'completion', 'out_of_stock', 'message'],
+      'service_manager': ['transfer', 'cross_dock', 'wheel', 'warranty', 'completion', 'out_of_stock', 'message'],
       
       // Warehouse Managers: All except warranty
       'warehouse_manager': ['transfer', 'cross_dock', 'mto', 'wheel', 'complaint', 'completion', 'out_of_stock', 'message'],
