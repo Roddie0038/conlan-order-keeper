@@ -173,7 +173,25 @@ export const saveOrderToSupabase = async (
       });
         
       if (error) {
-        console.error("❌ ORDER SERVICE - Error saving to mto_orders:", error);
+        // 🛑 COMPREHENSIVE ERROR LOGGING - Log EVERYTHING from Supabase error
+        console.error("🛑 FULL Supabase Error Object:", error);
+        console.error("🛑 Error Message:", error.message);
+        console.error("🛑 Error Code:", error.code);
+        console.error("🛑 Error Details:", error.details);
+        console.error("🛑 Error Hint:", error.hint);
+        console.error("🛑 Error JSON:", JSON.stringify(error, null, 2));
+        
+        // Log all enumerable properties
+        const errorKeys = Object.keys(error);
+        console.error("🛑 Error Object Keys:", errorKeys);
+        errorKeys.forEach(key => {
+          console.error(`🛑 Error.${key}:`, error[key]);
+        });
+        
+        // Log the exact payload that caused the error
+        console.error("🛑 Failed Payload:", JSON.stringify(cleanData, null, 2));
+        console.error("🛑 Failed Payload Keys:", Object.keys(cleanData));
+        
         return { data: null, error };
       }
       
