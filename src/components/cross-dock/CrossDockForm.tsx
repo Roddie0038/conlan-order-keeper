@@ -7,6 +7,7 @@ import { Printer, Plus } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import OrderIDService from "@/services/OrderIDService";
 interface ProductRow {
   id: string;
   productCode: string;
@@ -19,7 +20,7 @@ export const CrossDockForm = () => {
   const [toStore, setToStore] = useState("");
   const [receiverNo, setReceiverNo] = useState("");
   const [products, setProducts] = useState<ProductRow[]>([{
-    id: crypto.randomUUID(),
+    id: OrderIDService.generateOrderID('TRANSFER'),
     productCode: "",
     description: "",
     quantity: ""
@@ -53,7 +54,7 @@ export const CrossDockForm = () => {
   });
   const addRow = () => {
     setProducts([...products, {
-      id: crypto.randomUUID(),
+      id: OrderIDService.generateOrderID('TRANSFER'),
       productCode: "",
       description: "",
       quantity: ""

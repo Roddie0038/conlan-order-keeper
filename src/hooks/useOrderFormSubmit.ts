@@ -51,7 +51,7 @@ export function useOrderFormSubmit() {
         console.log("📧 ORDER SUBMIT - Using selected plant:", order.destinationPlant);
         
         // Determine order type based on order properties
-        let orderType = "TRANSFER";
+        let orderType: any = "TRANSFER";
         
         if ('qtyWheels' in order && order.qtyWheels) {
           orderType = "WHEEL_POWDER_COATING";

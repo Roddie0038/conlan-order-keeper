@@ -62,11 +62,11 @@ export function useOrderFormSubmit() {
         
         // Check if it's a wheel order
         if ('qtyWheels' in order && order.qtyWheels) {
-          orderType = "WHEEL_POWDER_COATING";
+          orderType = "WHEEL_POWDER_COATING" as const;
         }
         // Check if it's explicitly marked as MTO
         else if (order.type === 'MTO' || ('casingGrade' in order && order.casingGrade)) {
-          orderType = "MTO";
+          orderType = "MTO" as const;
         }
         
         console.log("🔍 ORDER FORM SUBMIT - Determined order type:", orderType, "for order:", order);
@@ -85,7 +85,7 @@ export function useOrderFormSubmit() {
           email: user?.email || "", // Use the submitting user's email
           plant: plant,
           timestamp: new Date().toISOString(),
-          type: orderType // Use the determined order type for correct routing
+          type: orderType as any // Use the determined order type for correct routing
         };
 
         console.log("🔍 ORDER FORM SUBMIT - Submitting with type:", orderType);

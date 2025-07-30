@@ -19,7 +19,7 @@ export const saveOrderToSupabase = async (
   
   try {
     // Initial validation for non-MTO orders only
-    if (order.type !== 'MTO' && order.type !== 'mto') {
+    if (order.type !== 'MTO') {
       console.log("🔍 ORDER SERVICE - Validating non-MTO fields:", {
         hasStore: !!order.store,
         storeValue: order.store,
@@ -44,7 +44,7 @@ export const saveOrderToSupabase = async (
     }
     
     // Handle MTO orders
-    if (order.type === 'MTO' || order.type === 'mto') {
+    if (order.type === 'MTO') {
       console.log("🔍 ORDER SERVICE - Processing MTO order with original data:", {
         hasStore: !!order.store,
         storeValue: order.store,

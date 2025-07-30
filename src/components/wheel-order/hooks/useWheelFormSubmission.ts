@@ -9,6 +9,7 @@ import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import type { OrderData } from "@/types/supabase-extensions";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields } from "@/utils/storeNormalization";
+import OrderIDService from "@/services/OrderIDService";
 
 const formatTimestamp = (dateString: string): string => {
   const date = new Date(dateString);
@@ -142,7 +143,7 @@ export function useWheelFormSubmission(
         const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
         existingOrders.push({
           ...supabaseOrder,
-          id: crypto.randomUUID()
+          id: OrderIDService.generateOrderID('WHEEL_POWDER_COATING')
         });
         localStorage.setItem('wheelOrders', JSON.stringify(existingOrders));
 

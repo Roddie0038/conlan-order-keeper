@@ -27,7 +27,7 @@ export const combineOrders = (
       notes: order.notes,
       status: order.status || 'pending',
       completed: order.completed || false,
-      orderType: 'Transfer',
+      orderType: 'TRANSFER',
       completedAt: order.completed_at,
     });
   });
@@ -65,7 +65,7 @@ export const combineOrders = (
       notes: order.notes,
       status: order.status || 'pending',
       completed: order.completed || false,
-      orderType: 'Wheel',
+      orderType: 'WHEEL_POWDER_COATING',
       completedAt: order.completed_at,
     });
   });
@@ -84,7 +84,7 @@ export const combineOrders = (
       notes: order.notes,
       status: order.status || 'open',
       completed: order.status === 'completed',
-      orderType: 'Warranty',
+      orderType: 'WARRANTY',
       completedAt: order.completed_at,
     });
   });

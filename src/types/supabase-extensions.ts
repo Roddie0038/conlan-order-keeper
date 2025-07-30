@@ -1,5 +1,5 @@
-
 import type { Database } from "@/integrations/supabase/types";
+import { OrderType } from "@/services/OrderIDService";
 
 // Standardized Supabase insert result type
 export type SupabaseInsertResult<T> = {
@@ -7,9 +7,9 @@ export type SupabaseInsertResult<T> = {
   error: Error | null;
 };
 
-// Define OrderData interface for backward compatibility
+// Define OrderData interface with standardized ID format
 export interface OrderData {
-  id?: string;
+  id?: string; // Standardized order ID format (e.g., "ORD-uuid")
   yourName?: string;
   name: string;
   store: string;
@@ -27,7 +27,7 @@ export interface OrderData {
   email?: string;
   plant?: string;
   timestamp?: string;
-  type?: string;
+  type?: OrderType; // Use standardized OrderType
   userId?: string;
   userEmail?: string;
   status?: string;
@@ -52,9 +52,9 @@ export interface OrderData {
   storeColors?: string;
 }
 
-// Define MTOOrderData interface for MTO orders
+// Define MTOOrderData interface for MTO orders with standardized ID
 export interface MTOOrderData {
-  id?: string;
+  id?: string; // Standardized order ID format (e.g., "MTO-uuid")
   timestamp?: string;
   name: string;
   store: string;
@@ -67,7 +67,7 @@ export interface MTOOrderData {
   email?: string;
   plant?: string;
   status?: string;
-  type?: string;
+  type?: OrderType; // Use standardized OrderType
   orderType?: string;
   description: string; // Made required to match OrderData
   

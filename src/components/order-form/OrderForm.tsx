@@ -20,6 +20,7 @@ import { Card } from "@/components/ui/card";
 import { useOrderFormPersistence } from "@/hooks/useOrderFormPersistence";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
+import OrderIDService from "@/services/OrderIDService";
 
 export function OrderForm() {
   const { user } = useAuth();
@@ -85,7 +86,7 @@ export function OrderForm() {
     // Add current form values to the order summaries
     const newOrder = {
       ...values,
-      id: crypto.randomUUID(),
+      id: OrderIDService.generateOrderID('TRANSFER'),
       timestamp: new Date().toISOString(),
       store: values.store,
       selected: true

@@ -1,6 +1,7 @@
+import { OrderType } from "@/services/OrderIDService";
 
 export interface CombinedOrder {
-  id: string;
+  id: string; // Standardized order ID format (e.g., "ORD-uuid", "MTO-uuid", "WHL-uuid", "WAR-uuid")
   timestamp: string;
   name: string;
   store: string;
@@ -11,7 +12,7 @@ export interface CombinedOrder {
   notes: string;
   status: string;
   completed: boolean;
-  orderType: 'Transfer' | 'MTO' | 'Wheel' | 'Warranty';
+  orderType: OrderType;
   completedAt?: string;
   completedBy?: string;
 }

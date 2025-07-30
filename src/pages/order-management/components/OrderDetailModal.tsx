@@ -23,7 +23,7 @@ export function OrderDetailModal({ open, onClose, order }: OrderDetailModalProps
   // Determine order type for messaging
   const getOrderType = (): 'orders' | 'mto_orders' | 'wheel_orders' => {
     if (order.orderType === 'MTO') return 'mto_orders';
-    if (order.orderType === 'Wheel') return 'wheel_orders';
+    if (order.orderType === 'WHEEL_POWDER_COATING') return 'wheel_orders';
     return 'orders';
   };
 
