@@ -235,6 +235,8 @@ export class EmailRoutingMonitor {
       // Check each store for email routing coverage
       for (const store of allStores) {
         let hasAnyCoverage = false;
+        let coverageSource = '';
+        let foundRecipients: any[] = [];
         
         // Get all possible store format variants for this store
         const storeVariants = getStoreNumberVariants(store);
@@ -248,6 +250,12 @@ export class EmailRoutingMonitor {
           normalizedStoreName, // "Fort Worth 022" etc.
           ...storeVariants
         ];
+
+        console.log(`🔍 Checking coverage for store ${store}:`, {
+          store,
+          normalizedStoreName,
+          allStoreVariants
+        });
         
         // Check if store has any email recipients configured using any variant
         for (const variant of allStoreVariants) {
@@ -259,12 +267,11 @@ export class EmailRoutingMonitor {
 
           if (recipients && recipients.length > 0) {
             hasAnyCoverage = true;
+            coverageSource = `ordering_email_recipients (variant: ${variant})`;
+            foundRecipients = recipients;
+            console.log(`✅ Found coverage for store ${store} via variant "${variant}":`, recipients);
             break;
           }
-        }
-
-        if (hasAnyCoverage && !storesCovered.includes(store)) {
-          storesCovered.push(store);
         }
 
         // Check fallback coverage through ot_platform_users using variants
@@ -278,17 +285,22 @@ export class EmailRoutingMonitor {
 
             if (platformUsers && platformUsers.length > 0) {
               hasAnyCoverage = true;
+              coverageSource = `ot_platform_users (variant: ${variant})`;
+              foundRecipients = platformUsers;
+              console.log(`✅ Found fallback coverage for store ${store} via variant "${variant}":`, platformUsers);
               break;
             }
           }
         }
 
-        if (hasAnyCoverage && !storesCovered.includes(store)) {
-          storesCovered.push(store);
-        }
-
-        if (!hasAnyCoverage) {
+        if (hasAnyCoverage) {
+          if (!storesCovered.includes(store)) {
+            storesCovered.push(store);
+          }
+          console.log(`✅ Store ${store} has coverage via ${coverageSource}:`, foundRecipients);
+        } else {
           storesMissingCoverage.push(store);
+          console.log(`❌ Store ${store} has NO coverage. Checked variants:`, allStoreVariants);
           issues.push(`Store ${store} has no email routing coverage (checked variants: ${allStoreVariants.join(', ')})`);
         }
       }

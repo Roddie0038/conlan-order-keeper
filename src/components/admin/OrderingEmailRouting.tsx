@@ -146,7 +146,14 @@ function AddRecipientForm({ onSuccess, editingRecipient, onCancel }: AddRecipien
             <SelectContent>
               <SelectItem value="store_manager">Store Manager</SelectItem>
               <SelectItem value="assistant_manager">Assistant Manager</SelectItem>
+              <SelectItem value="service_manager">Service Manager</SelectItem>
+              <SelectItem value="warehouse_manager">Warehouse Manager</SelectItem>
+              <SelectItem value="warehouse_coordinator">Warehouse Coordinator</SelectItem>
+              <SelectItem value="retread_manager">Retread Manager</SelectItem>
+              <SelectItem value="plant_manager">Plant Manager</SelectItem>
+              <SelectItem value="office_manager">Office Manager</SelectItem>
               <SelectItem value="warehouse_staff">Warehouse Staff</SelectItem>
+              <SelectItem value="team_lead">Team Lead</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
             </SelectContent>
           </Select>
