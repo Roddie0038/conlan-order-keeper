@@ -31,12 +31,17 @@ export async function sendMTONotificationEmail(
     
     console.log(`📧 MTO NOTIFICATION - Found ${recipientsResult.recipients.length} recipients from ${recipientsResult.source}`);
     
-    // Prepare payload for OT Platform function
-    const payload: MTONotificationPayload = {
-      order_id: orderData.id,
-      store_number: storeNumber,
-      plant: orderData.plant,
-      notification_type: notificationType
+    // Prepare payload matching the edge function's expected structure
+    const payload = {
+      mtoData: {
+        id: orderData.id,
+        store: orderData.store,
+        plant: orderData.plant,
+        order_type: 'MTO',
+        notification_type: notificationType
+      },
+      orderId: orderData.id,
+      recipients: recipientsResult.recipients
     };
     
     console.log(`📧 MTO NOTIFICATION - Calling OT Platform function with payload:`, payload);
