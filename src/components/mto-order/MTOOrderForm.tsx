@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCustomFormPersistence } from "@/hooks/useCustomFormPersistence";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
+import { useMTOFormDebug } from "./hooks/useMTOFormDebug";
 
 export const MTOOrderForm = () => {
   const { user } = useAuth();
@@ -44,6 +45,9 @@ export const MTOOrderForm = () => {
       setFormData(prev => ({ ...prev, store: user.store }));
     }
   }, [user, isAdmin, setFormData]);
+  
+  // Add debugging to track form data changes
+  const { debuggedSubmitAction } = useMTOFormDebug(formData, () => {});
   
   const handleSubmit = useSubmitMTOOrder({
     formData,
@@ -181,7 +185,13 @@ export const MTOOrderForm = () => {
             type="submit" 
             className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-md transition-all duration-200 hover:shadow-md hover:scale-[1.01] flex items-center justify-center"
             disabled={isSubmitting}
-            onClick={handleSubmit}
+            onClick={(e) => {
+              e.preventDefault();
+              console.log("🔍 MTO FORM - Submit button clicked, current form data:", formData);
+              console.log("🔍 MTO FORM - Checking for any ID fields in form data:", 
+                Object.keys(formData).filter(key => key.toLowerCase().includes('id')));
+              handleSubmit(e);
+            }}
           >
             {isSubmitting ? "Submitting..." : "Submit MTO Order"}
           </Button>

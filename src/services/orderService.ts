@@ -142,12 +142,22 @@ export const saveOrderToSupabase = async (
       const allKeys = Object.getOwnPropertyNames(cleanData);
       console.log("🔍 PAYLOAD - All property names:", allKeys);
       
-      // Specifically check for order_id
+      // FINAL CRITICAL CHECK for order_id before Supabase call
       if ('order_id' in cleanData) {
-        console.error("🚨 FOUND order_id IN PAYLOAD:", cleanData.order_id);
+        console.error("🚨 CRITICAL - order_id FOUND IN PAYLOAD BEFORE SUPABASE CALL:", cleanData.order_id);
         delete cleanData.order_id;
-        console.log("🧹 DELETED order_id from payload");
+        console.log("🧹 EMERGENCY - DELETED order_id from payload");
       }
+
+      // Double check for any remaining problematic fields
+      const problematicFields = ['order_id', 'orderId', 'ORDER_ID', 'id', 'ID'];
+      problematicFields.forEach(field => {
+        if (field in cleanData) {
+          console.error(`🚨 CRITICAL - ${field} FOUND IN PAYLOAD:`, cleanData[field]);
+          delete cleanData[field];
+          console.log(`🧹 EMERGENCY - DELETED ${field} from payload`);
+        }
+      });
 
       const { data, error } = await supabase
         .from('mto_orders')

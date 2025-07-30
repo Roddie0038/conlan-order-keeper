@@ -1,5 +1,6 @@
 
 import { normalizeStoreForSubmission } from './storeNormalization';
+import { scrubMTOFormData } from './formDataScrubber';
 
 export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): any {
   console.log("🔍 MTO MAPPING - Input form data:", {
@@ -15,32 +16,26 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     allFormData: JSON.stringify(form, null, 2)
   });
 
-  // CRITICAL: Deep inspection of form data for any hidden ID fields
-  const suspiciousKeys = Object.keys(form).filter(key => 
-    key.toLowerCase().includes('id') || 
-    key.toLowerCase().includes('order')
-  );
-  if (suspiciousKeys.length > 0) {
-    console.warn("⚠️ MTO MAPPING - Suspicious keys found in form:", suspiciousKeys);
-  }
+  // FIRST: Scrub the input form data to remove any problematic fields
+  const cleanForm = scrubMTOFormData(form);
 
   const mapped = {
     timestamp: new Date().toISOString(),
-    name: form.name,
-    store: normalizeStoreForSubmission(form.store), // ✅ FIX: Use display format for OT Platform compatibility
-    product_number: form.productNumber || form.product_number, // Handle both camelCase and snake_case
-    casing_grade: form.casingGrade,
-    tire_size: form.tireSize,
-    tread: form.tread || form.tireTreadNeeded,
-    quantity: Number(form.quantity),
-    notes: form.notes || '',
-    email: form.email || form.managerEmail,
-    plant: selectedPlant || user?.assignedPlant || form.plant || '', // ✅ Use selectedPlant first
+    name: cleanForm.name,
+    store: normalizeStoreForSubmission(cleanForm.store), // ✅ FIX: Use display format for OT Platform compatibility
+    product_number: cleanForm.productNumber || cleanForm.product_number, // Handle both camelCase and snake_case
+    casing_grade: cleanForm.casingGrade,
+    tire_size: cleanForm.tireSize,
+    tread: cleanForm.tread || cleanForm.tireTreadNeeded,
+    quantity: Number(cleanForm.quantity),
+    notes: cleanForm.notes || '',
+    email: cleanForm.email || cleanForm.managerEmail,
+    plant: selectedPlant || user?.assignedPlant || cleanForm.plant || '', // ✅ Use selectedPlant first
     order_type: 'MTO',
     type: 'MTO',
     status: 'open', // FIXED: Changed from "pending" to "open" to match Supabase constraint
     status_updated_at: new Date().toISOString(),
-    description: form.description || `MTO - ${form.tireTreadNeeded || form.tread} - ${form.tireSize}`
+    description: cleanForm.description || `MTO - ${cleanForm.tireTreadNeeded || cleanForm.tread} - ${cleanForm.tireSize}`
     // NOTE: Explicitly NOT including 'id' or 'order_id' - let Supabase auto-generate the UUID
   };
 
@@ -57,45 +52,20 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
   // Defensive validation
   if (!mapped.product_number) {
     console.error("❌ MTO MAPPING - product_number is missing after mapping:", {
-      originalProductNumber: form.productNumber,
-      originalProduct_number: form.product_number,
+      originalProductNumber: cleanForm.productNumber,
+      originalProduct_number: cleanForm.product_number,
       mappedProductNumber: mapped.product_number
     });
   }
 
-  // AGGRESSIVE ID FIELD SCRUBBING
-  const idFieldsToRemove = [
-    'order_id', 'orderId', 'ORDER_ID', 'id', 'ID', '_id', 'uuid', 'UUID',
-    'orderNumber', 'order_number', 'ORDER_NUMBER'
-  ];
-  
-  let cleanMapped = { ...mapped };
-  
-  // Remove any ID fields from mapped data
-  idFieldsToRemove.forEach(field => {
-    if (field in cleanMapped) {
-      delete cleanMapped[field];
-      console.log(`🧹 MTO MAPPING - Removed ${field} field from mapped data`);
-    }
-  });
-
-  // Final validation that no ID fields are present
-  const remainingIdFields = Object.keys(cleanMapped).filter(key => 
-    idFieldsToRemove.some(idField => 
-      key.toLowerCase() === idField.toLowerCase()
-    )
-  );
-
-  if (remainingIdFields.length > 0) {
-    console.error("🚨 MTO MAPPING - ID fields still present after cleaning:", remainingIdFields);
-    remainingIdFields.forEach(field => delete cleanMapped[field]);
-  }
+  // FINAL SCRUB: Apply the scrubber to the mapped data as well
+  const finalCleanMapped = scrubMTOFormData(mapped);
 
   console.log("🔍 MTO MAPPING - Final clean data:", {
-    keys: Object.keys(cleanMapped),
-    hasAnyIdFields: Object.keys(cleanMapped).some(key => key.toLowerCase().includes('id')),
-    finalData: cleanMapped
+    keys: Object.keys(finalCleanMapped),
+    hasAnyIdFields: Object.keys(finalCleanMapped).some(key => key.toLowerCase().includes('id')),
+    finalData: finalCleanMapped
   });
 
-  return cleanMapped;
+  return finalCleanMapped;
 }
