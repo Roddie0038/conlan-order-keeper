@@ -41,8 +41,11 @@ export function normalizeStoreForSubmission(storeValue: string): string {
   const storeNumber = trimmed.match(/\d+/)?.[0];
   
   if (storeNumber) {
-    // Check if we have a mapping for this store number
-    const mappedName = STORE_NAME_MAP[storeNumber];
+    // Normalize to unpadded format for STORE_NAME_MAP lookup
+    const unpadded = parseInt(storeNumber).toString();
+    
+    // Check if we have a mapping for this store number (try both padded and unpadded)
+    const mappedName = STORE_NAME_MAP[storeNumber] || STORE_NAME_MAP[unpadded];
     if (mappedName) {
       return mappedName;
     }

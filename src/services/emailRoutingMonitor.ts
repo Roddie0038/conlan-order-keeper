@@ -240,25 +240,36 @@ export class EmailRoutingMonitor {
         
         // Get all possible store format variants for this store
         const storeVariants = getStoreNumberVariants(store);
+        
+        // Normalize store for submission to get display format (city-name variant)
         const normalizedStoreName = normalizeStoreForSubmission(store);
         
-        // Add more comprehensive store variants
+        // Also try normalizing the unpadded version to ensure we get city-name format
+        const unpaddedStore = parseInt(store).toString();
+        const normalizedUnpadded = normalizeStoreForSubmission(unpaddedStore);
+        
+        // Create comprehensive variants list including all normalized formats
         const allStoreVariants = [
-          store, // raw number like "022"
-          `Store ${store}`, // "Store 022"
+          normalizedStoreName,    // "Fort Worth 022" etc.
+          normalizedUnpadded,     // Ensure we get city-name even if input was padded
+          store,                  // raw number like "022"
+          `Store ${store}`,       // "Store 022"
           `Store ${parseInt(store)}`, // "Store 22"
-          normalizedStoreName, // "Fort Worth 022" etc.
           ...storeVariants
         ];
+        
+        // Remove duplicates
+        const uniqueVariants = [...new Set(allStoreVariants)];
 
         console.log(`🔍 Checking coverage for store ${store}:`, {
           store,
           normalizedStoreName,
-          allStoreVariants
+          normalizedUnpadded,
+          uniqueVariants
         });
         
         // Check if store has any email recipients configured using any variant
-        for (const variant of allStoreVariants) {
+        for (const variant of uniqueVariants) {
           const { data: recipients } = await supabase
             .from('ordering_email_recipients')
             .select('*')
@@ -276,7 +287,7 @@ export class EmailRoutingMonitor {
 
         // Check fallback coverage through ot_platform_users using variants
         if (!hasAnyCoverage) {
-          for (const variant of allStoreVariants) {
+          for (const variant of uniqueVariants) {
             const { data: platformUsers } = await supabase
               .from('ot_platform_users')
               .select('*')
@@ -300,8 +311,8 @@ export class EmailRoutingMonitor {
           console.log(`✅ Store ${store} has coverage via ${coverageSource}:`, foundRecipients);
         } else {
           storesMissingCoverage.push(store);
-          console.log(`❌ Store ${store} has NO coverage. Checked variants:`, allStoreVariants);
-          issues.push(`Store ${store} has no email routing coverage (checked variants: ${allStoreVariants.join(', ')})`);
+          console.log(`❌ Store ${store} has NO coverage. Checked variants:`, uniqueVariants);
+          issues.push(`Store ${store} has no email routing coverage (checked variants: ${uniqueVariants.join(', ')})`);
         }
       }
 
