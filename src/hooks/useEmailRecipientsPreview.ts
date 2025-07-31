@@ -76,7 +76,9 @@ export const useEmailRecipientsPreview = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<string>('');
-  const [lastFetch, setLastFetch] = useState<number>(0);
+  
+  // Cache tracking using ref to avoid triggering re-renders
+  const lastFetchRef = useRef<number>(0);
   
   // Optimistic update tracking
   const optimisticUpdateRef = useRef<string | null>(null);
@@ -96,7 +98,7 @@ export const useEmailRecipientsPreview = (
 
     // Check cache validity
     const now = Date.now();
-    if (cacheTime > 0 && (now - lastFetch) < cacheTime && recipientState.finalRecipients.length > 0) {
+    if (cacheTime > 0 && (now - lastFetchRef.current) < cacheTime && recipientState.finalRecipients.length > 0) {
       return;
     }
 
@@ -120,7 +122,7 @@ export const useEmailRecipientsPreview = (
 
       setRecipientState(result);
       setSource('management_service');
-      setLastFetch(now);
+      lastFetchRef.current = now;
 
     } catch (err) {
       console.error('❌ HOOK - Error loading recipients:', err);
@@ -135,7 +137,7 @@ export const useEmailRecipientsPreview = (
     } finally {
       setLoading(false);
     }
-  }, [orderData, emailType, enabled, cacheTime, lastFetch, templateId, orderId]);
+  }, [orderData, emailType, enabled, cacheTime, templateId, orderId]);
 
   // Initial fetch and dependency updates
   useEffect(() => {
@@ -428,7 +430,7 @@ export const useEmailRecipientsPreview = (
    * Manual refetch (bypasses cache)
    */
   const refetch = useCallback(async () => {
-    setLastFetch(0); // Force cache invalidation
+    lastFetchRef.current = 0; // Force cache invalidation
     await loadRecipientsWithOverrides();
   }, [loadRecipientsWithOverrides]);
 
