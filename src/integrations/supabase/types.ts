@@ -1451,6 +1451,60 @@ export type Database = {
         }
         Relationships: []
       }
+      order_email_overrides: {
+        Row: {
+          action_type: string
+          added_by_email: string
+          added_by_name: string | null
+          created_at: string | null
+          email_type: string
+          id: string
+          is_active: boolean | null
+          is_default_recipient: boolean | null
+          order_id: string | null
+          plant: string | null
+          recipient_email: string
+          recipient_name: string | null
+          recipient_role: string | null
+          store_number: string
+          template_id: string | null
+        }
+        Insert: {
+          action_type: string
+          added_by_email: string
+          added_by_name?: string | null
+          created_at?: string | null
+          email_type: string
+          id?: string
+          is_active?: boolean | null
+          is_default_recipient?: boolean | null
+          order_id?: string | null
+          plant?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          recipient_role?: string | null
+          store_number: string
+          template_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          added_by_email?: string
+          added_by_name?: string | null
+          created_at?: string | null
+          email_type?: string
+          id?: string
+          is_active?: boolean | null
+          is_default_recipient?: boolean | null
+          order_id?: string | null
+          plant?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          recipient_role?: string | null
+          store_number?: string
+          template_id?: string | null
+        }
+        Relationships: []
+      }
       order_messages: {
         Row: {
           attachments: Json | null
@@ -2392,6 +2446,60 @@ export type Database = {
           role?: string
           store?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      recipient_action_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          email_type: string
+          id: string
+          metadata: Json | null
+          order_id: string | null
+          performed_by_email: string
+          performed_by_name: string | null
+          plant: string | null
+          recipient_email: string
+          recipient_name: string | null
+          recipient_role: string | null
+          store_number: string
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          email_type: string
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          performed_by_email: string
+          performed_by_name?: string | null
+          plant?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          recipient_role?: string | null
+          store_number: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          email_type?: string
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          performed_by_email?: string
+          performed_by_name?: string | null
+          plant?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          recipient_role?: string | null
+          store_number?: string
+          template_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
