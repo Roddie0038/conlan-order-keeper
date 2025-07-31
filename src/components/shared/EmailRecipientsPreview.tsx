@@ -410,6 +410,8 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
         currentStore={store}
         currentPlant={plant}
         existingEmails={recipients.map(r => r.email.toLowerCase())}
+        removedDefaults={removedDefaults.map(rd => String(rd))}
+        defaultEmails={defaultRecipients.map(dr => dr.email)}
       />
     </Card>
   );

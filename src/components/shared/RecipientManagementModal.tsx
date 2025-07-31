@@ -66,6 +66,8 @@ interface RecipientManagementModalProps {
   currentStore: string;
   currentPlant: string;
   existingEmails: string[];
+  removedDefaults?: string[];
+  defaultEmails?: string[];
 }
 
 const ROLE_OPTIONS = [
@@ -87,7 +89,9 @@ export const RecipientManagementModal: React.FC<RecipientManagementModalProps> =
   onAddRecipient,
   currentStore,
   currentPlant,
-  existingEmails
+  existingEmails,
+  removedDefaults = [],
+  defaultEmails = []
 }) => {
   const { toast } = useToast();
   
