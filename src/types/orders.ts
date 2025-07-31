@@ -98,42 +98,73 @@ export interface OrderRecord {
 }
 
 /**
- * MTO Order Record - matches your exact specification and 'mto_orders' table schema
- * UPDATED to match OT Platform standards exactly
+ * MTO Order Record - matches 'mto_orders' table schema EXACTLY (43 fields total)
+ * CORRECTED to include ALL database fields from actual schema
  */
 export interface MTOOrderRecord {
   // Core identification
   id: string; // UUID, non-nullable
   timestamp: string | null; // text field
   
-  // Plant and location
-  plant: string | null;
-  store: string | null;
-  
-  // Basic order information  
+  // Basic order information
   name: string | null;
+  store: string | null;
   product_number: string | null;
   casing_grade: string | null;
   tire_size: string | null;
   tread: string | null;
-  quantity: number | null;
-  
-  // Inventory and availability tracking
-  have_casings: boolean | null;
-  tread_in_inventory: boolean | null;
-  projected_delivery: string | null; // date field
+  quantity: number | null; // integer
+  notes: string | null;
+  description: string | null;
   
   // Status and completion tracking
   status: string | null;
   completed: boolean | null;
-  completed_at: string | null;
+  completed_at: string | null; // timestamp with time zone
+  status_updated_at: string | null; // timestamp with time zone
   
-  // Shipping and fulfillment  
-  shipped_quantity: number | null;
-  pending_quantity: number | null;
-  last_shipment_date: string | null; // date field
+  // Plant and contact information
+  plant: string | null;
+  email: string | null;
+  type: string | null;
+  
+  // Inventory and availability tracking
+  have_casings: boolean | null;
+  tread_in_inventory: boolean | null;
+  casings_in_stock: boolean | null;
+  tread_in_stock: boolean | null;
+  projected_delivery: string | null; // date
+  casings_eta: string | null; // date
+  tread_eta: string | null; // date
+  
+  // Shipping and fulfillment
+  shipped_quantity: number | null; // integer
+  pending_quantity: number | null; // integer
+  last_shipment_date: string | null; // date
+  ready_to_ship_at: string | null; // timestamp with time zone
+  in_transit_at: string | null; // timestamp with time zone
+  received_at: string | null; // timestamp with time zone
+  
+  // Notification tracking
+  warehouse_notified_at: string | null; // timestamp with time zone
+  retread_notified_at: string | null; // timestamp with time zone
+  store_notified_at: string | null; // timestamp with time zone
+  inventory_last_updated: string | null; // timestamp with time zone
+  
+  // Email and communication
+  send_invoice: boolean | null;
+  send_email_trigger: boolean | null;
+  email_message: string | null;
+  destination_manager_email: string | null;
+  
+  // Documentation and links
+  invoice_number: string | null;
+  order_completion_link: string | null;
+  cross_dock_form_link: string | null;
+  order_type: string | null;
   
   // System fields
+  deleted_at: string | null; // timestamp with time zone
   updated_by: string | null;
 }
 
