@@ -135,7 +135,7 @@ export const useEmailRecipientsPreview = (
     } finally {
       setLoading(false);
     }
-  }, [orderData, emailType, enabled, cacheTime, lastFetch, templateId, orderId, recipientState.finalRecipients.length]);
+  }, [orderData, emailType, enabled, cacheTime, lastFetch, templateId, orderId]);
 
   // Initial fetch and dependency updates
   useEffect(() => {
