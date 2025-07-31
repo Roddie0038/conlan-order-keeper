@@ -28,9 +28,13 @@ export const WheelEmailPreview: React.FC<WheelEmailPreviewProps> = ({
       plant={formData.destinationPlant}
       emailType="wheel"
       orderData={{
+        store: formData.storeName,
+        store_number: formData.storeName,
+        plant: formData.destinationPlant,
         manager_email: managerEmail,
         email: managerEmail
       }}
+      allowManagement={true}
       className={className}
     />
   );
