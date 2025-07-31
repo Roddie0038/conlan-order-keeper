@@ -190,6 +190,7 @@ export const MTOOrderForm = () => {
               plant={formData.destinationPlant}
               emailType="mto"
               orderData={{
+                store: formData.store,
                 manager_email: formData.managerEmail
               }}
               className="w-full"
