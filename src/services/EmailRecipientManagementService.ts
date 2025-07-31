@@ -7,6 +7,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { resolveEmailRecipients } from "@/services/emailRecipientResolver";
 import type { EmailRecipient, EmailType, OrderDataInput } from "@/services/emailRecipientResolver";
+import { generateUUID } from "@/utils/uuid/UUIDUtils";
 
 export interface RecipientOverride {
   id?: string;
@@ -378,7 +379,7 @@ export class EmailRecipientManagementService {
     // Insert using notification_logs table as a temporary store
     // This is a workaround until we have proper SQL execution
     const logData = {
-      order_id: override.order_id || `override-${Date.now()}`,
+      order_id: override.order_id || generateUUID(),
       notification_type: `override_${override.action_type}`,
       recipient_email: override.recipient_email,
       recipient_role: override.recipient_role,
