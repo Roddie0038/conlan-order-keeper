@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { MTOFormData } from "../mto-form-config";
+import { logger } from '@/utils/logger';
 
 export const useMTOForm = () => {
   const { user } = useAuth();
@@ -59,7 +60,10 @@ export const useMTOForm = () => {
       try {
         return await getFirstManagerEmail(formData.store);
       } catch (error) {
-        console.error("Error getting manager email:", error);
+        logger.error("Error getting manager email", {
+          service: 'useMTOForm',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
         return "";
       }
     }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { logger } from '@/utils/logger';
 
 interface OrderTemplateProps {
   type: 'regular' | 'mto' | 'wheel';
@@ -20,7 +21,10 @@ export const OrderTemplate = ({ type, currentData, onLoadTemplate }: OrderTempla
     try {
       setTemplates(JSON.parse(storedTemplates));
     } catch (e) {
-      console.error("Error parsing templates:", e);
+      logger.error("Error parsing templates", {
+        service: 'OrderTemplate',
+        error: e instanceof Error ? e.message : 'Unknown error'
+      });
       setTemplates([]);
     }
   }, [type]);

@@ -12,6 +12,7 @@ import { useCustomFormPersistence } from "@/hooks/useCustomFormPersistence";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import { useMTOFormDebug } from "./hooks/useMTOFormDebug";
+import { logger } from '@/utils/logger';
 
 export const MTOOrderForm = () => {
   const { user } = useAuth();
@@ -187,9 +188,11 @@ export const MTOOrderForm = () => {
             disabled={isSubmitting}
             onClick={(e) => {
               e.preventDefault();
-              console.log("🔍 MTO FORM - Submit button clicked, current form data:", formData);
-              console.log("🔍 MTO FORM - Checking for any ID fields in form data:", 
-                Object.keys(formData).filter(key => key.toLowerCase().includes('id')));
+              logger.info("MTO form submit button clicked", {
+                service: 'MTOOrderForm',
+                formData: formData,
+                idFields: Object.keys(formData).filter(key => key.toLowerCase().includes('id'))
+              });
               handleSubmit(e);
             }}
           >

@@ -15,6 +15,7 @@ import { OrderSubmissionHandler } from "./OrderSubmissionHandler";
 import { toast } from "@/hooks/use-toast";
 import { getCurrentDateTime } from "@/utils/dateTime";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
+import { logger } from '@/utils/logger';
 import { OrderTemplate } from "../order-templates/OrderTemplate";
 import { Card } from "@/components/ui/card";
 import { useOrderFormPersistence } from "@/hooks/useOrderFormPersistence";
@@ -81,7 +82,10 @@ export function OrderForm() {
       return;
     }
 
-    console.log("✅ Order submitted to plant:", values.destinationPlant);
+    logger.info("Order submitted to plant", {
+      service: 'OrderForm',
+      destinationPlant: values.destinationPlant
+    });
 
     // Add current form values to the order summaries
     const newOrder = {
