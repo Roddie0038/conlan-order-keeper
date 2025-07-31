@@ -199,7 +199,6 @@ export function ContactSection({ form }: ContactSectionProps) {
               plant="Grand Prairie 097" // Default plant for order forms
               emailType="transfer"
               orderData={{
-                store: watchedStore,
                 manager_email: managerEmails,
                 email: managerEmails
               }}
