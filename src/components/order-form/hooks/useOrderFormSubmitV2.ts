@@ -9,7 +9,7 @@ import { usePlant } from "@/contexts/PlantContext";
 import { useToast } from "@/hooks/use-toast";
 import { OrderFormValues } from "../order-form-schema";
 import { OrderSummary } from "../types";
-import { submitOrder } from "@/services/unifiedOrderService";
+import { submitOrder } from "@/utils/orderSubmissionUtils";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { sendTransferOrderConfirmation } from "@/services/NotificationController";

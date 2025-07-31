@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
+import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { MTOFormData } from "../mto-form-config";
 
 export const useMTOForm = () => {

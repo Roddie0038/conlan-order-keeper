@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
+import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { sendMTOOrderConfirmation } from "@/services/NotificationController";
 import type { MTOFormData } from "@/types/orders";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";

@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
-import { submitMTOOrder } from "@/services/unifiedOrderService";
+import { submitMTOOrder } from "@/utils/orderSubmissionUtils";
 import { sendMTOOrderConfirmation } from "@/services/NotificationController";
 import type { MTOFormData } from "@/types/orders";
 import { normalizeStoreFormatSync } from "@/utils/supabaseNormalization";
