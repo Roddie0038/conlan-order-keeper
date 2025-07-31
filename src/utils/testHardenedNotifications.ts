@@ -134,14 +134,14 @@ export class HardenedNotificationTester {
       return {
         testId,
         testType: `${emailType}_${scenario}`,
-        success: result.success,
+        success: result.finalStatus === 'success',
         duration,
         attempts: result.totalAttempts,
         finalStatus: result.finalStatus,
-        recipients: result.recipients_count,
+        recipients: result.totalAttempts,
         fallbacksUsed: result.fallbacksUsed,
         errors: result.criticalErrors,
-        resolutionSource: result.resolution_source
+        resolutionSource: 'hardened_service'
       };
 
     } catch (error) {

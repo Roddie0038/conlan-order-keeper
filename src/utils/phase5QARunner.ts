@@ -135,7 +135,7 @@ export class Phase5QARunner {
             { quantity: 1, product_number: 'QA-TEST' }
           );
           
-          if (result.recipients_count === 0) {
+          if (result.totalAttempts === 0) {
             storeCovered = false;
             criticalGaps.push(`${storeConfig.store} - ${emailType} has no recipients`);
           }
@@ -246,7 +246,7 @@ export class Phase5QARunner {
       { quantity: 1, product_number: 'CONCURRENT-TEST' }
     );
     
-    return result.success;
+    return result.finalStatus === 'success';
   }
   
   /**

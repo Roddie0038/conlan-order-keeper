@@ -168,8 +168,20 @@ export async function markMessageAsRead(messageId: string): Promise<{ error: Err
   }
 }
 
-// Legacy alias
-export const markMessagesAsRead = markMessageAsRead;
+// Proper wrapper function for handling arrays of message IDs
+export const markMessagesAsRead = async (messageIds: string[]): Promise<{ error: Error | null }> => {
+  try {
+    for (const messageId of messageIds) {
+      const result = await markMessageAsRead(messageId);
+      if (result.error) {
+        return result;
+      }
+    }
+    return { error: null };
+  } catch (error) {
+    return { error: error instanceof Error ? error : new Error("Unknown error marking messages as read") };
+  }
+};
 
 /**
  * Send email notification (internal helper)

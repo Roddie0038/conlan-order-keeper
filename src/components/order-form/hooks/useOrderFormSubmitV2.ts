@@ -154,10 +154,10 @@ export function useOrderFormSubmit() {
               }
             );
             
-            if (notificationResult.success) {
-              console.log(`✅ PHASE 4 COMPONENT - Hardened notification succeeded: ${notificationResult.totalAttempts} attempts, ${notificationResult.recipients_count} recipients, status: ${notificationResult.finalStatus}`);
+            if (notificationResult.finalStatus === 'success') {
+              console.log(`✅ PHASE 4 COMPONENT - Hardened notification succeeded: ${notificationResult.totalAttempts} attempts, status: ${notificationResult.finalStatus}`);
             } else {
-              console.warn("⚠️ PHASE 4 COMPONENT - Hardened notification failed:", notificationResult.message, `Final status: ${notificationResult.finalStatus}`);
+              console.warn("⚠️ PHASE 4 COMPONENT - Hardened notification failed, status:", notificationResult.finalStatus);
             }
           } catch (emailError) {
             console.error("❌ PHASE 4 COMPONENT - Error sending hardened notification:", emailError);
