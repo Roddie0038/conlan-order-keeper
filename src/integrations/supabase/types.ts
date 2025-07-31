@@ -1954,6 +1954,13 @@ export type Database = {
             referencedRelation: "ot_platform_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ot_auth_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users_searchable"
+            referencedColumns: ["id"]
+          },
         ]
       }
       ot_password_resets: {
@@ -1993,6 +2000,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "ot_platform_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ot_password_resets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users_searchable"
             referencedColumns: ["id"]
           },
         ]
@@ -2121,6 +2135,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "ot_platform_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ot_user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users_searchable"
             referencedColumns: ["id"]
           },
         ]
@@ -2903,6 +2924,13 @@ export type Database = {
             referencedRelation: "ot_platform_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users_searchable"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_preferences: {
@@ -3516,6 +3544,69 @@ export type Database = {
       }
     }
     Views: {
+      ot_platform_users_searchable: {
+        Row: {
+          auth_user_id: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          is_super_admin: boolean | null
+          last_login: string | null
+          must_change_password: boolean | null
+          plant: string | null
+          role: Database["public"]["Enums"]["ot_user_role"] | null
+          role_text: string | null
+          status: Database["public"]["Enums"]["ot_user_status"] | null
+          store: string | null
+          temporary_password_expires_at: string | null
+          temporary_password_set_at: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_super_admin?: boolean | null
+          last_login?: string | null
+          must_change_password?: boolean | null
+          plant?: string | null
+          role?: Database["public"]["Enums"]["ot_user_role"] | null
+          role_text?: never
+          status?: Database["public"]["Enums"]["ot_user_status"] | null
+          store?: string | null
+          temporary_password_expires_at?: string | null
+          temporary_password_set_at?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_super_admin?: boolean | null
+          last_login?: string | null
+          must_change_password?: boolean | null
+          plant?: string | null
+          role?: Database["public"]["Enums"]["ot_user_role"] | null
+          role_text?: never
+          status?: Database["public"]["Enums"]["ot_user_status"] | null
+          store?: string | null
+          temporary_password_expires_at?: string | null
+          temporary_password_set_at?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       plant_normalization_verification: {
         Row: {
           non_normalized_plants: number | null

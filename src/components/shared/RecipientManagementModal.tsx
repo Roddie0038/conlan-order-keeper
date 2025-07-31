@@ -220,10 +220,9 @@ export const RecipientManagementModal: React.FC<RecipientManagementModalProps> =
     try {
       const searchTerm = query.trim();
       const { data: users, error } = await supabase
-        .from('ot_platform_users')
+        .from('ot_platform_users_searchable')
         .select('email, full_name, role, store, plant')
-        .eq('status', 'active')
-        .or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,role::text.ilike.%${searchTerm}%,store.ilike.%${searchTerm}%,plant.ilike.%${searchTerm}%`)
+        .or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,role_text.ilike.%${searchTerm}%,store.ilike.%${searchTerm}%,plant.ilike.%${searchTerm}%`)
         .limit(10);
 
       console.log('🔍 SEARCH QUERY RESULT:', { 
