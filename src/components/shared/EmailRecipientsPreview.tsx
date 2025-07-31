@@ -13,20 +13,16 @@ import {
   CheckCircle, 
   Plus, 
   X, 
-  UserPlus, 
   AlertTriangle,
-  Shield,
-  Trash2
+  Shield
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useEmailRecipientsPreview } from '@/hooks/useEmailRecipientsPreview';
+import { RecipientManagementModal } from './RecipientManagementModal';
 import type { EmailType, OrderDataInput } from '@/services/emailRecipientResolver';
 
 interface EmailRecipientsPreviewProps {
@@ -46,16 +42,6 @@ interface EmailRecipientsPreviewProps {
   onRecipientsChange?: (count: number) => void;
 }
 
-const ROLE_OPTIONS = [
-  { value: 'store_manager', label: 'Store Manager' },
-  { value: 'warehouse_manager', label: 'Warehouse Manager' },
-  { value: 'plant_manager', label: 'Plant Manager' },
-  { value: 'operations_manager', label: 'Operations Manager' },
-  { value: 'service_manager', label: 'Service Manager' },
-  { value: 'admin', label: 'Administrator' },
-  { value: 'custom', label: 'Custom Role' }
-];
-
 export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
   store,
   plant,
@@ -70,12 +56,8 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
 }) => {
   const { toast } = useToast();
   
-  // Form state for adding recipients
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
-  const [newName, setNewName] = useState('');
-  const [newRole, setNewRole] = useState('');
-  const [addLoading, setAddLoading] = useState(false);
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
 
   // Build order data for the hook
   const orderDataInput: OrderDataInput = {
@@ -125,65 +107,27 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
     }
   }, [loading, hasRecipients, store, toast]);
 
-  const handleAddRecipient = async () => {
-    if (!newEmail || !newName || !newRole) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all fields to add a recipient.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validate email
-    const validation = canAddRecipient(newEmail);
-    if (!validation.valid) {
-      toast({
-        title: "Invalid Email",
-        description: validation.error,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setAddLoading(true);
-
+  /**
+   * Handle adding recipient through modal
+   */
+  const handleModalAddRecipient = async (email: string, name: string, role: string) => {
     try {
       const result = await addRecipient(
-        newEmail.trim(),
-        newName.trim(),
-        newRole,
+        email.trim(),
+        name.trim(),
+        role,
         currentUserEmail,
         currentUserName
       );
 
-      if (result.success) {
-        toast({
-          title: "✅ Recipient Added",
-          description: `${newName} (${newEmail}) has been added to the recipient list.`,
-          variant: "default"
-        });
+      return result;
 
-        // Reset form
-        setNewEmail('');
-        setNewName('');
-        setNewRole('');
-        setShowAddForm(false);
-      } else {
-        toast({
-          title: "Failed to Add Recipient",
-          description: result.error || "An unexpected error occurred.",
-          variant: "destructive"
-        });
-      }
     } catch (error) {
-      toast({
-        title: "Error Adding Recipient",
-        description: "Please try again or contact support if the problem persists.",
-        variant: "destructive"
-      });
-    } finally {
-      setAddLoading(false);
+      console.error('Error in modal add recipient:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "Failed to add recipient" 
+      };
     }
   };
 
@@ -365,7 +309,7 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowAddForm(!showAddForm)}
+                onClick={() => setShowModal(true)}
                 className="text-xs"
               >
                 <Plus className="h-3 w-3 mr-1" />
@@ -411,111 +355,32 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
           </div>
         )}
 
-        {/* Add Recipient Form */}
-        {showAddForm && (
-          <div className="p-4 bg-white rounded-lg border border-gray-200 space-y-3">
-            <div className="flex items-center space-x-2 mb-3">
-              <UserPlus className="h-4 w-4 text-blue-600" />
-              <h5 className="text-sm font-medium text-gray-900">Add New Recipient</h5>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <Label htmlFor="recipient-email" className="text-xs font-medium">
-                  Email Address *
-                </Label>
-                <Input
-                  id="recipient-email"
-                  type="email"
-                  placeholder="user@conlantire.com"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  className="text-sm"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Only @conlantire.com and @aol.com emails are allowed
-                </p>
-              </div>
-              
-              <div>
-                <Label htmlFor="recipient-name" className="text-xs font-medium">
-                  Full Name *
-                </Label>
-                <Input
-                  id="recipient-name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="text-sm"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="recipient-role" className="text-xs font-medium">
-                  Role *
-                </Label>
-                <Select value={newRole} onValueChange={setNewRole}>
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ROLE_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-end space-x-2 pt-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowAddForm(false);
-                  setNewEmail('');
-                  setNewName('');
-                  setNewRole('');
-                }}
-                disabled={addLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleAddRecipient}
-                disabled={addLoading || !newEmail || !newName || !newRole}
-              >
-                {addLoading ? (
-                  <>
-                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-3 w-3 mr-1" />
-                    Add Recipient
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Add Recipient Button (when form is closed) */}
-        {!showAddForm && (
+        {/* Add Recipient Button (when no recipients) */}
+        {!loading && !error && !hasRecipients && (
           <div className="flex justify-center">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowAddForm(true)}
+              onClick={() => setShowModal(true)}
               className="text-sm"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Recipient
+            </Button>
+          </div>
+        )}
+
+        {/* Add Recipient Button (when recipients exist) */}
+        {!loading && !error && hasRecipients && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowModal(true)}
+              className="text-sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Another Recipient
             </Button>
           </div>
         )}
@@ -536,6 +401,16 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
           </div>
         )}
       </CardContent>
+
+      {/* Recipient Management Modal */}
+      <RecipientManagementModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        onAddRecipient={handleModalAddRecipient}
+        currentStore={store}
+        currentPlant={plant}
+        existingEmails={recipients.map(r => r.email.toLowerCase())}
+      />
     </Card>
   );
 };
