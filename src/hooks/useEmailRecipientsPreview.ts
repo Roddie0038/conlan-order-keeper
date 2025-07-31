@@ -141,8 +141,10 @@ export const useEmailRecipientsPreview = (
 
   // Initial fetch and dependency updates
   useEffect(() => {
-    loadRecipientsWithOverrides();
-  }, [loadRecipientsWithOverrides]);
+    if (enabled && orderData?.store && emailType) {
+      loadRecipientsWithOverrides();
+    }
+  }, [enabled, orderData?.store, emailType, templateId, orderId]);
 
   // Polling interval
   useEffect(() => {
