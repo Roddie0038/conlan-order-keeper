@@ -13,6 +13,7 @@ import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import { useMTOFormDebug } from "./hooks/useMTOFormDebug";
 import { logger } from '@/utils/logger';
+import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 
 export const MTOOrderForm = () => {
   const { user } = useAuth();
@@ -180,6 +181,21 @@ export const MTOOrderForm = () => {
             </div>
           </div>
         </div>
+
+        {/* Email Recipients Preview */}
+        {formData.store && formData.destinationPlant && (
+          <div className="px-6 pb-4">
+            <EmailRecipientsPreview
+              store={formData.store}
+              plant={formData.destinationPlant}
+              emailType="mto"
+              orderData={{
+                manager_email: formData.managerEmail
+              }}
+              className="w-full"
+            />
+          </div>
+        )}
 
         <div className="px-6 pb-6">
           <Button 

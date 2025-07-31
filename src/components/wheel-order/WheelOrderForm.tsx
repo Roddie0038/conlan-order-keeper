@@ -10,6 +10,7 @@ import { useCustomFormPersistence } from "@/hooks/useCustomFormPersistence";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { useAuth } from "@/contexts/AuthContext";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
+import { WheelEmailPreview } from "./components/EmailPreview";
 
 export function WheelOrderForm() {
   const { user } = useAuth();
@@ -117,6 +118,17 @@ export function WheelOrderForm() {
               user={hookUser}
               plantError={errors.destinationPlant}
             />
+
+            {/* Email Recipients Preview */}
+            {formData.storeName && formData.destinationPlant && (
+              <div className="mt-6">
+                <WheelEmailPreview
+                  formData={formData}
+                  managerEmail={managerEmail}
+                  className="w-full"
+                />
+              </div>
+            )}
           </CardContent>
           
           <FormFooter isSubmitting={isSubmitting} />

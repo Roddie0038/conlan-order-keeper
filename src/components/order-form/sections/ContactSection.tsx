@@ -21,6 +21,7 @@ import { CalendarIcon, User, Building, Calendar as CalendarIcon2, Mail, Lock } f
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { getCurrentDateTime } from "@/utils/dateTime";
+import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -189,6 +190,22 @@ export function ContactSection({ form }: ContactSectionProps) {
             </FormItem>
           )}
         />
+
+        {/* Email Recipients Preview */}
+        {watchedStore && (
+          <div className="md:col-span-2 mt-4">
+            <EmailRecipientsPreview
+              store={watchedStore}
+              plant="Grand Prairie 097" // Default plant for order forms
+              emailType="transfer"
+              orderData={{
+                manager_email: managerEmails,
+                email: managerEmails
+              }}
+              className="w-full"
+            />
+          </div>
+        )}
       </div>
     </>
   );
