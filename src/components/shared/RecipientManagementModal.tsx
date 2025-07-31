@@ -215,17 +215,26 @@ export const RecipientManagementModal: React.FC<RecipientManagementModalProps> =
     }
 
     setIsSearching(true);
+    console.log('🔍 USER SEARCH DEBUG:', { query, trimmed: query.trim(), length: query.length });
 
     try {
+      const searchTerm = query.trim();
       const { data: users, error } = await supabase
         .from('ot_platform_users')
         .select('email, full_name, role, store, plant')
         .eq('status', 'active')
-        .or(`email.ilike.%${query}%,full_name.ilike.%${query}%`)
+        .or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,role.ilike.%${searchTerm}%,store.ilike.%${searchTerm}%`)
         .limit(10);
 
+      console.log('🔍 SEARCH QUERY RESULT:', { 
+        searchTerm, 
+        usersFound: users?.length || 0, 
+        users: users?.map(u => ({ email: u.email, name: u.full_name, role: u.role })),
+        error 
+      });
+
       if (error) {
-        console.error('Error searching users:', error);
+        console.error('❌ Error searching users:', error);
         toast({
           title: "Search Error",
           description: "Failed to search platform users. Please try again.",
@@ -239,10 +248,17 @@ export const RecipientManagementModal: React.FC<RecipientManagementModalProps> =
         !existingEmails.includes(user.email.toLowerCase())
       );
 
+      console.log('🔍 FILTERED SEARCH RESULTS:', { 
+        beforeFilter: users?.length || 0,
+        afterFilter: filteredUsers.length,
+        existingEmails,
+        filteredUsers: filteredUsers.map(u => ({ email: u.email, name: u.full_name }))
+      });
+
       setSearchResults(filteredUsers);
 
     } catch (error) {
-      console.error('Error in user search:', error);
+      console.error('❌ Error in user search:', error);
       setSearchResults([]);
     } finally {
       setIsSearching(false);

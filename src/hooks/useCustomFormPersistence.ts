@@ -34,10 +34,19 @@ export function useCustomFormPersistence<T extends Record<string, any>>(
   useEffect(() => {
     if (!enabled || hasRestoredRef.current) return;
 
+    console.log('💾 PERSISTENCE DEBUG - Loading saved data:', { 
+      enabled, 
+      storageKey, 
+      hasRestored: hasRestoredRef.current 
+    });
+
     try {
       const savedData = localStorage.getItem(storageKey);
+      console.log('💾 Raw saved data from localStorage:', { storageKey, savedData });
+      
       if (savedData) {
         const parsedData = JSON.parse(savedData);
+        console.log('💾 Parsed saved data:', parsedData);
         
         // Only restore if there's meaningful data
         const hasData = Object.entries(parsedData.data || {}).some(([key, value]) => 
@@ -48,8 +57,18 @@ export function useCustomFormPersistence<T extends Record<string, any>>(
           value !== 0
         );
 
+        console.log('💾 Data validation result:', { 
+          hasData, 
+          excludeFields, 
+          dataKeys: Object.keys(parsedData.data || {}),
+          validEntries: Object.entries(parsedData.data || {}).filter(([key, value]) => 
+            !excludeFields.includes(key) && value && value !== '' && value !== false && value !== 0
+          )
+        });
+
         if (hasData && parsedData.data) {
           setIsRestoring(true);
+          console.log('✅ RESTORING FORM DATA:', parsedData.data);
           
           // Update form data with saved data
           setFormData(parsedData.data);
@@ -65,10 +84,14 @@ export function useCustomFormPersistence<T extends Record<string, any>>(
           onRestore?.();
           
           setTimeout(() => setIsRestoring(false), 500);
+        } else {
+          console.log('⚠️ No meaningful data found to restore');
         }
+      } else {
+        console.log('💾 No saved data found in localStorage');
       }
     } catch (error) {
-      console.error('Failed to restore form data:', error);
+      console.error('❌ Failed to restore form data:', error);
       localStorage.removeItem(storageKey);
     }
     
@@ -88,6 +111,19 @@ export function useCustomFormPersistence<T extends Record<string, any>>(
       value !== 0
     );
 
+    console.log('💾 SAVE DEBUG:', { 
+      enabled, 
+      isRestoring, 
+      hasRestored: hasRestoredRef.current,
+      hasData,
+      storageKey,
+      excludeFields,
+      formDataKeys: Object.keys(debouncedValues),
+      validEntries: Object.entries(debouncedValues).filter(([key, value]) => 
+        !excludeFields.includes(key) && value && value !== '' && value !== false && value !== 0
+      )
+    });
+
     if (hasData) {
       try {
         const dataToSave = {
@@ -96,10 +132,13 @@ export function useCustomFormPersistence<T extends Record<string, any>>(
         };
         
         localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+        console.log('✅ SAVED FORM DATA:', { storageKey, dataToSave });
         setLastSaved(new Date());
       } catch (error) {
-        console.error('Failed to save form data:', error);
+        console.error('❌ Failed to save form data:', error);
       }
+    } else {
+      console.log('⚠️ No meaningful data to save');
     }
   }, [debouncedValues, enabled, isRestoring, storageKey, excludeFields]);
 
