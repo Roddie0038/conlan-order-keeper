@@ -3,31 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-
-export interface OrderRecord {
-  id: number; // Updated to explicitly be a number (BIGINT from database)
-  timestamp: string;
-  name: string;
-  store: string;
-  product_number: string;
-  description: string;
-  quantity: number;
-  schedule_arrival: string;
-  notes: string;
-  cross_dock_type: string;
-  cross_dock_destination: string;
-  cross_dock_receiver_number: string;
-  cross_dock_eta_date: string;
-  invoice_number: string;
-  email: string;
-  destination_manager_email: string;
-  order_type: string;
-  completed: boolean;
-  completed_at?: string; // Added completed_at field
-  status?: string;
-  out_of_stock?: boolean;
-  plant?: string;
-}
+import { OrderRecord } from "@/types/orders";
 
 interface PaginationState {
   page: number;
@@ -103,7 +79,7 @@ export function useFetchOrders(initialPageSize = 10) {
       }
       
       // Update state with the fetched data and pagination info
-      setOrders(data as OrderRecord[] || []);
+      setOrders((data as OrderRecord[]) || []);
       setPagination({
         page,
         pageSize,

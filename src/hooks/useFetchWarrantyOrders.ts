@@ -3,21 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-
-export interface WarrantyOrderRecord {
-  id: string;
-  created_at: string;
-  name: string;
-  store: string;
-  dot_number: string;
-  tire_type: string;
-  tire_size: string;
-  condition: string;
-  notes: string;
-  status: string;
-  completed_at?: string; // Added completed_at field
-  plant: string;
-}
+import { WarrantyOrderRecord } from "@/types/orders";
 
 export function useFetchWarrantyOrders() {
   const [orders, setOrders] = useState<WarrantyOrderRecord[]>([]);
@@ -43,7 +29,7 @@ export function useFetchWarrantyOrders() {
         throw error;
       }
       
-      setOrders(data as WarrantyOrderRecord[] || []);
+      setOrders((data as unknown as WarrantyOrderRecord[]) || []);
     } catch (err) {
       console.error("Error fetching warranty orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));

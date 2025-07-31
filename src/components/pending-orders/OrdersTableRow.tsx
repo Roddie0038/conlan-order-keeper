@@ -1,6 +1,6 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
-import { OrderRecord } from "@/hooks/useFetchOrders";
+import { OrderRecord } from "@/types/orders";
 import { StatusBadge } from "@/components/orders/StatusBadge";
 
 interface OrdersTableRowProps {

@@ -1,9 +1,5 @@
 
-import { OrderRecord } from "@/hooks/useFetchOrders";
-import { MTOOrderRecord } from "@/hooks/useFetchMTOOrders";
-import { WheelOrderRecord } from "@/hooks/useFetchWheelOrders";
-import { WarrantyOrderRecord } from "@/hooks/useFetchWarrantyOrders";
-import { CombinedOrder } from "../types";
+import { OrderRecord, MTOOrderRecord, WheelOrderRecord, WarrantyOrderRecord, CombinedOrder } from "@/types/orders";
 
 export const combineOrders = (
   transferOrders: OrderRecord[],

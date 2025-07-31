@@ -3,7 +3,7 @@ import { Table, TableBody } from "@/components/ui/table";
 import { OrdersTableHeader } from "./OrdersTableHeader";
 import { OrdersTableRow } from "./OrdersTableRow";
 import { OrdersEmptyState } from "./OrdersEmptyState";
-import { OrderRecord } from "@/hooks/useFetchOrders";
+import { OrderRecord } from "@/types/orders";
 import { 
   Pagination, 
   PaginationContent, 

@@ -3,24 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-
-export interface MTOOrderRecord {
-  id: string;
-  timestamp: string;
-  name: string;
-  store: string;
-  product_number: string;
-  casing_grade: string;
-  tire_size: string;
-  tread: string;
-  quantity: number;
-  projected_delivery: string;
-  notes: string;
-  status: string;
-  completed: boolean;
-  completed_at?: string; // Added completed_at field
-  order_type: string;
-}
+import { MTOOrderRecord } from "@/types/orders";
 
 export function useFetchMTOOrders() {
   const [orders, setOrders] = useState<MTOOrderRecord[]>([]);
@@ -46,7 +29,7 @@ export function useFetchMTOOrders() {
         throw error;
       }
       
-      setOrders(data as MTOOrderRecord[] || []);
+      setOrders((data as MTOOrderRecord[]) || []);
     } catch (err) {
       console.error("Error fetching MTO orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));

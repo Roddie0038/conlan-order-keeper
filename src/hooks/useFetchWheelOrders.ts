@@ -3,24 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-
-export interface WheelOrderRecord {
-  id: string;
-  timestamp: string;
-  name: string;
-  store: string;
-  productnumber: string;
-  wheeltype: string;
-  wheelsize: string;
-  desiredcolor: string;
-  quantity: number;
-  schedulearrival: string;
-  notes: string;
-  status: string;
-  completed: boolean;
-  completed_at?: string; // Added completed_at field
-  ordertype: string;
-}
+import { WheelOrderRecord } from "@/types/orders";
 
 export function useFetchWheelOrders() {
   const [orders, setOrders] = useState<WheelOrderRecord[]>([]);
@@ -46,7 +29,7 @@ export function useFetchWheelOrders() {
         throw error;
       }
       
-      setOrders(data as WheelOrderRecord[] || []);
+      setOrders((data as WheelOrderRecord[]) || []);
     } catch (err) {
       console.error("Error fetching wheel orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));

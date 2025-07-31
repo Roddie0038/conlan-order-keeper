@@ -1,5 +1,6 @@
 
-import { useFetchOrders, OrderRecord } from "@/hooks/useFetchOrders";
+import { useFetchOrders } from "@/hooks/useFetchOrders";
+import { OrderRecord } from "@/types/orders";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";

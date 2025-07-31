@@ -1,6 +1,6 @@
 
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { OrderRecord } from "@/hooks/useFetchOrders";
+import { OrderRecord } from "@/types/orders";
 
 interface OrdersTableHeaderProps {
   sortField: keyof OrderRecord;
