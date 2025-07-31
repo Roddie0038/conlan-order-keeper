@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { WheelOrderRecord } from "@/types/orders";
+import type { WheelOrderRecord } from "@/types/supabase-extensions";
 
 export function useFetchWheelOrders() {
   const [orders, setOrders] = useState<WheelOrderRecord[]>([]);

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { MTOOrderRecord } from "@/types/orders";
+import type { MTOOrderRecord } from "@/types/supabase-extensions";
 
 export function useFetchMTOOrders() {
   const [orders, setOrders] = useState<MTOOrderRecord[]>([]);

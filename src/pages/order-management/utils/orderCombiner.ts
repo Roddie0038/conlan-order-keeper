@@ -1,5 +1,6 @@
 
-import { OrderRecord, MTOOrderRecord, WheelOrderRecord, WarrantyOrderRecord, CombinedOrder } from "@/types/orders";
+import { CombinedOrder } from "@/types/orders";
+import type { TransferOrderRecord as OrderRecord, MTOOrderRecord, WheelOrderRecord, WarrantyOrderRecord } from "@/types/supabase-extensions";
 
 export const combineOrders = (
   transferOrders: OrderRecord[],
@@ -81,7 +82,7 @@ export const combineOrders = (
       status: order.status || 'open',
       completed: order.status === 'completed',
       orderType: 'WARRANTY',
-      completedAt: order.completed_at,
+      completedAt: order.approval_date, // Use approval_date as completion timestamp
     });
   });
 

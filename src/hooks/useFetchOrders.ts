@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { OrderRecord } from "@/types/orders";
+import type { TransferOrderRecord } from "@/types/supabase-extensions";
 
 interface PaginationState {
   page: number;
@@ -13,7 +14,7 @@ interface PaginationState {
 }
 
 export function useFetchOrders(initialPageSize = 10) {
-  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [orders, setOrders] = useState<TransferOrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [pagination, setPagination] = useState<PaginationState>({
@@ -25,7 +26,7 @@ export function useFetchOrders(initialPageSize = 10) {
   const { user } = useAuth();
   
   // Function to filter orders based on user role and store
-  const shouldShowOrder = (order: OrderRecord) => {
+  const shouldShowOrder = (order: TransferOrderRecord) => {
     // Admin users can see all orders
     if (user?.isAdmin) return true;
     
@@ -79,7 +80,7 @@ export function useFetchOrders(initialPageSize = 10) {
       }
       
       // Update state with the fetched data and pagination info
-      setOrders((data as OrderRecord[]) || []);
+      setOrders((data as TransferOrderRecord[]) || []);
       setPagination({
         page,
         pageSize,

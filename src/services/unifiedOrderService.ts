@@ -10,8 +10,7 @@ import {
   MTOFormData, 
   WheelFormData, 
   OrderRecord, 
-  MTOOrderRecord, 
-  WheelOrderRecord, 
+  MTOOrderRecord,
   WarrantyOrderRecord 
 } from "@/types/orders";
 import { 

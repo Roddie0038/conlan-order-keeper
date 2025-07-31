@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { WarrantyOrderRecord } from "@/types/orders";
+import type { WarrantyOrderRecord } from "@/types/supabase-extensions";
 
 export function useFetchWarrantyOrders() {
   const [orders, setOrders] = useState<WarrantyOrderRecord[]>([]);
