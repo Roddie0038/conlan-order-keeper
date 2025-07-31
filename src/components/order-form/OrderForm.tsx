@@ -22,12 +22,14 @@ import { useOrderFormPersistence } from "@/hooks/useOrderFormPersistence";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import OrderIDService from "@/services/OrderIDService";
+import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 
 export function OrderForm() {
   const { user } = useAuth();
   const { selectedPlant } = usePlant();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSummaries, setOrderSummaries] = useState<any[]>([]);
+  const [recipientCount, setRecipientCount] = useState(0);
 
   const defaultValues = {
     yourName: "",
@@ -200,6 +202,22 @@ export function OrderForm() {
         showCrossDockDestination={showCrossDockDestination}
         onSubmit={handleSubmit(onSubmit)}
       />
+
+      {/* Email Recipients Preview */}
+      {form.watch("store") && form.watch("destinationPlant") && (
+        <div className="mt-6">
+          <EmailRecipientsPreview
+            store={form.watch("store")}
+            plant={form.watch("destinationPlant")}
+            emailType="transfer"
+            orderData={{
+              manager_email: form.watch("managersEmail")
+            }}
+            className="w-full"
+            onRecipientsChange={setRecipientCount}
+          />
+        </div>
+      )}
       
       {orderSummaries.length > 0 && (
         <div className="mt-8">
@@ -214,6 +232,7 @@ export function OrderForm() {
           orderSummaries={orderSummaries}
           setOrderSummaries={setOrderSummaries}
           destinationPlant={form.watch("destinationPlant") || ""}
+          recipientCount={recipientCount}
         />
       
       <OrderFormActions 

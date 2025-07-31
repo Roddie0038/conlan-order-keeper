@@ -11,12 +11,14 @@ interface WheelEmailPreviewProps {
   formData: WheelFormData;
   managerEmail: string;
   className?: string;
+  onRecipientsChange?: (count: number) => void;
 }
 
 export const WheelEmailPreview: React.FC<WheelEmailPreviewProps> = ({
   formData,
   managerEmail,
-  className = ""
+  className = "",
+  onRecipientsChange
 }) => {
   if (!formData.storeName || !formData.destinationPlant) {
     return null;
@@ -32,6 +34,7 @@ export const WheelEmailPreview: React.FC<WheelEmailPreviewProps> = ({
         email: managerEmail
       }}
       className={className}
+      onRecipientsChange={onRecipientsChange}
     />
   );
 };

@@ -10,6 +10,7 @@ interface OrderSubmitButtonProps {
   testMode: boolean;
   isAdmin: boolean;
   onSubmit: () => void;
+  recipientCount?: number;
 }
 
 export function OrderSubmitButton({ 
@@ -17,12 +18,13 @@ export function OrderSubmitButton({
   selectedOrders, 
   testMode, 
   isAdmin, 
-  onSubmit 
+  onSubmit,
+  recipientCount = 1
 }: OrderSubmitButtonProps) {
   return (
     <Button
       onClick={onSubmit}
-      disabled={isSubmitting || selectedOrders.length === 0}
+      disabled={isSubmitting || selectedOrders.length === 0 || recipientCount === 0}
       className="bg-green-600 hover:bg-green-700"
     >
       {isSubmitting ? (
@@ -30,7 +32,7 @@ export function OrderSubmitButton({
       ) : (
         <Check className="h-4 w-4 mr-2" />
       )}
-      Submit {selectedOrders.length} Order{selectedOrders.length !== 1 ? 's' : ''}
+      {recipientCount === 0 ? "Add Recipients to Submit" : `Submit ${selectedOrders.length} Order${selectedOrders.length !== 1 ? 's' : ''}`}
       {isAdmin && !testMode && " (Test Mode)"}
     </Button>
   );

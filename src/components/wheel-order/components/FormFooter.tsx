@@ -5,9 +5,10 @@ import { CardFooter } from "@/components/ui/card";
 
 interface FormFooterProps {
   isSubmitting: boolean;
+  recipientCount?: number;
 }
 
-export function FormFooter({ isSubmitting }: FormFooterProps) {
+export function FormFooter({ isSubmitting, recipientCount = 1 }: FormFooterProps) {
   const navigate = useNavigate();
   
   return (
@@ -22,10 +23,10 @@ export function FormFooter({ isSubmitting }: FormFooterProps) {
       </Button>
       <Button 
         type="submit" 
-        disabled={isSubmitting}
+        disabled={isSubmitting || recipientCount === 0}
         className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-medium transition-all duration-200 hover:shadow-md"
       >
-        {isSubmitting ? "Submitting..." : "Submit Order"}
+        {isSubmitting ? "Submitting..." : recipientCount === 0 ? "Add Recipients to Submit" : "Submit Order"}
       </Button>
     </CardFooter>
   );

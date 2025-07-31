@@ -8,13 +8,15 @@ interface AcknowledgmentSectionProps {
   onCheckboxChange: (checked: boolean) => void;
   loading: boolean;
   onSubmit: () => void;
+  recipientCount?: number;
 }
 
 export function AcknowledgmentSection({ 
   acknowledged, 
   onCheckboxChange, 
   loading, 
-  onSubmit 
+  onSubmit,
+  recipientCount = 1
 }: AcknowledgmentSectionProps) {
   return (
     <>
@@ -33,11 +35,11 @@ export function AcknowledgmentSection({
       {/* Submit Button */}
       <Button 
         onClick={onSubmit}
-        disabled={loading || !acknowledged}
+        disabled={loading || !acknowledged || recipientCount === 0}
         className="w-full"
         size="lg"
       >
-        {loading ? "Submitting..." : "Submit Warranty Claim"}
+        {loading ? "Submitting..." : recipientCount === 0 ? "Add Recipients to Submit" : "Submit Warranty Claim"}
       </Button>
     </>
   );

@@ -32,6 +32,7 @@ export function ContactSection({ form }: ContactSectionProps) {
   const isAdmin = user?.isAdmin || false;
   const [managerEmails, setManagerEmails] = useState<string>("");
   const [isLoadingEmails, setIsLoadingEmails] = useState(false);
+  const [recipientCount, setRecipientCount] = useState(0);
   
   // Function to extract store number from store name
   const extractStoreNumber = (storeName: string): string => {
@@ -192,17 +193,18 @@ export function ContactSection({ form }: ContactSectionProps) {
         />
 
         {/* Email Recipients Preview */}
-        {watchedStore && (
+        {watchedStore && form.watch("destinationPlant") && (
           <div className="md:col-span-2 mt-4">
             <EmailRecipientsPreview
               store={watchedStore}
-              plant="Grand Prairie 097" // Default plant for order forms
+              plant={form.watch("destinationPlant") || ""}
               emailType="transfer"
               orderData={{
                 manager_email: managerEmails,
                 email: managerEmails
               }}
               className="w-full"
+              onRecipientsChange={setRecipientCount}
             />
           </div>
         )}

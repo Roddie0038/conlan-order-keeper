@@ -14,6 +14,7 @@ import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import { useMTOFormDebug } from "./hooks/useMTOFormDebug";
 import { logger } from '@/utils/logger';
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
+import { useState } from "react";
 
 export const MTOOrderForm = () => {
   const { user } = useAuth();
@@ -29,6 +30,8 @@ export const MTOOrderForm = () => {
     errors,
     setErrors
   } = useMTOForm();
+
+  const [recipientCount, setRecipientCount] = useState(0);
 
   // Form persistence (only for non-admin users)
   const { lastSaved, isRestoring, clearPersistedData } = useCustomFormPersistence(
@@ -193,6 +196,7 @@ export const MTOOrderForm = () => {
                 manager_email: formData.managerEmail
               }}
               className="w-full"
+              onRecipientsChange={setRecipientCount}
             />
           </div>
         )}
@@ -201,7 +205,7 @@ export const MTOOrderForm = () => {
           <Button 
             type="submit" 
             className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-md transition-all duration-200 hover:shadow-md hover:scale-[1.01] flex items-center justify-center"
-            disabled={isSubmitting}
+            disabled={isSubmitting || recipientCount === 0}
             onClick={(e) => {
               e.preventDefault();
               logger.info("MTO form submit button clicked", {
@@ -212,7 +216,7 @@ export const MTOOrderForm = () => {
               handleSubmit(e);
             }}
           >
-            {isSubmitting ? "Submitting..." : "Submit MTO Order"}
+            {isSubmitting ? "Submitting..." : recipientCount === 0 ? "Add Recipients to Submit" : "Submit MTO Order"}
           </Button>
         </div>
       </Card>

@@ -6,6 +6,8 @@ import { BasicFormFields } from "./BasicFormFields";
 import { FileUploadFields } from "./FileUploadFields";
 import { AcknowledgmentSection } from "./AcknowledgmentSection";
 import { HelpBanner } from "./HelpBanner";
+import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
+import { useState } from "react";
 
 export default function RetreadWarrantyForm() {
   const {
@@ -19,6 +21,8 @@ export default function RetreadWarrantyForm() {
     handleCheckbox,
     resetForm,
   } = useRetreadWarrantyForm();
+
+  const [recipientCount, setRecipientCount] = useState(0);
 
   const { submitWarranty } = useWarrantySubmission();
 
@@ -55,11 +59,29 @@ export default function RetreadWarrantyForm() {
             }
           }}
         />
+        
+        {/* Email Recipients Preview */}
+        {form.destinationPlant && (
+          <div className="mt-6">
+            <EmailRecipientsPreview
+              store="Warranty Department"
+              plant={form.destinationPlant}
+              emailType="warranty"
+              orderData={{
+                email: "warranty@conlantire.com"
+              }}
+              className="w-full"
+              onRecipientsChange={setRecipientCount}
+            />
+          </div>
+        )}
+        
         <AcknowledgmentSection 
           acknowledged={form.acknowledged}
           onCheckboxChange={handleCheckbox}
           loading={loading}
           onSubmit={handleSubmit}
+          recipientCount={recipientCount}
         />
       </CardContent>
     </Card>

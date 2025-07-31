@@ -9,12 +9,14 @@ interface OrderSubmissionHandlerProps {
   orderSummaries: OrderSummary[];
   setOrderSummaries: React.Dispatch<React.SetStateAction<OrderSummary[]>>;
   destinationPlant: string;
+  recipientCount?: number;
 }
 
 export function OrderSubmissionHandler({ 
   orderSummaries, 
   setOrderSummaries,
-  destinationPlant 
+  destinationPlant,
+  recipientCount = 1
 }: OrderSubmissionHandlerProps) {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin || false;
@@ -60,6 +62,7 @@ export function OrderSubmissionHandler({
             testMode={testMode}
             isAdmin={isAdmin}
             onSubmit={submitOrders}
+            recipientCount={recipientCount}
           />
         </div>
       </div>

@@ -11,6 +11,7 @@ import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { useAuth } from "@/contexts/AuthContext";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import { WheelEmailPreview } from "./components/EmailPreview";
+import { useState } from "react";
 
 export function WheelOrderForm() {
   const { user } = useAuth();
@@ -25,6 +26,8 @@ export function WheelOrderForm() {
     handleSubmit,
     setFormData
   } = useWheelOrderForm();
+
+  const [recipientCount, setRecipientCount] = useState(0);
 
   // Form persistence (only for non-admin users)
   const { lastSaved, isRestoring, clearPersistedData } = useCustomFormPersistence(
@@ -126,12 +129,13 @@ export function WheelOrderForm() {
                   formData={formData}
                   managerEmail={managerEmail}
                   className="w-full"
+                  onRecipientsChange={setRecipientCount}
                 />
               </div>
             )}
           </CardContent>
           
-          <FormFooter isSubmitting={isSubmitting} />
+          <FormFooter isSubmitting={isSubmitting} recipientCount={recipientCount} />
         </form>
       </Card>
     </div>
