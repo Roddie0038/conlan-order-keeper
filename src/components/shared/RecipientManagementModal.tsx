@@ -235,9 +235,17 @@ export const RecipientManagementModal: React.FC<RecipientManagementModalProps> =
 
       if (error) {
         console.error('❌ Error searching users:', error);
+        console.error('❌ Search failed details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          searchTerm,
+          queryAttempted: `email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,role::text.ilike.%${searchTerm}%,store.ilike.%${searchTerm}%,plant.ilike.%${searchTerm}%`
+        });
         toast({
           title: "Search Error",
-          description: "Failed to search platform users. Please try again.",
+          description: `Failed to search platform users: ${error.message}. Please check console for details.`,
           variant: "destructive"
         });
         return;
