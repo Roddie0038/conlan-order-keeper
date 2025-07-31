@@ -90,12 +90,13 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       // ✅ PHASE 3: Send notification using new unified resolution system
       if (submissionResult.data?.id) {
         try {
-          console.log("📧 PHASE 3 MTO FORM - Sending notification via unified system");
+          console.log("🛡️ PHASE 4 MTO FORM - Sending notification via hardened service");
           
-          const { sendMTONotification } = await import("@/services/unifiedNotificationService");
+          const { hardenedNotificationService } = await import("@/services/notificationHardeningService");
           
-          const notificationResult = await sendMTONotification(
+          const notificationResult = await hardenedNotificationService.sendHardenedNotification(
             standardizedMTOData,
+            'mto',
             submissionResult.data.id.toString(),
             {
               product_number: standardizedMTOData.productNumber,
@@ -105,12 +106,12 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
           );
           
           if (notificationResult.success) {
-            console.log(`✅ PHASE 3 MTO FORM - Notification sent via ${notificationResult.resolution_source} to ${notificationResult.recipients_count} recipients`);
+            console.log(`✅ PHASE 4 MTO FORM - Hardened notification succeeded: ${notificationResult.totalAttempts} attempts, ${notificationResult.recipients_count} recipients, status: ${notificationResult.finalStatus}`);
           } else {
-            console.warn("⚠️ PHASE 3 MTO FORM - Notification failed:", notificationResult.message);
+            console.warn("⚠️ PHASE 4 MTO FORM - Hardened notification failed:", notificationResult.message, `Final status: ${notificationResult.finalStatus}`);
           }
         } catch (emailError) {
-          console.error("❌ PHASE 3 MTO FORM - Error sending notification:", emailError);
+          console.error("❌ PHASE 4 MTO FORM - Error sending hardened notification:", emailError);
         }
       }
 

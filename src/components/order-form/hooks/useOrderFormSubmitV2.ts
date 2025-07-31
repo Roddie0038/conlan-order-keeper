@@ -125,13 +125,14 @@ export function useOrderFormSubmit() {
           try {
             console.log("📧 PHASE 3 COMPONENT - Sending notification via unified system");
             
-            // Import here to avoid circular dependency
-            const { sendTransferNotification, sendMTONotification } = await import("@/services/unifiedNotificationService");
+            // Phase 4: Import hardened notification service
+            const { hardenedNotificationService } = await import("@/services/notificationHardeningService");
             
-            const notificationService = orderType === 'MTO' ? sendMTONotification : sendTransferNotification;
+            const emailType = orderType === 'MTO' ? 'mto' : 'transfer';
             
-            const notificationResult = await notificationService(
+            const notificationResult = await hardenedNotificationService.sendHardenedNotification(
               standardizedOrderData,
+              emailType,
               submissionResult.data.id.toString(),
               {
                 product_number: standardizedOrderData.productNumber,
@@ -141,16 +142,16 @@ export function useOrderFormSubmit() {
             );
             
             if (notificationResult.success) {
-              console.log(`✅ PHASE 3 COMPONENT - Notification sent via ${notificationResult.resolution_source} to ${notificationResult.recipients_count} recipients`);
+              console.log(`✅ PHASE 4 COMPONENT - Hardened notification succeeded: ${notificationResult.totalAttempts} attempts, ${notificationResult.recipients_count} recipients, status: ${notificationResult.finalStatus}`);
             } else {
-              console.warn("⚠️ PHASE 3 COMPONENT - Notification failed:", notificationResult.message);
+              console.warn("⚠️ PHASE 4 COMPONENT - Hardened notification failed:", notificationResult.message, `Final status: ${notificationResult.finalStatus}`);
             }
           } catch (emailError) {
-            console.error("❌ PHASE 3 COMPONENT - Error sending notification:", emailError);
+            console.error("❌ PHASE 4 COMPONENT - Error sending hardened notification:", emailError);
             // Don't block order submission for email failures
           }
         } else {
-          console.warn("⚠️ PHASE 3 COMPONENT - Skipping notification - missing order ID");
+          console.warn("⚠️ PHASE 4 COMPONENT - Skipping hardened notification - missing order ID");
         }
       }
 

@@ -100,17 +100,18 @@ export function useWheelFormSubmission(
       // ✅ PHASE 3: Send notification using new unified resolution system
       if (submissionResult.data?.id) {
         try {
-          console.log("📧 PHASE 3 WHEEL FORM - Sending notification via unified system");
+          console.log("🛡️ PHASE 4 WHEEL FORM - Sending notification via hardened service");
           
-          const { sendWheelNotification } = await import("@/services/unifiedNotificationService");
+          const { hardenedNotificationService } = await import("@/services/notificationHardeningService");
           
-          const notificationResult = await sendWheelNotification(
+          const notificationResult = await hardenedNotificationService.sendHardenedNotification(
             {
               store: formData.storeName,
               plant: formData.destinationPlant,
               email: managerEmail,
               name: formData.yourName
             },
+            'wheel',
             submissionResult.data.id.toString(),
             {
               product_number: `${formData.wheelMaterial} ${formData.wheelSize}`,
@@ -120,12 +121,12 @@ export function useWheelFormSubmission(
           );
           
           if (notificationResult.success) {
-            console.log(`✅ PHASE 3 WHEEL FORM - Notification sent via ${notificationResult.resolution_source} to ${notificationResult.recipients_count} recipients`);
+            console.log(`✅ PHASE 4 WHEEL FORM - Hardened notification succeeded: ${notificationResult.totalAttempts} attempts, ${notificationResult.recipients_count} recipients, status: ${notificationResult.finalStatus}`);
           } else {
-            console.warn("⚠️ PHASE 3 WHEEL FORM - Notification failed:", notificationResult.message);
+            console.warn("⚠️ PHASE 4 WHEEL FORM - Hardened notification failed:", notificationResult.message, `Final status: ${notificationResult.finalStatus}`);
           }
         } catch (emailError) {
-          console.error("❌ PHASE 3 WHEEL FORM - Error sending notification:", emailError);
+          console.error("❌ PHASE 4 WHEEL FORM - Error sending hardened notification:", emailError);
         }
       }
       
