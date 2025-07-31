@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { uploadFileToSupabase, uploadMultipleFiles } from "@/services/storageService";
 import { submitRetreadWarranty } from "@/services/warrantyService";
 import { validateWarrantyForm } from "@/utils/warrantyValidation";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
+import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { RetreadWarrantyFormData } from "./useRetreadWarrantyForm";
 import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
 

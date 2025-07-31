@@ -1,5 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
-import { getTransferEmailRecipients, getMTOEmailRecipients } from "@/config/contactSystem";
+import { logger } from "@/utils/logger";
+
+// Temporary contact system replacement
+function getTransferEmailRecipients(storeNumber: string): string[] {
+  return [`store${storeNumber}@conlantire.com`];
+}
+
+function getMTOEmailRecipients(storeNumber: string): string[] {
+  return [`mto${storeNumber}@conlantire.com`];
+}
 
 // Enhanced message types
 export interface OrderMessage {

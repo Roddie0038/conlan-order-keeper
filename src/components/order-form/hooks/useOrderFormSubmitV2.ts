@@ -106,7 +106,20 @@ export function useOrderFormSubmit() {
         });
 
         // ✅ PHASE 2: Submit using unified service with proper normalization
-        const submissionResult = await submitOrder(standardizedOrderData, orderType, user);
+        let orderTypeForSubmission: 'transfer' | 'mto' | 'wheel' | 'warranty';
+        switch(orderType) {
+          case "WHEEL_POWDER_COATING":
+            orderTypeForSubmission = "wheel";
+            break;
+          case "MTO":
+            orderTypeForSubmission = "mto";
+            break;
+          case "TRANSFER":
+          default:
+            orderTypeForSubmission = "transfer";
+            break;
+        }
+        const submissionResult = await submitOrder(standardizedOrderData, orderTypeForSubmission);
         
         if (!submissionResult.success || submissionResult.error) {
           throw new Error(`Failed to save order: ${submissionResult.error?.message}`);

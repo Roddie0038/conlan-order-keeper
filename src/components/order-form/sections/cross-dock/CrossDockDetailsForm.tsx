@@ -4,7 +4,7 @@ import { OrderFormValues } from "../../order-form-schema";
 import { Card } from "@/components/ui/card";
 import { Truck } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
+import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { StoreFields } from "./components/StoreFields";
 import { OrderInfoFields } from "./components/OrderInfoFields";
 import { ConfirmationCheckbox } from "./components/ConfirmationCheckbox";

@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { OrderFormValues } from "../components/order-form/order-form-schema";
 import type { OrderSummary } from "./useOrderSubmission";
-import { submitOrder } from "@/services/unifiedOrderService";
+import { submitOrder } from "@/utils/orderSubmissionUtils";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { sendTransferOrderConfirmation } from "@/services/NotificationController";
 import type { OrderFormData } from "@/types/orders";
@@ -83,7 +83,7 @@ export function useOrderFormSubmit() {
         });
 
         // ✅ PHASE 2: Submit using unified service with proper normalization
-        const submissionResult = await submitOrder(standardizedOrderData, orderType, user);
+        const submissionResult = await submitOrder(standardizedOrderData, orderType === "WHEEL_POWDER_COATING" ? "wheel" : orderType === "MTO" ? "mto" : "transfer");
         
         if (!submissionResult.success || submissionResult.error) {
           throw new Error(`Failed to save order: ${submissionResult.error?.message}`);

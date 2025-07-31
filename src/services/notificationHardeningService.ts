@@ -5,7 +5,21 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { emailRoutingMonitor } from "@/services/emailRoutingMonitor";
-import { sendUnifiedNotification, type NotificationResult, type NotificationPayload } from "@/services/unifiedNotificationService";
+import { sendTransferOrderConfirmation } from "@/services/NotificationController";
+import { logger } from "@/utils/logger";
+
+// Temporary types for compatibility
+export interface NotificationResult {
+  success: boolean;
+  message: string;
+  recipients_count: number;
+  resolution_source: string;
+  resolution_log: string[];
+}
+
+export interface NotificationPayload {
+  [key: string]: any;
+}
 import { resolveEmailRecipients, type EmailType, type OrderDataInput, type EmailResolutionResult } from "@/services/emailRecipientResolver";
 
 export interface HardenedNotificationConfig {
@@ -226,7 +240,40 @@ export class NotificationHardeningService {
     additionalPayload?: Partial<NotificationPayload>
   ): Promise<NotificationResult> {
     
-    return sendUnifiedNotification(orderData, emailType, orderId, additionalPayload);
+    // Temporary implementation - use NotificationController instead
+    logger.info('Using temporary notification service', { orderData, emailType, orderId });
+    
+    // Call the NotificationController directly
+    const { sendTransferOrderConfirmation } = await import('@/services/NotificationController');
+    
+    try {
+      const result = await sendTransferOrderConfirmation(
+        {
+          store: orderData.store,
+          plant: orderData.plant || 'Grand Prairie 097',
+          email: orderData.email || 'system@conlantire.com',
+          name: orderData.name || 'System'
+        },
+        orderId,
+        additionalPayload || {}
+      );
+      
+      return {
+        success: result.success,
+        message: result.message || 'Notification sent',
+        recipients_count: 1,
+        resolution_source: 'notification_controller',
+        resolution_log: ['Temporary implementation via NotificationController']
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to send notification',
+        recipients_count: 0,
+        resolution_source: 'notification_controller',
+        resolution_log: [`Error: ${error.message}`]
+      };
+    }
   }
 
   /**

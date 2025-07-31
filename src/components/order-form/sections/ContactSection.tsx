@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { stores } from "@/components/order-form/formConfig";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
+import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,6 @@ import { CalendarIcon, User, Building, Calendar as CalendarIcon2, Mail, Lock } f
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { getCurrentDateTime } from "@/utils/dateTime";
-import { getStoreEmailRecipients } from "@/services/emailRouting";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -49,25 +48,13 @@ export function ContactSection({ form }: ContactSectionProps) {
 
     setIsLoadingEmails(true);
     try {
-      const storeNumber = extractStoreNumber(storeName);
-      const result = await getStoreEmailRecipients(storeNumber, 'transfer');
-      
-      if (result.recipients.length > 0) {
-        const emailsString = result.recipients.join(', ');
-        setManagerEmails(emailsString);
-        form.setValue("managersEmail", emailsString);
-      } else {
-        // Fallback to legacy method
-        const dynamicEmail = await getFirstManagerEmail(storeName);
-        setManagerEmails(dynamicEmail);
-        form.setValue("managersEmail", dynamicEmail);
-      }
-    } catch (error) {
-      console.error("Error fetching manager emails:", error);
-      // Fallback to legacy method on error
       const dynamicEmail = await getFirstManagerEmail(storeName);
       setManagerEmails(dynamicEmail);
       form.setValue("managersEmail", dynamicEmail);
+    } catch (error) {
+      console.error("Error fetching manager emails:", error);
+      setManagerEmails("manager@conlantire.com");
+      form.setValue("managersEmail", "manager@conlantire.com");
     } finally {
       setIsLoadingEmails(false);
     }

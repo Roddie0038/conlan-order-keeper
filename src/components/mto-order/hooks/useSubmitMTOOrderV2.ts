@@ -74,7 +74,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       });
 
       // ✅ PHASE 2: Submit using unified service with proper normalization
-      const submissionResult = await submitMTOOrder(standardizedMTOData, user);
+      const submissionResult = await submitMTOOrder(standardizedMTOData);
       
       if (!submissionResult.success || submissionResult.error) {
         throw new Error(`Failed to submit MTO order: ${submissionResult.error?.message}`);
@@ -104,10 +104,10 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
             }
           );
           
-          if (notificationResult.success) {
-            console.log(`✅ PHASE 4 MTO FORM - Hardened notification succeeded: ${notificationResult.totalAttempts} attempts, ${notificationResult.recipients_count} recipients, status: ${notificationResult.finalStatus}`);
+          if (notificationResult.finalStatus === 'success') {
+            console.log(`✅ PHASE 4 MTO FORM - Hardened notification succeeded: ${notificationResult.totalAttempts} attempts, status: ${notificationResult.finalStatus}`);
           } else {
-            console.warn("⚠️ PHASE 4 MTO FORM - Hardened notification failed:", notificationResult.message, `Final status: ${notificationResult.finalStatus}`);
+            console.warn("⚠️ PHASE 4 MTO FORM - Hardened notification failed, status: ${notificationResult.finalStatus}");
           }
         } catch (emailError) {
           console.error("❌ PHASE 4 MTO FORM - Error sending hardened notification:", emailError);

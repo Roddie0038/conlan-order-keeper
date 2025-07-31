@@ -12,15 +12,22 @@ import type { OrderRecord, MTOOrderRecord, WheelOrderRecord } from '@/types/orde
  * Submit order to Supabase with error handling
  */
 export async function submitOrder(
-  orderData: Partial<OrderRecord>,
+  orderData: any,
   orderType: 'transfer' | 'mto' | 'wheel' | 'warranty' = 'transfer'
 ) {
   logger.info('Submitting order', { orderType, service: 'order_submission' });
 
   try {
+    // Ensure required fields are present
+    const submissionData = {
+      ...orderData,
+      timestamp: orderData.timestamp || new Date().toISOString(),
+      id: undefined // Let Supabase generate the ID
+    };
+
     const { data, error } = await supabase
       .from('orders')
-      .insert(orderData)
+      .insert(submissionData)
       .select()
       .single();
 
@@ -29,7 +36,7 @@ export async function submitOrder(
     }
 
     logger.info('Order submitted successfully', { 
-      orderId: data.id, 
+      orderId: data?.id?.toString() || 'unknown', 
       orderType, 
       service: 'order_submission' 
     });
@@ -76,7 +83,7 @@ export async function submitMTOOrder(orderData: Partial<MTOOrderRecord>) {
 /**
  * Submit wheel order to Supabase with error handling
  */
-export async function submitWheelOrder(orderData: Partial<WheelOrderRecord>) {
+export async function submitWheelOrder(orderData: any) {
   logger.info('Submitting wheel order', { service: 'wheel_submission' });
 
   try {

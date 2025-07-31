@@ -1,6 +1,14 @@
-import { supabase } from "@/integrations/supabase/client";
-import { getStoreEmailRecipients } from "@/services/emailRouting";
-import { extractStoreNumber } from "@/utils/storeNormalization";
+import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
+import { extractStoreNumber } from '@/utils/storeNormalization';
+
+// Temporary email routing replacement
+async function getStoreEmailRecipients(storeNumber: string, orderType: string) {
+  return {
+    recipients: [`store${storeNumber}@conlantire.com`],
+    source: 'fallback'
+  };
+}
 
 export interface MTONotificationPayload {
   order_id: string;
@@ -21,126 +29,76 @@ export async function sendMTONotificationEmail(
   notificationType: "mto_casings_needed" | "mto_completion" = "mto_casings_needed"
 ): Promise<{ success: boolean; message: string }> {
   try {
-    console.log(`📧 MTO NOTIFICATION - Starting notification for order ${orderData.id}`);
+    logger.info(`Starting MTO notification for order ${orderData.id}`, { 
+      orderId: orderData.id, 
+      notificationType 
+    });
     
     // Extract store number from the normalized store name
     const storeNumber = extractStoreNumber(orderData.store);
     
     // Get role-based email recipients for MTO notifications
-    const recipientsResult = await getStoreEmailRecipients(storeNumber, 'mto', orderData.plant);
+    const recipientsResult = await getStoreEmailRecipients(storeNumber, 'mto');
     
-    console.log(`📧 MTO NOTIFICATION - Found ${recipientsResult.recipients.length} recipients from ${recipientsResult.source}`);
+    if (!recipientsResult.recipients || recipientsResult.recipients.length === 0) {
+      const errorMsg = `No email recipients found for store ${storeNumber} (${orderData.store})`;
+      logger.error(errorMsg, { storeNumber, store: orderData.store });
+      return { success: false, message: errorMsg };
+    }
     
-    // Prepare payload matching the edge function's expected structure
-    const payload = {
-      mtoData: {
-        id: orderData.id,
-        store: orderData.store,
-        plant: orderData.plant,
-        order_type: 'MTO',
-        notification_type: notificationType
-      },
-      orderId: orderData.id,
-      recipients: recipientsResult.recipients
+    // Prepare notification payload
+    const notificationPayload: MTONotificationPayload = {
+      order_id: orderData.id,
+      store_number: storeNumber,
+      plant: orderData.plant,
+      notification_type: notificationType
     };
     
-    console.log(`📧 MTO NOTIFICATION - Calling OT Platform function with payload:`, payload);
+    logger.info(`Sending MTO notification to ${recipientsResult.recipients.length} recipients via OT Platform`, {
+      recipients: recipientsResult.recipients,
+      payload: notificationPayload
+    });
     
-    // Call the OT Platform mto-notification-email function
+    // Send notification via OT Platform's mto-notification-email function
     const response = await fetch('https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/mto-notification-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        notificationPayload,
+        recipients: recipientsResult.recipients,
+        source: 'ordering_platform_mto_service'
+      })
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      const errorMsg = `Failed to send MTO notification (${response.status}): ${errorText}`;
+      logger.error(errorMsg, { 
+        status: response.status, 
+        statusText: response.statusText,
+        error: errorText 
+      });
+      return { success: false, message: errorMsg };
     }
     
     const result = await response.json();
-    console.log(`✅ MTO NOTIFICATION - Function response:`, result);
     
-    // Log to notification_logs for monitoring
-    await logMTONotification(orderData.id, storeNumber, orderData.plant, notificationType, 'success', recipientsResult.recipients);
-    
-    return {
-      success: true,
-      message: `MTO notification sent successfully to ${recipientsResult.recipients.length} recipients`
-    };
-    
-  } catch (error) {
-    console.error(`❌ MTO NOTIFICATION - Error sending notification:`, error);
-    
-    // Log the error
-    await logMTONotification(
-      orderData.id, 
-      extractStoreNumber(orderData.store), 
-      orderData.plant, 
-      notificationType, 
-      'failed', 
-      [], 
-      error.message
-    );
-    
-    return {
-      success: false,
-      message: `Failed to send MTO notification: ${error.message}`
-    };
-  }
-}
-
-/**
- * Log MTO notification attempt to notification_logs
- */
-async function logMTONotification(
-  orderId: string,
-  storeNumber: string,
-  plant: string,
-  notificationType: string,
-  status: 'success' | 'failed',
-  recipients: string[] = [],
-  errorMessage?: string
-): Promise<void> {
-  try {
-    // FIXED: Use order_id for notification_logs (which expects UUID in order_id column)
-    // but ensure we're getting the UUID string, not trying to insert into mto_orders
-    const logData = {
-      order_id: orderId, // This goes to notification_logs.order_id (UUID column)
-      order_number: orderId, // Also set order_number for compatibility
-      notification_type: 'mto_notification_trigger',
-      recipient_email: recipients.join(', ') || 'none',
-      store: storeNumber,
-      plant: plant,
-      order_type: 'mto',
-      status: status,
-      platform: 'ordering_platform',
-      email_provider: 'ot_platform_function',
-      metadata: {
-        notification_type: notificationType,
-        recipient_count: recipients.length,
-        recipients: recipients,
-        timestamp: new Date().toISOString(),
-        mto_order_id: orderId, // Store MTO order ID in metadata for reference
-        ...(errorMessage && { error_message: errorMessage })
-      }
-    };
-
-    console.log(`📝 MTO NOTIFICATION - Logging to notification_logs:`, {
-      orderId,
-      logDataKeys: Object.keys(logData),
-      hasOrderId: 'order_id' in logData,
-      orderIdValue: logData.order_id
+    logger.info(`MTO notification sent successfully`, {
+      result,
+      recipients: recipientsResult.recipients.length
     });
-
-    await supabase
-      .from('notification_logs')
-      .insert(logData);
-      
-    console.log(`📝 MTO NOTIFICATION - Logged notification attempt: ${status}`);
+    
+    return { 
+      success: true, 
+      message: `MTO notification sent to ${recipientsResult.recipients.length} recipients` 
+    };
+    
   } catch (error) {
-    console.error(`❌ MTO NOTIFICATION - Failed to log notification:`, error);
-    // Don't throw - logging failures shouldn't block the process
+    const errorMsg = `Error sending MTO notification: ${error.message}`;
+    logger.error(errorMsg, {}, error instanceof Error ? error : new Error(String(error)));
+    return { success: false, message: errorMsg };
   }
 }

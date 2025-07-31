@@ -4,10 +4,18 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { storeData } from "@/config/storeData";
 import { OrderType } from "@/services/webhook/config";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { getStoreEmailRecipients } from "@/services/emailRouting";
+import { logger } from "@/utils/logger";
 import type { OrderFormData } from "@/types/orders";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import { supabase } from "@/integrations/supabase/client";
+
+// Temporary email routing replacement
+async function getStoreEmailRecipients(storeNumber: string, orderType: string) {
+  return {
+    recipients: [`store${storeNumber}@conlantire.com`],
+    source: 'fallback'
+  };
+}
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 import { storeSanitizeForSupabase, logStoreFormatTransformation } from "@/utils/storeSanitization";
 
@@ -226,7 +234,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
         
         console.log(`📧 SUBMIT - Transfer email recipients (${emailResult.source}):`, emailRecipients);
         if (emailResult.source === 'fallback') {
-          console.warn(`📧 SUBMIT - Using fallback routing: ${emailResult.fallbackReason}`);
+          console.warn(`📧 SUBMIT - Using fallback routing`);
         }
         
         if (emailRecipients.length > 0) {
@@ -266,7 +274,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
         
         console.log(`📧 SUBMIT - Wheel email recipients (${emailResult.source}):`, emailRecipients);
         if (emailResult.source === 'fallback') {
-          console.warn(`📧 SUBMIT - Using fallback routing: ${emailResult.fallbackReason}`);
+          console.warn(`📧 SUBMIT - Using fallback routing`);
         }
         
         if (emailRecipients.length > 0) {

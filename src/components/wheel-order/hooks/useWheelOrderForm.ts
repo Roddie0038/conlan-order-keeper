@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { WheelFormData } from "../types";
 import { useWheelFormSubmission } from "./useWheelFormSubmission";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
+import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
 import { stores } from "@/components/order-form/formConfig";
 

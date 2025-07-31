@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
-import { submitWheelOrder } from "@/services/unifiedOrderService";
+import { submitWheelOrder } from "@/utils/orderSubmissionUtils";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import OrderIDService from "@/services/OrderIDService";
@@ -86,7 +86,7 @@ export function useWheelFormSubmission(
       console.log("✅ PHASE 2 WHEEL FORM - Submitting with storeId:", formData.storeId);
       
       // ✅ PHASE 2: Submit using unified wheel order service with proper normalization
-      const submissionResult = await submitWheelOrder(formData, user);
+      const submissionResult = await submitWheelOrder(formData);
       
       if (!submissionResult.success || submissionResult.error) {
         throw new Error(`Failed to submit wheel order: ${submissionResult.error?.message}`);
