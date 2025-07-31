@@ -20,31 +20,32 @@ import { OrderType } from "@/services/OrderIDService";
  */
 export interface OrderRecord {
   // Core identification fields
-  id: number; // bigint in database
-  timestamp: string; // text field, not timestamp
+  id: number; // bigint in database, non-nullable
+  order_id?: string; // Optional computed field for compatibility
+  timestamp: string; // text field, non-nullable
   
   // Basic order information
   name: string | null;
-  store: string | null; // Normalized store format
+  store: string | null;
   product_number: string | null;
   description: string | null;
-  quantity: number | null; // bigint, can be null in database
+  quantity: number | null; // bigint, nullable
   schedule_arrival: string | null;
   notes: string | null;
   
   // Status and completion tracking
-  status: string | null;
+  status: string | null; // default: 'pending'
   completed: boolean | null;
   completed_at: string | null; // timestamp without time zone
   completed_by: string | null;
-  status_updated_at: string | null; // timestamp without time zone
+  status_updated_at: string | null; // timestamp without time zone, default: now()
   
   // Plant and contact information
   plant: string | null;
   email: string | null;
   
-  // Advanced Cross-Dock Fields (Future-Proofed)
-  cross_plant_order: boolean | null;
+  // Advanced Cross-Dock Fields
+  cross_plant_order: boolean | null; // default: false
   cross_dock_type: string | null;
   cross_dock_destination: string | null;
   cross_dock_receiver_number: string | null;
@@ -55,10 +56,10 @@ export interface OrderRecord {
   out_of_stock: boolean | null;
   out_of_stock_eta: string | null;
   out_of_stock_notes: string | null;
-  out_of_stock_items: any | null; // jsonb type
+  out_of_stock_items: any | null; // jsonb type - keeping flexible for database compatibility
   
   // Warehouse and Receiving Fields
-  warehouse_received: boolean | null;
+  warehouse_received: boolean | null; // default: false
   received_at_warehouse: string | null; // timestamp with time zone
   received_at: string | null; // timestamp without time zone
   ready_to_ship_at: string | null; // timestamp without time zone
@@ -66,12 +67,12 @@ export interface OrderRecord {
   
   // Manager Workflow Fields (Advanced)
   manager_notes: string | null;
-  tire_pull_status: string | null;
+  tire_pull_status: string | null; // 'not_pulled' | 'pulling_tires' | 'pulled_tires' - keeping flexible for DB compatibility
   store_manager_message: string | null;
   
   // Response and Communication Fields
   response_deadline: string | null; // timestamp with time zone
-  store_response_status: string | null;
+  store_response_status: string | null; // 'awaiting_response' | 'store_replied' | 'no_response' - keeping flexible for DB compatibility
   store_response_date: string | null; // timestamp with time zone
   confirmation_token: string | null;
   
@@ -92,128 +93,90 @@ export interface OrderRecord {
   deleted_at: string | null; // timestamp with time zone
   reopened_at: string | null; // timestamp without time zone
   reopened_reason: string | null;
-  manual_override_allowed: boolean | null;
+  manual_override_allowed: boolean | null; // default: false
   manual_override_reason: string | null;
 }
 
 /**
- * MTO Order Record - matches 'mto_orders' table schema exactly
- * Already comprehensive - no changes needed
+ * MTO Order Record - matches your exact specification and 'mto_orders' table schema
+ * UPDATED to match OT Platform standards exactly
  */
 export interface MTOOrderRecord {
   // Core identification
-  id: string; // UUID
-  timestamp: string | null;
+  id: string; // UUID, non-nullable
+  timestamp: string | null; // text field
   
-  // Basic order information
-  name: string | null;
+  // Plant and location
+  plant: string | null;
   store: string | null;
+  
+  // Basic order information  
+  name: string | null;
   product_number: string | null;
   casing_grade: string | null;
   tire_size: string | null;
   tread: string | null;
   quantity: number | null;
-  notes: string | null;
-  description: string | null;
+  
+  // Inventory and availability tracking
+  have_casings: boolean | null;
+  tread_in_inventory: boolean | null;
+  projected_delivery: string | null; // date field
   
   // Status and completion tracking
   status: string | null;
   completed: boolean | null;
   completed_at: string | null;
-  status_updated_at: string | null;
   
-  // Plant and contact information
-  plant: string | null;
-  email: string | null;
-  
-  // Inventory and availability tracking
-  have_casings: boolean | null;
-  tread_in_inventory: boolean | null;
-  casings_in_stock: boolean | null;
-  tread_in_stock: boolean | null;
-  projected_delivery: string | null; // date
-  casings_eta: string | null; // date
-  tread_eta: string | null; // date
-  
-  // Shipping and fulfillment
+  // Shipping and fulfillment  
   shipped_quantity: number | null;
   pending_quantity: number | null;
-  last_shipment_date: string | null; // date
-  ready_to_ship_at: string | null;
-  in_transit_at: string | null;
-  received_at: string | null;
-  
-  // Notification tracking
-  warehouse_notified_at: string | null;
-  retread_notified_at: string | null;
-  store_notified_at: string | null;
-  inventory_last_updated: string | null;
-  
-  // Email and communication
-  send_invoice: boolean | null;
-  send_email_trigger: boolean | null;
-  email_message: string | null;
-  destination_manager_email: string | null;
-  
-  // Documentation and links
-  invoice_number: string | null;
-  order_completion_link: string | null;
-  cross_dock_form_link: string | null;
+  last_shipment_date: string | null; // date field
   
   // System fields
-  order_type: string | null;
-  type: string | null;
-  deleted_at: string | null;
   updated_by: string | null;
 }
 
 /**
- * Wheel Order Record - matches 'wheel_orders' table schema exactly
- * ALL fields match database column names exactly (no snake_case conversion)
+ * Wheel Order Record - matches your exact specification and 'wheel_orders' table schema
+ * UPDATED to match OT Platform standards exactly
  */
 export interface WheelOrderRecord {
   // Core identification
-  id: string; // UUID
-  timestamp: string | null; // timestamp with time zone
+  id: string; // UUID, non-nullable
+  timestamp: string | null;
+  
+  // Plant and location
+  plant: string | null;
+  store: string | null;
   
   // Basic order information
   name: string | null;
-  store: string | null;
-  productnumber: string | null;
-  quantity: number | null; // integer
-  notes: string | null;
-  description: string | null;
+  quantity: number | null;
   
-  // Wheel specifications
-  wheeltype: string | null;
+  // Wheel specifications - exact field names from your spec
   wheelsize: string | null;
+  wheeltype: string | null;
   wheelmaterial: string | null;
   desiredcolor: string | null;
-  handholes: number | null; // integer
+  handholes: number | null;
   
   // Scheduling and delivery
-  schedulearrival: string | null;
-  duedate: string | null; // date
-  
-  // Status and completion tracking
-  status: string | null;
-  completed: boolean | null;
-  completed_at: string | null; // timestamp with time zone
-  completedat: string | null; // timestamp with time zone  
-  statusupdatedat: string | null; // text field (not timestamp)
-  
-  // Plant and contact information
-  plant: string | null;
-  email: string | null;
+  duedate: string | null;
   
   // Receiving and fulfillment
-  wheelsreceived: boolean | null; // boolean, not number
-  received_at: string | null; // timestamp with time zone
-  receivedat: string | null; // timestamp with time zone
+  wheelsreceived: number | null; // number per your spec
+  workorderlink: string | null;
+  receivedat: string | null;
   
-  // Cross-Dock Fields (exact database field names)
+  // Status and completion tracking
+  completed: boolean | null;
+  completedat: string | null;
+  statusupdatedat: string | null;
+  
+  // Cross-Dock Fields (exact field names from your spec)
   crossdockdestination: string | null;
-  crossdocketadate: string | null; // text field
+  crossdocketadate: string | null;
   crossdockformlink: string | null;
   crossdockreceivernumber: string | null;
   crossdocktype: string | null;
@@ -223,81 +186,51 @@ export interface WheelOrderRecord {
   emailmessage: string | null;
   destinationmanageremail: string | null;
   
-  // Documentation and links
-  workorderlink: string | null;
-  
   // System fields
-  ordertype: string | null; // Database field is 'ordertype', not 'order_type'
-  deleted_at: string | null; // timestamp with time zone
+  deleted_at: string | null;
+  received_at: string | null;
 }
 
 /**
- * Warranty Order Record - matches 'warranty_orders' table schema exactly
- * ALL fields match exact database schema with correct types and nullability
+ * Warranty Order Record - matches your exact specification and 'warranty_orders' table schema
+ * UPDATED to match OT Platform standards exactly
  */
 export interface WarrantyOrderRecord {
   // Core identification
   id: string; // UUID, non-nullable
-  user_id: string | null; // UUID, nullable
-  created_at: string; // timestamp with time zone, non-nullable
-  updated_at: string; // timestamp with time zone, non-nullable
+  timestamp: string | null; // Added per your spec
   
-  // Status and processing
-  status: string; // text, non-nullable (default: 'open')
-  plant: string; // text, non-nullable
+  // Plant and location
+  plant: string | null; // Made nullable per your spec
+  store: string | null;
   
   // Basic information
-  store: string | null;
   name: string | null;
-  customer_name: string | null;
-  email: string | null;
+  product_number: string | null; // Added per your spec
+  quantity: number | null; // Added per your spec
   
-  // Tire information
-  tire_type: string | null;
-  dot_number: string | null; // nullable in database
-  tire_size: string | null;
-  condition: string | null; // nullable in database
-  notes: string | null;
-  
-  // Submission details
-  date_submitted: string | null; // date, nullable (default: CURRENT_DATE)
-  work_order: string | null;
-  
-  // Vehicle information
-  vehicle_make: string | null;
-  vin_or_unit: string | null;
-  model_year: string | null;
-  wheel_position: string | null;
-  load_range: string | null;
-  
-  // Tire condition details (text fields, not numeric)
-  wear_percentage: string | null; // text in database, not number
-  mileage_on_tire: string | null; // text in database, not number
-  purchase_date: string | null; // date
-  
-  // Financial processing
-  excise_tax_collected: boolean | null; // boolean in database, not number
-  replacement_product_code: string | null;
-  
-  // Documentation and media
+  // Financial processing fields per your spec
+  approval_invoice_number: string | null;
+  denial_invoice_number: string | null;
+  excise_tax_collected: boolean | null;
   invoice_url: string | null;
-  photo_urls: string[] | null; // ARRAY type in database
+  load_range: string | null;
+  mileage_on_tire: number | null; // Changed to number per your spec
+  model_year: string | null;
+  photo_urls: string[] | null;
+  purchase_date: string | null;
+  replacement_product_code: string | null;
   signature_url: string | null;
   
-  // System fields
-  deleted_at: string | null; // timestamp with time zone
-  
-  // Approval workflow
-  approval_status: string | null; // default: 'pending'
-  approval_date: string | null; // timestamp with time zone
-  approved_by: string | null;
-  approval_notes: string | null;
-  approval_invoice_number: string | null;
-  denial_reason: string | null;
-  denial_invoice_number: string | null;
-  
-  // Compatibility field for orderCombiner (computed from approval_date)
-  completed_at?: string | null;
+  // Status and processing
+  status: string; // Non-nullable
+  updated_at: string | null;
+  user_id: string | null;
+  vehicle_make: string | null;
+  vin_or_unit: string | null;
+  wear_percentage: number | null; // Changed to number per your spec
+  wheel_position: string | null;
+  date_submitted: string | null;
 }
 
 // ============= UNIFIED DISPLAY INTERFACE =============

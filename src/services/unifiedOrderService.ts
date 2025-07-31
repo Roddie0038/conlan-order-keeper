@@ -8,11 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   OrderFormData, 
   MTOFormData, 
-  WheelFormData, 
-  OrderRecord, 
-  MTOOrderRecord,
-  WarrantyOrderRecord 
+  WheelFormData
 } from "@/types/orders";
+import type { 
+  TransferOrderRecord as OrderRecord,
+  MTOOrderRecord,
+  WheelOrderRecord,
+  WarrantyOrderRecord 
+} from "@/types/supabase-extensions";
 import { 
   normalizeOrderFields, 
   transformToSnakeCase,
