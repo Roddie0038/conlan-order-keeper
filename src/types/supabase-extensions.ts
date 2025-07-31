@@ -42,9 +42,9 @@ export type {
   WarrantyOrderRecord 
 } from "@/types/orders";
 
-// Legacy aliases for backwards compatibility
-export type OrderData = OrderFormData;
-export type MTOOrderData = MTOFormData;
+// Legacy aliases for backwards compatibility (DEPRECATED - DO NOT USE)
+// export type OrderData = OrderFormData;
+// export type MTOOrderData = MTOFormData;
 
 // Insert and Update types for database operations
 export type MTOOrderInsert = Database['public']['Tables']['mto_orders']['Insert'];

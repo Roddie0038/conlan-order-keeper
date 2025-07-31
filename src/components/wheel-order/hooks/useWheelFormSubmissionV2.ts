@@ -12,6 +12,7 @@ import { submitWheelOrder } from "@/services/unifiedOrderService";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import OrderIDService from "@/services/OrderIDService";
+import type { OrderFormData } from "@/types/orders";
 
 const formatTimestamp = (dateString: string): string => {
   const date = new Date(dateString);
@@ -135,7 +136,7 @@ export function useWheelFormSubmission(
       const formattedScheduleArrival = formData.scheduleArrival ? formatTimestamp(formData.scheduleArrival) : formatTimestamp(formData.dateReceived);
       
       // Create legacy format for Google Sheets
-      const legacyOrderData = {
+      const legacyOrderData: OrderFormData = {
         name: formData.yourName,
         store: formData.storeName,
         productNumber: "WHEEL-COATING",

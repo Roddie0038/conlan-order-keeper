@@ -65,30 +65,30 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         tread: formData.tireTreadNeeded
       };
       
-      const mtoOrderData = mapMTOToSupabase(formDataWithPlant, user, formData.destinationPlant);
+      const mtoOrderRecord = mapMTOToSupabase(formDataWithPlant, user, formData.destinationPlant);
       
       // Log store format transformation for debugging
       console.log("🔄 STORE FORMAT TRANSFORMATION:", {
         original: formData.store,
-        sanitized: mtoOrderData.store,
-        plant: mtoOrderData.plant,
+        sanitized: mtoOrderRecord.store,
+        plant: mtoOrderRecord.plant,
         normalizedStore: normalizedStore
       });
 
       console.log("🔍 MTO FORM - Final submission data:", {
-        plant: mtoOrderData.plant,
-        store: mtoOrderData.store
+        plant: mtoOrderRecord.plant,
+        store: mtoOrderRecord.store
       });
 
       // Enhanced logging before Supabase insert
       console.log("🔍 MTO FORM - About to save to Supabase:", {
         user: user ? { id: user.id, email: user.email } : 'No user',
-        payloadKeys: Object.keys(mtoOrderData),
-        payload: mtoOrderData
+        payloadKeys: Object.keys(mtoOrderRecord),
+        payload: mtoOrderRecord
       });
 
       // Submit to Supabase with enhanced error handling
-      const savedOrder = await saveOrderToSupabase(mtoOrderData, user);
+      const savedOrder = await saveOrderToSupabase(mtoOrderRecord, user);
       
       console.log("🔍 MTO FORM - Supabase response:", {
         hasData: !!savedOrder.data,
@@ -106,8 +106,8 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       
       console.log("✅ MTO FORM - Successfully saved to Supabase:", {
         id: savedOrder.data.id,
-        plant: mtoOrderData.plant,
-        store: mtoOrderData.store
+        plant: mtoOrderRecord.plant,
+        store: mtoOrderRecord.store
       });
 
       // Send order confirmation email
@@ -129,7 +129,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
         
         if (confirmationResult.success) {
-          console.log(`✅ MTO FORM - Order confirmation email sent for plant ${mtoOrderData.plant}`);
+          console.log(`✅ MTO FORM - Order confirmation email sent for plant ${mtoOrderRecord.plant}`);
         }
       } catch (emailError) {
         console.error("❌ MTO FORM - Error sending order confirmation email:", emailError);
@@ -137,12 +137,12 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
 
       // Send MTO notification to OT Platform (non-blocking)
       try {
-        console.log("🔍 MTO FORM - Preparing notification with store format:", mtoOrderData.store);
+        console.log("🔍 MTO FORM - Preparing notification with store format:", mtoOrderRecord.store);
         
         const mtoNotificationData = {
           id: savedOrder.data?.id?.toString() || 'Unknown',
-          store: mtoOrderData.store, // Now uses display format (Grand Prairie 027)
-          plant: mtoOrderData.plant
+          store: mtoOrderRecord.store, // Now uses display format (Grand Prairie 027)
+          plant: mtoOrderRecord.plant
         };
 
         console.log("🔍 MTO FORM - Sending notification with data:", mtoNotificationData);
@@ -159,7 +159,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       }
 
       // Submit to Google Sheets (✅ KEEP: Google Sheets submission)
-      const result = await submitToGoogleSheets(mtoOrderData, user);
+      const result = await submitToGoogleSheets(mtoOrderRecord, user);
       console.log("🔍 MTO FORM - Google Sheets result:", result);
 
       // 📊 DIAGNOSTIC: Enhanced result checking and user feedback
@@ -168,8 +168,8 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       console.log("  📧 Email notification:", "ATTEMPTED (check logs above)");
       console.log("  📊 Google Sheets:", result.status);
       console.log("  🎯 Order ID:", savedOrder.data?.id);
-      console.log("  🏪 Store format:", mtoOrderData.store);
-      console.log("  🏭 Plant:", mtoOrderData.plant);
+      console.log("  🏪 Store format:", mtoOrderRecord.store);
+      console.log("  🏭 Plant:", mtoOrderRecord.plant);
 
       if (result.status === 'success' || result.status === 'partial_success') {
         toast({

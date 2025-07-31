@@ -72,7 +72,7 @@ export function useOrderFormSubmit() {
         console.log("🔍 ORDER FORM SUBMIT - Determined order type:", orderType, "for order:", order);
         
         // Create the order data in camelCase (internal format) with correct type
-        const orderData: OrderFormData = {
+        const orderRecord: OrderFormData = {
           name: order.yourName,
           store: order.store,
           productNumber: order.productNumber,
@@ -91,10 +91,10 @@ export function useOrderFormSubmit() {
         console.log("🔍 ORDER FORM SUBMIT - Submitting with type:", orderType);
 
         // Submit to Supabase (uses mapOrderToSupabase internally for snake_case)
-        const savedOrderResult = await saveOrderToSupabase(orderData, user);
+        const savedOrderResult = await saveOrderToSupabase(orderRecord, user);
         
         // Submit to Google Sheets (uses mapOrderToGoogleSheets internally for camelCase)
-        await submitToGoogleSheets(orderData, user);
+        await submitToGoogleSheets(orderRecord, user);
 
         // PHASE 4: Send Order Confirmation Email to Store Recipients
         if (storeNumber && savedOrderResult?.data?.id) {
@@ -106,12 +106,12 @@ export function useOrderFormSubmit() {
               store_name: order.store,
               order_type: orderType,
               order_id: savedOrderResult.data.id.toString(),
-              timestamp: orderData.timestamp,
-              name: orderData.name,
-              email: orderData.email,
-              quantity: orderData.quantity,
-              product_number: orderData.productNumber,
-              description: orderData.description
+              timestamp: orderRecord.timestamp,
+              name: orderRecord.name,
+              email: orderRecord.email,
+              quantity: orderRecord.quantity,
+              product_number: orderRecord.productNumber,
+              description: orderRecord.description
             });
             
             console.log("📧 STORE EMAIL DEBUG - sendOrderConfirmationEmail result:", emailResult);
