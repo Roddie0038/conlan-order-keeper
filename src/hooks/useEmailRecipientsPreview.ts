@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { resolveEmailRecipients } from '@/services/emailRecipientResolver';
 import { emailRecipientManagementService } from '@/services/EmailRecipientManagementService';
+import { useRecipientAudit } from '@/hooks/useRecipientAudit';
 import type { EmailRecipient, EmailType, OrderDataInput } from '@/services/emailRecipientResolver';
 
 interface UseEmailRecipientsPreviewOptions {

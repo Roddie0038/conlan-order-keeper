@@ -180,7 +180,7 @@ export class EmailRecipientManagementService {
         storeNumber,
         emailType,
         addedByEmail,
-        { templateId, orderId }
+        { templateId, orderId, performedByName: addedByName, plant }
       );
 
       // Reload recipients to get updated list
@@ -261,7 +261,7 @@ export class EmailRecipientManagementService {
         storeNumber,
         emailType,
         removedByEmail,
-        { templateId, orderId }
+        { templateId, orderId, performedByName: removedByName, plant }
       );
 
       // Reload recipients to get updated list
@@ -314,7 +314,7 @@ export class EmailRecipientManagementService {
         storeNumber,
         emailType,
         resetByEmail,
-        { templateId, orderId }
+        { templateId, orderId, performedByName: 'System Reset', plant: 'Unknown' }
       );
 
       console.log("✅ RECIPIENT MGMT - Successfully reset to defaults");
@@ -477,7 +477,7 @@ export class EmailRecipientManagementService {
   }
 
   /**
-   * Log recipient management actions for audit trail
+   * Log recipient management actions for audit trail using dedicated recipient_action_logs table
    */
   private async logRecipientAction(
     action: 'add' | 'remove' | 'reset',
@@ -487,29 +487,31 @@ export class EmailRecipientManagementService {
     storeNumber: string,
     emailType: EmailType,
     performedBy: string,
-    context: { templateId?: string; orderId?: string }
+    context: { templateId?: string; orderId?: string; performedByName?: string; plant?: string }
   ): Promise<string> {
     try {
       const logData = {
-        order_id: context.orderId || `recipient-${action}-${Date.now()}`,
-        notification_type: `recipient_${action}`,
+        action_type: action,
+        email_type: emailType,
         recipient_email: email,
+        recipient_name: name,
         recipient_role: role,
-        store: storeNumber,
-        status: 'logged',
+        store_number: storeNumber,
+        plant: context.plant || 'Unknown',
+        template_id: context.templateId || null,
+        order_id: context.orderId || null,
+        performed_by_email: performedBy,
+        performed_by_name: context.performedByName || 'Unknown User',
         metadata: {
           service: 'email_recipient_management',
           action,
-          performed_by: performedBy,
-          recipient_name: name,
-          email_type: emailType,
-          template_id: context.templateId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          original_context: context
         }
       };
 
       const { data, error } = await supabase
-        .from('notification_logs')
+        .from('recipient_action_logs')
         .insert(logData)
         .select('id')
         .single();
@@ -519,7 +521,7 @@ export class EmailRecipientManagementService {
         return 'log-error';
       }
 
-      console.log(`📝 RECIPIENT MGMT - Logged ${action} action for ${email}`);
+      console.log(`📝 RECIPIENT MGMT - Logged ${action} action for ${email} in recipient_action_logs`);
       return data.id;
 
     } catch (error) {
