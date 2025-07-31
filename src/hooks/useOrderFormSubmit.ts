@@ -6,7 +6,7 @@ import { OrderFormValues } from "../components/order-form/order-form-schema";
 import type { OrderSummary } from "./useOrderSubmission";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
-import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
+import { sendTransferOrderConfirmation } from "@/services/NotificationController";
 import type { OrderFormData } from "@/types/orders";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 
@@ -108,7 +108,20 @@ export function useOrderFormSubmit() {
             description: order.description
           };
 
-          const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
+          const confirmationResult = await sendTransferOrderConfirmation(
+            {
+              store: order.store,
+              plant: formattedOrder.plant,
+              email: user?.email || 'unknown@email.com',
+              name: order.yourName || 'Unknown'
+            },
+            savedOrder.data?.id?.toString() || 'Unknown',
+            {
+              quantity: parseInt(order.quantity.toString()) || 0,
+              product_number: order.productNumber,
+              description: order.description
+            }
+          );
           
           if (confirmationResult.success) {
             console.log(`✅ ORDER SUBMIT - Confirmation email sent for order to ${formattedOrder.plant}`);

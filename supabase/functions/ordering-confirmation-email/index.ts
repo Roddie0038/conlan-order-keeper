@@ -21,14 +21,7 @@ interface OrderData {
   product_number?: string;
   description?: string;
   plant?: string;
-}
-
-interface EmailRecipient {
-  email: string;
-  name?: string;
-  role: string;
-  store?: string;
-  plant?: string;
+  recipients?: string[]; // Direct recipient list from NotificationController
 }
 
 serve(async (req) => {
@@ -45,32 +38,52 @@ serve(async (req) => {
 
     // Initialize Resend
     const resend = new Resend(Deno.env.get('RESEND_API_KEY')!);
-    const fromEmail = Deno.env.get('FROM_EMAIL') || 'onboarding@resend.dev';
+    const fromEmail = Deno.env.get('FROM_EMAIL') || 'conlantireorders@conlanorders.com';
 
     const orderData: OrderData = await req.json();
-    console.log('📧 EDGE FUNCTION - Processing order confirmation email for:', orderData);
+    console.log('📧 EDGE FUNCTION - Processing order confirmation email:', {
+      order_id: orderData.order_id,
+      order_type: orderData.order_type,
+      store: orderData.store_name,
+      recipients_count: orderData.recipients?.length || 0
+    });
 
-    // Extract store number from store_name if store_number is missing
-    let storeNumber = orderData.store_number;
-    if (!storeNumber && orderData.store_name) {
-      const match = orderData.store_name.match(/(\d+)/);
-      storeNumber = match ? match[1] : '';
-    }
-
-    if (!storeNumber) {
-      throw new Error('Could not determine store number from order data');
-    }
-
-    // Get email recipients using role-based routing
-    const recipients = await getEmailRecipients(supabase, storeNumber, orderData.order_type, orderData.plant);
+    // Strict domain enforcement - only @conlantire.com and @aol.com
+    const ALLOWED_DOMAINS = ['conlantire.com', 'aol.com'];
     
-    console.log(`📧 ORDER EMAIL - Found ${recipients.length} recipients for ${orderData.order_type} notification`);
+    let recipients: string[] = [];
+    
+    if (orderData.recipients && Array.isArray(orderData.recipients)) {
+      // Use recipients provided by NotificationController (already filtered)
+      recipients = orderData.recipients;
+    } else {
+      // Fallback: resolve recipients and apply domain filtering
+      const resolvedRecipients = await getEmailRecipients(supabase, orderData.store_number, orderData.order_type, orderData.plant);
+      recipients = resolvedRecipients
+        .map(r => r.email)
+        .filter(email => {
+          const domain = email.split('@')[1];
+          return ALLOWED_DOMAINS.includes(domain);
+        });
+    }
+    
+    // Final domain filter enforcement (double-check)
+    recipients = recipients.filter(email => {
+      const domain = email.split('@')[1];
+      const isAllowed = ALLOWED_DOMAINS.includes(domain);
+      if (!isAllowed) {
+        console.log(`🚫 EDGE FUNCTION - Blocked recipient ${email} (domain: ${domain})`);
+      }
+      return isAllowed;
+    });
+
+    console.log(`📧 ORDER EMAIL - Sending to ${recipients.length} allowed recipients`);
 
     if (recipients.length === 0) {
-      console.log('⚠️ ORDER EMAIL - No recipients found, skipping email');
+      console.log('⚠️ ORDER EMAIL - No allowed recipients after domain filtering');
       return new Response(JSON.stringify({
         success: true,
-        message: 'No recipients configured for this order type and store',
+        message: 'No allowed recipients after domain filtering',
         sent_count: 0
       }), {
         status: 200,
@@ -79,76 +92,40 @@ serve(async (req) => {
     }
 
     // Generate email content
-    const subject = `✅ Order Confirmation – ${orderData.order_type} Order Received`;
-    
-    const emailBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-        <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <h2 style="color: #2563eb; margin-bottom: 20px;">Order Confirmation</h2>
-          
-          <p style="margin-bottom: 15px;">Hi ${orderData.store_name} team,</p>
-          
-          <p style="margin-bottom: 20px;">This is to confirm that your <strong>${orderData.order_type}</strong> order has been received and is being processed.</p>
-          
-          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #374151;">Order Details:</h3>
-            <ul style="margin: 10px 0; padding-left: 20px;">
-              <li><strong>Order Type:</strong> ${orderData.order_type}</li>
-              <li><strong>Order ID:</strong> ${orderData.order_id}</li>
-              <li><strong>Store:</strong> ${orderData.store_name} (#${storeNumber})</li>
-              <li><strong>Submitted by:</strong> ${orderData.name} (${orderData.email})</li>
-              <li><strong>Submitted at:</strong> ${new Date(orderData.timestamp).toLocaleString()}</li>
-              ${orderData.quantity ? `<li><strong>Quantity:</strong> ${orderData.quantity}</li>` : ''}
-              ${orderData.product_number ? `<li><strong>Product:</strong> ${orderData.product_number}</li>` : ''}
-              ${orderData.description ? `<li><strong>Description:</strong> ${orderData.description}</li>` : ''}
-            </ul>
-          </div>
-          
-          <p style="margin-bottom: 20px;">No further action is needed at this time. You will receive additional notifications as your order progresses through our fulfillment process.</p>
-          
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-          
-          <p style="color: #6b7280; font-size: 14px; margin-bottom: 0;">
-            This is an automated message from the Conlan Tire Ordering System.<br>
-            Please do not reply to this email.
-          </p>
-        </div>
-      </div>
-    `;
+    const subject = generateEmailSubject(orderData);
+    const emailBody = generateEmailBody(orderData);
 
-    // Send emails to all recipients
+    // Send emails to all allowed recipients
     const emailResults = [];
     
-    for (const recipient of recipients) {
+    for (const recipientEmail of recipients) {
       try {
         const emailResponse = await resend.emails.send({
           from: fromEmail,
-          to: [recipient.email],
+          to: [recipientEmail],
           subject: subject,
-          html: htmlBody,
+          html: emailBody,
         });
 
-        console.log(`✅ ORDER EMAIL - Sent to ${recipient.email} (${recipient.role})`);
+        console.log(`✅ ORDER EMAIL - Sent to ${recipientEmail}`);
         
         // Log successful delivery
-        await logEmailDelivery(supabase, orderData, recipient, 'sent', emailResponse.data?.id);
+        await logEmailDelivery(supabase, orderData, recipientEmail, 'sent', emailResponse.data?.id);
         
         emailResults.push({ 
-          email: recipient.email, 
-          role: recipient.role,
+          email: recipientEmail,
           status: 'sent',
           message_id: emailResponse.data?.id 
         });
 
       } catch (emailError) {
-        console.error(`❌ ORDER EMAIL - Failed to send to ${recipient.email}:`, emailError);
+        console.error(`❌ ORDER EMAIL - Failed to send to ${recipientEmail}:`, emailError);
         
         // Log failed delivery
-        await logEmailDelivery(supabase, orderData, recipient, 'failed', null, emailError.message);
+        await logEmailDelivery(supabase, orderData, recipientEmail, 'failed', null, emailError.message);
         
         emailResults.push({ 
-          email: recipient.email, 
-          role: recipient.role,
+          email: recipientEmail,
           status: 'failed',
           error: emailError.message 
         });
@@ -185,18 +162,18 @@ serve(async (req) => {
 });
 
 /**
- * Get email recipients using role-based routing logic
+ * Get email recipients using role-based routing logic (fallback only)
  */
 async function getEmailRecipients(
   supabase: any, 
   storeNumber: string, 
   orderType: string, 
   plant?: string
-): Promise<EmailRecipient[]> {
+): Promise<{ email: string; name?: string; role: string }[]> {
   
-  console.log(`🔍 EMAIL RECIPIENTS - Looking up for store: ${storeNumber}, type: ${orderType}, plant: ${plant}`);
+  console.log(`🔍 EMAIL RECIPIENTS - Fallback lookup for store: ${storeNumber}, type: ${orderType}`);
   
-  // Generate store variants (e.g., "22", "022", "Store 022")
+  // Generate store variants
   const storeVariants = [storeNumber];
   if (storeNumber.length === 1) {
     storeVariants.push(`0${storeNumber}`, `00${storeNumber}`);
@@ -204,7 +181,7 @@ async function getEmailRecipients(
     storeVariants.push(`0${storeNumber}`);
   }
   
-  // First try ordering_email_recipients table
+  // Try ordering_email_recipients table first
   const { data: databaseRecipients, error: dbError } = await supabase
     .from('ordering_email_recipients')
     .select('*')
@@ -214,7 +191,6 @@ async function getEmailRecipients(
   if (!dbError && databaseRecipients && databaseRecipients.length > 0) {
     console.log(`✅ EMAIL RECIPIENTS - Found ${databaseRecipients.length} database recipients`);
     
-    // Filter based on role and notification type
     const filteredRecipients = databaseRecipients.filter(recipient => {
       if (recipient.notification_types && Array.isArray(recipient.notification_types)) {
         return recipient.notification_types.includes(orderType);
@@ -225,9 +201,7 @@ async function getEmailRecipients(
     return filteredRecipients.map(r => ({
       email: r.recipient_email,
       name: r.store_name || r.plant,
-      role: r.role,
-      store: r.store_name,
-      plant: r.plant
+      role: r.role
     }));
   }
 
@@ -255,9 +229,7 @@ async function getEmailRecipients(
   return fallbackFiltered.map(r => ({
     email: r.email,
     name: r.full_name,
-    role: r.role,
-    store: r.store,
-    plant: r.plant
+    role: r.role
   }));
 }
 
@@ -272,7 +244,8 @@ function shouldIncludeRecipientByRole(role: string, orderType: string): boolean 
     'warehouse_coordinator': ['transfer', 'cross_dock', 'mto', 'wheel', 'completion', 'out_of_stock', 'message'],
     'retread_manager': ['mto', 'warranty', 'complaint'],
     'plant_manager': ['warranty', 'complaint'],
-    'operations_manager': ['warranty', 'complaint']
+    'operations_manager': ['warranty', 'complaint'],
+    'super_admin': ['transfer', 'cross_dock', 'mto', 'wheel', 'warranty', 'complaint', 'completion', 'out_of_stock', 'message']
   };
   
   const allowedTypes = roleRules[role] || [];
@@ -288,11 +261,12 @@ function generateEmailSubject(orderData: OrderData): string {
     'mto': 'MTO Order', 
     'wheel': 'Wheel Order',
     'warranty': 'Warranty Claim',
-    'complaint': 'Customer Complaint'
+    'complaint': 'Customer Complaint',
+    'cross_dock': 'Cross-Dock Order'
   };
   
   const orderTypeName = orderTypeMap[orderData.order_type] || 'Order';
-  return `${orderTypeName} Notification - ${orderData.store_name} - Order #${orderData.order_id}`;
+  return `✅ ${orderTypeName} Confirmation – Order #${orderData.order_id}`;
 }
 
 /**
@@ -304,75 +278,95 @@ function generateEmailBody(orderData: OrderData): string {
     <html>
     <head>
         <meta charset="utf-8">
-        <title>Order Notification</title>
+        <title>Order Confirmation</title>
         <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-            .order-details { background-color: #ffffff; border: 1px solid #e9ecef; padding: 20px; border-radius: 5px; }
-            .footer { margin-top: 20px; font-size: 12px; color: #666; }
-            h1 { color: #007bff; margin-bottom: 10px; }
-            h2 { color: #495057; border-bottom: 2px solid #007bff; padding-bottom: 5px; }
-            .detail-row { margin-bottom: 10px; }
-            .detail-label { font-weight: bold; display: inline-block; width: 150px; }
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .header { background-color: #007bff; color: white; padding: 30px; text-align: center; }
+            .header h1 { margin: 0; font-size: 24px; }
+            .content { padding: 30px; }
+            .order-details { background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0; }
+            .detail-row { margin-bottom: 12px; }
+            .detail-label { font-weight: bold; display: inline-block; width: 140px; color: #495057; }
+            .detail-value { color: #212529; }
+            .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #6c757d; }
+            .highlight { background-color: #e3f2fd; padding: 15px; border-left: 4px solid #2196f3; margin: 20px 0; }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>${generateEmailSubject(orderData)}</h1>
-                <p>A new ${orderData.order_type} order has been submitted and requires your attention.</p>
+                <h1>Order Confirmation</h1>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">Your ${orderData.order_type.toUpperCase()} order has been received</p>
             </div>
             
-            <div class="order-details">
-                <h2>Order Information</h2>
-                <div class="detail-row">
-                    <span class="detail-label">Order ID:</span>
-                    ${orderData.order_id}
+            <div class="content">
+                <div class="highlight">
+                    <strong>✅ Order #${orderData.order_id} confirmed</strong><br>
+                    Submitted on ${new Date(orderData.timestamp).toLocaleDateString()} at ${new Date(orderData.timestamp).toLocaleTimeString()}
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">Order Type:</span>
-                    ${orderData.order_type.toUpperCase()}
+                
+                <div class="order-details">
+                    <h3 style="margin-top: 0; color: #374151; border-bottom: 2px solid #007bff; padding-bottom: 8px;">Order Information</h3>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Order Type:</span>
+                        <span class="detail-value">${orderData.order_type.toUpperCase()}</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Store:</span>
+                        <span class="detail-value">${orderData.store_name}</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Submitted By:</span>
+                        <span class="detail-value">${orderData.name}</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Contact Email:</span>
+                        <span class="detail-value">${orderData.email}</span>
+                    </div>
+                    
+                    ${orderData.plant ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Plant:</span>
+                        <span class="detail-value">${orderData.plant}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${orderData.product_number ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Product:</span>
+                        <span class="detail-value">${orderData.product_number}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${orderData.description ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Description:</span>
+                        <span class="detail-value">${orderData.description}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${orderData.quantity ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Quantity:</span>
+                        <span class="detail-value">${orderData.quantity}</span>
+                    </div>
+                    ` : ''}
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">Store:</span>
-                    ${orderData.store_name}
+                
+                <div style="background-color: #d4edda; padding: 15px; border-radius: 6px; border-left: 4px solid #28a745;">
+                    <strong style="color: #155724;">What's Next?</strong><br>
+                    <span style="color: #155724;">Your order is now being processed. You will receive additional notifications as it progresses through our fulfillment process. No further action is required at this time.</span>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">Submitted By:</span>
-                    ${orderData.name}
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Email:</span>
-                    ${orderData.email}
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Timestamp:</span>
-                    ${orderData.timestamp}
-                </div>
-                ${orderData.product_number ? `
-                <div class="detail-row">
-                    <span class="detail-label">Product Number:</span>
-                    ${orderData.product_number}
-                </div>
-                ` : ''}
-                ${orderData.description ? `
-                <div class="detail-row">
-                    <span class="detail-label">Description:</span>
-                    ${orderData.description}
-                </div>
-                ` : ''}
-                ${orderData.quantity ? `
-                <div class="detail-row">
-                    <span class="detail-label">Quantity:</span>
-                    ${orderData.quantity}
-                </div>
-                ` : ''}
             </div>
             
             <div class="footer">
-                <p>This is an automated notification from the Conlan Tire Ordering System.</p>
-                <p>Please do not reply to this email. If you have questions, contact your system administrator.</p>
+                <p style="margin: 0 0 10px 0;"><strong>Conlan Tire Ordering System</strong></p>
+                <p style="margin: 0;">This is an automated confirmation. Please do not reply to this email.</p>
             </div>
         </div>
     </body>
@@ -386,7 +380,7 @@ function generateEmailBody(orderData: OrderData): string {
 async function logEmailDelivery(
   supabase: any, 
   orderData: OrderData, 
-  recipient: EmailRecipient, 
+  recipientEmail: string,
   status: string, 
   messageId?: string, 
   errorMessage?: string
@@ -397,11 +391,11 @@ async function logEmailDelivery(
       .insert({
         order_id: orderData.order_id,
         order_type: orderData.order_type,
-        email_type: orderData.order_type,
+        email_type: 'order_confirmation',
         store_number: orderData.store_number,
-        recipient_email: recipient.email,
+        recipient_email: recipientEmail,
         status: status,
-        response: messageId ? `Message ID: ${messageId}` : null,
+        response: messageId ? `Resend ID: ${messageId}` : null,
         error_details: errorMessage
       });
   } catch (error) {

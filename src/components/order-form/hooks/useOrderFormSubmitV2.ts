@@ -12,7 +12,7 @@ import { OrderSummary } from "../types";
 import { submitOrder } from "@/services/unifiedOrderService";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
-import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
+import { sendTransferOrderConfirmation } from "@/services/NotificationController";
 import type { OrderFormData, MTOFormData } from "@/types/orders";
 import { normalizeStoreFormatSync } from "@/utils/supabaseNormalization";
 import { OrderType } from "@/services/OrderIDService";

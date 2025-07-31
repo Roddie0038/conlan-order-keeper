@@ -10,7 +10,7 @@ import { OrderFormValues } from "../components/order-form/order-form-schema";
 import type { OrderSummary } from "./useOrderSubmission";
 import { submitOrder } from "@/services/unifiedOrderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
-import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
+import { sendTransferOrderConfirmation } from "@/services/NotificationController";
 import type { OrderFormData } from "@/types/orders";
 import { normalizeStoreFormatSync } from "@/utils/supabaseNormalization";
 import { OrderType } from "@/services/OrderIDService";
@@ -113,7 +113,20 @@ export function useOrderFormSubmit() {
             description: order.description
           };
 
-          const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
+          const confirmationResult = await sendTransferOrderConfirmation(
+            {
+              store: order.store,
+              plant: standardizedOrderData.plant,
+              email: user?.email || 'unknown@email.com',
+              name: order.yourName || 'Unknown'
+            },
+            submissionResult.data?.id?.toString() || 'Unknown',
+            {
+              quantity: parseInt(order.quantity.toString()) || 0,
+              product_number: order.productNumber,
+              description: order.description
+            }
+          );
           
           if (confirmationResult.success) {
             console.log(`✅ PHASE 2 - Confirmation email sent for order to ${standardizedOrderData.plant}`);

@@ -10,7 +10,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
+import { sendTransferOrderConfirmation } from "@/services/NotificationController";
 import type { OrderFormData } from "@/types/orders";
 
 export function useOrderFormSubmit() {
@@ -101,18 +101,20 @@ export function useOrderFormSubmit() {
           try {
             console.log("📧 STORE EMAIL DEBUG - Calling sendOrderConfirmationEmail for store:", storeNumber);
             
-            const emailResult = await sendOrderConfirmationEmail({
-              store_number: storeNumber,
-              store_name: order.store,
-              order_type: orderType,
-              order_id: savedOrderResult.data.id.toString(),
-              timestamp: orderRecord.timestamp,
-              name: orderRecord.name,
-              email: orderRecord.email,
-              quantity: orderRecord.quantity,
-              product_number: orderRecord.productNumber,
-              description: orderRecord.description
-            });
+            const emailResult = await sendTransferOrderConfirmation(
+              {
+                store: order.store,
+                plant: orderRecord.plant,
+                email: orderRecord.email,
+                name: orderRecord.name
+              },
+              savedOrderResult.data.id.toString(),
+              {
+                quantity: orderRecord.quantity,
+                product_number: orderRecord.productNumber,
+                description: orderRecord.description
+              }
+            );
             
             console.log("📧 STORE EMAIL DEBUG - sendOrderConfirmationEmail result:", emailResult);
             

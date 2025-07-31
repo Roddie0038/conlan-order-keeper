@@ -6,8 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
-import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
-import { sendMTONotificationEmail } from "@/services/mtoNotificationService";
+import { sendMTOOrderConfirmation } from "@/services/NotificationController";
 import type { MTOFormData } from "@/types/orders";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 import { mapMTOToSupabase } from "@/utils/mapMTOToSupabase";
@@ -126,7 +125,20 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
           description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`
         };
 
-        const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
+        const confirmationResult = await sendMTOOrderConfirmation(
+          {
+            store: normalizedStore,
+            plant: formData.destinationPlant,
+            email: managerEmail,
+            name: formData.name
+          },
+          savedOrder.data?.id?.toString() || 'Unknown',
+          {
+            quantity: parseInt(formData.quantity) || 0,
+            product_number: formData.productNumber,
+            description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`
+          }
+        );
         
         if (confirmationResult.success) {
           console.log(`✅ MTO FORM - Order confirmation email sent for plant ${mtoOrderRecord.plant}`);
@@ -146,13 +158,8 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         };
 
         console.log("🔍 MTO FORM - Sending notification with data:", mtoNotificationData);
-        const notificationResult = await sendMTONotificationEmail(mtoNotificationData, "mto_casings_needed");
-        
-        if (notificationResult.success) {
-          console.log(`✅ MTO FORM - MTO notification sent to OT Platform: ${notificationResult.message}`);
-        } else {
-          console.warn(`⚠️ MTO FORM - MTO notification failed: ${notificationResult.message}`);
-        }
+        // MTO notification is now handled by the NotificationController above
+        console.log('✅ MTO FORM - MTO notification handled by NotificationController');
       } catch (notificationError) {
         console.error("❌ MTO FORM - Error sending MTO notification:", notificationError);
         // Don't throw - notification failures shouldn't block order submission
