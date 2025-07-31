@@ -346,28 +346,47 @@ export class EmailRecipientManagementService {
     orderId?: string
   ): Promise<RecipientOverride[]> {
     try {
-      const query = `
-        SELECT * FROM order_email_overrides 
-        WHERE store_number = $1 
-        AND email_type = $2 
-        AND is_active = true 
-        AND (order_id = $3 OR template_id = $4 OR order_id IS NULL)
-        ORDER BY created_at DESC
-      `;
+      let query = supabase
+        .from('order_email_overrides')
+        .select('*')
+        .eq('store_number', storeNumber)
+        .eq('email_type', emailType)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-      const { data, error } = await supabase.rpc('get_notification_recipients', {
-        p_notification_type: emailType,
-        p_store: storeNumber
-      });
+      // Apply additional filters if provided
+      if (orderId && templateId) {
+        query = query.or(`order_id.eq.${orderId},template_id.eq.${templateId},order_id.is.null`);
+      } else if (orderId) {
+        query = query.or(`order_id.eq.${orderId},order_id.is.null`);
+      } else if (templateId) {
+        query = query.or(`template_id.eq.${templateId},template_id.is.null`);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("❌ RECIPIENT MGMT - Error querying overrides:", error);
         return [];
       }
 
-      // For now, return empty array since we need proper SQL execution
-      // This will be enhanced when we have proper SQL execution capabilities
-      return [];
+      return (data || []).map(item => ({
+        id: item.id,
+        order_id: item.order_id,
+        template_id: item.template_id,
+        store_number: item.store_number,
+        plant: item.plant,
+        email_type: item.email_type as EmailType,
+        recipient_email: item.recipient_email,
+        recipient_name: item.recipient_name,
+        recipient_role: item.recipient_role,
+        action_type: item.action_type as 'add' | 'remove',
+        added_by_email: item.added_by_email,
+        added_by_name: item.added_by_name,
+        is_active: item.is_active,
+        is_default_recipient: item.is_default_recipient,
+        created_at: item.created_at
+      }));
 
     } catch (error) {
       console.error("❌ RECIPIENT MGMT - Error in queryOverrides:", error);
@@ -376,35 +395,32 @@ export class EmailRecipientManagementService {
   }
 
   private async insertOverride(override: Omit<RecipientOverride, 'id' | 'created_at'>): Promise<void> {
-    // Insert using notification_logs table as a temporary store
-    // This is a workaround until we have proper SQL execution
-    const logData = {
-      order_id: override.order_id || generateUUID(),
-      notification_type: `override_${override.action_type}`,
-      recipient_email: override.recipient_email,
-      recipient_role: override.recipient_role,
-      store: override.store_number,
+    const insertData = {
+      order_id: override.order_id,
+      template_id: override.template_id,
+      store_number: override.store_number,
       plant: override.plant,
-      status: 'override',
-      metadata: {
-        service: 'email_recipient_management',
-        action_type: override.action_type,
-        template_id: override.template_id,
-        recipient_name: override.recipient_name,
-        added_by_email: override.added_by_email,
-        added_by_name: override.added_by_name,
-        is_default_recipient: override.is_default_recipient,
-        email_type: override.email_type
-      }
+      email_type: override.email_type,
+      action_type: override.action_type,
+      recipient_email: override.recipient_email,
+      recipient_name: override.recipient_name,
+      recipient_role: override.recipient_role,
+      is_default_recipient: override.is_default_recipient,
+      added_by_email: override.added_by_email,
+      added_by_name: override.added_by_name,
+      is_active: override.is_active
     };
 
     const { error } = await supabase
-      .from('notification_logs')
-      .insert(logData);
+      .from('order_email_overrides')
+      .insert(insertData);
 
     if (error) {
+      console.error("❌ RECIPIENT MGMT - Failed to insert override:", error);
       throw new Error(`Failed to insert override: ${error.message}`);
     }
+
+    console.log("✅ RECIPIENT MGMT - Successfully inserted override into order_email_overrides");
   }
 
   private async findExistingOverride(
@@ -415,13 +431,77 @@ export class EmailRecipientManagementService {
     templateId?: string,
     orderId?: string
   ): Promise<RecipientOverride | null> {
-    // For now, return null as we need proper SQL execution
-    return null;
+    try {
+      let query = supabase
+        .from('order_email_overrides')
+        .select('*')
+        .eq('recipient_email', email)
+        .eq('store_number', storeNumber)
+        .eq('email_type', emailType)
+        .eq('action_type', actionType)
+        .eq('is_active', true);
+
+      // Apply additional filters if provided
+      if (orderId && templateId) {
+        query = query.or(`order_id.eq.${orderId},template_id.eq.${templateId},order_id.is.null`);
+      } else if (orderId) {
+        query = query.or(`order_id.eq.${orderId},order_id.is.null`);
+      } else if (templateId) {
+        query = query.or(`template_id.eq.${templateId},template_id.is.null`);
+      }
+
+      const { data, error } = await query.maybeSingle();
+
+      if (error) {
+        console.error("❌ RECIPIENT MGMT - Error finding existing override:", error);
+        return null;
+      }
+
+      if (!data) {
+        return null;
+      }
+
+      return {
+        id: data.id,
+        order_id: data.order_id,
+        template_id: data.template_id,
+        store_number: data.store_number,
+        plant: data.plant,
+        email_type: data.email_type as EmailType,
+        recipient_email: data.recipient_email,
+        recipient_name: data.recipient_name,
+        recipient_role: data.recipient_role,
+        action_type: data.action_type as 'add' | 'remove',
+        added_by_email: data.added_by_email,
+        added_by_name: data.added_by_name,
+        is_active: data.is_active,
+        is_default_recipient: data.is_default_recipient,
+        created_at: data.created_at
+      };
+
+    } catch (error) {
+      console.error("❌ RECIPIENT MGMT - Error in findExistingOverride:", error);
+      return null;
+    }
   }
 
   private async deactivateOverride(overrideId: string): Promise<void> {
-    // Placeholder - would update is_active to false
-    console.log(`📧 RECIPIENT MGMT - Would deactivate override ${overrideId}`);
+    try {
+      const { error } = await supabase
+        .from('order_email_overrides')
+        .update({ is_active: false })
+        .eq('id', overrideId);
+
+      if (error) {
+        console.error("❌ RECIPIENT MGMT - Error deactivating override:", error);
+        throw new Error(`Failed to deactivate override: ${error.message}`);
+      }
+
+      console.log(`✅ RECIPIENT MGMT - Successfully deactivated override ${overrideId}`);
+    } catch (error) {
+      console.error("❌ RECIPIENT MGMT - Error in deactivateOverride:", error);
+      throw error;
+    }
   }
 
   private async deactivateAllOverrides(
@@ -430,8 +510,35 @@ export class EmailRecipientManagementService {
     templateId?: string,
     orderId?: string
   ): Promise<void> {
-    // Placeholder - would update all matching overrides to is_active = false
-    console.log(`📧 RECIPIENT MGMT - Would deactivate all overrides for ${storeNumber} ${emailType}`);
+    try {
+      let query = supabase
+        .from('order_email_overrides')
+        .update({ is_active: false })
+        .eq('store_number', storeNumber)
+        .eq('email_type', emailType)
+        .eq('is_active', true);
+
+      // Apply additional filters if provided
+      if (orderId && templateId) {
+        query = query.or(`order_id.eq.${orderId},template_id.eq.${templateId},order_id.is.null`);
+      } else if (orderId) {
+        query = query.or(`order_id.eq.${orderId},order_id.is.null`);
+      } else if (templateId) {
+        query = query.or(`template_id.eq.${templateId},template_id.is.null`);
+      }
+
+      const { error } = await query;
+
+      if (error) {
+        console.error("❌ RECIPIENT MGMT - Error deactivating all overrides:", error);
+        throw new Error(`Failed to deactivate overrides: ${error.message}`);
+      }
+
+      console.log(`✅ RECIPIENT MGMT - Successfully deactivated all overrides for ${storeNumber} ${emailType}`);
+    } catch (error) {
+      console.error("❌ RECIPIENT MGMT - Error in deactivateAllOverrides:", error);
+      throw error;
+    }
   }
 
   /**
@@ -468,7 +575,32 @@ export class EmailRecipientManagementService {
     orderId?: string
   ): Promise<boolean> {
     try {
-      // For now, always return false as we need proper SQL execution
+      // Check for existing active overrides for the same email
+      const existingOverride = await this.findExistingOverride(
+        email, storeNumber, emailType, 'add', templateId, orderId
+      );
+
+      if (existingOverride) {
+        console.log("📧 RECIPIENT MGMT - Found existing override for email:", email);
+        return true;
+      }
+
+      // Check if email exists in default recipients (using resolver)
+      const defaultResult = await resolveEmailRecipients(
+        { store: storeNumber }, 
+        emailType, 
+        orderId
+      );
+      
+      const isDuplicateDefault = defaultResult.recipients.some(r => 
+        r.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (isDuplicateDefault) {
+        console.log("📧 RECIPIENT MGMT - Email already exists in default recipients:", email);
+        return true;
+      }
+
       return false;
 
     } catch (error) {
