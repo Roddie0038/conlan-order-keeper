@@ -223,7 +223,7 @@ export const RecipientManagementModal: React.FC<RecipientManagementModalProps> =
         .from('ot_platform_users')
         .select('email, full_name, role, store, plant')
         .eq('status', 'active')
-        .or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,role.ilike.%${searchTerm}%,store.ilike.%${searchTerm}%`)
+        .or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,role::text.ilike.%${searchTerm}%,store.ilike.%${searchTerm}%,plant.ilike.%${searchTerm}%`)
         .limit(10);
 
       console.log('🔍 SEARCH QUERY RESULT:', { 
