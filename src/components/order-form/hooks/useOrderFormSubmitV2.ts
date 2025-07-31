@@ -120,38 +120,37 @@ export function useOrderFormSubmit() {
         // ✅ Keep existing Google Sheets submission for backward compatibility
         await submitToGoogleSheets(standardizedOrderData, user);
 
-        // Send Order Confirmation Email (unchanged functionality)
-        const normalizedStore = normalizeStoreFormatSync(order.store);
-        const storeNumber = normalizedStore.match(/\d+/)?.[0] || '';
-        
-        if (storeNumber && submissionResult.data?.id) {
+        // ✅ PHASE 3: Send notification using new unified resolution system
+        if (submissionResult.data?.id) {
           try {
-            console.log("📧 PHASE 2 COMPONENT - Sending confirmation email for store:", storeNumber);
+            console.log("📧 PHASE 3 COMPONENT - Sending notification via unified system");
             
-            const emailResult = await sendOrderConfirmationEmail({
-              store_number: storeNumber,
-              store_name: order.store,
-              order_type: orderType,
-              order_id: submissionResult.data.id.toString(),
-              timestamp: standardizedOrderData.timestamp!,
-              name: standardizedOrderData.name,
-              email: standardizedOrderData.email!,
-              quantity: standardizedOrderData.quantity,
-              product_number: standardizedOrderData.productNumber,
-              description: standardizedOrderData.description || ""
-            });
+            // Import here to avoid circular dependency
+            const { sendTransferNotification, sendMTONotification } = await import("@/services/unifiedNotificationService");
             
-            if (emailResult.success) {
-              console.log("✅ PHASE 2 COMPONENT - Confirmation email sent successfully");
+            const notificationService = orderType === 'MTO' ? sendMTONotification : sendTransferNotification;
+            
+            const notificationResult = await notificationService(
+              standardizedOrderData,
+              submissionResult.data.id.toString(),
+              {
+                product_number: standardizedOrderData.productNumber,
+                description: standardizedOrderData.description || "",
+                quantity: standardizedOrderData.quantity
+              }
+            );
+            
+            if (notificationResult.success) {
+              console.log(`✅ PHASE 3 COMPONENT - Notification sent via ${notificationResult.resolution_source} to ${notificationResult.recipients_count} recipients`);
             } else {
-              console.warn("⚠️ PHASE 2 COMPONENT - Confirmation email failed:", emailResult.message);
+              console.warn("⚠️ PHASE 3 COMPONENT - Notification failed:", notificationResult.message);
             }
           } catch (emailError) {
-            console.error("❌ PHASE 2 COMPONENT - Error sending confirmation email:", emailError);
+            console.error("❌ PHASE 3 COMPONENT - Error sending notification:", emailError);
             // Don't block order submission for email failures
           }
         } else {
-          console.warn("⚠️ PHASE 2 COMPONENT - Skipping confirmation email - missing store number or order ID");
+          console.warn("⚠️ PHASE 3 COMPONENT - Skipping notification - missing order ID");
         }
       }
 

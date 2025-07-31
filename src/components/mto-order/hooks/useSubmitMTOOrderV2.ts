@@ -87,6 +87,33 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         store: standardizedMTOData.store
       });
 
+      // ✅ PHASE 3: Send notification using new unified resolution system
+      if (submissionResult.data?.id) {
+        try {
+          console.log("📧 PHASE 3 MTO FORM - Sending notification via unified system");
+          
+          const { sendMTONotification } = await import("@/services/unifiedNotificationService");
+          
+          const notificationResult = await sendMTONotification(
+            standardizedMTOData,
+            submissionResult.data.id.toString(),
+            {
+              product_number: standardizedMTOData.productNumber,
+              description: standardizedMTOData.description || "",
+              quantity: standardizedMTOData.quantity
+            }
+          );
+          
+          if (notificationResult.success) {
+            console.log(`✅ PHASE 3 MTO FORM - Notification sent via ${notificationResult.resolution_source} to ${notificationResult.recipients_count} recipients`);
+          } else {
+            console.warn("⚠️ PHASE 3 MTO FORM - Notification failed:", notificationResult.message);
+          }
+        } catch (emailError) {
+          console.error("❌ PHASE 3 MTO FORM - Error sending notification:", emailError);
+        }
+      }
+
       // ✅ Keep existing Google Sheets submission for backward compatibility
       const result = await submitToGoogleSheets(standardizedMTOData, user);
       console.log("🔍 PHASE 2 MTO FORM - Google Sheets result:", result);

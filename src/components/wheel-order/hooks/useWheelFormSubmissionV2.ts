@@ -97,6 +97,38 @@ export function useWheelFormSubmission(
         store: formData.storeName
       });
       
+      // ✅ PHASE 3: Send notification using new unified resolution system
+      if (submissionResult.data?.id) {
+        try {
+          console.log("📧 PHASE 3 WHEEL FORM - Sending notification via unified system");
+          
+          const { sendWheelNotification } = await import("@/services/unifiedNotificationService");
+          
+          const notificationResult = await sendWheelNotification(
+            {
+              store: formData.storeName,
+              plant: formData.destinationPlant,
+              email: managerEmail,
+              name: formData.yourName
+            },
+            submissionResult.data.id.toString(),
+            {
+              product_number: `${formData.wheelMaterial} ${formData.wheelSize}`,
+              description: `${formData.wheelType} - ${formData.wheelColor}`,
+              quantity: parseInt(formData.qtyWheels) || 0
+            }
+          );
+          
+          if (notificationResult.success) {
+            console.log(`✅ PHASE 3 WHEEL FORM - Notification sent via ${notificationResult.resolution_source} to ${notificationResult.recipients_count} recipients`);
+          } else {
+            console.warn("⚠️ PHASE 3 WHEEL FORM - Notification failed:", notificationResult.message);
+          }
+        } catch (emailError) {
+          console.error("❌ PHASE 3 WHEEL FORM - Error sending notification:", emailError);
+        }
+      }
+      
       // ✅ Keep existing Google Sheets submission for backward compatibility
       const currentTimestamp = formatTimestamp(new Date().toISOString());
       const formattedScheduleArrival = formData.scheduleArrival ? formatTimestamp(formData.scheduleArrival) : formatTimestamp(formData.dateReceived);
