@@ -6,7 +6,7 @@ import { PLANT_WEBHOOKS } from "@/contexts/PlantContext";
 import { processOrder } from "@/services/orderSubmission/processOrder";
 import { processWebhook } from "@/services/orderSubmission/processWebhook";
 import { storeCompletedOrders } from "@/services/orderSubmission/storeStorage";
-import type { OrderData } from "@/types/supabase-extensions";
+import type { OrderFormData } from "@/types/orders";
 
 export type OrderSummary = {
   id: string;

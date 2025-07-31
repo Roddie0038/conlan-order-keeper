@@ -1,5 +1,5 @@
 
-import type { OrderData } from "@/types/supabase-extensions";
+import type { OrderFormData } from "@/types/orders";
 import { normalizeStoreForSubmission } from './storeNormalization';
 
 export function mapOrderToSupabase(form: any, user: any, selectedPlant?: string): any {

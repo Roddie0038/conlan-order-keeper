@@ -7,7 +7,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
-import type { OrderData } from "@/types/supabase-extensions";
+import type { OrderFormData } from "@/types/orders";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields } from "@/utils/storeNormalization";
 import OrderIDService from "@/services/OrderIDService";
 
@@ -89,7 +89,7 @@ export function useWheelFormSubmission(
       const formattedReceivedAt = formatTimestamp(formData.dateReceived);
       
       // Create order data using the selected plant directly
-      const baseOrder: OrderData = {
+      const baseOrder: OrderFormData = {
         name: formData.yourName,
         store: normalizedStoreName,
         productNumber: "WHEEL-COATING",

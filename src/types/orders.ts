@@ -15,13 +15,12 @@ import { OrderType } from "@/services/OrderIDService";
 // These interfaces match the exact Supabase table schemas
 
 /**
- * Transfer Order Record - matches 'orders' table schema exactly
- * Includes ALL advanced fields for manager workflow, out-of-stock, cross-dock, etc.
+ * Transfer Order Record - matches 'orders' table schema EXACTLY
+ * Based on live Supabase schema - ALL 47 fields included
  */
 export interface OrderRecord {
   // Core identification fields
-  id: number; // bigint in database, non-nullable
-  order_id?: string; // Optional computed field for compatibility
+  id: number; // bigint in database, non-nullable, primary key
   timestamp: string; // text field, non-nullable
   
   // Basic order information
@@ -56,7 +55,7 @@ export interface OrderRecord {
   out_of_stock: boolean | null;
   out_of_stock_eta: string | null;
   out_of_stock_notes: string | null;
-  out_of_stock_items: any | null; // jsonb type - keeping flexible for database compatibility
+  out_of_stock_items: any | null; // jsonb type
   
   // Warehouse and Receiving Fields
   warehouse_received: boolean | null; // default: false
@@ -67,12 +66,12 @@ export interface OrderRecord {
   
   // Manager Workflow Fields (Advanced)
   manager_notes: string | null;
-  tire_pull_status: string | null; // 'not_pulled' | 'pulling_tires' | 'pulled_tires' - keeping flexible for DB compatibility
+  tire_pull_status: string | null;
   store_manager_message: string | null;
   
   // Response and Communication Fields
   response_deadline: string | null; // timestamp with time zone
-  store_response_status: string | null; // 'awaiting_response' | 'store_replied' | 'no_response' - keeping flexible for DB compatibility
+  store_response_status: string | null;
   store_response_date: string | null; // timestamp with time zone
   confirmation_token: string | null;
   
@@ -169,12 +168,12 @@ export interface MTOOrderRecord {
 }
 
 /**
- * Wheel Order Record - matches your exact specification and 'wheel_orders' table schema
- * UPDATED to match OT Platform standards exactly
+ * Wheel Order Record - matches 'wheel_orders' table schema EXACTLY
+ * Based on live Supabase schema - ALL 34 fields included (snake_case naming)
  */
 export interface WheelOrderRecord {
   // Core identification
-  id: string; // UUID, non-nullable
+  id: string; // UUID, non-nullable, primary key
   timestamp: string | null;
   
   // Plant and location
@@ -183,85 +182,101 @@ export interface WheelOrderRecord {
   
   // Basic order information
   name: string | null;
-  quantity: number | null;
+  quantity: number | null; // integer
   
-  // Wheel specifications - exact field names from your spec
-  wheelsize: string | null;
-  wheeltype: string | null;
-  wheelmaterial: string | null;
-  desiredcolor: string | null;
-  handholes: number | null;
+  // Wheel specifications (snake_case as per database)
+  wheel_size: string | null;
+  wheel_type: string | null;
+  wheel_material: string | null;
+  desired_color: string | null;
+  hand_holes: number | null; // integer
   
   // Scheduling and delivery
-  duedate: string | null;
+  due_date: string | null; // date
   
   // Receiving and fulfillment
-  wheelsreceived: number | null; // number per your spec
-  workorderlink: string | null;
-  receivedat: string | null;
+  wheels_received: number | null; // integer
+  work_order_link: string | null;
+  received_at: string | null; // timestamp with time zone
   
   // Status and completion tracking
   completed: boolean | null;
-  completedat: string | null;
-  statusupdatedat: string | null;
+  completed_at: string | null; // timestamp with time zone
+  status_updated_at: string | null; // timestamp with time zone
   
-  // Cross-Dock Fields (exact field names from your spec)
-  crossdockdestination: string | null;
-  crossdocketadate: string | null;
-  crossdockformlink: string | null;
-  crossdockreceivernumber: string | null;
-  crossdocktype: string | null;
+  // Cross-Dock Fields (snake_case as per database)
+  cross_dock_destination: string | null;
+  cross_dock_eta_date: string | null; // date
+  cross_dock_form_link: string | null;
+  cross_dock_receiver_number: string | null;
+  cross_dock_type: string | null;
   
-  // Email and notification fields
-  sendemailtrigger: boolean | null;
-  emailmessage: string | null;
-  destinationmanageremail: string | null;
+  // Email and notification fields (snake_case as per database)
+  send_email_trigger: boolean | null;
+  email_message: string | null;
+  destination_manager_email: string | null;
   
   // System fields
-  deleted_at: string | null;
-  received_at: string | null;
+  deleted_at: string | null; // timestamp with time zone
 }
 
 /**
- * Warranty Order Record - matches your exact specification and 'warranty_orders' table schema
- * UPDATED to match OT Platform standards exactly
+ * Warranty Order Record - matches 'warranty_orders' table schema EXACTLY
+ * Based on live Supabase schema - ALL 36 fields included
  */
 export interface WarrantyOrderRecord {
   // Core identification
-  id: string; // UUID, non-nullable
-  timestamp: string | null; // Added per your spec
+  id: string; // UUID, non-nullable, primary key
+  created_at: string | null; // timestamp with time zone, default: now()
   
   // Plant and location
-  plant: string | null; // Made nullable per your spec
+  plant: string | null;
   store: string | null;
   
   // Basic information
   name: string | null;
-  product_number: string | null; // Added per your spec
-  quantity: number | null; // Added per your spec
+  product_number: string | null;
+  quantity: number | null; // integer
+  description: string | null;
   
-  // Financial processing fields per your spec
+  // Customer and contact information
+  customer_name: string | null;
+  email: string | null;
+  phone: string | null;
+  
+  // Tire and product details
+  tire_size: string | null;
+  tire_type: string | null;
+  dot_number: string | null;
+  condition: string | null;
+  load_range: string | null;
+  mileage_on_tire: number | null; // integer
+  wear_percentage: number | null; // integer
+  
+  // Vehicle information
+  vehicle_make: string | null;
+  model_year: string | null;
+  vin_or_unit: string | null;
+  wheel_position: string | null;
+  
+  // Financial and processing
+  purchase_date: string | null; // date
+  work_order: string | null;
   approval_invoice_number: string | null;
   denial_invoice_number: string | null;
   excise_tax_collected: boolean | null;
+  
+  // Documentation
   invoice_url: string | null;
-  load_range: string | null;
-  mileage_on_tire: number | null; // Changed to number per your spec
-  model_year: string | null;
-  photo_urls: string[] | null;
-  purchase_date: string | null;
-  replacement_product_code: string | null;
+  photo_urls: string[] | null; // array of text
   signature_url: string | null;
+  replacement_product_code: string | null;
   
   // Status and processing
-  status: string; // Non-nullable
-  updated_at: string | null;
-  user_id: string | null;
-  vehicle_make: string | null;
-  vin_or_unit: string | null;
-  wear_percentage: number | null; // Changed to number per your spec
-  wheel_position: string | null;
-  date_submitted: string | null;
+  status: string; // Non-nullable, default: 'pending'
+  updated_at: string | null; // timestamp with time zone, default: now()
+  user_id: string | null; // UUID
+  date_submitted: string | null; // timestamp with time zone, default: now()
 }
 
 // ============= UNIFIED DISPLAY INTERFACE =============

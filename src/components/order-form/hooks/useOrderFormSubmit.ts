@@ -11,7 +11,7 @@ import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { storeData } from "@/config/storeData";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
-import type { OrderData } from "@/types/supabase-extensions";
+import type { OrderFormData } from "@/types/orders";
 
 export function useOrderFormSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +72,7 @@ export function useOrderFormSubmit() {
         console.log("🔍 ORDER FORM SUBMIT - Determined order type:", orderType, "for order:", order);
         
         // Create the order data in camelCase (internal format) with correct type
-        const orderData: OrderData = {
+        const orderData: OrderFormData = {
           name: order.yourName,
           store: order.store,
           productNumber: order.productNumber,

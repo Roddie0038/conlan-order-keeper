@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { OrderData, MTOOrderData, SupabaseInsertResult, MTOOrderRecord, TransferOrderRecord, WheelOrderRecord } from "@/types/supabase-extensions";
+import type { OrderFormData, MTOFormData, SupabaseInsertResult, MTOOrderRecord, TransferOrderRecord, WheelOrderRecord } from "@/types/supabase-extensions";
 import { mapOrderToSupabase } from "@/utils/mapOrderToSupabase";
 import { mapMTOToSupabase } from "@/utils/mapMTOToSupabase";
 
@@ -12,7 +12,7 @@ import { mapMTOToSupabase } from "@/utils/mapMTOToSupabase";
  * @returns A promise resolving to the standardized result structure
  */
 export const saveOrderToSupabase = async (
-  order: OrderData | MTOOrderData, 
+  order: OrderFormData | MTOFormData, 
   user?: any
 ): Promise<SupabaseInsertResult<MTOOrderRecord | TransferOrderRecord | WheelOrderRecord>> => {
   console.log("🔍 ORDER SERVICE - Saving order to Supabase:", order);
@@ -208,24 +208,24 @@ export const saveOrderToSupabase = async (
     if (order.type === 'WHEEL_POWDER_COATING') {
       const formattedOrder = {
         id: order.id,
-        name: (order as OrderData).yourName || order.name,
+        name: (order as OrderFormData).yourName || order.name,
         store: order.store,
         productnumber: order.productNumber,
-        description: (order as OrderData).description,
+        description: (order as OrderFormData).description,
         quantity: order.quantity,
-        schedulearrival: (order as OrderData).scheduleArrival,
+        schedulearrival: (order as OrderFormData).scheduleArrival,
         notes: order.notes,
         email: order.email,
         timestamp: order.timestamp || new Date().toISOString(),
         plant: order.plant,
         ordertype: order.type,
-        crossdocktype: (order as OrderData).crossDock || "No",
-        crossdockdestination: (order as OrderData).crossDockDestination || null,
-        wheelmaterial: (order as OrderData).wheelMaterial,
-        wheeltype: (order as OrderData).wheelType,
-        handholes: (order as OrderData).handHoles,
-        wheelsize: (order as OrderData).wheelSize,
-        desiredcolor: (order as OrderData).wheelColor,
+        crossdocktype: (order as OrderFormData).crossDock || "No",
+        crossdockdestination: (order as OrderFormData).crossDockDestination || null,
+        wheelmaterial: (order as OrderFormData).wheelMaterial,
+        wheeltype: (order as OrderFormData).wheelType,
+        handholes: (order as OrderFormData).handHoles,
+        wheelsize: (order as OrderFormData).wheelSize,
+        desiredcolor: (order as OrderFormData).wheelColor,
         status: order.status || "pending",
         statusupdatedat: new Date().toISOString(),
       };
@@ -244,7 +244,7 @@ export const saveOrderToSupabase = async (
       }
       
       console.log("✅ ORDER SERVICE - Successfully saved to wheel_orders:", data);
-      return { data: data as WheelOrderRecord, error: null };
+      return { data: data as unknown as WheelOrderRecord, error: null };
     }
     
     // Handle regular transfer orders (default case)

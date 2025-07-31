@@ -4,10 +4,11 @@
  */
 
 import { CrossDockFields } from "./cross-dock.types";
-import type { OrderData } from "./supabase-extensions";
+import type { OrderFormData } from "./orders";
 
-// Re-export OrderData type from supabase-extensions
-export type { OrderData } from "./supabase-extensions";
+// Re-export OrderFormData type
+export type { OrderFormData } from "./orders";
+export type OrderData = OrderFormData; // Legacy alias
 
 /**
  * Cross Dock Webhook Payload

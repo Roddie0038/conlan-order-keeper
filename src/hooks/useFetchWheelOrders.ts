@@ -29,7 +29,7 @@ export function useFetchWheelOrders() {
         throw error;
       }
       
-      setOrders((data as WheelOrderRecord[]) || []);
+      setOrders((data as unknown as WheelOrderRecord[]) || []);
     } catch (err) {
       console.error("Error fetching wheel orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));

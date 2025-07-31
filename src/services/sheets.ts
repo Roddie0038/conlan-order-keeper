@@ -4,15 +4,16 @@ import { submitToWebhook } from './webhook/utils';
 import { submitToOrdersWebhook } from './webhook/orderWebhook';
 import { submitToWheelOrdersWebhook } from './webhook/wheelWebhook';
 import { submitToMTOOrdersWebhook } from './webhook/mtoWebhook';
-import { OrderType, MTOOrderData, WEBHOOK_URLS } from './webhook/config';
-import type { OrderData } from '@/types/supabase-extensions';
+import { OrderType, WEBHOOK_URLS } from './webhook/config';
+import type { MTOFormData } from '@/types/orders';
+import type { OrderFormData } from '@/types/orders';
 import { mapOrderToGoogleSheets } from '@/utils/mapOrderToGoogleSheets';
 import { mapMTOToGoogleSheets } from '@/utils/mapMTOToGoogleSheets';
 
-export type { OrderType, MTOOrderData };
-export type { OrderData };
+export type { OrderType };
+export type { OrderFormData };
 
-export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?: any) => {
+export const submitToGoogleSheets = async (data: OrderFormData | MTOFormData, user?: any) => {
   console.log("🔍 SHEETS - ENTRY POINT - submitToGoogleSheets called");
   console.log("🔍 SHEETS - Order data:", JSON.stringify(data, null, 2));
   console.log("🔍 SHEETS - Order type:", data.type);

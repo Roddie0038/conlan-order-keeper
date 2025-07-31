@@ -5,7 +5,7 @@ import { storeData } from "@/config/storeData";
 import { OrderType } from "@/services/webhook/config";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
-import type { OrderData } from "@/types/supabase-extensions";
+import type { OrderFormData } from "@/types/orders";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";

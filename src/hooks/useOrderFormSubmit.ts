@@ -7,7 +7,7 @@ import type { OrderSummary } from "./useOrderSubmission";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
-import type { OrderData } from "@/types/supabase-extensions";
+import type { OrderFormData } from "@/types/orders";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 
 export function useOrderFormSubmit() {
@@ -60,7 +60,7 @@ export function useOrderFormSubmit() {
         }
         
         // Create order data using the selected plant directly
-        const baseOrder: OrderData = {
+        const baseOrder: OrderFormData = {
           name: order.yourName,
           store: normalizedStore,
           productNumber: order.productNumber,

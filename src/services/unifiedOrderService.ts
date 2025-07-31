@@ -262,7 +262,7 @@ export async function submitWheelOrder(
     }
     
     console.log("✅ WHEEL ORDER - Successfully saved:", data);
-    return { data: data as WheelOrderRecord, error: null, success: true };
+    return { data: data as unknown as WheelOrderRecord, error: null, success: true };
     
   } catch (error) {
     const err = error instanceof Error ? error : new Error("Unknown error in submitWheelOrder");

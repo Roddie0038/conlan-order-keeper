@@ -28,19 +28,23 @@ export type SupabaseInsertResult<T> = {
 
 // ============= FORM DATA RE-EXPORTS =============
 // Re-export form data interfaces for compatibility (camelCase for UI forms)
+// These are now the primary form interfaces, legacy type aliases removed
 
-export type OrderData = OrderFormData;
-export type MTOOrderData = MTOFormData;
-export type WheelOrderData = WheelFormData;
-export type WarrantyOrderData = WarrantyFormData;
+export type { OrderFormData, MTOFormData, WheelFormData, WarrantyFormData };
 
 // ============= DATABASE TYPE RE-EXPORTS =============
-// Direct references to Supabase-generated types for maximum compatibility
+// Re-export the comprehensive database types from orders.ts
 
-export type MTOOrderRecord = Database['public']['Tables']['mto_orders']['Row'];
-export type TransferOrderRecord = Database['public']['Tables']['orders']['Row'];
-export type WheelOrderRecord = Database['public']['Tables']['wheel_orders']['Row'];
-export type WarrantyOrderRecord = Database['public']['Tables']['warranty_orders']['Row'];
+export type { 
+  OrderRecord as TransferOrderRecord,
+  MTOOrderRecord, 
+  WheelOrderRecord, 
+  WarrantyOrderRecord 
+} from "@/types/orders";
+
+// Legacy aliases for backwards compatibility
+export type OrderData = OrderFormData;
+export type MTOOrderData = MTOFormData;
 
 // Insert and Update types for database operations
 export type MTOOrderInsert = Database['public']['Tables']['mto_orders']['Insert'];

@@ -7,7 +7,7 @@ import { saveOrderToSupabase } from "@/services/orderService";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
 import { sendMTONotificationEmail } from "@/services/mtoNotificationService";
-import type { MTOOrderData } from "@/types/supabase-extensions";
+import type { MTOFormData } from "@/types/orders";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 import { mapMTOToSupabase } from "@/utils/mapMTOToSupabase";
 

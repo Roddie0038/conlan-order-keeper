@@ -82,7 +82,7 @@ export const submitRetreadWarranty = async (data: RetreadWarrantyData): Promise<
       console.log('✅ WARRANTY SERVICE - Email notification sent successfully:', emailResult);
     }
 
-    return { data: warrantyOrder, error: null };
+    return { data: warrantyOrder as unknown as WarrantyOrderRecord, error: null };
   } catch (error) {
     console.error('❌ WARRANTY SERVICE - Error submitting warranty claim:', error);
     return { 
