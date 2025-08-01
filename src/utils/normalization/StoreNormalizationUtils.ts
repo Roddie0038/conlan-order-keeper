@@ -104,3 +104,20 @@ export function getStoreDisplayName(store: string): string {
   // Otherwise return as-is
   return store;
 }
+
+/**
+ * Debug utility to log store normalization process
+ */
+export function debugStoreNormalization(originalStore: string, context: string = 'unknown'): void {
+  const storeNumber = extractStoreNumber(originalStore);
+  const normalized = normalizeStoreFormat(originalStore);
+  const displayName = getStoreDisplayName(originalStore);
+  
+  console.log(`🔍 STORE NORMALIZATION DEBUG [${context}]:`, {
+    original: originalStore,
+    extractedNumber: storeNumber,
+    normalized,
+    displayName,
+    context
+  });
+}

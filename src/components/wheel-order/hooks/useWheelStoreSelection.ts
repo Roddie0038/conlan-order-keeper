@@ -13,20 +13,45 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
   
   useEffect(() => {
     if (user?.store) {
-      const storeIdMatch = user.store.match(/\d+$/);
-      const storeId = storeIdMatch ? storeIdMatch[0] : "";
+      console.log("🔍 WHEEL STORE SELECTION DEBUG - User store:", user.store);
       
-      const storeObj = stores.find(s => s.id === storeId);
+      // Method 1: Try exact name match first
+      let storeObj = stores.find(s => s.name === user.store);
+      
+      // Method 2: If no exact match, extract store number and match by ID
+      if (!storeObj) {
+        const storeIdMatch = user.store.match(/(\d+)$/);
+        if (storeIdMatch) {
+          const extractedNumber = storeIdMatch[1].replace(/^0+/, ''); // Remove leading zeros
+          storeObj = stores.find(s => s.id === extractedNumber);
+          console.log("🔍 WHEEL STORE SELECTION DEBUG - Store number extraction:", {
+            originalStore: user.store,
+            extractedNumber,
+            foundStoreObj: storeObj
+          });
+        }
+      }
+      
+      const storeId = storeObj?.id || "";
+      
+      console.log("🔍 WHEEL STORE SELECTION DEBUG - Final mapping:", {
+        userStore: user.store,
+        foundStoreObj: storeObj,
+        storeId: storeId
+      });
       
       if (storeObj) {
         const storeColor = getStoreColor(user.store);
         setFormData(prev => ({
           ...prev,
-          storeName: storeObj.name, // This will now be "Fort Worth 022" for store 22
-          storeId: storeId,
+          storeName: storeObj.name, // Use the display name from stores config
+          storeId: storeId, // ✅ Fixed storeId mapping
           userStore: user.store,  // Set the userStore field based on the authenticated user
           storeColors: storeColor  // Set the store colors automatically
         }));
+      } else {
+        console.warn("🚨 WHEEL STORE SELECTION - No store found for user store:", user.store);
+        console.warn("🚨 WHEEL STORE SELECTION - Available stores:", stores);
       }
 
       const loadEmail = async () => {

@@ -7,6 +7,7 @@ import { useWheelFormSubmission } from "./useWheelFormSubmission";
 import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
 import { stores } from "@/components/order-form/formConfig";
+import { debugStoreNormalization } from "@/utils/normalization/StoreNormalizationUtils";
 
 export function useWheelOrderForm() {
   const { user } = useAuth();
@@ -54,14 +55,40 @@ export function useWheelOrderForm() {
   // Initialize form with user data and fix storeId mapping
   useEffect(() => {
     if (user && !user.isAdmin) {
-      // Find the store object to get the correct storeId
-      const userStoreObj = stores.find(store => store.name === user.store);
+      // Debug store normalization
+      if (user.store) {
+        debugStoreNormalization(user.store, 'wheel-form-init');
+      }
+      
+      console.log("🔍 WHEEL FORM DEBUG - User initialization:", {
+        userStore: user.store,
+        allStores: stores.map(s => ({ id: s.id, name: s.name }))
+      });
+
+      // Method 1: Try exact name match first
+      let userStoreObj = stores.find(store => store.name === user.store);
+      
+      // Method 2: If no exact match, try to extract store number and match by ID
+      if (!userStoreObj && user.store) {
+        const storeNumberMatch = user.store.match(/(\d+)$/);
+        if (storeNumberMatch) {
+          const extractedNumber = storeNumberMatch[1].replace(/^0+/, ''); // Remove leading zeros
+          userStoreObj = stores.find(store => store.id === extractedNumber);
+          console.log("🔍 WHEEL FORM DEBUG - Store number extraction:", {
+            originalStore: user.store,
+            extractedNumber,
+            foundByNumber: userStoreObj
+          });
+        }
+      }
+      
       const storeId = userStoreObj?.id || "";
       
-      console.log("🔍 WHEEL FORM - User store mapping:", {
+      console.log("🔍 WHEEL FORM DEBUG - Final store mapping:", {
         userStore: user.store,
         foundStoreObj: userStoreObj,
-        storeId: storeId
+        storeId: storeId,
+        storeName: userStoreObj?.name
       });
 
       setFormData(prev => ({
@@ -75,6 +102,7 @@ export function useWheelOrderForm() {
       // Warn if storeId is missing
       if (!storeId) {
         console.warn("🚨 WHEEL FORM - storeId is missing for user store:", user.store);
+        console.warn("🚨 WHEEL FORM - Available stores:", stores);
       }
     }
   }, [user]);

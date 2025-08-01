@@ -356,8 +356,8 @@ function shouldIncludeUserForEmailType(role: string, emailType: EmailType, log: 
     'plant_manager': ['warranty', 'complaint'],
     'operations_manager': ['warranty', 'complaint'],
     
-    // Super Admin: Exclude from transfer orders unless specifically needed
-    'super_admin': emailType === 'transfer' ? [] : ['cross_dock', 'mto', 'wheel', 'warranty', 'complaint', 'completion', 'out_of_stock', 'message']
+    // Super Admin: Only for critical notifications (warranty, complaint) - exclude from routine operational orders
+    'super_admin': ['warranty', 'complaint']
   };
 
   const allowedTypes = roleRules[role] || [];
@@ -383,9 +383,22 @@ function generateStoreVariants(storeNumber: string): string[] {
   const num = storeNumber.replace(/^0+/, '');
   variants.push(`Store ${num}`, `Store ${storeNumber}`);
   
-  // Add full store name formats for Grand Prairie 027
-  if (num === '27') {
-    variants.push('Grand Prairie 027', 'Grand Prairie 27');
+  // Add full store name formats for all stores
+  const storeMap: Record<string, string[]> = {
+    '22': ['Fort Worth 022', 'Fort Worth 22'],
+    '27': ['Grand Prairie 027', 'Grand Prairie 27'],
+    '28': ['Houston 028', 'Houston 28'],
+    '29': ['San Antonio 029', 'San Antonio 29'],
+    '30': ['Oklahoma City 030', 'Oklahoma City 30'],
+    '32': ['Little Rock 032', 'Little Rock 32'],
+    '33': ['Kansas City 033', 'Kansas City 33'],
+    '35': ['Laredo 035', 'Laredo 35'],
+    '36': ['Tulsa 036', 'Tulsa 36'],
+    '39': ['Austin 039', 'Austin 39']
+  };
+  
+  if (storeMap[num]) {
+    variants.push(...storeMap[num]);
   }
   
   console.log(`🔍 STORE VARIANTS DEBUG - Generated variants for ${storeNumber}:`, variants);
