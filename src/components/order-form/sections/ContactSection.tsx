@@ -192,22 +192,7 @@ export function ContactSection({ form }: ContactSectionProps) {
           )}
         />
 
-        {/* Email Recipients Preview */}
-        {watchedStore && form.watch("destinationPlant") && (
-          <div className="md:col-span-2 mt-4">
-            <EmailRecipientsPreview
-              store={watchedStore}
-              plant={form.watch("destinationPlant") || ""}
-              emailType="transfer"
-              orderData={{
-                manager_email: managerEmails,
-                email: managerEmails
-              }}
-              className="w-full"
-              onRecipientsChange={setRecipientCount}
-            />
-          </div>
-        )}
+        {/* Email Recipients Preview moved to OrderForm.tsx to avoid duplication */}
       </div>
     </>
   );

@@ -232,19 +232,45 @@ async function checkOTPlatformUsers(
   log.push(`Store variants: ${storeVariants.join(', ')}`);
 
   try {
-    const { data: platformUsers, error } = await supabase
+    // Split into two targeted queries to get exactly what we need:
+    // 1. Store-specific managers (store_manager, service_manager)
+    // 2. Warehouse management team (warehouse_manager, warehouse_coordinator, etc.)
+    
+    // Query 1: Store-specific managers
+    const { data: storeManagers, error: storeError } = await supabase
       .from('ot_platform_users')
       .select('email, full_name, role, store, plant')
-      .or(`store.in.(${storeVariants.join(',')}),plant.eq.${plant}`)
+      .in('store', storeVariants)
+      .in('role', ['store_manager', 'service_manager'])
       .eq('status', 'active')
       .not('email', 'is', null);
 
-    if (error) {
-      log.push(`Tier 3 error: ${error.message}`);
-      throw error;
+    if (storeError) {
+      log.push(`Tier 3 store managers error: ${storeError.message}`);
     }
 
-    const filteredRecipients = (platformUsers || [])
+    // Query 2: Warehouse management team (any store, specific plant or all plants)
+    const { data: warehouseManagers, error: warehouseError } = await supabase
+      .from('ot_platform_users')
+      .select('email, full_name, role, store, plant')
+      .or(`plant.eq.${plant},plant.eq.All Plants`)
+      .in('role', ['warehouse_manager', 'warehouse_coordinator', 'retread_manager', 'plant_manager', 'operations_manager', 'super_admin'])
+      .eq('status', 'active')
+      .not('email', 'is', null);
+
+    if (warehouseError) {
+      log.push(`Tier 3 warehouse managers error: ${warehouseError.message}`);
+    }
+
+    // Combine results and remove duplicates
+    const allUsers = [...(storeManagers || []), ...(warehouseManagers || [])];
+    const uniqueUsers = allUsers.filter((user, index, self) => 
+      index === self.findIndex(u => u.email === user.email)
+    );
+
+    log.push(`Tier 3 found: ${storeManagers?.length || 0} store managers, ${warehouseManagers?.length || 0} warehouse managers`);
+
+    const filteredRecipients = uniqueUsers
       .filter(user => shouldIncludeUserForEmailType(user.role, emailType, log))
       .map(u => ({
         email: u.email,
