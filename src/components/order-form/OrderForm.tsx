@@ -18,7 +18,7 @@ import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { logger } from '@/utils/logger';
 import { OrderTemplate } from "../order-templates/OrderTemplate";
 import { Card } from "@/components/ui/card";
-import { useOrderFormPersistence } from "@/hooks/useOrderFormPersistence";
+import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import OrderIDService from "@/services/OrderIDService";
@@ -55,11 +55,12 @@ export function OrderForm() {
   });
 
   // Form persistence (only for non-admin users)
-  const { lastSaved, isRestoring, clearPersistedData } = useOrderFormPersistence(form, {
-    storageKey: 'ordering-platform-order-form',
-    excludeFields: ['managersEmail', 'destinationPlant'], // Exclude auto-generated fields
+  const { lastSaved, isRestoring, clearPersistedData } = useFormAutosave(form, 'order', {
     enabled: !user?.isAdmin,
-    debounceMs: 2000,
+    excludeFields: ['managersEmail', 'destinationPlant'], // Exclude auto-generated fields
+    onRestore: () => {
+      console.log('🔄 Order form data restored');
+    }
   });
 
   // Update store when user changes
