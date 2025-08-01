@@ -32,7 +32,15 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
         }
       }
       
-      const storeId = storeObj?.id || "";
+      // 🚨 CRITICAL FIX: Validate store found before proceeding
+      if (!storeObj) {
+        console.error("🚨 WHEEL STORE SELECTION CRITICAL - No store match found for user:", user.store);
+        console.error("🚨 Available stores:", stores.map(s => ({ id: s.id, name: s.name })));
+        // Don't set any store data if we can't find a match
+        return;
+      }
+      
+      const storeId = storeObj.id;
       
       console.log("🔍 WHEEL STORE SELECTION DEBUG - Final mapping:", {
         userStore: user.store,
@@ -40,19 +48,14 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
         storeId: storeId
       });
       
-      if (storeObj) {
-        const storeColor = getStoreColor(user.store);
-        setFormData(prev => ({
-          ...prev,
-          storeName: storeObj.name, // Use the display name from stores config
-          storeId: storeId, // ✅ Fixed storeId mapping
-          userStore: user.store,  // Set the userStore field based on the authenticated user
-          storeColors: storeColor  // Set the store colors automatically
-        }));
-      } else {
-        console.warn("🚨 WHEEL STORE SELECTION - No store found for user store:", user.store);
-        console.warn("🚨 WHEEL STORE SELECTION - Available stores:", stores);
-      }
+      const storeColor = getStoreColor(user.store);
+      setFormData(prev => ({
+        ...prev,
+        storeName: storeObj.name, // Use the display name from stores config
+        storeId: storeId, // ✅ Fixed storeId mapping
+        userStore: user.store,  // Set the userStore field based on the authenticated user
+        storeColors: storeColor  // Set the store colors automatically
+      }));
 
       const loadEmail = async () => {
         const email = await getFirstManagerEmail(user.store);

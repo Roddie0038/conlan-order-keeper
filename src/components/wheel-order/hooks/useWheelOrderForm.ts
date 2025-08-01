@@ -8,6 +8,7 @@ import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
 import { stores } from "@/components/order-form/formConfig";
 import { debugStoreNormalization } from "@/utils/normalization/StoreNormalizationUtils";
+import "@/utils/debugWheelOrderIssue"; // Load debug utilities
 
 export function useWheelOrderForm() {
   const { user } = useAuth();
@@ -82,28 +83,32 @@ export function useWheelOrderForm() {
         }
       }
       
-      const storeId = userStoreObj?.id || "";
+      // 🚨 CRITICAL FIX: Handle fallback if still no store found
+      if (!userStoreObj) {
+        console.error("🚨 WHEEL FORM CRITICAL - No store match found! This should not happen.", {
+          userStore: user.store,
+          allStores: stores
+        });
+        // Only proceed if we have a valid store match
+        return;
+      }
+      
+      const storeId = userStoreObj.id;
       
       console.log("🔍 WHEEL FORM DEBUG - Final store mapping:", {
         userStore: user.store,
         foundStoreObj: userStoreObj,
         storeId: storeId,
-        storeName: userStoreObj?.name
+        storeName: userStoreObj.name
       });
 
       setFormData(prev => ({
         ...prev,
-        storeName: userStoreObj?.name || user.store || "", // Use the display name from stores config
+        storeName: userStoreObj.name, // Use the display name from stores config
         storeId: storeId, // ✅ Fixed storeId mapping
         userStore: user.store || "",
         yourName: user.name || "",
       }));
-
-      // Warn if storeId is missing
-      if (!storeId) {
-        console.warn("🚨 WHEEL FORM - storeId is missing for user store:", user.store);
-        console.warn("🚨 WHEEL FORM - Available stores:", stores);
-      }
     }
   }, [user]);
 
