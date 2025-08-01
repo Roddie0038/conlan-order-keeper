@@ -230,6 +230,7 @@ async function checkOTPlatformUsers(
   
   const storeVariants = generateStoreVariants(storeNumber);
   log.push(`Store variants: ${storeVariants.join(', ')}`);
+  console.log(`🔍 TIER 3 DEBUGGING - Store variants for ${storeNumber}:`, storeVariants);
 
   try {
     // Split into two targeted queries to get exactly what we need:
@@ -237,6 +238,7 @@ async function checkOTPlatformUsers(
     // 2. Warehouse management team (warehouse_manager, warehouse_coordinator, etc.)
     
     // Query 1: Store-specific managers
+    console.log(`🔍 TIER 3 DEBUGGING - Querying store managers with variants:`, storeVariants);
     const { data: storeManagers, error: storeError } = await supabase
       .from('ot_platform_users')
       .select('email, full_name, role, store, plant')
@@ -245,11 +247,18 @@ async function checkOTPlatformUsers(
       .eq('status', 'active')
       .not('email', 'is', null);
 
+    console.log(`🔍 TIER 3 DEBUGGING - Store managers query result:`, {
+      error: storeError,
+      count: storeManagers?.length || 0,
+      managers: storeManagers?.map(m => ({ email: m.email, role: m.role, store: m.store }))
+    });
+
     if (storeError) {
       log.push(`Tier 3 store managers error: ${storeError.message}`);
     }
 
     // Query 2: Warehouse management team (any store, specific plant or all plants)
+    console.log(`🔍 TIER 3 DEBUGGING - Querying warehouse managers for plant: ${plant}`);
     const { data: warehouseManagers, error: warehouseError } = await supabase
       .from('ot_platform_users')
       .select('email, full_name, role, store, plant')
@@ -257,6 +266,12 @@ async function checkOTPlatformUsers(
       .in('role', ['warehouse_manager', 'warehouse_coordinator', 'retread_manager', 'plant_manager', 'operations_manager', 'super_admin'])
       .eq('status', 'active')
       .not('email', 'is', null);
+
+    console.log(`🔍 TIER 3 DEBUGGING - Warehouse managers query result:`, {
+      error: warehouseError,
+      count: warehouseManagers?.length || 0,
+      managers: warehouseManagers?.map(m => ({ email: m.email, role: m.role, plant: m.plant }))
+    });
 
     if (warehouseError) {
       log.push(`Tier 3 warehouse managers error: ${warehouseError.message}`);
@@ -268,10 +283,18 @@ async function checkOTPlatformUsers(
       index === self.findIndex(u => u.email === user.email)
     );
 
+    console.log(`🔍 TIER 3 DEBUGGING - Combined users before filtering:`, 
+      uniqueUsers.map(u => ({ email: u.email, role: u.role, store: u.store, plant: u.plant }))
+    );
+
     log.push(`Tier 3 found: ${storeManagers?.length || 0} store managers, ${warehouseManagers?.length || 0} warehouse managers`);
 
     const filteredRecipients = uniqueUsers
-      .filter(user => shouldIncludeUserForEmailType(user.role, emailType, log))
+      .filter(user => {
+        const included = shouldIncludeUserForEmailType(user.role, emailType, log);
+        console.log(`🔍 TIER 3 DEBUGGING - Filtering ${user.email} (${user.role}): ${included ? 'INCLUDED' : 'EXCLUDED'}`);
+        return included;
+      })
       .map(u => ({
         email: u.email,
         name: u.full_name,
@@ -280,10 +303,15 @@ async function checkOTPlatformUsers(
         plant: u.plant
       }));
 
+    console.log(`🔍 TIER 3 DEBUGGING - Final filtered recipients:`, 
+      filteredRecipients.map(r => ({ email: r.email, role: r.role }))
+    );
+
     log.push(`Tier 3 result: ${filteredRecipients.length} filtered recipients found`);
     return filteredRecipients;
 
   } catch (error) {
+    console.error(`❌ TIER 3 DEBUGGING - Error:`, error);
     log.push(`Tier 3 failed: ${error.message}`);
     return [];
   }
@@ -328,8 +356,8 @@ function shouldIncludeUserForEmailType(role: string, emailType: EmailType, log: 
     'plant_manager': ['warranty', 'complaint'],
     'operations_manager': ['warranty', 'complaint'],
     
-    // Super Admin: All notifications
-    'super_admin': ['transfer', 'cross_dock', 'mto', 'wheel', 'warranty', 'complaint', 'completion', 'out_of_stock', 'message']
+    // Super Admin: Exclude from transfer orders unless specifically needed
+    'super_admin': emailType === 'transfer' ? [] : ['cross_dock', 'mto', 'wheel', 'warranty', 'complaint', 'completion', 'out_of_stock', 'message']
   };
 
   const allowedTypes = roleRules[role] || [];
@@ -354,6 +382,13 @@ function generateStoreVariants(storeNumber: string): string[] {
   // Add common store name formats
   const num = storeNumber.replace(/^0+/, '');
   variants.push(`Store ${num}`, `Store ${storeNumber}`);
+  
+  // Add full store name formats for Grand Prairie 027
+  if (num === '27') {
+    variants.push('Grand Prairie 027', 'Grand Prairie 27');
+  }
+  
+  console.log(`🔍 STORE VARIANTS DEBUG - Generated variants for ${storeNumber}:`, variants);
   
   return [...new Set(variants)]; // Remove duplicates
 }
