@@ -124,7 +124,7 @@ export function useUniversalFormPersistence<T extends Record<string, any>>(
         }
       }
     }
-  }, [enabled, isRestoring, hasRestoredRef.current, storageKey, formType, user?.id, hasMeaningfulData, saveCount]);
+  }, [enabled, isRestoring, storageKey, formType, user?.id, hasMeaningfulData]);
 
   // Load saved data on mount
   useEffect(() => {
