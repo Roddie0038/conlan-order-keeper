@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useStatefulFormAutosave } from "@/hooks/useFormAutosave";
 import { WheelFormData } from "../types";
 import { useWheelFormSubmission } from "./useWheelFormSubmission";
 import { getFirstManagerEmail } from "@/utils/emailUtils";
@@ -35,6 +36,20 @@ export function useWheelOrderForm() {
   });
 
   const [managerEmail, setManagerEmail] = useState("");
+
+  // Auto-save functionality (only for non-admin users)
+  const { lastSaved, isRestoring, clearPersistedData, saveNow } = useStatefulFormAutosave(
+    formData,
+    setFormData,
+    'wheel-powder-coating',
+    {
+      enabled: !user?.isAdmin,
+      excludeFields: ['userStore', 'storeColors'], // Exclude auto-generated fields
+      onRestore: () => {
+        console.log('🔄 Wheel powder coating form data restored');
+      }
+    }
+  );
 
   // Get manager email when store changes
   useEffect(() => {
@@ -153,7 +168,12 @@ export function useWheelOrderForm() {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: "" }));
     }
-  }, [errors]);
+
+    // Trigger immediate save for critical fields
+    if (['customerName', 'wheelType', 'wheelSize', 'destinationPlant'].includes(name)) {
+      setTimeout(saveNow, 100); // Debounced manual save
+    }
+  }, [errors, saveNow]);
 
   const handleStoreChange = useCallback((value: string) => {
     const selectedStore = stores.find(store => store.id === value);
@@ -191,5 +211,10 @@ export function useWheelOrderForm() {
     handleInputChange,
     handleStoreChange,
     handleSubmit,
+    // Auto-save related
+    lastSaved,
+    isRestoring,
+    clearPersistedData,
+    saveNow
   };
 }

@@ -1,5 +1,7 @@
 
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useStatefulFormAutosave } from "./useFormAutosave";
 
 export interface RetreadWarrantyFormData {
   dotNumber: string;
@@ -15,6 +17,7 @@ export interface RetreadWarrantyFormData {
 }
 
 export const useRetreadWarrantyForm = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -31,12 +34,31 @@ export const useRetreadWarrantyForm = () => {
     destinationPlant: ""
   });
 
+  // Auto-save functionality (only for non-admin users)
+  const { lastSaved, isRestoring, clearPersistedData, saveNow } = useStatefulFormAutosave(
+    form,
+    setForm,
+    'warranty',
+    {
+      enabled: !user?.isAdmin,
+      excludeFields: ['invoiceFile', 'photoFiles'], // Exclude file objects from persistence
+      onRestore: () => {
+        console.log('🔄 Warranty form data restored');
+      }
+    }
+  );
+
   const handleChange = (field: keyof RetreadWarrantyFormData, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
     
     // Clear error when field is updated
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
+    }
+
+    // Trigger immediate save for critical fields
+    if (['dotNumber', 'condition', 'customerName', 'destinationPlant'].includes(field)) {
+      setTimeout(saveNow, 100); // Debounced manual save
     }
   };
 
@@ -56,6 +78,7 @@ export const useRetreadWarrantyForm = () => {
   };
 
   const resetForm = () => {
+    clearPersistedData();
     setForm({
       dotNumber: "",
       condition: "",
@@ -81,5 +104,10 @@ export const useRetreadWarrantyForm = () => {
     handleFileChange,
     handleCheckbox,
     resetForm,
+    // Auto-save related
+    lastSaved,
+    isRestoring,
+    clearPersistedData,
+    saveNow
   };
 };

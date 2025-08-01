@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
-import { useCustomFormPersistence } from "@/hooks/useCustomFormPersistence";
+import { useStatefulFormAutosave } from "@/hooks/useFormAutosave";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import { useMTOFormDebug } from "./hooks/useMTOFormDebug";
@@ -36,14 +36,13 @@ export const MTOOrderForm = () => {
   const { selectedPlant } = usePlant();
 
   // Form persistence (only for non-admin users)
-  const { lastSaved, isRestoring, clearPersistedData } = useCustomFormPersistence(
+  const { lastSaved, isRestoring, clearPersistedData } = useStatefulFormAutosave(
     formData,
     setFormData,
+    'mto',
     {
-      storageKey: 'ordering-platform-mto-form',
       excludeFields: ['timestamp', 'managerEmail'], // Exclude auto-generated fields
       enabled: !user?.isAdmin,
-      debounceMs: 2000,
     }
   );
   

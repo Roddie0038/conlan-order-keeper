@@ -6,7 +6,7 @@ import { FormFooter } from "./components/FormFooter";
 import { useWheelOrderForm } from "./hooks/useWheelOrderForm";
 import { OrderTemplate } from "../order-templates/OrderTemplate";
 import { toast } from "@/hooks/use-toast";
-import { useCustomFormPersistence } from "@/hooks/useCustomFormPersistence";
+
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -25,23 +25,17 @@ export function WheelOrderForm() {
     handleInputChange,
     handleStoreChange,
     handleSubmit,
-    setFormData
+    setFormData,
+    // Auto-save related
+    lastSaved,
+    isRestoring,
+    clearPersistedData
   } = useWheelOrderForm();
 
   const [recipientCount, setRecipientCount] = useState(0);
   const { selectedPlant } = usePlant();
 
-  // Form persistence (only for non-admin users)
-  const { lastSaved, isRestoring, clearPersistedData } = useCustomFormPersistence(
-    formData,
-    setFormData,
-    {
-      storageKey: 'ordering-platform-wheel-form',
-      excludeFields: ['dateReceived', 'destinationPlant'], // Exclude auto-generated fields
-      enabled: !user?.isAdmin,
-      debounceMs: 2000,
-    }
-  );
+  // Auto-save now handled by the hook
 
   // Auto-initialize destination plant based on store
   useEffect(() => {

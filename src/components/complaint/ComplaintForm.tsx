@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useStatefulFormAutosave } from "@/hooks/useFormAutosave";
+import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
+import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,6 +62,20 @@ export function ComplaintForm() {
     destinationPlant: ""
   });
   const [errors, setErrors] = useState<Partial<ComplaintFormData>>({});
+
+  // Auto-save functionality (only for non-admin users)
+  const { lastSaved, isRestoring, clearPersistedData, saveNow } = useStatefulFormAutosave(
+    formData,
+    setFormData,
+    'complaint',
+    {
+      enabled: !user?.isAdmin,
+      excludeFields: ['attachments'], // Exclude file objects from persistence
+      onRestore: () => {
+        console.log('🔄 Complaint form data restored');
+      }
+    }
+  );
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ComplaintFormData> = {};
@@ -170,7 +187,8 @@ export function ComplaintForm() {
         description: `Your complaint has been submitted for ${formData.destinationPlant} and the appropriate managers have been notified.`
       });
 
-      // Reset form
+      // Clear auto-saved data and reset form
+      clearPersistedData();
       setFormData({
         complaintType: "",
         issueType: "",
@@ -199,6 +217,11 @@ export function ComplaintForm() {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
+    
+    // Trigger immediate save for critical fields
+    if (['complaintType', 'issueType', 'identifiedConcern'].includes(field)) {
+      setTimeout(saveNow, 100); // Debounced manual save
+    }
   };
 
   if (!user) {
@@ -212,13 +235,40 @@ export function ComplaintForm() {
   }
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl">Customer Complaint Form</CardTitle>
-        <CardDescription>
-          Submit a complaint regarding tire transfers, retreads, or work orders. All required fields must be completed.
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-4">
+      {!user?.isAdmin && (
+        <FormRestorationBanner isRestoring={isRestoring} lastSaved={lastSaved} />
+      )}
+      
+      <Card className="max-w-4xl mx-auto">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-2xl">Customer Complaint Form</CardTitle>
+            <CardDescription>
+              Submit a complaint regarding tire transfers, retreads, or work orders. All required fields must be completed.
+            </CardDescription>
+          </div>
+          {!user?.isAdmin && (
+            <ClearFormButton 
+              onClear={() => {
+                clearPersistedData();
+                setFormData({
+                  complaintType: "",
+                  issueType: "",
+                  workOrderNumber: "",
+                  orderId: "",
+                  identifiedConcern: "",
+                  salesPerson: "",
+                  attachments: [],
+                  destinationPlant: ""
+                });
+                setErrors({});
+              }}
+              lastSaved={lastSaved}
+              disabled={isRestoring}
+            />
+          )}
+        </CardHeader>
       
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -341,5 +391,6 @@ export function ComplaintForm() {
         </form>
       </CardContent>
     </Card>
+    </div>
   );
 }
