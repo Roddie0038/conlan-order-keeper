@@ -9,15 +9,9 @@ import type { OrderFormData } from "@/types/orders";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import { supabase } from "@/integrations/supabase/client";
 
-// Temporary email routing replacement
-async function getStoreEmailRecipients(storeNumber: string, orderType: string) {
-  return {
-    recipients: [`store${storeNumber}@conlantire.com`],
-    source: 'fallback'
-  };
-}
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 import { storeSanitizeForSupabase, logStoreFormatTransformation } from "@/utils/storeSanitization";
+import { resolveEmailRecipients, type EmailType } from "@/services/emailRecipientResolver";
 
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage
@@ -84,17 +78,27 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     // Format destination for display
     formattedCrossDockDestination = normalizeStoreForSubmission(order.crossDockDestination);
     
-    // Get destination manager email using improved lookup
+    // Get destination manager email using proper recipient resolution
     const destinationStoreNumber = extractStoreNumber(formattedCrossDockDestination);
     if (destinationStoreNumber) {
       try {
-        const emailResult = await getStoreEmailRecipients(destinationStoreNumber, 'transfer');
-        destinationManagerEmail = emailResult.recipients[0] || "";
+        const resolutionResult = await resolveEmailRecipients(
+          {
+            store: formattedCrossDockDestination,
+            plant: finalPlant,
+            name: order.yourName || order.name || "Unknown",
+            email: ""
+          },
+          'transfer',
+          order.id
+        );
+        destinationManagerEmail = resolutionResult.recipients[0]?.email || "";
         
         console.log("🔍 SUBMIT - Cross-dock destination email lookup:", {
           destinationStore: formattedCrossDockDestination,
           destinationStoreNumber,
-          emailResult: emailResult,
+          recipients: resolutionResult.recipients.length,
+          source: resolutionResult.source,
           destinationManagerEmail
         });
       } catch (error) {
@@ -229,12 +233,28 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       
       if (orderType === 'TRANSFER') {
         emailType = 'transfer';
-        const emailResult = await getStoreEmailRecipients(storeNumber, emailType);
-        emailRecipients = emailResult.recipients;
         
-        console.log(`📧 SUBMIT - Transfer email recipients (${emailResult.source}):`, emailRecipients);
-        if (emailResult.source === 'fallback') {
-          console.warn(`📧 SUBMIT - Using fallback routing`);
+        // Use proper recipient resolution instead of fallback
+        const resolutionResult = await resolveEmailRecipients(
+          {
+            store: displayStore,
+            plant: finalPlant,
+            name: order.yourName || order.name || "Unknown",
+            email: storeManagerEmail,
+            manager_email: storeManagerEmail,
+            destination_manager_email: destinationManagerEmail
+          },
+          emailType as EmailType,
+          insertedData?.id?.toString() || order.id
+        );
+        
+        emailRecipients = resolutionResult.recipients.map(r => r.email);
+        
+        console.log(`📧 SUBMIT - Transfer email recipients (${resolutionResult.source}):`, emailRecipients);
+        console.log(`📧 SUBMIT - Recipients resolved: ${resolutionResult.recipients.length} total recipients`);
+        
+        if (resolutionResult.source === 'fallback_legacy' || emailRecipients.length === 0) {
+          console.warn(`📧 SUBMIT - Limited recipient resolution - Source: ${resolutionResult.source}`);
         }
         
         if (emailRecipients.length > 0) {
@@ -269,12 +289,27 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
         }
       } else if (orderType === 'WHEEL_POWDER_COATING') {
         emailType = 'wheel';
-        const emailResult = await getStoreEmailRecipients(storeNumber, emailType);
-        emailRecipients = emailResult.recipients;
         
-        console.log(`📧 SUBMIT - Wheel email recipients (${emailResult.source}):`, emailRecipients);
-        if (emailResult.source === 'fallback') {
-          console.warn(`📧 SUBMIT - Using fallback routing`);
+        // Use proper recipient resolution for wheel orders
+        const resolutionResult = await resolveEmailRecipients(
+          {
+            store: displayStore,
+            plant: finalPlant,
+            name: order.yourName || order.name || "Unknown",
+            email: storeManagerEmail,
+            manager_email: storeManagerEmail
+          },
+          emailType as EmailType,
+          insertedData?.id?.toString() || order.id
+        );
+        
+        emailRecipients = resolutionResult.recipients.map(r => r.email);
+        
+        console.log(`📧 SUBMIT - Wheel email recipients (${resolutionResult.source}):`, emailRecipients);
+        console.log(`📧 SUBMIT - Recipients resolved: ${resolutionResult.recipients.length} total recipients`);
+        
+        if (resolutionResult.source === 'fallback_legacy' || emailRecipients.length === 0) {
+          console.warn(`📧 SUBMIT - Limited recipient resolution - Source: ${resolutionResult.source}`);
         }
         
         if (emailRecipients.length > 0) {
