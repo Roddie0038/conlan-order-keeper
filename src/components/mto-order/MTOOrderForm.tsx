@@ -8,6 +8,7 @@ import { OrderTemplate } from "../order-templates/OrderTemplate";
 import { Card } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlant } from "@/contexts/PlantContext";
 import { useCustomFormPersistence } from "@/hooks/useCustomFormPersistence";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
@@ -32,6 +33,7 @@ export const MTOOrderForm = () => {
   } = useMTOForm();
 
   const [recipientCount, setRecipientCount] = useState(0);
+  const { selectedPlant } = usePlant();
 
   // Form persistence (only for non-admin users)
   const { lastSaved, isRestoring, clearPersistedData } = useCustomFormPersistence(
@@ -53,6 +55,28 @@ export const MTOOrderForm = () => {
   
   // Add debugging to track form data changes
   const { debuggedSubmitAction } = useMTOFormDebug(formData, () => {});
+
+  // Auto-initialize destination plant based on store
+  React.useEffect(() => {
+    const currentStore = formData.store;
+    const currentPlant = formData.destinationPlant;
+    
+    // Only auto-set plant if not already set and we have a store
+    if (currentStore && !currentPlant && selectedPlant) {
+      console.log("🌱 MTO AUTO-PLANT - Setting destination plant", {
+        store: currentStore,
+        selectedPlant,
+        currentPlant
+      });
+      
+      setFormData(prev => ({
+        ...prev,
+        destinationPlant: selectedPlant
+      }));
+      
+      console.log("✅ MTO AUTO-PLANT - Destination plant auto-set to:", selectedPlant);
+    }
+  }, [formData.store, selectedPlant, setFormData]);
   
   const handleSubmit = useSubmitMTOOrder({
     formData,
@@ -64,11 +88,19 @@ export const MTOOrderForm = () => {
   });
   
   const handleLoadTemplate = (templateData: any) => {
-    setFormData({
+    const newFormData = {
       ...templateData,
       store: isAdmin ? templateData.store : user?.store || "",
       timestamp: new Date().toLocaleString()
-    });
+    };
+    
+    // Preserve auto-plant selection if template doesn't have destination plant
+    if (!templateData.destinationPlant && selectedPlant) {
+      console.log("🌱 MTO TEMPLATE LOAD - Preserving auto-selected plant:", selectedPlant);
+      newFormData.destinationPlant = selectedPlant;
+    }
+    
+    setFormData(newFormData);
     clearPersistedData(); // Clear persistence when loading template
     toast({
       title: "Template Loaded",
@@ -186,11 +218,11 @@ export const MTOOrderForm = () => {
         </div>
 
         {/* Email Recipients Preview */}
-        {formData.store && formData.destinationPlant && (
+        {formData.store && (formData.destinationPlant || selectedPlant) && (
           <div className="px-6 pb-4">
             <EmailRecipientsPreview
               store={formData.store}
-              plant={formData.destinationPlant}
+              plant={formData.destinationPlant || selectedPlant}
               emailType="mto"
               orderData={{
                 manager_email: formData.managerEmail

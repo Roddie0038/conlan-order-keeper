@@ -70,6 +70,25 @@ export function OrderForm() {
     }
   }, [user, form]);
 
+  // Auto-initialize destination plant based on store
+  useEffect(() => {
+    const currentStore = form.watch("store");
+    const currentPlant = form.watch("destinationPlant");
+    
+    // Only auto-set plant if not already set and we have a store
+    if (currentStore && !currentPlant && selectedPlant) {
+      console.log("🌱 AUTO-PLANT - Setting destination plant", {
+        store: currentStore,
+        selectedPlant,
+        currentPlant
+      });
+      
+      form.setValue("destinationPlant", selectedPlant);
+      
+      console.log("✅ AUTO-PLANT - Destination plant auto-set to:", selectedPlant);
+    }
+  }, [form.watch("store"), selectedPlant, form]);
+
   const { handleSubmit, formState, reset } = form;
   const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "Yes";
   
@@ -144,6 +163,12 @@ export function OrderForm() {
       form.setValue("managersEmail", "");
     }
     
+    // Preserve auto-plant selection if template doesn't have destination plant
+    if (!templateData.destinationPlant && selectedPlant) {
+      console.log("🌱 TEMPLATE LOAD - Preserving auto-selected plant:", selectedPlant);
+      form.setValue("destinationPlant", selectedPlant);
+    }
+    
     toast({
       title: "Template Loaded",
       description: "The template has been loaded successfully."
@@ -204,11 +229,11 @@ export function OrderForm() {
       />
 
       {/* Email Recipients Preview */}
-      {form.watch("store") && form.watch("destinationPlant") && (
+      {form.watch("store") && (form.watch("destinationPlant") || selectedPlant) && (
         <div className="mt-6">
           <EmailRecipientsPreview
             store={form.watch("store")}
-            plant={form.watch("destinationPlant")}
+            plant={form.watch("destinationPlant") || selectedPlant}
             emailType="transfer"
             orderData={{
               manager_email: form.watch("managersEmail")

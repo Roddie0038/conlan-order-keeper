@@ -9,9 +9,10 @@ import { toast } from "@/hooks/use-toast";
 import { useCustomFormPersistence } from "@/hooks/useCustomFormPersistence";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlant } from "@/contexts/PlantContext";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import { WheelEmailPreview } from "./components/EmailPreview";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function WheelOrderForm() {
   const { user } = useAuth();
@@ -28,6 +29,7 @@ export function WheelOrderForm() {
   } = useWheelOrderForm();
 
   const [recipientCount, setRecipientCount] = useState(0);
+  const { selectedPlant } = usePlant();
 
   // Form persistence (only for non-admin users)
   const { lastSaved, isRestoring, clearPersistedData } = useCustomFormPersistence(
@@ -41,12 +43,42 @@ export function WheelOrderForm() {
     }
   );
 
+  // Auto-initialize destination plant based on store
+  useEffect(() => {
+    const currentStore = formData.storeName;
+    const currentPlant = formData.destinationPlant;
+    
+    // Only auto-set plant if not already set and we have a store
+    if (currentStore && !currentPlant && selectedPlant) {
+      console.log("🌱 WHEEL AUTO-PLANT - Setting destination plant", {
+        store: currentStore,
+        selectedPlant,
+        currentPlant
+      });
+      
+      setFormData(prev => ({
+        ...prev,
+        destinationPlant: selectedPlant
+      }));
+      
+      console.log("✅ WHEEL AUTO-PLANT - Destination plant auto-set to:", selectedPlant);
+    }
+  }, [formData.storeName, selectedPlant, setFormData]);
+
   const handleLoadTemplate = (templateData: any) => {
-    setFormData({
+    const newFormData = {
       ...templateData,
       dateReceived: new Date().toISOString().split("T")[0],
-      destinationPlant: "" // Reset plant selection when loading template
-    });
+      destinationPlant: templateData.destinationPlant || "" // Keep template plant if set, otherwise clear
+    };
+    
+    // Preserve auto-plant selection if template doesn't have destination plant
+    if (!templateData.destinationPlant && selectedPlant) {
+      console.log("🌱 WHEEL TEMPLATE LOAD - Preserving auto-selected plant:", selectedPlant);
+      newFormData.destinationPlant = selectedPlant;
+    }
+    
+    setFormData(newFormData);
     
     toast({
       title: "Template Loaded",
@@ -123,7 +155,7 @@ export function WheelOrderForm() {
             />
 
             {/* Email Recipients Preview */}
-            {formData.storeName && formData.destinationPlant && (
+            {formData.storeName && (formData.destinationPlant || selectedPlant) && (
               <div className="mt-6">
                 <WheelEmailPreview
                   formData={formData}

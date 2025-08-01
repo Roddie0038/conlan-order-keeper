@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { EmailRecipientsPreview } from '@/components/shared/EmailRecipientsPreview';
+import { usePlant } from '@/contexts/PlantContext';
 import type { WheelFormData } from '../types';
 
 interface WheelEmailPreviewProps {
@@ -20,14 +21,24 @@ export const WheelEmailPreview: React.FC<WheelEmailPreviewProps> = ({
   className = "",
   onRecipientsChange
 }) => {
-  if (!formData.storeName || !formData.destinationPlant) {
+  const { selectedPlant } = usePlant();
+  
+  // Don't render if no store is set
+  if (!formData.storeName) {
+    return null;
+  }
+
+  // Use fallback plant from context if destination plant not set
+  const plantToUse = formData.destinationPlant || selectedPlant;
+  
+  if (!plantToUse) {
     return null;
   }
 
   return (
     <EmailRecipientsPreview
       store={formData.storeName}
-      plant={formData.destinationPlant}
+      plant={plantToUse}
       emailType="wheel"
       orderData={{
         manager_email: managerEmail,
