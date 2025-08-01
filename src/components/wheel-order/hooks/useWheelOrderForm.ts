@@ -9,6 +9,7 @@ import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
 import { stores } from "@/components/order-form/formConfig";
 import { debugStoreNormalization } from "@/utils/normalization/StoreNormalizationUtils";
 import "@/utils/debugWheelOrderIssue"; // Load debug utilities
+import "@/utils/debugWheelPowderCoating"; // Load Wheel Powder Coating specific diagnostics
 
 export function useWheelOrderForm() {
   const { user } = useAuth();
@@ -55,19 +56,36 @@ export function useWheelOrderForm() {
 
   // Initialize form with user data and fix storeId mapping
   useEffect(() => {
+    console.log("🚨 WHEEL POWDER COATING FORM DEBUG - useEffect triggered", {
+      user: user ? { 
+        store: user.store, 
+        name: user.name, 
+        isAdmin: user.isAdmin 
+      } : null,
+      currentFormData: {
+        storeName: formData.storeName,
+        storeId: formData.storeId,
+        userStore: formData.userStore
+      }
+    });
+
     if (user && !user.isAdmin) {
       // Debug store normalization
       if (user.store) {
-        debugStoreNormalization(user.store, 'wheel-form-init');
+        debugStoreNormalization(user.store, 'wheel-powder-coating-form-init');
       }
       
-      console.log("🔍 WHEEL FORM DEBUG - User initialization:", {
+      console.log("🔍 WHEEL POWDER COATING DEBUG - User initialization:", {
         userStore: user.store,
         allStores: stores.map(s => ({ id: s.id, name: s.name }))
       });
 
       // Method 1: Try exact name match first
       let userStoreObj = stores.find(store => store.name === user.store);
+      console.log("🔍 WHEEL POWDER COATING DEBUG - Exact name match attempt:", {
+        userStore: user.store,
+        found: userStoreObj
+      });
       
       // Method 2: If no exact match, try to extract store number and match by ID
       if (!userStoreObj && user.store) {
@@ -75,8 +93,9 @@ export function useWheelOrderForm() {
         if (storeNumberMatch) {
           const extractedNumber = storeNumberMatch[1].replace(/^0+/, ''); // Remove leading zeros
           userStoreObj = stores.find(store => store.id === extractedNumber);
-          console.log("🔍 WHEEL FORM DEBUG - Store number extraction:", {
+          console.log("🔍 WHEEL POWDER COATING DEBUG - Store number extraction:", {
             originalStore: user.store,
+            storeNumberMatch,
             extractedNumber,
             foundByNumber: userStoreObj
           });
@@ -85,9 +104,10 @@ export function useWheelOrderForm() {
       
       // 🚨 CRITICAL FIX: Handle fallback if still no store found
       if (!userStoreObj) {
-        console.error("🚨 WHEEL FORM CRITICAL - No store match found! This should not happen.", {
+        console.error("🚨 WHEEL POWDER COATING CRITICAL - No store match found! This should not happen.", {
           userStore: user.store,
-          allStores: stores
+          allStores: stores,
+          formWillNotInitialize: true
         });
         // Only proceed if we have a valid store match
         return;
@@ -95,20 +115,32 @@ export function useWheelOrderForm() {
       
       const storeId = userStoreObj.id;
       
-      console.log("🔍 WHEEL FORM DEBUG - Final store mapping:", {
+      console.log("🔍 WHEEL POWDER COATING DEBUG - Final store mapping:", {
         userStore: user.store,
         foundStoreObj: userStoreObj,
         storeId: storeId,
         storeName: userStoreObj.name
       });
 
-      setFormData(prev => ({
-        ...prev,
+      const newFormData = {
+        ...formData,
         storeName: userStoreObj.name, // Use the display name from stores config
         storeId: storeId, // ✅ Fixed storeId mapping
         userStore: user.store || "",
         yourName: user.name || "",
-      }));
+      };
+
+      console.log("🔍 WHEEL POWDER COATING DEBUG - Setting form data:", {
+        before: formData,
+        after: newFormData
+      });
+
+      setFormData(newFormData);
+    } else if (user && user.isAdmin) {
+      console.log("🔍 WHEEL POWDER COATING DEBUG - Admin user, skipping auto store setup:", {
+        adminUser: user.name,
+        currentFormData: formData
+      });
     }
   }, [user]);
 
