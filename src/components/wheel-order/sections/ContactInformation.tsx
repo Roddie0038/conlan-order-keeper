@@ -48,38 +48,45 @@ export function ContactInformation({
         required
       />
       
-      {/* TEMPORARY FIX: Make store dropdown always editable with warning for non-admins */}
       <div className="space-y-2">
         <FormField
-          label="Store"
-          value={formData.storeId} // Use storeId for selection to match dropdown values
+          label="Store Location"
+          value={formData.storeId || ""} // Empty by default
           onChange={onStoreChange}
           options={stores}
-          placeholder="Select store"
-          disabled={false} // ✅ TEMPORARY FIX: Always editable
+          placeholder="Please select your store location"
+          disabled={false}
           required
         />
-        {!user?.isAdmin && (
-          <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-2">
-            ⚠️ <strong>Temporary Fix Active:</strong> If your store shows incorrectly, please select the correct store manually. This will be fixed permanently soon.
-          </div>
-        )}
+        <div className="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded p-2">
+          📍 <strong>Important:</strong> Please select the correct store location to ensure proper delivery and avoid submission errors.
+        </div>
         {formData.storeName && formData.storeName !== formData.userStore && (
-          <div className="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded p-2">
-            📍 <strong>Store Override:</strong> Selected store "{formData.storeName}" differs from your profile store "{formData.userStore}"
+          <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-2">
+            ⚠️ <strong>Store Override:</strong> Selected store "{formData.storeName}" differs from your profile store "{formData.userStore}"
           </div>
         )}
       </div>
 
       {/* Plant Field removed - wheel forms now use plant selection from context */}
 
-      {/* Store Colors Field - Read-only, auto-fills based on store */}
+      {/* Store Colors Field - Editable with default from store */}
       <FormField
         label="Store Colors"
-        value={storeColor || ""}
-        onChange={() => {}}
-        disabled={true}
-        placeholder="Store color will be automatically assigned"
+        value={formData.storeColors || storeColor || ""}
+        onChange={(value) => onInputChange("storeColors", value)}
+        options={[
+          { id: "Yellow", name: "Yellow" },
+          { id: "Red", name: "Red" },
+          { id: "Blue", name: "Blue" },
+          { id: "Green", name: "Green" },
+          { id: "Orange", name: "Orange" },
+          { id: "Purple", name: "Purple" },
+          { id: "Black", name: "Black" },
+          { id: "White", name: "White" }
+        ]}
+        placeholder="Select store color (defaults based on store)"
+        disabled={false}
       />
       
       <FormField

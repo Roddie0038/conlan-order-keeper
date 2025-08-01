@@ -6,7 +6,7 @@ import { WheelFormData } from "../types";
 import { useWheelFormSubmission } from "./useWheelFormSubmission";
 import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
-import { stores } from "@/components/order-form/formConfig";
+import { stores, getStoreColor } from "@/components/order-form/formConfig";
 import { debugStoreNormalization } from "@/utils/normalization/StoreNormalizationUtils";
 import "@/utils/debugWheelOrderIssue"; // Load debug utilities
 import "@/utils/debugWheelPowderCoating"; // Load Wheel Powder Coating specific diagnostics
@@ -30,7 +30,7 @@ export function useWheelOrderForm() {
     wheelColor: "",
     scheduleArrival: "",
     userStore: "",
-    storeColors: "",
+    storeColors: "", // ✅ Empty by default - auto-populates but can be overridden
     destinationPlant: "", // ✅ Empty by default - user must select
   });
 
@@ -124,10 +124,11 @@ export function useWheelOrderForm() {
 
       const newFormData = {
         ...formData,
-        storeName: userStoreObj.name, // Use the display name from stores config
-        storeId: storeId, // ✅ Fixed storeId mapping
+        storeName: "", // ✅ Empty by default - user must select
+        storeId: "", // ✅ Empty by default - user must select  
         userStore: user.store || "",
         yourName: user.name || "",
+        storeColors: "", // ✅ Empty by default - will auto-populate when store selected
       };
 
       console.log("🔍 WHEEL POWDER COATING DEBUG - Setting form data:", {
@@ -162,11 +163,13 @@ export function useWheelOrderForm() {
     });
 
     if (selectedStore) {
+      const autoStoreColor = getStoreColor(selectedStore.name);
       setFormData(prev => ({ 
         ...prev, 
         storeName: selectedStore.name, // This will now be "Fort Worth 022" for store 22
         storeId: value, // ✅ Set storeId from selection
-        userStore: user?.store || ""
+        userStore: user?.store || "",
+        storeColors: prev.storeColors || autoStoreColor // ✅ Auto-populate if not manually set
       }));
     }
     
