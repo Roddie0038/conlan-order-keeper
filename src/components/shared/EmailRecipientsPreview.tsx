@@ -14,12 +14,19 @@ import {
   Plus, 
   X, 
   AlertTriangle,
-  Shield
+  Shield,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { 
+  Collapsible, 
+  CollapsibleContent, 
+  CollapsibleTrigger 
+} from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useEmailRecipientsPreview } from '@/hooks/useEmailRecipientsPreview';
 import { RecipientManagementModal } from './RecipientManagementModal';
@@ -58,6 +65,9 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
+  
+  // Collapsible state
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Build order data for the hook
   const orderDataInput: OrderDataInput = {
@@ -298,61 +308,76 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
         )}
 
         {!loading && !error && hasRecipients && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-green-700">
-                <CheckCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  {recipientCount} recipient{recipientCount !== 1 ? 's' : ''} will be notified
-                </span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowModal(true)}
-                className="text-xs"
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                Add Recipient
-              </Button>
-            </div>
-            
-            <div className="space-y-2">
-              {recipients.map((recipient, index) => (
-                <div 
-                  key={`${recipient.email}-${index}`}
-                  className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100 shadow-sm"
+          <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+            <div className="space-y-3">
+              {/* Summary Line - Always Visible */}
+              <div className="flex items-center justify-between">
+                <CollapsibleTrigger asChild>
+                  <button 
+                    className="flex items-center space-x-2 text-green-700 hover:text-green-800 transition-colors min-h-[44px] cursor-pointer group"
+                    aria-label={isExpanded ? "Collapse recipient list" : "Expand recipient list"}
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      {recipientCount} recipient{recipientCount !== 1 ? 's' : ''} will be notified
+                    </span>
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                    )}
+                  </button>
+                </CollapsibleTrigger>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowModal(true)}
+                  className="text-xs"
                 >
-                  <div className="flex items-center space-x-3">
-                    <Users className="h-4 w-4 text-blue-500" />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">
-                        {recipient.name || 'Unknown Name'}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {recipient.email}
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Recipient
+                </Button>
+              </div>
+              
+              {/* Recipient List - Expandable Content */}
+              <CollapsibleContent className="space-y-2 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+                {recipients.map((recipient, index) => (
+                  <div 
+                    key={`${recipient.email}-${index}`}
+                    className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100 shadow-sm"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Users className="h-4 w-4 text-blue-500" />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-900">
+                          {recipient.name || 'Unknown Name'}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {recipient.email}
+                        </div>
                       </div>
                     </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="text-xs">
+                        {recipient.role}
+                      </Badge>
+                      {getRecipientBadge(recipient.email)}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveRecipient(recipient.email, recipient.name || 'Unknown')}
+                        className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="text-xs">
-                      {recipient.role}
-                    </Badge>
-                    {getRecipientBadge(recipient.email)}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveRecipient(recipient.email, recipient.name || 'Unknown')}
-                      className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </CollapsibleContent>
             </div>
-          </div>
+          </Collapsible>
         )}
 
         {/* Add Recipient Button (when no recipients) */}
@@ -370,8 +395,8 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
           </div>
         )}
 
-        {/* Add Recipient Button (when recipients exist) */}
-        {!loading && !error && hasRecipients && (
+        {/* Add Recipient Button (when recipients exist) - Only shown when expanded */}
+        {!loading && !error && hasRecipients && isExpanded && (
           <div className="flex justify-center">
             <Button
               variant="outline"
