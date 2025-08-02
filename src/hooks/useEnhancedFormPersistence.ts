@@ -23,7 +23,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   const { user } = useAuth();
   const {
     formType,
-    debounceMs = 1000, // Faster debounce for better UX
+    debounceMs = 500, // Faster debounce for quicker first save
     excludeFields = [],
     onRestore,
     enabled = true,
@@ -41,29 +41,31 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   // Enhanced field exclusion list
   const allExcludeFields = [...getDefaultExcludeFields(), ...excludeFields];
   
-  // Generate storage key
-  const storageKey = user ? persistentStorageService.generateKey(
-    user.store || 'unknown',
-    user.email || 'anonymous',
-    formType
-  ) : null;
+  // Generate storage key with anonymous fallback
+  const getStorageKey = useCallback(() => {
+    if (user?.email && user?.store) {
+      return persistentStorageService.generateKey(user.store, user.email, formType);
+    }
+    // Fallback to anonymous key when user isn't loaded yet
+    return `autosave-anonymous-${formType}`;
+  }, [user?.email, user?.store, formType]);
+  
+  const storageKey = getStorageKey();
   
   // Debounce form values for reactive saving
   const debouncedValues = useDebounce(formData, debounceMs);
 
-  // Track tab visibility for performance
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      isTabActiveRef.current = !document.hidden;
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
-
   // Save function with enhanced security and error handling
-  const saveFormData = useCallback(async (data: any, source: 'debounce' | 'interval' | 'manual' = 'debounce') => {
-    if (!enabled || !storageKey || isRestoring || !hasRestoredRef.current || !user) return;
+  const saveFormData = useCallback(async (data: any, source: 'debounce' | 'interval' | 'manual' | 'visibility' = 'debounce') => {
+    if (!enabled || !storageKey) return;
+    
+    console.log(`[AutoSave] Attempting save from ${source}:`, {
+      storageKey,
+      hasUser: !!user,
+      isRestoring,
+      hasRestored: hasRestoredRef.current,
+      dataSize: Object.keys(data || {}).length
+    });
 
     // Sanitize and validate data
     const sanitizedData = sanitizeFormData(data, allExcludeFields);
@@ -71,8 +73,8 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
 
     try {
       await persistentStorageService.save(storageKey, sanitizedData, {
-        store: user.store || 'unknown',
-        user: user.email || 'anonymous',
+        store: user?.store || 'unknown',
+        user: user?.email || 'anonymous',
         formType,
         version: '2.0'
       });
@@ -80,34 +82,102 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       setLastSaved(new Date());
       setSaveCount(prev => prev + 1);
       
-      console.log(`✅ Enhanced auto-save completed (${source}):`, {
+      console.log(`[AutoSave] ✅ Save completed from ${source}:`, {
         formType,
+        storageKey,
         saveCount: saveCount + 1,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('❌ Enhanced auto-save failed:', error);
+      console.error(`[AutoSave] ❌ Save failed from ${source}:`, error);
     }
-  }, [enabled, storageKey, isRestoring, user, formType, allExcludeFields, saveCount]);
+  }, [enabled, storageKey, user, formType, allExcludeFields, saveCount]);
 
-  // Load saved data on mount with enhanced validation
+  // Track tab visibility and save immediately when tab becomes hidden
   useEffect(() => {
-    if (!enabled || !storageKey || hasRestoredRef.current || !user) return;
+    const handleVisibilityChange = () => {
+      const wasActive = isTabActiveRef.current;
+      isTabActiveRef.current = !document.hidden;
+      
+      // Save immediately when tab becomes hidden (user switching tabs)
+      if (wasActive && document.hidden && hasMeaningfulData(sanitizeFormData(formData, allExcludeFields))) {
+        console.log('[AutoSave] Tab hidden - saving immediately');
+        saveFormData(formData, 'visibility');
+      }
+    };
+
+    const handlePageHide = () => {
+      // Mobile Safari compatibility
+      if (hasMeaningfulData(sanitizeFormData(formData, allExcludeFields))) {
+        console.log('[AutoSave] Page hide - saving immediately');
+        saveFormData(formData, 'visibility');
+      }
+    };
+
+    const handleBlur = () => {
+      // Window loses focus
+      if (hasMeaningfulData(sanitizeFormData(formData, allExcludeFields))) {
+        console.log('[AutoSave] Window blur - saving immediately');
+        saveFormData(formData, 'visibility');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('blur', handleBlur);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [formData, saveFormData, allExcludeFields]);
+
+  // Load saved data on mount with enhanced validation and anonymous key migration
+  useEffect(() => {
+    if (!enabled || hasRestoredRef.current) return;
 
     const loadSavedData = async () => {
       try {
-        const savedData = await persistentStorageService.load(storageKey);
+        console.log('[AutoSave] Loading saved data:', { storageKey, hasUser: !!user });
+        
+        let savedData = await persistentStorageService.load(storageKey);
+        
+        // If no data found and we have user info, check for anonymous data to migrate
+        if (!savedData && user?.email && user?.store) {
+          const anonymousKey = `autosave-anonymous-${formType}`;
+          console.log('[AutoSave] Checking for anonymous data to migrate:', anonymousKey);
+          
+          const anonymousData = await persistentStorageService.load(anonymousKey);
+          if (anonymousData) {
+            console.log('[AutoSave] Migrating anonymous data to user-specific key');
+            // Save to authenticated key
+            await persistentStorageService.save(storageKey, anonymousData.data, {
+              store: user.store,
+              user: user.email,
+              formType,
+              version: '2.0'
+            });
+            // Remove anonymous data
+            await persistentStorageService.remove(anonymousKey);
+            savedData = await persistentStorageService.load(storageKey);
+          }
+        }
         
         if (savedData) {
-          // Validate metadata
-          if (!persistentStorageService.validateMetadata(savedData, user.store || 'unknown', user.email || 'anonymous', formType)) {
-            console.log('🚫 Saved data metadata mismatch, ignoring');
-            return;
+          // For anonymous keys, skip metadata validation
+          const isAnonymousKey = storageKey.includes('anonymous');
+          if (!isAnonymousKey && user) {
+            // Validate metadata for authenticated keys
+            if (!persistentStorageService.validateMetadata(savedData, user.store || 'unknown', user.email || 'anonymous', formType)) {
+              console.log('[AutoSave] 🚫 Saved data metadata mismatch, ignoring');
+              return;
+            }
           }
 
           // Check expiration
           if (persistentStorageService.isExpired(savedData, maxAge)) {
-            console.log('⏰ Saved data expired, removing');
+            console.log('[AutoSave] ⏰ Saved data expired, removing');
             await persistentStorageService.remove(storageKey);
             return;
           }
@@ -122,23 +192,25 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
             
             // Show restoration feedback
             const savedTime = new Date(savedData.meta.updatedAt).toLocaleString();
+            const isAnonymous = storageKey.includes('anonymous');
             toast({
               title: "Form Data Restored",
-              description: `Your previous work from ${savedTime} has been restored.`,
+              description: `Your previous work from ${savedTime} has been restored.${isAnonymous ? ' (from before login)' : ''}`,
             });
 
             onRestore?.(savedData.data);
             
-            console.log(`🔄 Enhanced form data restored for ${formType}:`, {
+            console.log(`[AutoSave] 🔄 Form data restored for ${formType}:`, {
               timestamp: savedData.meta.updatedAt,
-              version: savedData.meta.version
+              version: savedData.meta.version,
+              wasAnonymous: isAnonymous
             });
             
-            setTimeout(() => setIsRestoring(false), 500);
+            setTimeout(() => setIsRestoring(false), 100); // Shorter restore window
           }
         }
       } catch (error) {
-        console.error('❌ Failed to restore form data:', error);
+        console.error('[AutoSave] ❌ Failed to restore form data:', error);
         if (storageKey) {
           await persistentStorageService.remove(storageKey);
         }
@@ -150,9 +222,16 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     loadSavedData();
   }, [enabled, storageKey, formType, setFormData, onRestore, maxAge, user]);
 
-  // Debounced auto-save
+  // Debounced auto-save (allow saves during restoration but prevent overwrites)
   useEffect(() => {
-    if (!enabled || isRestoring || !hasRestoredRef.current) return;
+    if (!enabled) return;
+    
+    // Only block saves for first 500ms after restoration starts
+    if (isRestoring && !hasRestoredRef.current) {
+      console.log('[AutoSave] Skipping save during restoration');
+      return;
+    }
+    
     saveFormData(debouncedValues, 'debounce');
   }, [debouncedValues, enabled, isRestoring, saveFormData]);
 
@@ -213,6 +292,11 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
 
     try {
       await persistentStorageService.remove(storageKey);
+      
+      // Also clear anonymous version if it exists
+      const anonymousKey = `autosave-anonymous-${formType}`;
+      await persistentStorageService.remove(anonymousKey);
+      
       setLastSaved(null);
       setSaveCount(0);
       
@@ -221,9 +305,9 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
         description: "All form data has been cleared and removed from storage.",
       });
       
-      console.log(`🗑️ Cleared enhanced persisted data for ${formType}`);
+      console.log(`[AutoSave] 🗑️ Cleared persisted data for ${formType}`);
     } catch (error) {
-      console.error('❌ Failed to clear persisted data:', error);
+      console.error('[AutoSave] ❌ Failed to clear persisted data:', error);
     }
   }, [storageKey, formType]);
 
