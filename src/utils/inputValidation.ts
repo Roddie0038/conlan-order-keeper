@@ -1,17 +1,36 @@
 // SECURITY FIX: Input validation utilities to prevent injection attacks
 
+import DOMPurify from 'dompurify';
+
 /**
  * Sanitize text input to prevent injection attacks
  */
 export function sanitizeTextInput(input: string): string {
   if (!input || typeof input !== 'string') return '';
   
-  return input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+  // Use DOMPurify for comprehensive XSS protection
+  const cleaned = DOMPurify.sanitize(input, { 
+    ALLOWED_TAGS: [], // Strip all HTML tags
+    ALLOWED_ATTR: [] // Strip all attributes
+  });
+  
+  return cleaned
     .replace(/javascript:/gi, '') // Remove javascript: URLs
     .replace(/on\w+\s*=/gi, '') // Remove event handlers
     .trim()
     .slice(0, 1000); // Limit length
+}
+
+/**
+ * Sanitize rich text input (allows safe HTML)
+ */
+export function sanitizeRichText(input: string): string {
+  if (!input || typeof input !== 'string') return '';
+  
+  return DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li'],
+    ALLOWED_ATTR: []
+  });
 }
 
 /**

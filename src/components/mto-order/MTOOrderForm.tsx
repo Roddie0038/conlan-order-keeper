@@ -35,13 +35,13 @@ export const MTOOrderForm = () => {
   const [recipientCount, setRecipientCount] = useState(0);
   const { selectedPlant } = usePlant();
 
-  // Form persistence (only for non-admin users)
-  const { lastSaved, isRestoring, clearPersistedData } = useStatefulFormAutosave(
+  // Enhanced form persistence (only for non-admin users)
+  const { lastSaved, isRestoring, clearPersistedData, saveCount } = useStatefulFormAutosave(
     formData,
     setFormData,
     'mto',
     {
-      excludeFields: ['timestamp', 'managerEmail'], // Exclude auto-generated fields
+      excludeFields: ['timestamp', 'managerEmail', 'password', 'file'], // Enhanced exclusion
       enabled: !user?.isAdmin,
     }
   );
@@ -115,7 +115,12 @@ export const MTOOrderForm = () => {
   return (
     <div className="space-y-4">
       {!user?.isAdmin && (
-        <FormRestorationBanner isRestoring={isRestoring} lastSaved={lastSaved} />
+        <FormRestorationBanner 
+          isRestoring={isRestoring} 
+          lastSaved={lastSaved}
+          onClearData={clearPersistedData}
+          saveCount={saveCount}
+        />
       )}
       
       <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useUniversalFormPersistence } from './useUniversalFormPersistence';
+import { useEnhancedFormPersistence } from './useEnhancedFormPersistence';
 
 // Convenience hook for React Hook Form integration
 export function useFormAutosave<T extends Record<string, any>>(
@@ -14,7 +14,7 @@ export function useFormAutosave<T extends Record<string, any>>(
   const formValues = form.watch();
   const hasInitialized = useRef(false);
   
-  const persistence = useUniversalFormPersistence(
+  const persistence = useEnhancedFormPersistence(
     formValues,
     (data) => {
       if (typeof data === 'function') {
@@ -28,7 +28,9 @@ export function useFormAutosave<T extends Record<string, any>>(
       formType,
       enabled: options?.enabled ?? true,
       excludeFields: options?.excludeFields,
-      onRestore: options?.onRestore
+      onRestore: options?.onRestore,
+      debounceMs: 1000, // Faster response
+      maxAge: 60 * 60 * 1000 // 1 hour expiry
     }
   );
 
@@ -51,14 +53,16 @@ export function useStatefulFormAutosave<T extends Record<string, any>>(
     onRestore?: (data: T) => void;
   }
 ) {
-  return useUniversalFormPersistence(
+  return useEnhancedFormPersistence(
     formData,
     setFormData,
     {
       formType,
       enabled: options?.enabled ?? true,
       excludeFields: options?.excludeFields,
-      onRestore: options?.onRestore
+      onRestore: options?.onRestore,
+      debounceMs: 1000, // Faster response
+      maxAge: 60 * 60 * 1000 // 1 hour expiry
     }
   );
 }
