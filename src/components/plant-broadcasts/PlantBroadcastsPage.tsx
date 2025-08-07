@@ -20,7 +20,7 @@ export function RegionalMessagesPage() {
     sending, 
     sendMessage, 
     markAsRead 
-  } = useRegionalMessages();
+  } = usePlantBroadcasts();
 
   const handleSendMessage = async (subject: string, body: string) => {
     const success = await sendMessage(subject, body);
@@ -47,7 +47,7 @@ export function RegionalMessagesPage() {
                   <Globe className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Regional Messages</CardTitle>
+                  <CardTitle className="text-xl">Plant Broadcasts</CardTitle>
                   <p className="text-gray-600 mt-1">
                     Plant-wide communications for {currentPlant}
                   </p>
@@ -65,7 +65,7 @@ export function RegionalMessagesPage() {
                     className="flex items-center gap-2"
                   >
                     <Plus className="h-4 w-4" />
-                    New Message
+                    New Broadcast
                   </Button>
                 )}
               </div>

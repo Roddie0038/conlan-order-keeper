@@ -1,27 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 import type { 
-  RegionalMessage, 
-  RegionalMessageRecipient, 
-  SendRegionalMessageData,
-  RegionalMessageWithRecipients 
-} from "@/types/regionalMessages";
+  PlantBroadcast, 
+  PlantBroadcastRecipient, 
+  SendPlantBroadcastData,
+  PlantBroadcastWithRecipients 
+} from "@/types/plantBroadcasts";
 
 export type { 
-  RegionalMessage, 
-  RegionalMessageRecipient, 
-  SendRegionalMessageData,
-  RegionalMessageWithRecipients 
+  PlantBroadcast, 
+  PlantBroadcastRecipient, 
+  SendPlantBroadcastData,
+  PlantBroadcastWithRecipients 
 };
 
 /**
- * Send a regional message to a plant using raw SQL
+ * Send a plant broadcast to a plant using raw SQL
  */
-export async function sendRegionalMessage(
-  messageData: SendRegionalMessageData
-): Promise<{ data: RegionalMessage | null; error: Error | null }> {
+export async function sendPlantBroadcast(
+  messageData: SendPlantBroadcastData
+): Promise<{ data: PlantBroadcast | null; error: Error | null }> {
   try {
-    logger.info("Sending regional message", { 
+    logger.info("Sending plant broadcast", { 
       plant: messageData.plant_code, 
       subject: messageData.subject 
     });
@@ -44,30 +44,30 @@ export async function sendRegionalMessage(
 
     if (!response.ok) {
       const errorData = await response.text();
-      logger.error("Error sending regional message", { error: errorData });
-      return { data: null, error: new Error(`Failed to send regional message: ${errorData}`) };
+      logger.error("Error sending plant broadcast", { error: errorData });
+      return { data: null, error: new Error(`Failed to send plant broadcast: ${errorData}`) };
     }
 
-    const regionalMessage = (await response.json())[0] as RegionalMessage;
-    logger.info("Regional message sent successfully", { messageId: regionalMessage.id });
-    return { data: regionalMessage, error: null };
+    const plantBroadcast = (await response.json())[0] as PlantBroadcast;
+    logger.info("Plant broadcast sent successfully", { messageId: plantBroadcast.id });
+    return { data: plantBroadcast, error: null };
   } catch (error) {
-    logger.error("Unexpected error sending regional message", {}, error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error sending plant broadcast", {}, error instanceof Error ? error : new Error(String(error)));
     return { 
       data: null, 
-      error: error instanceof Error ? error : new Error("Unknown error sending regional message") 
+      error: error instanceof Error ? error : new Error("Unknown error sending plant broadcast") 
     };
   }
 }
 
 /**
- * Get regional messages for a plant with recipient info using raw API calls
+ * Get plant broadcasts for a plant with recipient info using raw API calls
  */
-export async function getRegionalMessages(
+export async function getPlantBroadcasts(
   plantCode: string
-): Promise<{ data: RegionalMessageWithRecipients[]; error: Error | null }> {
+): Promise<{ data: PlantBroadcastWithRecipients[]; error: Error | null }> {
   try {
-    logger.info("Fetching regional messages", { plant: plantCode });
+    logger.info("Fetching plant broadcasts", { plant: plantCode });
     
     const session = await supabase.auth.getSession();
     const token = session.data.session?.access_token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10';
@@ -82,14 +82,14 @@ export async function getRegionalMessages(
 
     if (!messagesResponse.ok) {
       const errorData = await messagesResponse.text();
-      logger.error("Error fetching regional messages", { error: errorData });
-      return { data: [], error: new Error(`Failed to fetch regional messages: ${errorData}`) };
+      logger.error("Error fetching plant broadcasts", { error: errorData });
+      return { data: [], error: new Error(`Failed to fetch plant broadcasts: ${errorData}`) };
     }
 
-    const messages = await messagesResponse.json() as RegionalMessage[];
+    const messages = await messagesResponse.json() as PlantBroadcast[];
 
     // Get recipients for all messages
-    const messagesWithCounts: RegionalMessageWithRecipients[] = [];
+    const messagesWithCounts: PlantBroadcastWithRecipients[] = [];
     
     for (const message of messages) {
       const recipientsResponse = await fetch(`https://cdbixtaqjppvdkyfbhkz.supabase.co/rest/v1/regional_message_recipients?message_id=eq.${message.id}`, {
@@ -99,7 +99,7 @@ export async function getRegionalMessages(
         }
       });
 
-      const recipients = recipientsResponse.ok ? await recipientsResponse.json() as RegionalMessageRecipient[] : [];
+      const recipients = recipientsResponse.ok ? await recipientsResponse.json() as PlantBroadcastRecipient[] : [];
       
       messagesWithCounts.push({
         ...message,
@@ -109,21 +109,21 @@ export async function getRegionalMessages(
       });
     }
 
-    logger.info("Regional messages fetched successfully", { count: messagesWithCounts.length });
+    logger.info("Plant broadcasts fetched successfully", { count: messagesWithCounts.length });
     return { data: messagesWithCounts, error: null };
   } catch (error) {
-    logger.error("Unexpected error fetching regional messages", {}, error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error fetching plant broadcasts", {}, error instanceof Error ? error : new Error(String(error)));
     return { 
       data: [], 
-      error: error instanceof Error ? error : new Error("Unknown error fetching regional messages") 
+      error: error instanceof Error ? error : new Error("Unknown error fetching plant broadcasts") 
     };
   }
 }
 
 /**
- * Mark a regional message as read for a specific user using raw API calls
+ * Mark a plant broadcast as read for a specific user using raw API calls
  */
-export async function markRegionalMessageAsRead(
+export async function markPlantBroadcastAsRead(
   messageId: string, 
   userEmail: string
 ): Promise<{ error: Error | null }> {
@@ -145,21 +145,21 @@ export async function markRegionalMessageAsRead(
 
     if (!response.ok) {
       const errorData = await response.text();
-      logger.error("Error marking regional message as read", { error: errorData });
-      return { error: new Error(`Failed to mark regional message as read: ${errorData}`) };
+      logger.error("Error marking plant broadcast as read", { error: errorData });
+      return { error: new Error(`Failed to mark plant broadcast as read: ${errorData}`) };
     }
 
     return { error: null };
   } catch (error) {
-    logger.error("Unexpected error marking regional message as read", {}, error instanceof Error ? error : new Error(String(error)));
-    return { error: error instanceof Error ? error : new Error("Unknown error marking regional message as read") };
+    logger.error("Unexpected error marking plant broadcast as read", {}, error instanceof Error ? error : new Error(String(error)));
+    return { error: error instanceof Error ? error : new Error("Unknown error marking plant broadcast as read") };
   }
 }
 
 /**
- * Get unread regional message count for a user using raw API calls
+ * Get unread plant broadcast count for a user using raw API calls
  */
-export async function getUnreadRegionalMessageCount(
+export async function getUnreadPlantBroadcastCount(
   plantCode: string,
   userEmail: string
 ): Promise<{ count: number; error: Error | null }> {
@@ -198,7 +198,7 @@ export async function getUnreadRegionalMessageCount(
     });
 
     if (!countResponse.ok) {
-      logger.error("Error getting unread regional message count");
+      logger.error("Error getting unread plant broadcast count");
       return { count: 0, error: new Error(`Failed to get unread count: ${await countResponse.text()}`) };
     }
 
@@ -207,7 +207,7 @@ export async function getUnreadRegionalMessageCount(
 
     return { count, error: null };
   } catch (error) {
-    logger.error("Unexpected error getting unread regional message count", {}, error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error getting unread plant broadcast count", {}, error instanceof Error ? error : new Error(String(error)));
     return { 
       count: 0, 
       error: error instanceof Error ? error : new Error("Unknown error getting unread count") 

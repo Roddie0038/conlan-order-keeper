@@ -30,7 +30,7 @@ import Settings from '@/pages/Settings';
 import PlantSwitcherGuide from '@/pages/PlantSwitcherGuide';
 import UserManagement from '@/pages/UserManagement';
 import AdminEmailRouting from '@/pages/AdminEmailRouting';
-import { RegionalMessagesPage } from '@/components/regional-messages/RegionalMessagesPage';
+import { PlantBroadcastsPage } from '@/components/plant-broadcasts/PlantBroadcastsPage';
 
 export function AppRoutes() {
   return (
@@ -200,9 +200,9 @@ export function AppRoutes() {
         </AuthGuard>
       } />
       
-      <Route path="/regional-messages" element={
+      <Route path="/plant-broadcasts" element={
         <AuthGuard>
-          <RegionalMessagesPage />
+          <PlantBroadcastsPage />
         </AuthGuard>
       } />
     </Routes>

@@ -2,18 +2,18 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlant } from '@/contexts/PlantContext';
 import { 
-  getRegionalMessages, 
-  sendRegionalMessage, 
-  markRegionalMessageAsRead,
-  getUnreadRegionalMessageCount,
-  type RegionalMessageWithRecipients,
-  type SendRegionalMessageData 
-} from '@/services/regionalMessageService';
+  getPlantBroadcasts, 
+  sendPlantBroadcast, 
+  markPlantBroadcastAsRead,
+  getUnreadPlantBroadcastCount,
+  type PlantBroadcastWithRecipients,
+  type SendPlantBroadcastData 
+} from '@/services/plantBroadcastService';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useRegionalMessages = () => {
-  const [messages, setMessages] = useState<RegionalMessageWithRecipients[]>([]);
+export const usePlantBroadcasts = () => {
+  const [messages, setMessages] = useState<PlantBroadcastWithRecipients[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -21,25 +21,25 @@ export const useRegionalMessages = () => {
   const { currentPlant } = usePlant();
   const { toast } = useToast();
 
-  // Fetch regional messages for current plant
+  // Fetch plant broadcasts for current plant
   const fetchMessages = async () => {
     if (!currentPlant || !user) return;
     
     setLoading(true);
     try {
-      const result = await getRegionalMessages(currentPlant);
+      const result = await getPlantBroadcasts(currentPlant);
       if (result.error) {
-        console.error("Error fetching regional messages:", result.error);
+        console.error("Error fetching plant broadcasts:", result.error);
         toast({
           title: "Error",
-          description: "Failed to load regional messages. Please try again.",
+          description: "Failed to load plant broadcasts. Please try again.",
           variant: "destructive",
         });
       } else {
         setMessages(result.data);
       }
     } catch (error) {
-      console.error("Unexpected error fetching regional messages:", error);
+      console.error("Unexpected error fetching plant broadcasts:", error);
     } finally {
       setLoading(false);
     }
@@ -50,41 +50,41 @@ export const useRegionalMessages = () => {
     if (!currentPlant || !user?.email) return;
     
     try {
-      const result = await getUnreadRegionalMessageCount(currentPlant, user.email);
+      const result = await getUnreadPlantBroadcastCount(currentPlant, user.email);
       if (!result.error) {
         setUnreadCount(result.count);
       }
     } catch (error) {
-      console.error("Error fetching unread regional message count:", error);
+      console.error("Error fetching unread plant broadcast count:", error);
     }
   };
 
-  // Send a new regional message
+  // Send a new plant broadcast
   const sendMessage = async (subject: string, body: string) => {
     if (!user || !currentPlant || !subject.trim() || !body.trim()) return false;
 
     setSending(true);
     try {
-      const messageData: SendRegionalMessageData = {
+      const messageData: SendPlantBroadcastData = {
         plant_code: currentPlant,
         subject: subject.trim(),
         body: body.trim(),
         created_by: user.email
       };
 
-      const result = await sendRegionalMessage(messageData);
+      const result = await sendPlantBroadcast(messageData);
       
       if (result.error) {
         toast({
           title: "Error",
-          description: "Failed to send regional message. Please try again.",
+          description: "Failed to send plant broadcast. Please try again.",
           variant: "destructive",
         });
         return false;
       } else {
         toast({
-          title: "Message Sent",
-          description: "Your regional message has been sent successfully.",
+          title: "Broadcast Sent",
+          description: "Your plant broadcast has been sent successfully.",
         });
         
         // Refresh messages to show the new message
@@ -92,10 +92,10 @@ export const useRegionalMessages = () => {
         return true;
       }
     } catch (error) {
-      console.error("Error sending regional message:", error);
+      console.error("Error sending plant broadcast:", error);
       toast({
         title: "Error",
-        description: "Failed to send regional message. Please try again.",
+        description: "Failed to send plant broadcast. Please try again.",
         variant: "destructive",
       });
       return false;
@@ -109,22 +109,22 @@ export const useRegionalMessages = () => {
     if (!user?.email) return;
 
     try {
-      await markRegionalMessageAsRead(messageId, user.email);
+      await markPlantBroadcastAsRead(messageId, user.email);
       // Refresh messages and count to update read status
       await Promise.all([fetchMessages(), fetchUnreadCount()]);
     } catch (error) {
-      console.error("Error marking regional message as read:", error);
+      console.error("Error marking plant broadcast as read:", error);
     }
   };
 
-  // Set up real-time subscription for new regional messages
+  // Set up real-time subscription for new plant broadcasts
   useEffect(() => {
     if (!currentPlant || !user) return;
 
-    console.log('🔔 Setting up real-time subscription for regional messages:', { plant: currentPlant });
+    console.log('🔔 Setting up real-time subscription for plant broadcasts:', { plant: currentPlant });
 
     const channel = supabase
-      .channel(`regional-messages-${currentPlant}`)
+      .channel(`plant-broadcasts-${currentPlant}`)
       .on(
         'postgres_changes',
         {
@@ -134,21 +134,21 @@ export const useRegionalMessages = () => {
           filter: `plant_code=eq.${currentPlant}`
         },
         (payload) => {
-          console.log('🔔 Real-time regional message update:', payload);
+          console.log('🔔 Real-time plant broadcast update:', payload);
           
           if (payload.eventType === 'INSERT') {
-            const newMessage = payload.new as RegionalMessageWithRecipients;
+            const newMessage = payload.new as PlantBroadcastWithRecipients;
             setMessages(prev => [newMessage, ...prev]);
             
             // Show toast for new messages from others
             if (newMessage.created_by !== user?.email) {
               toast({
-                title: "New Regional Message",
+                title: "New Plant Broadcast",
                 description: `New message: "${newMessage.subject}"`,
               });
             }
           } else if (payload.eventType === 'UPDATE') {
-            const updatedMessage = payload.new as RegionalMessageWithRecipients;
+            const updatedMessage = payload.new as PlantBroadcastWithRecipients;
             setMessages(prev => 
               prev.map(msg => msg.id === updatedMessage.id ? updatedMessage : msg)
             );
@@ -167,7 +167,7 @@ export const useRegionalMessages = () => {
           table: 'regional_message_recipients'
         },
         (payload) => {
-          console.log('🔔 Real-time regional message recipient update:', payload);
+          console.log('🔔 Real-time plant broadcast recipient update:', payload);
           
           // Refresh unread count when recipients change
           if (payload.eventType === 'UPDATE' && payload.new.user_email === user.email) {
@@ -177,14 +177,14 @@ export const useRegionalMessages = () => {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Subscribed to real-time regional messages');
+          console.log('✅ Subscribed to real-time plant broadcasts');
         } else if (status !== 'CLOSED') {
-          console.error('❌ Failed to subscribe to real-time regional messages:', status);
+          console.error('❌ Failed to subscribe to real-time plant broadcasts:', status);
         }
       });
 
     return () => {
-      console.log('🔔 Cleaning up real-time subscription for regional messages');
+      console.log('🔔 Cleaning up real-time subscription for plant broadcasts');
       supabase.removeChannel(channel);
     };
   }, [currentPlant, user?.email, toast]);

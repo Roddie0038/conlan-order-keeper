@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Globe, Search, Users, Clock, CheckCircle2, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import type { RegionalMessageWithRecipients } from "@/types/regionalMessages";
+import type { PlantBroadcastWithRecipients } from "@/types/plantBroadcasts";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface RegionalMessagesListProps {

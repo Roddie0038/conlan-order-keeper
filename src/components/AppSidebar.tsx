@@ -29,7 +29,8 @@ import {
   AlertTriangle,
   MessageSquare,
   Users,
-  Mail
+  Mail,
+  Globe
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -79,6 +80,11 @@ const navigationItems = [
     title: "Approved Tire Tread List",
     url: "/approved-treads",
     icon: List,
+  },
+  {
+    title: "Plant Broadcasts",
+    url: "/plant-broadcasts",
+    icon: Globe,
   },
 ];
 
