@@ -68,7 +68,7 @@ export function PlantBroadcastsList({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search regional messages..."
+            placeholder="Search plant broadcasts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -81,12 +81,12 @@ export function PlantBroadcastsList({
             <CardContent className="p-8 text-center">
               <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {searchQuery ? "No messages found" : "No regional messages"}
+                {searchQuery ? "No messages found" : "No plant broadcasts"}
               </h3>
               <p className="text-gray-500">
                 {searchQuery 
                   ? "Try adjusting your search terms" 
-                  : "Regional messages will appear here when they are sent"
+                  : "Plant broadcasts will appear here when they are sent"
                 }
               </p>
             </CardContent>

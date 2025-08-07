@@ -30,7 +30,7 @@ export function PlantBroadcastsPage() {
     return success;
   };
 
-  // Check if user can send regional messages (admin/manager roles)
+  // Check if user can send plant broadcasts (admin/manager roles)
   const canSendMessages = user?.isAdmin || 
     user?.title?.toLowerCase().includes('manager') ||
     user?.title?.toLowerCase().includes('admin');
