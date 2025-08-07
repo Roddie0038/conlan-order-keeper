@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Globe, Plus, MessageSquare, Users, AlertCircle } from "lucide-react";
 import { PlantBroadcastDialog } from "./PlantBroadcastDialog";
 import { PlantBroadcastsList } from "./PlantBroadcastsList";
-import { usePlantBroadcasts } from "@/hooks/usePlantBroadcasts";
+import { useRegionalMessages } from "@/hooks/useRegionalMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 
@@ -20,7 +20,7 @@ export function PlantBroadcastsPage() {
     sending, 
     sendMessage, 
     markAsRead 
-  } = usePlantBroadcasts();
+  } = useRegionalMessages();
 
   const handleSendMessage = async (subject: string, body: string) => {
     const success = await sendMessage(subject, body);

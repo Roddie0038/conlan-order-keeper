@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Globe, Search, Users, Clock, CheckCircle2, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import type { PlantBroadcastWithRecipients } from "@/types/plantBroadcasts";
+import type { RegionalMessageWithRecipients } from "@/types/regionalMessages";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface PlantBroadcastsListProps {
-  messages: PlantBroadcastWithRecipients[];
+  messages: RegionalMessageWithRecipients[];
   loading: boolean;
   onMarkAsRead: (messageId: string) => Promise<void>;
 }
@@ -21,7 +21,7 @@ export function PlantBroadcastsList({
   onMarkAsRead 
 }: PlantBroadcastsListProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMessage, setSelectedMessage] = useState<PlantBroadcastWithRecipients | null>(null);
+  const [selectedMessage, setSelectedMessage] = useState<RegionalMessageWithRecipients | null>(null);
   const { user } = useAuth();
 
   // Filter messages based on search query
@@ -31,7 +31,7 @@ export function PlantBroadcastsList({
     message.created_by.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleViewMessage = async (message: PlantBroadcastWithRecipients) => {
+  const handleViewMessage = async (message: RegionalMessageWithRecipients) => {
     setSelectedMessage(message);
     
     // Check if current user has read this message
@@ -41,7 +41,7 @@ export function PlantBroadcastsList({
     }
   };
 
-  const isMessageRead = (message: PlantBroadcastWithRecipients) => {
+  const isMessageRead = (message: RegionalMessageWithRecipients) => {
     const userRecipient = message.recipients.find(r => r.user_email === user?.email);
     return userRecipient?.read_at != null;
   };

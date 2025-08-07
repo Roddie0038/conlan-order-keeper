@@ -1,4 +1,4 @@
-export interface PlantBroadcast {
+export interface RegionalMessage {
   id: string;
   plant_code: string;
   subject: string;
@@ -8,7 +8,7 @@ export interface PlantBroadcast {
   updated_at: string;
 }
 
-export interface PlantBroadcastRecipient {
+export interface RegionalMessageRecipient {
   id: string;
   message_id: string;
   user_id: string;
@@ -17,15 +17,15 @@ export interface PlantBroadcastRecipient {
   created_at: string;
 }
 
-export interface SendPlantBroadcastData {
+export interface SendRegionalMessageData {
   plant_code: string;
   subject: string;
   body: string;
   created_by: string;
 }
 
-export interface PlantBroadcastWithRecipients extends PlantBroadcast {
-  recipients: PlantBroadcastRecipient[];
+export interface RegionalMessageWithRecipients extends RegionalMessage {
+  recipients: RegionalMessageRecipient[];
   unread_count: number;
   total_recipients: number;
 }

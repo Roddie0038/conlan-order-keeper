@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Globe } from "lucide-react";
-import { usePlantBroadcasts } from "@/hooks/usePlantBroadcasts";
+import { useRegionalMessages } from "@/hooks/useRegionalMessages";
 
 interface PlantBroadcastIndicatorProps {
   className?: string;
@@ -11,7 +11,7 @@ export function PlantBroadcastIndicator({
   className = "", 
   showIcon = true 
 }: PlantBroadcastIndicatorProps) {
-  const { unreadCount } = usePlantBroadcasts();
+  const { unreadCount } = useRegionalMessages();
 
   if (unreadCount === 0) {
     return null;
