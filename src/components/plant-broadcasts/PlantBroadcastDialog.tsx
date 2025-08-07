@@ -7,19 +7,19 @@ import { Label } from "@/components/ui/label";
 import { Send, Globe } from "lucide-react";
 import { usePlant } from "@/contexts/PlantContext";
 
-interface RegionalMessageDialogProps {
+interface PlantBroadcastDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSendMessage: (subject: string, body: string) => Promise<boolean>;
   sending: boolean;
 }
 
-export function RegionalMessageDialog({
+export function PlantBroadcastDialog({
   open,
   onOpenChange,
   onSendMessage,
   sending
-}: RegionalMessageDialogProps) {
+}: PlantBroadcastDialogProps) {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const { currentPlant } = usePlant();
@@ -47,7 +47,7 @@ export function RegionalMessageDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Send Regional Message
+            Send Plant Broadcast
           </DialogTitle>
         </DialogHeader>
         
@@ -86,7 +86,7 @@ export function RegionalMessageDialog({
             </Label>
             <Textarea
               id="body"
-              placeholder="Type your regional message here..."
+              placeholder="Type your plant broadcast here..."
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={6}
@@ -110,7 +110,7 @@ export function RegionalMessageDialog({
             className="flex items-center gap-2"
           >
             <Send className="h-4 w-4" />
-            {sending ? "Sending..." : "Send Regional Message"}
+            {sending ? "Sending..." : "Send Plant Broadcast"}
           </Button>
         </DialogFooter>
       </DialogContent>

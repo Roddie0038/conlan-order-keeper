@@ -9,19 +9,19 @@ import { formatDistanceToNow } from "date-fns";
 import type { PlantBroadcastWithRecipients } from "@/types/plantBroadcasts";
 import { useAuth } from "@/contexts/AuthContext";
 
-interface RegionalMessagesListProps {
-  messages: RegionalMessageWithRecipients[];
+interface PlantBroadcastsListProps {
+  messages: PlantBroadcastWithRecipients[];
   loading: boolean;
   onMarkAsRead: (messageId: string) => Promise<void>;
 }
 
-export function RegionalMessagesList({ 
+export function PlantBroadcastsList({ 
   messages, 
   loading, 
   onMarkAsRead 
-}: RegionalMessagesListProps) {
+}: PlantBroadcastsListProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMessage, setSelectedMessage] = useState<RegionalMessageWithRecipients | null>(null);
+  const [selectedMessage, setSelectedMessage] = useState<PlantBroadcastWithRecipients | null>(null);
   const { user } = useAuth();
 
   // Filter messages based on search query
@@ -31,7 +31,7 @@ export function RegionalMessagesList({
     message.created_by.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleViewMessage = async (message: RegionalMessageWithRecipients) => {
+  const handleViewMessage = async (message: PlantBroadcastWithRecipients) => {
     setSelectedMessage(message);
     
     // Check if current user has read this message
@@ -41,7 +41,7 @@ export function RegionalMessagesList({
     }
   };
 
-  const isMessageRead = (message: RegionalMessageWithRecipients) => {
+  const isMessageRead = (message: PlantBroadcastWithRecipients) => {
     const userRecipient = message.recipients.find(r => r.user_email === user?.email);
     return userRecipient?.read_at != null;
   };

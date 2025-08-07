@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Globe, Plus, MessageSquare, Users, AlertCircle } from "lucide-react";
-import { RegionalMessageDialog } from "./RegionalMessageDialog";
-import { RegionalMessagesList } from "./RegionalMessagesList";
-import { useRegionalMessages } from "@/hooks/useRegionalMessages";
+import { PlantBroadcastDialog } from "./PlantBroadcastDialog";
+import { PlantBroadcastsList } from "./PlantBroadcastsList";
+import { usePlantBroadcasts } from "@/hooks/usePlantBroadcasts";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 
-export function RegionalMessagesPage() {
+export function PlantBroadcastsPage() {
   const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
   const { user } = useAuth();
   const { currentPlant } = usePlant();
@@ -121,7 +121,7 @@ export function RegionalMessagesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <RegionalMessagesList 
+            <PlantBroadcastsList 
               messages={messages}
               loading={loading}
               onMarkAsRead={markAsRead}
@@ -131,7 +131,7 @@ export function RegionalMessagesPage() {
       </div>
 
       {/* New Message Dialog */}
-      <RegionalMessageDialog
+      <PlantBroadcastDialog
         open={showNewMessageDialog}
         onOpenChange={setShowNewMessageDialog}
         onSendMessage={handleSendMessage}
