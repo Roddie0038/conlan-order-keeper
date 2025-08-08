@@ -65,6 +65,7 @@ export function OrderForm() {
 
   // Update store when user changes
   useEffect(() => {
+    console.log('[AutoSave][OrderForm] defaults effect run', { ready, didRestore });
     if (!ready) return;
     if (didRestore) {
       console.log('[AutoSave] Skipping defaults – restored data present.');
@@ -81,6 +82,11 @@ export function OrderForm() {
   // Auto-initialize destination plant based on store
   useEffect(() => {
     if (!ready) return;
+    if (didRestore) {
+      console.log('[AutoSave][OrderForm] Skipping auto-plant defaults – restored data present.');
+      return;
+    }
+    console.log('[AutoSave][OrderForm] auto-plant defaults effect', { ready, didRestore });
     const currentStore = form.watch("store");
     const currentPlant = form.watch("destinationPlant");
     
@@ -96,7 +102,7 @@ export function OrderForm() {
       
       console.log("✅ AUTO-PLANT - Destination plant auto-set to:", selectedPlant);
     }
-  }, [form.watch("store"), selectedPlant, form, ready]);
+  }, [form.watch("store"), selectedPlant, form, ready, didRestore]);
 
   const { handleSubmit, formState, reset } = form;
   const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "Yes";

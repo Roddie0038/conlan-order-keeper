@@ -53,7 +53,7 @@ export const usePlantSwitching = () => {
         .from('user_preferences')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (existingPref) {
         // Update existing preferences

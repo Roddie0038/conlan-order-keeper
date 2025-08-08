@@ -118,7 +118,7 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
           .from('user_preferences')
           .select('current_plant')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         let plantToUse: Plant = storeBasedPlant; // Default to store-based plant
 
@@ -173,7 +173,7 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
           .from('user_preferences')
           .select('id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (existing) {
           // Update existing preferences

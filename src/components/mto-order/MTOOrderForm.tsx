@@ -66,6 +66,11 @@ export const MTOOrderForm = () => {
   // Auto-initialize destination plant based on store
   React.useEffect(() => {
     if (!ready) return;
+    if (didRestore) {
+      console.log('[AutoSave][MTOOrderForm] Skipping auto-plant defaults – restored data present.');
+      return;
+    }
+    console.log('[AutoSave][MTOOrderForm] auto-plant defaults effect', { ready, didRestore });
     const currentStore = formData.store;
     const currentPlant = formData.destinationPlant;
     
@@ -84,7 +89,7 @@ export const MTOOrderForm = () => {
       
       console.log("✅ MTO AUTO-PLANT - Destination plant auto-set to:", selectedPlant);
     }
-  }, [formData.store, selectedPlant, setFormData, ready]);
+  }, [formData.store, selectedPlant, setFormData, ready, didRestore]);
   
   const handleSubmit = useSubmitMTOOrder({
     formData,

@@ -15,6 +15,11 @@ interface EnhancedPersistenceOptions {
   maxAge?: number; // Maximum age before expiry (default 1 hour)
 }
 
+// Global debug flag to control autosave logging
+const __autosaveShouldLog = () => {
+  try { return (window as any).__AUTOSAVE_DEBUG !== false; } catch { return true; }
+};
+
 export function useEnhancedFormPersistence<T extends Record<string, any>>(
   formData: T,
   setFormData: (data: T | ((prev: T) => T)) => void,
@@ -63,6 +68,8 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     console.log('[AutoSave] MOUNT', { storageKey, enabled });
     return () => {
       console.log('[AutoSave] UNMOUNT', { storageKey });
+      // Allow re-restore on next mount
+      lastRestoredKeyRef.current = null;
     };
   }, [storageKey, enabled]);
 
@@ -107,6 +114,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   // Track tab visibility and save immediately when tab becomes hidden
   useEffect(() => {
     const handleVisibilityChange = () => {
+      if (__autosaveShouldLog()) console.log('[AutoSave] VISIBILITY CHANGE', document.visibilityState);
       const wasActive = isTabActiveRef.current;
       isTabActiveRef.current = !document.hidden;
       
@@ -152,7 +160,6 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       return;
     }
     if (!storageKey) return;
-    if (lastRestoredKeyRef.current === storageKey) return;
 
     const loadSavedData = async () => {
       try {
@@ -181,13 +188,15 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
           }
         }
         
+        if (__autosaveShouldLog()) console.log('[AutoSave] LOAD RESULT', { storageKey, found: !!savedData, keys: savedData ? Object.keys(savedData.data || {}) : [], meta: savedData?.meta });
+        
         if (savedData) {
           // For anonymous keys, skip metadata validation
           const isAnonymousKey = storageKey.includes('anonymous');
           if (!isAnonymousKey && user) {
             // Validate metadata for authenticated keys
             if (!persistentStorageService.validateMetadata(savedData, user.store || 'unknown', user.email || 'anonymous', formType)) {
-              console.log('[AutoSave] 🚫 Saved data metadata mismatch, ignoring');
+              if (__autosaveShouldLog()) console.warn('[AutoSave] Metadata mismatch', { stored: savedData.meta, expected: { store: user.store, user: user.email, formType } });
               return;
             }
           }
@@ -200,6 +209,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
           }
 
           // Validate and restore data
+          if (__autosaveShouldLog()) console.log('[AutoSave] MEANINGFUL?', { result: hasMeaningfulData(savedData.data), sample: savedData.data });
           if (hasMeaningfulData(savedData.data)) {
             setIsRestoring(true);
             
