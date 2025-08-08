@@ -20,7 +20,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   setFormData: (data: T | ((prev: T) => T)) => void,
   options: EnhancedPersistenceOptions
 ) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const {
     formType,
     debounceMs = 500, // Faster debounce for quicker first save
@@ -37,6 +37,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   const hasRestoredRef = useRef(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const isTabActiveRef = useRef(true);
+  const lastRestoredKeyRef = useRef<string | null>(null);
   
   // Enhanced field exclusion list
   const allExcludeFields = [...getDefaultExcludeFields(), ...excludeFields];
@@ -133,9 +134,15 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     };
   }, [formData, saveFormData, allExcludeFields]);
 
-  // Load saved data on mount with enhanced validation and anonymous key migration
+  // Load saved data when auth is ready and per storage key
   useEffect(() => {
-    if (!enabled || hasRestoredRef.current) return;
+    if (!enabled) return;
+    if (loading) {
+      console.log('[AutoSave] Auth loading - deferring restore');
+      return;
+    }
+    if (!storageKey) return;
+    if (lastRestoredKeyRef.current === storageKey) return;
 
     const loadSavedData = async () => {
       try {
@@ -216,11 +223,12 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
         }
       } finally {
         hasRestoredRef.current = true;
+        lastRestoredKeyRef.current = storageKey;
       }
     };
 
     loadSavedData();
-  }, [enabled, storageKey, formType, setFormData, onRestore, maxAge, user]);
+  }, [enabled, storageKey, formType, setFormData, onRestore, maxAge, user, loading]);
 
   // Debounced auto-save (allow saves during restoration but prevent overwrites)
   useEffect(() => {
@@ -266,6 +274,20 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [enabled, formData, saveFormData, allExcludeFields, storageKey]);
+
+  // Save on component unmount (e.g., SPA route changes)
+  useEffect(() => {
+    return () => {
+      try {
+        if (enabled && hasMeaningfulData(sanitizeFormData(formData, allExcludeFields))) {
+          console.log('[AutoSave] Component unmount - saving immediately');
+          saveFormData(formData, 'manual');
+        }
+      } catch (e) {
+        // no-op
+      }
+    };
+  }, [enabled, formData, saveFormData, allExcludeFields]);
 
   // Cross-tab coordination
   useEffect(() => {
