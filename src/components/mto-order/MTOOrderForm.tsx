@@ -36,7 +36,7 @@ export const MTOOrderForm = () => {
   const { selectedPlant } = usePlant();
 
   // Enhanced form persistence (only for non-admin users)
-  const { lastSaved, isRestoring, clearPersistedData, saveCount } = useStatefulFormAutosave(
+  const { lastSaved, isRestoring, clearPersistedData, saveCount, ready, didRestore } = useStatefulFormAutosave(
     formData,
     setFormData,
     'mto',
@@ -47,16 +47,25 @@ export const MTOOrderForm = () => {
   );
   
   React.useEffect(() => {
-    if (user && user.store && !isAdmin) {
-      setFormData(prev => ({ ...prev, store: user.store }));
+    if (!ready) {
+      console.log('[AutoSave] Defaults not applied – persistence not ready');
+      return;
     }
-  }, [user, isAdmin, setFormData]);
+    if (didRestore) {
+      console.log('[AutoSave] Skipping defaults – restored data present.');
+      return;
+    }
+    if (user && user.store && !isAdmin) {
+      setFormData(prev => (prev.store ? prev : { ...prev, store: user.store }));
+    }
+  }, [user, isAdmin, setFormData, ready, didRestore]);
   
   // Add debugging to track form data changes
   const { debuggedSubmitAction } = useMTOFormDebug(formData, () => {});
 
   // Auto-initialize destination plant based on store
   React.useEffect(() => {
+    if (!ready) return;
     const currentStore = formData.store;
     const currentPlant = formData.destinationPlant;
     
@@ -75,7 +84,7 @@ export const MTOOrderForm = () => {
       
       console.log("✅ MTO AUTO-PLANT - Destination plant auto-set to:", selectedPlant);
     }
-  }, [formData.store, selectedPlant, setFormData]);
+  }, [formData.store, selectedPlant, setFormData, ready]);
   
   const handleSubmit = useSubmitMTOOrder({
     formData,

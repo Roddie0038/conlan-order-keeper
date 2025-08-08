@@ -55,7 +55,7 @@ export function OrderForm() {
   });
 
   // Form persistence (only for non-admin users)
-  const { lastSaved, isRestoring, clearPersistedData } = useFormAutosave(form, 'order', {
+  const { lastSaved, isRestoring, clearPersistedData, ready, didRestore } = useFormAutosave(form, 'order', {
     enabled: !user?.isAdmin,
     excludeFields: ['managersEmail', 'destinationPlant'], // Exclude auto-generated fields
     onRestore: () => {
@@ -65,14 +65,22 @@ export function OrderForm() {
 
   // Update store when user changes
   useEffect(() => {
-    if (user?.store && !user?.isAdmin) {
-      form.setValue("store", user.store);
-      form.setValue("managersEmail", "");
+    if (!ready) return;
+    if (didRestore) {
+      console.log('[AutoSave] Skipping defaults – restored data present.');
+      return;
     }
-  }, [user, form]);
+    if (user?.store && !user?.isAdmin) {
+      const currentStore = form.getValues("store");
+      const currentManagersEmail = form.getValues("managersEmail");
+      if (!currentStore) form.setValue("store", user.store);
+      if (!currentManagersEmail) form.setValue("managersEmail", "");
+    }
+  }, [user, form, ready, didRestore]);
 
   // Auto-initialize destination plant based on store
   useEffect(() => {
+    if (!ready) return;
     const currentStore = form.watch("store");
     const currentPlant = form.watch("destinationPlant");
     
@@ -88,7 +96,7 @@ export function OrderForm() {
       
       console.log("✅ AUTO-PLANT - Destination plant auto-set to:", selectedPlant);
     }
-  }, [form.watch("store"), selectedPlant, form]);
+  }, [form.watch("store"), selectedPlant, form, ready]);
 
   const { handleSubmit, formState, reset } = form;
   const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "Yes";

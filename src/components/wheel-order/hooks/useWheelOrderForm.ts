@@ -38,7 +38,7 @@ export function useWheelOrderForm() {
   const [managerEmail, setManagerEmail] = useState("");
 
   // Auto-save functionality (only for non-admin users)
-  const { lastSaved, isRestoring, clearPersistedData, saveNow } = useStatefulFormAutosave(
+  const { lastSaved, isRestoring, clearPersistedData, saveNow, ready, didRestore } = useStatefulFormAutosave(
     formData,
     setFormData,
     'wheel-powder-coating',
@@ -83,6 +83,15 @@ export function useWheelOrderForm() {
         userStore: formData.userStore
       }
     });
+
+    if (!ready) {
+      console.log('[AutoSave] Defaults not applied – persistence not ready');
+      return;
+    }
+    if (didRestore) {
+      console.log('[AutoSave] Skipping defaults – restored data present.');
+      return;
+    }
 
     if (user && !user.isAdmin) {
       // Debug store normalization
@@ -137,28 +146,22 @@ export function useWheelOrderForm() {
         storeName: userStoreObj.name
       });
 
-      const newFormData = {
-        ...formData,
-        storeName: "", // ✅ Empty by default - user must select
-        storeId: "", // ✅ Empty by default - user must select  
-        userStore: user.store || "",
-        yourName: user.name || "",
-        storeColors: "", // ✅ Empty by default - will auto-populate when store selected
-      };
-
-      console.log("🔍 WHEEL POWDER COATING DEBUG - Setting form data:", {
-        before: formData,
-        after: newFormData
+      // Only set defaults for empty fields to avoid overwriting restored data
+      setFormData(prev => {
+        const next = { ...prev };
+        if (!prev.userStore) next.userStore = user.store || "";
+        if (!prev.yourName) next.yourName = user.name || "";
+        // Do not force-clear storeName or storeId; user must (re)select if empty
+        console.log('[AutoSave] Applying defaults – no persisted data found.', { changes: next !== prev });
+        return next;
       });
-
-      setFormData(newFormData);
     } else if (user && user.isAdmin) {
       console.log("🔍 WHEEL POWDER COATING DEBUG - Admin user, skipping auto store setup:", {
         adminUser: user.name,
         currentFormData: formData
       });
     }
-  }, [user]);
+  }, [user, ready, didRestore]);
 
   const handleInputChange = useCallback((name: string, value: string) => {
     console.log(`🔄 WHEEL FORM - Field change: ${name} = ${value}`);

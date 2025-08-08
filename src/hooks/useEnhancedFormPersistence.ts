@@ -38,6 +38,8 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const isTabActiveRef = useRef(true);
   const lastRestoredKeyRef = useRef<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const [didRestore, setDidRestore] = useState(false);
   
   // Enhanced field exclusion list
   const allExcludeFields = [...getDefaultExcludeFields(), ...excludeFields];
@@ -55,6 +57,14 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   
   // Debounce form values for reactive saving
   const debouncedValues = useDebounce(formData, debounceMs);
+
+  // Mount/unmount debug logging
+  useEffect(() => {
+    console.log('[AutoSave] MOUNT', { storageKey, enabled });
+    return () => {
+      console.log('[AutoSave] UNMOUNT', { storageKey });
+    };
+  }, [storageKey, enabled]);
 
   // Save function with enhanced security and error handling
   const saveFormData = useCallback(async (data: any, source: 'debounce' | 'interval' | 'manual' | 'visibility' = 'debounce') => {
@@ -196,6 +206,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
             // Restore form data
             setFormData(savedData.data);
             setLastSaved(new Date(savedData.meta.updatedAt));
+            setDidRestore(true);
             
             // Show restoration feedback
             const savedTime = new Date(savedData.meta.updatedAt).toLocaleString();
@@ -224,6 +235,8 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       } finally {
         hasRestoredRef.current = true;
         lastRestoredKeyRef.current = storageKey;
+        setReady(true);
+        console.log('[AutoSave] Restore attempt finished', { storageKey, didRestore });
       }
     };
 
@@ -374,6 +387,16 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     saveFormData(formData, 'manual');
   }, [formData, saveFormData]);
 
+  // Reset readiness when key changes or auth loading
+  useEffect(() => {
+    setReady(false);
+    setDidRestore(false);
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (loading) setReady(false);
+  }, [loading]);
+
   return {
     lastSaved,
     isRestoring,
@@ -381,6 +404,8 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     clearPersistedData,
     hasPersistedData,
     getPersistedDataInfo,
-    saveNow
+    saveNow,
+    ready,
+    didRestore
   };
 }
