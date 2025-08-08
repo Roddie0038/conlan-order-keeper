@@ -28,7 +28,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   const { user, loading } = useAuth();
   const {
     formType,
-    debounceMs = 500, // Faster debounce for quicker first save
+    debounceMs = 1400, // Debounce typing to reduce save storms
     excludeFields = [],
     onRestore,
     enabled = true,
@@ -45,6 +45,9 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   const lastRestoredKeyRef = useRef<string | null>(null);
   const [ready, setReady] = useState(false);
   const [didRestore, setDidRestore] = useState(false);
+  const lastSavedJsonRef = useRef<string | null>(null);
+  const restoreFrozenRef = useRef(false);
+  const userIsTypingRef = useRef(false);
   
   // Enhanced field exclusion list
   const allExcludeFields = [...getDefaultExcludeFields(), ...excludeFields];
@@ -70,6 +73,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       console.log('[AutoSave] UNMOUNT', { storageKey });
       // Allow re-restore on next mount
       lastRestoredKeyRef.current = null;
+      restoreFrozenRef.current = false;
     };
   }, [storageKey, enabled]);
 
@@ -106,11 +110,18 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     };
   }, []);
 
+  // Track user typing to avoid mid-typing restores
+  useEffect(() => {
+    const markTyping = () => { userIsTypingRef.current = true; };
+    window.addEventListener('input', markTyping, { capture: true } as any);
+    return () => window.removeEventListener('input', markTyping, { capture: true } as any);
+  }, []);
+
   // Save function with enhanced security and error handling
   const saveFormData = useCallback(async (data: any, source: 'debounce' | 'interval' | 'manual' | 'visibility' = 'debounce') => {
     if (!enabled || !storageKey) return;
     
-    console.log(`[AutoSave] Attempting save from ${source}:`, {
+    if (__autosaveShouldLog()) console.log(`[AutoSave] Attempting save from ${source}:`, {
       storageKey,
       hasUser: !!user,
       isRestoring,
@@ -121,6 +132,18 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     // Sanitize and validate data
     const sanitizedData = sanitizeFormData(data, allExcludeFields);
     if (!hasMeaningfulData(sanitizedData)) return;
+
+    // De-duplicate identical saves
+    try {
+      const json = JSON.stringify(sanitizedData);
+      if (lastSavedJsonRef.current === json) {
+        if (__autosaveShouldLog()) console.log('[AutoSave] Skipping save — no changes', { source });
+        return;
+      }
+      lastSavedJsonRef.current = json;
+    } catch (e) {
+      // If stringify fails, proceed without dedupe
+    }
 
     try {
       await persistentStorageService.save(storageKey, sanitizedData, {
@@ -194,12 +217,30 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     }
     if (!storageKey) return;
 
+    // Prevent multiple restore attempts per mount
+    if (restoreFrozenRef.current) {
+      if (__autosaveShouldLog()) console.log('[AutoSave] Skipping restore — already attempted this mount');
+      setReady(true);
+      return;
+    }
+
+    // Skip restore if the user has started typing
+    if (userIsTypingRef.current) {
+      if (__autosaveShouldLog()) console.log('[AutoSave] Skipping restore — user is typing');
+      setReady(true);
+      setDidRestore(false);
+      restoreFrozenRef.current = true;
+      return;
+    }
+
     // Skip restore if the current form already has meaningful data
     try {
       const alreadyHasData = hasMeaningfulData(sanitizeFormData(formData, allExcludeFields));
       if (alreadyHasData) {
         console.log('[AutoSave] Skipping restore — reason: already has data');
         setReady(true);
+        setDidRestore(false);
+        restoreFrozenRef.current = true;
         return;
       }
     } catch (e) {
@@ -284,13 +325,12 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
         }
       } catch (error) {
         console.error('[AutoSave] ❌ Failed to restore form data:', error);
-        if (storageKey) {
-          await persistentStorageService.remove(storageKey);
-        }
+        // Do not clear drafts on restore error
       } finally {
         hasRestoredRef.current = true;
         lastRestoredKeyRef.current = storageKey;
         setReady(true);
+        restoreFrozenRef.current = true;
         console.log('[AutoSave] Restore attempt finished', { storageKey, didRestore });
       }
     };
@@ -300,11 +340,10 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
 
   // Debounced auto-save (allow saves during restoration but prevent overwrites)
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !ready) return;
     
-    // Only block saves for first 500ms after restoration starts
-    if (isRestoring && !hasRestoredRef.current) {
-      console.log('[AutoSave] Skipping save during restoration');
+    if (isRestoring) {
+      if (__autosaveShouldLog()) console.log('[AutoSave] Skipping save during restoration');
       return;
     }
     

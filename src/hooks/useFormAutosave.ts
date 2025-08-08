@@ -29,7 +29,7 @@ export function useFormAutosave<T extends Record<string, any>>(
       enabled: options?.enabled ?? true,
       excludeFields: options?.excludeFields,
       onRestore: options?.onRestore,
-      debounceMs: 1000, // Faster response
+      debounceMs: 1500, // Slower debounce to prevent save storms
       maxAge: 60 * 60 * 1000 // 1 hour expiry
     }
   );
