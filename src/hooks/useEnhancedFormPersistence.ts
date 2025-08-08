@@ -73,6 +73,39 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     };
   }, [storageKey, enabled]);
 
+  // Router-aware reset to ensure next mount restores
+  useEffect(() => {
+    const reset = () => {
+      lastRestoredKeyRef.current = null;
+      if (__autosaveShouldLog()) console.log('[AutoSave] Route change detected – reset restore guard');
+    };
+
+    // Fire a custom event on history changes
+    const wrap = (type: 'pushState' | 'replaceState') => {
+      const orig = (history as any)[type];
+      return function(this: any, ...args: any[]) {
+        const ret = orig.apply(this, args as any);
+        window.dispatchEvent(new Event('locationchange'));
+        return ret;
+      };
+    };
+
+    const originalPush = history.pushState;
+    const originalReplace = history.replaceState;
+    (history as any).pushState = wrap('pushState');
+    (history as any).replaceState = wrap('replaceState');
+
+    window.addEventListener('popstate', reset);
+    window.addEventListener('locationchange', reset);
+
+    return () => {
+      (history as any).pushState = originalPush;
+      (history as any).replaceState = originalReplace;
+      window.removeEventListener('popstate', reset);
+      window.removeEventListener('locationchange', reset);
+    };
+  }, []);
+
   // Save function with enhanced security and error handling
   const saveFormData = useCallback(async (data: any, source: 'debounce' | 'interval' | 'manual' | 'visibility' = 'debounce') => {
     if (!enabled || !storageKey) return;
@@ -160,6 +193,18 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       return;
     }
     if (!storageKey) return;
+
+    // Skip restore if the current form already has meaningful data
+    try {
+      const alreadyHasData = hasMeaningfulData(sanitizeFormData(formData, allExcludeFields));
+      if (alreadyHasData) {
+        console.log('[AutoSave] Skipping restore — reason: already has data');
+        setReady(true);
+        return;
+      }
+    } catch (e) {
+      // no-op
+    }
 
     const loadSavedData = async () => {
       try {
