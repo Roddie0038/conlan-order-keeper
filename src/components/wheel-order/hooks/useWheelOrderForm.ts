@@ -174,6 +174,7 @@ export function useWheelOrderForm() {
 
     // Trigger immediate save for critical fields
     if (['customerName', 'wheelType', 'wheelSize', 'destinationPlant'].includes(name)) {
+      if (isRestoring || !ready) return;
       setTimeout(saveNow, 100); // Debounced manual save
     }
   }, [errors, saveNow]);
@@ -218,6 +219,7 @@ export function useWheelOrderForm() {
     lastSaved,
     isRestoring,
     clearPersistedData,
-    saveNow
+    saveNow,
+    ready,
+    didRestore
   };
-}

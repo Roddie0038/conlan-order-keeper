@@ -17,7 +17,7 @@ interface EnhancedPersistenceOptions {
 
 // Global debug flag to control autosave logging
 const __autosaveShouldLog = () => {
-  try { return (window as any).__AUTOSAVE_DEBUG !== false; } catch { return true; }
+  try { return (window as any).__AUTOSAVE_DEBUG === true; } catch { return false; }
 };
 
 export function useEnhancedFormPersistence<T extends Record<string, any>>(
@@ -48,7 +48,13 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   const lastSavedJsonRef = useRef<string | null>(null);
   const restoreFrozenRef = useRef(false);
   const userIsTypingRef = useRef(false);
-  
+  const formDataRef = useRef(formData);
+  const allExcludeFieldsRef = useRef<string[]>([]);
+  const isRestoringRef = useRef(isRestoring);
+  const readyRef = useRef(ready);
+  const lastImmediateSaveRef = useRef(0);
+  const saveFormDataRef = useRef<((data: any, source: 'debounce'|'interval'|'manual'|'visibility') => void) | null>(null);
+
   // Enhanced field exclusion list
   const allExcludeFields = [...getDefaultExcludeFields(), ...excludeFields];
   
@@ -68,9 +74,9 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
 
   // Mount/unmount debug logging
   useEffect(() => {
-    console.log('[AutoSave] MOUNT', { storageKey, enabled });
+    if (__autosaveShouldLog()) console.log('[AutoSave] MOUNT', { storageKey, enabled });
     return () => {
-      console.log('[AutoSave] UNMOUNT', { storageKey });
+      if (__autosaveShouldLog()) console.log('[AutoSave] UNMOUNT', { storageKey });
       // Allow re-restore on next mount
       lastRestoredKeyRef.current = null;
       restoreFrozenRef.current = false;
@@ -116,6 +122,12 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     window.addEventListener('input', markTyping, { capture: true } as any);
     return () => window.removeEventListener('input', markTyping, { capture: true } as any);
   }, []);
+
+  // Keep refs in sync with latest values for single-registered listeners
+  useEffect(() => { formDataRef.current = formData; }, [formData]);
+  useEffect(() => { allExcludeFieldsRef.current = allExcludeFields; }, [allExcludeFields]);
+  useEffect(() => { isRestoringRef.current = isRestoring; }, [isRestoring]);
+  useEffect(() => { readyRef.current = ready; }, [ready]);
 
   // Save function with enhanced security and error handling
   const saveFormData = useCallback(async (data: any, source: 'debounce' | 'interval' | 'manual' | 'visibility' = 'debounce') => {
@@ -167,34 +179,48 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     }
   }, [enabled, storageKey, user, formType, allExcludeFields, saveCount]);
 
-  // Track tab visibility and save immediately when tab becomes hidden
   useEffect(() => {
+    saveFormDataRef.current = saveFormData as any;
+  }, [saveFormData]);
+
+  // Track tab visibility and save immediately when tab becomes hidden (single registration)
+  useEffect(() => {
+    const handleImmediateSave = (reason: string) => {
+      try {
+        if (!enabled) return;
+        if (!readyRef.current || isRestoringRef.current) return;
+        const now = Date.now();
+        if (now - lastImmediateSaveRef.current < 1000) {
+          // 1s rate limit to prevent storms
+          return;
+        }
+        const data = formDataRef.current;
+        const exclude = allExcludeFieldsRef.current;
+        if (hasMeaningfulData(sanitizeFormData(data, exclude))) {
+          if (__autosaveShouldLog()) console.log(`[AutoSave] ${reason} - saving immediately`);
+          saveFormData(data, 'visibility');
+          lastImmediateSaveRef.current = now;
+        }
+      } catch {}
+    };
+
     const handleVisibilityChange = () => {
       if (__autosaveShouldLog()) console.log('[AutoSave] VISIBILITY CHANGE', document.visibilityState);
       const wasActive = isTabActiveRef.current;
       isTabActiveRef.current = !document.hidden;
       
       // Save immediately when tab becomes hidden (user switching tabs)
-      if (wasActive && document.hidden && hasMeaningfulData(sanitizeFormData(formData, allExcludeFields))) {
-        console.log('[AutoSave] Tab hidden - saving immediately');
-        saveFormData(formData, 'visibility');
+      if (wasActive && document.hidden) {
+        handleImmediateSave('Tab hidden');
       }
     };
 
     const handlePageHide = () => {
-      // Mobile Safari compatibility
-      if (hasMeaningfulData(sanitizeFormData(formData, allExcludeFields))) {
-        console.log('[AutoSave] Page hide - saving immediately');
-        saveFormData(formData, 'visibility');
-      }
+      handleImmediateSave('Page hide');
     };
 
     const handleBlur = () => {
-      // Window loses focus
-      if (hasMeaningfulData(sanitizeFormData(formData, allExcludeFields))) {
-        console.log('[AutoSave] Window blur - saving immediately');
-        saveFormData(formData, 'visibility');
-      }
+      handleImmediateSave('Window blur');
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -206,7 +232,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [formData, saveFormData, allExcludeFields]);
+  }, [enabled]);
 
   // Load saved data when auth is ready and per storage key
   useEffect(() => {
@@ -355,8 +381,12 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     if (!enabled || !autoSaveInterval) return;
 
     intervalRef.current = setInterval(() => {
-      if (isTabActiveRef.current) {
-        saveFormData(formData, 'interval');
+      if (isTabActiveRef.current && readyRef.current && !isRestoringRef.current) {
+        const data = formDataRef.current;
+        const exclude = allExcludeFieldsRef.current;
+        if (hasMeaningfulData(sanitizeFormData(data, exclude))) {
+          saveFormDataRef.current?.(data, 'interval');
+        }
       }
     }, autoSaveInterval);
 
@@ -365,36 +395,44 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
         clearInterval(intervalRef.current);
       }
     };
-  }, [enabled, autoSaveInterval, formData, saveFormData]);
+  }, [enabled, autoSaveInterval]);
 
-  // Save on page unload
+  // Save on page unload (single registration, gated)
   useEffect(() => {
     if (!enabled) return;
 
     const handleBeforeUnload = () => {
-      if (hasMeaningfulData(sanitizeFormData(formData, allExcludeFields))) {
-        // Use synchronous approach for page unload
-        navigator.sendBeacon && storageKey && saveFormData(formData, 'manual');
-      }
+      try {
+        if (!readyRef.current || isRestoringRef.current) return;
+        const data = formDataRef.current;
+        const exclude = allExcludeFieldsRef.current;
+        if (hasMeaningfulData(sanitizeFormData(data, exclude))) {
+          navigator.sendBeacon && storageKey && saveFormDataRef.current?.(data, 'manual');
+        }
+      } catch {}
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [enabled, formData, saveFormData, allExcludeFields, storageKey]);
+  }, [enabled, storageKey]);
 
-  // Save on component unmount (e.g., SPA route changes)
+  // Save on component unmount (e.g., SPA route changes) using refs
   useEffect(() => {
     return () => {
       try {
-        if (enabled && hasMeaningfulData(sanitizeFormData(formData, allExcludeFields))) {
-          console.log('[AutoSave] Component unmount - saving immediately');
-          saveFormData(formData, 'manual');
+        if (enabled && readyRef.current && !isRestoringRef.current) {
+          const data = formDataRef.current;
+          const exclude = allExcludeFieldsRef.current;
+          if (hasMeaningfulData(sanitizeFormData(data, exclude))) {
+            console.log('[AutoSave] Component unmount - saving immediately');
+            saveFormDataRef.current?.(data, 'manual');
+          }
         }
       } catch (e) {
         // no-op
       }
     };
-  }, [enabled, formData, saveFormData, allExcludeFields]);
+  }, [enabled]);
 
   // Cross-tab coordination
   useEffect(() => {

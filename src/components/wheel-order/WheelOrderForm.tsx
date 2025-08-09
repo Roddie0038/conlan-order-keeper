@@ -29,7 +29,9 @@ export function WheelOrderForm() {
     // Auto-save related
     lastSaved,
     isRestoring,
-    clearPersistedData
+    clearPersistedData,
+    ready,
+    didRestore
   } = useWheelOrderForm();
 
   const [recipientCount, setRecipientCount] = useState(0);
@@ -39,6 +41,11 @@ export function WheelOrderForm() {
 
   // Auto-initialize destination plant based on store
   useEffect(() => {
+    if (!ready) return;
+    if (didRestore) {
+      console.log('[AutoSave][WheelOrderForm] Skipping auto-plant defaults – restored data present.');
+      return;
+    }
     const currentStore = formData.storeName;
     const currentPlant = formData.destinationPlant;
     
@@ -57,7 +64,7 @@ export function WheelOrderForm() {
       
       console.log("✅ WHEEL AUTO-PLANT - Destination plant auto-set to:", selectedPlant);
     }
-  }, [formData.storeName, selectedPlant, setFormData]);
+  }, [formData.storeName, selectedPlant, setFormData, ready, didRestore]);
 
   const handleLoadTemplate = (templateData: any) => {
     const newFormData = {
