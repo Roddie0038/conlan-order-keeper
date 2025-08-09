@@ -63,7 +63,7 @@ export function OrderForm() {
     }
   });
 
-  // Update store when user changes
+  // Update store when user changes — Ordering Platform — Autosave Patch D: guard defaults with {ready, didRestore}
   useEffect(() => {
     console.log('[AutoSave][OrderForm] defaults effect run', { ready, didRestore });
     if (!ready) return;

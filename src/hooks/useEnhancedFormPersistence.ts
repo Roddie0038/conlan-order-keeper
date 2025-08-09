@@ -54,6 +54,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   const readyRef = useRef(ready);
   const lastImmediateSaveRef = useRef(0);
   const saveFormDataRef = useRef<((data: any, source: 'debounce'|'interval'|'manual'|'visibility') => void) | null>(null);
+  const enabledRef = useRef(enabled); // Ordering Platform — Autosave Patch B: track enabled via ref
 
   // Enhanced field exclusion list
   const allExcludeFields = [...getDefaultExcludeFields(), ...excludeFields];
@@ -128,6 +129,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   useEffect(() => { allExcludeFieldsRef.current = allExcludeFields; }, [allExcludeFields]);
   useEffect(() => { isRestoringRef.current = isRestoring; }, [isRestoring]);
   useEffect(() => { readyRef.current = ready; }, [ready]);
+  useEffect(() => { enabledRef.current = enabled; }, [enabled]); // Ordering Platform — Autosave Patch B: sync enabled ref
 
   // Save function with enhanced security and error handling
   const saveFormData = useCallback(async (data: any, source: 'debounce' | 'interval' | 'manual' | 'visibility' = 'debounce') => {
@@ -168,7 +170,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       setLastSaved(new Date());
       setSaveCount(prev => prev + 1);
       
-      console.log(`[AutoSave] ✅ Save completed from ${source}:`, {
+      if (__autosaveShouldLog()) console.log(`[AutoSave] ✅ Save completed from ${source}:`, {
         formType,
         storageKey,
         saveCount: saveCount + 1,
@@ -187,18 +189,17 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   useEffect(() => {
     const handleImmediateSave = (reason: string) => {
       try {
-        if (!enabled) return;
+        if (!enabledRef.current) return;
         if (!readyRef.current || isRestoringRef.current) return;
         const now = Date.now();
         if (now - lastImmediateSaveRef.current < 1000) {
-          // 1s rate limit to prevent storms
-          return;
+          return; // 1s rate limit to prevent storms
         }
         const data = formDataRef.current;
         const exclude = allExcludeFieldsRef.current;
         if (hasMeaningfulData(sanitizeFormData(data, exclude))) {
           if (__autosaveShouldLog()) console.log(`[AutoSave] ${reason} - saving immediately`);
-          saveFormData(data, 'visibility');
+          saveFormDataRef.current?.(data, 'visibility');
           lastImmediateSaveRef.current = now;
         }
       } catch {}
@@ -232,13 +233,13 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [enabled]);
+  }, []);
 
   // Load saved data when auth is ready and per storage key
   useEffect(() => {
     if (!enabled) return;
     if (loading) {
-      console.log('[AutoSave] Auth loading - deferring restore');
+      if (__autosaveShouldLog()) console.log('[AutoSave] Auth loading - deferring restore');
       return;
     }
     if (!storageKey) return;
@@ -259,34 +260,22 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       return;
     }
 
-    // Skip restore if the current form already has meaningful data
-    try {
-      const alreadyHasData = hasMeaningfulData(sanitizeFormData(formData, allExcludeFields));
-      if (alreadyHasData) {
-        console.log('[AutoSave] Skipping restore — reason: already has data');
-        setReady(true);
-        setDidRestore(false);
-        restoreFrozenRef.current = true;
-        return;
-      }
-    } catch (e) {
-      // no-op
-    }
+    // Ordering Platform — Autosave Patch A: storage-first restore; do not pre-skip due to defaults
 
     const loadSavedData = async () => {
       try {
-        console.log('[AutoSave] Loading saved data:', { storageKey, hasUser: !!user });
+        if (__autosaveShouldLog()) console.log('[AutoSave] Loading saved data:', { storageKey, hasUser: !!user });
         
         let savedData = await persistentStorageService.load(storageKey);
         
         // If no data found and we have user info, check for anonymous data to migrate
         if (!savedData && user?.email && user?.store) {
           const anonymousKey = `autosave-anonymous-${formType}`;
-          console.log('[AutoSave] Checking for anonymous data to migrate:', anonymousKey);
+          if (__autosaveShouldLog()) console.log('[AutoSave] Checking for anonymous data to migrate:', anonymousKey);
           
           const anonymousData = await persistentStorageService.load(anonymousKey);
           if (anonymousData) {
-            console.log('[AutoSave] Migrating anonymous data to user-specific key');
+            if (__autosaveShouldLog()) console.log('[AutoSave] Migrating anonymous data to user-specific key');
             // Save to authenticated key
             await persistentStorageService.save(storageKey, anonymousData.data, {
               store: user.store,
@@ -315,7 +304,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
 
           // Check expiration
           if (persistentStorageService.isExpired(savedData, maxAge)) {
-            console.log('[AutoSave] ⏰ Saved data expired, removing');
+            if (__autosaveShouldLog()) console.log('[AutoSave] ⏰ Saved data expired, removing');
             await persistentStorageService.remove(storageKey);
             return;
           }
@@ -357,7 +346,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
         lastRestoredKeyRef.current = storageKey;
         setReady(true);
         restoreFrozenRef.current = true;
-        console.log('[AutoSave] Restore attempt finished', { storageKey, didRestore });
+        if (__autosaveShouldLog()) console.log('[AutoSave] Restore attempt finished', { storageKey, didRestore });
       }
     };
 
@@ -399,22 +388,24 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
 
   // Save on page unload (single registration, gated)
   useEffect(() => {
-    if (!enabled) return;
-
     const handleBeforeUnload = () => {
       try {
+        if (!enabledRef.current) return;
         if (!readyRef.current || isRestoringRef.current) return;
         const data = formDataRef.current;
         const exclude = allExcludeFieldsRef.current;
         if (hasMeaningfulData(sanitizeFormData(data, exclude))) {
-          navigator.sendBeacon && storageKey && saveFormDataRef.current?.(data, 'manual');
+          if (navigator.sendBeacon) {
+            saveFormDataRef.current?.(data, 'manual');
+          }
         }
       } catch {}
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [enabled, storageKey]);
+  }, []);
+
 
   // Save on component unmount (e.g., SPA route changes) using refs
   useEffect(() => {
@@ -424,7 +415,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
           const data = formDataRef.current;
           const exclude = allExcludeFieldsRef.current;
           if (hasMeaningfulData(sanitizeFormData(data, exclude))) {
-            console.log('[AutoSave] Component unmount - saving immediately');
+            if (__autosaveShouldLog()) console.log('[AutoSave] Component unmount - saving immediately');
             saveFormDataRef.current?.(data, 'manual');
           }
         }
@@ -472,7 +463,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
         description: "All form data has been cleared and removed from storage.",
       });
       
-      console.log(`[AutoSave] 🗑️ Cleared persisted data for ${formType}`);
+      if (__autosaveShouldLog()) console.log(`[AutoSave] 🗑️ Cleared persisted data for ${formType}`);
     } catch (error) {
       console.error('[AutoSave] ❌ Failed to clear persisted data:', error);
     }
