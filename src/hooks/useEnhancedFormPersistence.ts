@@ -331,7 +331,20 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
         
         let savedData = await persistentStorageService.load(storageKey);
         
-        // If no data found and we have user info, check for anonymous data to migrate
+        // If load failed due to corrupt JSON in localStorage, remove the bad entry to avoid crashes
+        if (!savedData) {
+          try {
+            const raw = localStorage.getItem(storageKey);
+            if (raw) {
+              try { JSON.parse(raw); } catch {
+                localStorage.removeItem(storageKey);
+                if (__autosaveShouldLog()) console.warn('[AutoSave] Removed corrupt draft entry', storageKey);
+              }
+            }
+          } catch {}
+        }
+        
+        // If no data found and we have user info, check for anonymous data to migrate (legacy)
         if (!savedData && user?.email && user?.store) {
           const anonymousKey = `autosave-anonymous-${formType}`;
           if (__autosaveShouldLog()) console.log('[AutoSave] Checking for anonymous data to migrate:', anonymousKey);
