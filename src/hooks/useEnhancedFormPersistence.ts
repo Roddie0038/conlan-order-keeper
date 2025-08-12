@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useDebounce } from './useDebounce';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { persistentStorageService } from '@/services/persistentStorageService';
 import { sanitizeFormData, hasMeaningfulData, getDefaultExcludeFields } from '@/utils/formSanitization';
+import { useLocation } from 'react-router-dom';
 
 interface EnhancedPersistenceOptions {
   formType: 'order' | 'complaint' | 'warranty' | 'mto' | 'wheel-powder-coating';
@@ -59,16 +60,11 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
   // Enhanced field exclusion list
   const allExcludeFields = [...getDefaultExcludeFields(), ...excludeFields];
   
-  // Generate storage key with anonymous fallback
-  const getStorageKey = useCallback(() => {
-    if (user?.email && user?.store) {
-      return persistentStorageService.generateKey(user.store, user.email, formType);
-    }
-    // Fallback to anonymous key when user isn't loaded yet
-    return `autosave-anonymous-${formType}`;
-  }, [user?.email, user?.store, formType]);
-  
-  const storageKey = getStorageKey();
+  // Stable, versioned storage key (Ordering Platform v2)
+  const storageKey = useMemo(() => {
+    const userId = (user as any)?.id || 'anon';
+    return `OP:draft:${formType}:v2:${userId}`;
+  }, [user, formType]);
   
   // Debounce form values for reactive saving
   const debouncedValues = useDebounce(formData, debounceMs);
@@ -160,12 +156,14 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     }
 
     try {
-      await persistentStorageService.save(storageKey, sanitizedData, {
+      const meta = {
         store: user?.store || 'unknown',
         user: user?.email || 'anonymous',
         formType,
         version: '2.0'
-      });
+      } as const;
+
+      await persistentStorageService.save(storageKey, sanitizedData, meta);
 
       setLastSaved(new Date());
       setSaveCount(prev => prev + 1);
@@ -176,7 +174,72 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
         saveCount: saveCount + 1,
         timestamp: new Date().toISOString()
       });
-    } catch (error) {
+    } catch (error: any) {
+      // Handle QuotaExceededError with minimal oldest-first eviction and single retry
+      const isQuotaError = () => {
+        try {
+          return (
+            error?.name === 'QuotaExceededError' ||
+            error?.code === 22 ||
+            /quota|exceed/i.test(String(error?.message || ''))
+          );
+        } catch { return false; }
+      };
+
+      const tryEvictAndRetry = async () => {
+        let evicted = 0;
+        try {
+          if (typeof localStorage === 'undefined') return 0;
+          // Gather OP drafts with their updatedAt
+          const drafts: { key: string; updatedAt: number }[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key || !key.startsWith('OP:draft:')) continue;
+            try {
+              const raw = localStorage.getItem(key);
+              if (!raw) continue;
+              const parsed = JSON.parse(raw);
+              const ts = new Date(parsed?.meta?.updatedAt || 0).getTime() || 0;
+              drafts.push({ key, updatedAt: ts });
+            } catch {
+              // Corrupt entry — evict
+              localStorage.removeItem(key);
+              evicted++;
+            }
+          }
+          drafts.sort((a, b) => a.updatedAt - b.updatedAt);
+          if (drafts.length > 0) {
+            localStorage.removeItem(drafts[0].key);
+            evicted++;
+          }
+        } catch {}
+        return evicted;
+      };
+
+      if (isQuotaError()) {
+        if (__autosaveShouldLog()) console.warn('[AutoSave] Quota exceeded — attempting eviction');
+        const evicted = await tryEvictAndRetry();
+        if (evicted > 0) {
+          try {
+            const meta = {
+              store: user?.store || 'unknown',
+              user: user?.email || 'anonymous',
+              formType,
+              version: '2.0'
+            } as const;
+            await persistentStorageService.save(storageKey, sanitizedData, meta);
+            setLastSaved(new Date());
+            setSaveCount(prev => prev + 1);
+            if (__autosaveShouldLog()) console.log('[AutoSave] ✅ Save succeeded after eviction');
+            return;
+          } catch (e2) {
+            console.warn('[AutoSave] Save failed after eviction retry');
+          }
+        } else {
+          console.warn('[AutoSave] Quota exceeded and no drafts evicted');
+        }
+      }
+
       console.error(`[AutoSave] ❌ Save failed from ${source}:`, error);
     }
   }, [enabled, storageKey, user, formType, allExcludeFields, saveCount]);
@@ -225,12 +288,12 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pagehide', handlePageHide, { capture: true } as any);
     window.addEventListener('blur', handleBlur);
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pagehide', handlePageHide, { capture: true } as any);
       window.removeEventListener('blur', handleBlur);
     };
   }, []);
@@ -424,6 +487,23 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
       }
     };
   }, [enabled]);
+
+  // Flush on React Router location change (cleanup runs before route leaves)
+  const location = useLocation();
+  useEffect(() => {
+    return () => {
+      try {
+        if (enabledRef.current && readyRef.current && !isRestoringRef.current) {
+          const data = formDataRef.current;
+          const exclude = allExcludeFieldsRef.current;
+          if (hasMeaningfulData(sanitizeFormData(data, exclude))) {
+            if (__autosaveShouldLog()) console.log('[AutoSave] Route change - saving immediately');
+            saveFormDataRef.current?.(data, 'manual');
+          }
+        }
+      } catch {}
+    };
+  }, [location.key]);
 
   // Cross-tab coordination
   useEffect(() => {
