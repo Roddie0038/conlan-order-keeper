@@ -1484,6 +1484,48 @@ export type Database = {
           },
         ]
       }
+      order_crossplant_audit: {
+        Row: {
+          created_at: string | null
+          destination_plant: string | null
+          destination_store: string | null
+          id: number
+          meta: Json | null
+          order_id: number | null
+          order_type: string
+          ordering_plant: string | null
+          ordering_store: string | null
+          user_email: string | null
+          user_role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          destination_plant?: string | null
+          destination_store?: string | null
+          id?: number
+          meta?: Json | null
+          order_id?: number | null
+          order_type: string
+          ordering_plant?: string | null
+          ordering_store?: string | null
+          user_email?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          destination_plant?: string | null
+          destination_store?: string | null
+          id?: number
+          meta?: Json | null
+          order_id?: number | null
+          order_type?: string
+          ordering_plant?: string | null
+          ordering_store?: string | null
+          user_email?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       order_email_overrides: {
         Row: {
           action_type: string

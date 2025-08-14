@@ -10,6 +10,7 @@ import type { OrderRecord, MTOOrderRecord, WheelOrderRecord } from '@/types/orde
 import { isElevated } from '@/server/access/elevated';
 import { getCurrentUser } from '@/server/auth/getUser';
 import { baseOrderSchema, scrubCrossPlantForNonElevated, assertCrossPlantConsistency } from '@/server/validators/order';
+import { auditCrossPlant } from '@/server/audit/crossplant';
 
 export async function submitOrder(
   orderData: any,
@@ -71,13 +72,37 @@ export async function submitOrder(
       throw error;
     }
 
+    const usedCrossPlant = !!((submissionData as any).ordering_store || (submissionData as any).ordering_plant || (submissionData as any).destination_plant);
+    
+    // Breadcrumb for dev tools
+    console.info('[orders] submitted', {
+      id: data?.id,
+      elevated,
+      cp: usedCrossPlant,
+    });
+
     logger.info('Order submitted successfully', { 
       orderId: data?.id?.toString() || 'unknown', 
       orderType, 
       elevated,
-      hasCrossPlantFields: !!((submissionData as any).ordering_store || (submissionData as any).ordering_plant || (submissionData as any).destination_plant),
+      hasCrossPlantFields: usedCrossPlant,
       service: 'order_submission' 
     });
+
+    // Fire-and-forget audit (don't block UX)
+    if (usedCrossPlant) {
+      auditCrossPlant({
+        order_type: 'order',
+        order_id: data?.id ? Number(data.id) : null,
+        user_email: user.email,
+        user_role: user.role,
+        ordering_store: (submissionData as any).ordering_store ?? null,
+        ordering_plant: (submissionData as any).ordering_plant ?? null,
+        destination_plant: (submissionData as any).destination_plant ?? null,
+        destination_store: (submissionData as any).store ?? null,
+        meta: { ui: 'OrderForm', elevated: elevated ?? false },
+      });
+    }
 
     return errorHandler.success(data);
   } catch (error) {
@@ -140,12 +165,36 @@ export async function submitMTOOrder(orderData: any) {
       throw error;
     }
 
+    const usedCrossPlant = !!((submissionData as any).ordering_store || (submissionData as any).ordering_plant || (submissionData as any).destination_plant);
+
+    // Breadcrumb for dev tools
+    console.info('[mto_orders] submitted', {
+      id: data?.id,
+      elevated,
+      cp: usedCrossPlant,
+    });
+
     logger.info('MTO order submitted successfully', { 
       orderId: data.id, 
       elevated,
-      hasCrossPlantFields: !!((submissionData as any).ordering_store || (submissionData as any).ordering_plant || (submissionData as any).destination_plant),
+      hasCrossPlantFields: usedCrossPlant,
       service: 'mto_submission' 
     });
+
+    // Fire-and-forget audit (don't block UX)
+    if (usedCrossPlant) {
+      auditCrossPlant({
+        order_type: 'mto',
+        order_id: data?.id ? Number(data.id) : null,
+        user_email: user.email,
+        user_role: user.role,
+        ordering_store: (submissionData as any).ordering_store ?? null,
+        ordering_plant: (submissionData as any).ordering_plant ?? null,
+        destination_plant: (submissionData as any).destination_plant ?? null,
+        destination_store: (submissionData as any).store ?? null,
+        meta: { ui: 'MTOOrderForm', elevated: elevated ?? false },
+      });
+    }
 
     return errorHandler.success(data);
   } catch (error) {
@@ -207,12 +256,36 @@ export async function submitWheelOrder(orderData: any) {
       throw error;
     }
 
+    const usedCrossPlant = !!((submissionData as any).ordering_store || (submissionData as any).ordering_plant || (submissionData as any).destination_plant);
+
+    // Breadcrumb for dev tools
+    console.info('[wheel_orders] submitted', {
+      id: data?.id,
+      elevated,
+      cp: usedCrossPlant,
+    });
+
     logger.info('Wheel order submitted successfully', { 
       orderId: data.id, 
       elevated,
-      hasCrossPlantFields: !!((submissionData as any).ordering_store || (submissionData as any).ordering_plant || (submissionData as any).destination_plant),
+      hasCrossPlantFields: usedCrossPlant,
       service: 'wheel_submission' 
     });
+
+    // Fire-and-forget audit (don't block UX)
+    if (usedCrossPlant) {
+      auditCrossPlant({
+        order_type: 'mto', // wheel orders use mto table
+        order_id: data?.id ? Number(data.id) : null,
+        user_email: user.email,
+        user_role: user.role,
+        ordering_store: (submissionData as any).ordering_store ?? null,
+        ordering_plant: (submissionData as any).ordering_plant ?? null,
+        destination_plant: (submissionData as any).destination_plant ?? null,
+        destination_store: (submissionData as any).store ?? null,
+        meta: { ui: 'WheelOrderForm', elevated: elevated ?? false },
+      });
+    }
 
     return errorHandler.success(data);
   } catch (error) {
