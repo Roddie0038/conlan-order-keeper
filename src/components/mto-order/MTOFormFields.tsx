@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { normalizeStoreName } from "@/lib/stores";
+import { OrderingEmailField } from "@/components/common/OrderingEmailField";
 
 interface MTOFormFieldsProps {
   formData: MTOFormData;
@@ -88,13 +89,10 @@ export const MTOFormFields = ({
         required 
       />
 
-      <FormField 
-        label="Manager's Email" 
-        type="email" 
-        value={formData.managerEmail || ''} 
-        onChange={() => {}} 
-        disabled={true} 
-        placeholder="Manager's email will be automatically set" 
+      <OrderingEmailField
+        value={formData.managerEmail || ''}
+        onChange={(email) => onChange("managerEmail", email)}
+        fallbackEmail={formData.managerEmail}
       />
     </div>
   );

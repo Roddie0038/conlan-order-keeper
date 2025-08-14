@@ -2,6 +2,7 @@
 import { FormField } from "../../order-form/FormField";
 import { stores, getStoreColor } from "../../order-form/formConfig";
 import { WheelFormData } from "../types";
+import { OrderingEmailField } from "@/components/common/OrderingEmailField";
 // Plant selection logic removed - now handled by form-level selectors
 
 interface ContactInformationProps {
@@ -89,13 +90,10 @@ export function ContactInformation({
         disabled={false}
       />
       
-      <FormField
-        label="Manager's Email"
-        type="email"
+      <OrderingEmailField
         value={managerEmail}
-        onChange={() => {}}
-        disabled={true}
-        placeholder="Manager's email will be automatically set"
+        onChange={(email) => onInputChange("managerEmail", email)}
+        fallbackEmail={managerEmail}
       />
       
       <FormField

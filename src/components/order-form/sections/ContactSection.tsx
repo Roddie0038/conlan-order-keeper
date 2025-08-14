@@ -25,6 +25,7 @@ import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPrevi
 import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { normalizeStoreName } from "@/lib/stores";
+import { OrderingEmailField } from "@/components/common/OrderingEmailField";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -170,28 +171,13 @@ export function ContactSection({ form }: ContactSectionProps) {
           />
         )}
         
-        <FormField
-          control={form.control}
-          name="managersEmail"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center">
-                <Mail className="h-4 w-4 mr-1 text-gray-400" />
-                Manager's Email
-                <Lock className="h-3 w-3 ml-1 text-gray-500" />
-              </FormLabel>
-               <FormControl>
-                <Input 
-                  disabled={true} 
-                  placeholder={isLoadingEmails ? "Loading manager emails..." : "Manager's email will be automatically set"} 
-                  value={managerEmails}
-                  className="bg-gray-100 transition-all border-gray-300" 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="space-y-2">
+          <OrderingEmailField
+            value={form.watch("managersEmail") || ''}
+            onChange={(email) => form.setValue("managersEmail", email)}
+            fallbackEmail={managerEmails}
+          />
+        </div>
 
         <FormField
           control={form.control}
