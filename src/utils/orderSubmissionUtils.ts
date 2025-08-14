@@ -130,6 +130,25 @@ export async function submitMTOOrder(orderData: any) {
 
     let submissionData = { ...orderData };
 
+    // Validate destination store
+    if (!/^(?:[A-Za-z]+(?:\s[A-Za-z]+)*)\s0\d{2}$/.test(submissionData.store || '')) {
+      throw new Error('Destination store must be normalized as "City 0XX".');
+    }
+    if ((submissionData.store || '').toLowerCase().startsWith('unassigned')) {
+      throw new Error('Destination store cannot be "Unassigned". Pick a real store.');
+    }
+
+    // Email validation and fallback
+    if (submissionData.email) {
+      const emailRegex = /@conlantire\.com$/i;
+      if (!emailRegex.test(submissionData.email)) {
+        throw new Error('Email must use company domain (@conlantire.com)');
+      }
+    } else {
+      // Fallback to user's email
+      submissionData.email = user?.email || 'system@conlantire.com';
+    }
+
     // Validate and scrub cross-plant fields for non-elevated users
     if (!elevated) {
       submissionData = scrubCrossPlantForNonElevated(submissionData);
@@ -147,7 +166,7 @@ export async function submitMTOOrder(orderData: any) {
         });
       } catch (validationError: any) {
         logger.error('Cross-plant validation failed for MTO', { 
-          error: validationError.message, 
+          error: validationError.message,
           userEmail: user.email, 
           service: 'mto_submission' 
         });

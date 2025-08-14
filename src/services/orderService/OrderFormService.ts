@@ -199,9 +199,29 @@ export class OrderFormService {
     });
 
     try {
-      // Process each order
+      // Process each order with validation
       for (const order of selectedOrders) {
+        // Validate and normalize destination store
+        if (!/^(?:[A-Za-z]+(?:\s[A-Za-z]+)*)\s0\d{2}$/.test(order.store || '')) {
+          throw new Error('Destination store must be normalized as "City 0XX".');
+        }
+        if ((order.store || '').toLowerCase().startsWith('unassigned')) {
+          throw new Error('Destination store cannot be "Unassigned". Pick a real store.');
+        }
+
         const orderRecord = this.prepareOrderForSubmission(order, user);
+        
+        // Email validation and fallback
+        if (orderRecord.email) {
+          const emailRegex = /@conlantire\.com$/i;
+          if (!emailRegex.test(orderRecord.email)) {
+            throw new Error('Email must use company domain (@conlantire.com)');
+          }
+        } else {
+          // Fallback to user's email
+          orderRecord.email = user?.email || 'system@conlantire.com';
+        }
+
         const storeNumber = extractStoreNumber(order.store);
 
         logger.debug('Processing order', {
