@@ -17,7 +17,8 @@ import { logger } from '@/utils/logger';
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 import { useState } from "react";
 import { CrossPlantSection } from "@/components/orders/CrossPlantSection";
-import { OrderSummaryPreview } from "@/components/orders/OrderSummaryPreview";
+import OrderSummaryPreview from "@/components/orders/OrderSummaryPreview";
+import ConfirmSamePlantModal from "@/components/common/ConfirmSamePlantModal";
 import { hasFullStoreAccess } from "@/lib/roles";
 
 export const MTOOrderForm = () => {
@@ -37,6 +38,8 @@ export const MTOOrderForm = () => {
   } = useMTOForm();
 
   const [recipientCount, setRecipientCount] = useState(0);
+  const [needSamePlantConfirm, setNeedSamePlantConfirm] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState<(() => Promise<void>) | null>(null);
   const { selectedPlant } = usePlant();
 
   // Enhanced form persistence (only for non-admin users)
@@ -266,12 +269,12 @@ export const MTOOrderForm = () => {
           <div className="px-6 pb-4">
             <OrderSummaryPreview
               enabled={elevated}
-              crossPlantData={{
+              cross={{
                 ordering_store: formData.ordering_store || null,
                 ordering_plant: formData.ordering_plant || null,
                 destination_plant: formData.destination_plant || null,
               }}
-              legacyData={{
+              legacy={{
                 store: formData.store || "",
                 plant: formData.destinationPlant || selectedPlant || "",
               }}
@@ -307,6 +310,20 @@ export const MTOOrderForm = () => {
                 formData: formData,
                 idFields: Object.keys(formData).filter(key => key.toLowerCase().includes('id'))
               });
+              
+              // Check if same-plant confirmation is needed
+              const requiresSamePlantConfirm = () => {
+                const orderingPlant = formData.ordering_plant;
+                const destinationPlant = formData.destination_plant;
+                return elevated && orderingPlant && destinationPlant && (orderingPlant === destinationPlant);
+              };
+
+              if (requiresSamePlantConfirm()) {
+                setPendingSubmit(() => async () => handleSubmit(e));
+                setNeedSamePlantConfirm(true);
+                return;
+              }
+              
               handleSubmit(e);
             }}
           >
@@ -314,6 +331,24 @@ export const MTOOrderForm = () => {
           </Button>
         </div>
       </Card>
+
+      {/* Same-Plant Confirmation Modal */}
+      <ConfirmSamePlantModal
+        open={needSamePlantConfirm}
+        source={formData.ordering_plant}
+        destination={formData.destination_plant}
+        onCancel={() => { 
+          setNeedSamePlantConfirm(false); 
+          setPendingSubmit(null); 
+        }}
+        onConfirm={async () => { 
+          setNeedSamePlantConfirm(false); 
+          if (pendingSubmit) {
+            await pendingSubmit();
+          }
+          setPendingSubmit(null);
+        }}
+      />
     </div>
   );
 };

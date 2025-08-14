@@ -9,9 +9,11 @@ import { CrossDockSection } from "./sections/CrossDockSection";
 import { MandatoryPlantSelector } from "@/components/ui/mandatory-plant-selector";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { CrossPlantSection } from "@/components/orders/CrossPlantSection";
-import { OrderSummaryPreview } from "@/components/orders/OrderSummaryPreview";
+import OrderSummaryPreview from "@/components/orders/OrderSummaryPreview";
+import ConfirmSamePlantModal from "@/components/common/ConfirmSamePlantModal";
 import { hasFullStoreAccess } from "@/lib/roles";
 import { useAuth } from "@/contexts/AuthContext";
+import React from "react";
 
 interface OrderFormContentProps {
   form: UseFormReturn<OrderFormValues>;
@@ -26,10 +28,29 @@ export function OrderFormContent({
 }: OrderFormContentProps) {
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
+  const [needSamePlantConfirm, setNeedSamePlantConfirm] = React.useState(false);
+  const [pendingSubmit, setPendingSubmit] = React.useState<((e: React.FormEvent<HTMLFormElement>) => void) | null>(null);
+
+  const requiresSamePlantConfirm = () => {
+    const orderingPlant = form.watch("ordering_plant");
+    const destinationPlant = form.watch("destination_plant");
+    return elevated && orderingPlant && destinationPlant && (orderingPlant === destinationPlant);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (requiresSamePlantConfirm()) {
+      e.preventDefault();
+      setPendingSubmit(() => onSubmit);
+      setNeedSamePlantConfirm(true);
+      return;
+    }
+    onSubmit(e);
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={onSubmit} className="space-y-8">
+    <>
+      <Form {...form}>
+        <form onSubmit={handleFormSubmit} className="space-y-8">
         {/* Contact Information */}
         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-6 border border-gray-100 dark:border-gray-800">
           <ContactSection form={form} />
@@ -73,12 +94,12 @@ export function OrderFormContent({
         {elevated && (
           <OrderSummaryPreview
             enabled={elevated}
-            crossPlantData={{
+            cross={{
               ordering_store: form.watch("ordering_store") || null,
               ordering_plant: form.watch("ordering_plant") || null,
               destination_plant: form.watch("destination_plant") || null,
             }}
-            legacyData={{
+            legacy={{
               store: form.watch("store") || "",
               plant: form.watch("destinationPlant") || "",
             }}
@@ -96,5 +117,25 @@ export function OrderFormContent({
         )}
       </form>
     </Form>
+
+    <ConfirmSamePlantModal
+      open={needSamePlantConfirm}
+      source={form.watch("ordering_plant")}
+      destination={form.watch("destination_plant")}
+      onCancel={() => { 
+        setNeedSamePlantConfirm(false); 
+        setPendingSubmit(null); 
+      }}
+      onConfirm={() => { 
+        setNeedSamePlantConfirm(false); 
+        if (pendingSubmit) {
+          // Create a fake event to pass to the original handler
+          const fakeEvent = { preventDefault: () => {}, currentTarget: document.createElement('form') } as React.FormEvent<HTMLFormElement>;
+          pendingSubmit(fakeEvent);
+        }
+        setPendingSubmit(null);
+      }}
+    />
+    </>
   );
 }
