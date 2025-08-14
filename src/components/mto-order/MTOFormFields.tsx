@@ -54,6 +54,7 @@ export const MTOFormFields = ({
           }}
           filterPlant={null}  // ignored for elevated users
           placeholder="Select destination store..."
+          allowUnassigned={false}  // Destination store cannot be unassigned
         />
       ) : isAdmin ? (
         <FormField 

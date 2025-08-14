@@ -13,15 +13,17 @@ type Props = {
   label?: string;
   placeholder?: string;
   className?: string;
+  allowUnassigned?: boolean;  // NEW: whether to allow "Unassigned 000"
 };
 
-export default function StoreSelector({ 
-  value, 
-  onChange, 
-  filterPlant, 
-  label = 'Store', 
+export default function StoreSelector({
+  value,
+  onChange,
+  filterPlant,
+  label = 'Store',
   placeholder = 'Select or type a store…',
-  className = ''
+  className = '',
+  allowUnassigned = false
 }: Props) {
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
@@ -49,8 +51,8 @@ export default function StoreSelector({
   function commit(raw: string) {
     const t = (raw || '').trim();
 
-    // Allow "unassigned" keyword -> Unassigned 000 (passes City 0XX rule)
-    if (t.toLowerCase() === 'unassigned' || t.toLowerCase() === 'unassigned 000') {
+    // Allow "unassigned" keyword -> Unassigned 000 (only if allowUnassigned is true)
+    if (allowUnassigned && (t.toLowerCase() === 'unassigned' || t.toLowerCase() === 'unassigned 000')) {
       onChange('Unassigned 000');
       setOpen(false);
       setQ(null);
@@ -119,12 +121,17 @@ export default function StoreSelector({
 
       <div className="text-xs text-muted-foreground">
         {elevated
-          ? 'Elevated access: all stores visible. Manual entry allowed; type a city or code and press Enter. Tip: type "unassigned".'
+          ? `Elevated access: all stores visible. Manual entry allowed; type a city or code and press Enter. ${allowUnassigned ? 'Tip: type "unassigned".' : ''}`
           : 'Manual entry allowed; must match your plant and normalize to "City 0XX".'}
       </div>
 
       {/* Inline nudge if the text isn't normalized yet */}
-      {q && !normalizeStoreName(q) && (
+      {q && !normalizeStoreName(q) && !allowUnassigned && (
+        <div className="text-xs text-amber-700">Not recognized yet. Press Enter to try normalize.</div>
+      )}
+      
+      {/* Show unassigned hint only when allowed */}
+      {q && !normalizeStoreName(q) && allowUnassigned && (
         <div className="text-xs text-amber-700">Not recognized yet. Press Enter to try normalize or type "unassigned".</div>
       )}
     </div>

@@ -213,13 +213,20 @@ export class OrderFormService {
         
         // Email validation and fallback
         if (orderRecord.email) {
-          const emailRegex = /@conlantire\.com$/i;
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+          const companyRegex = /@conlantire\.com$/i;
           if (!emailRegex.test(orderRecord.email)) {
-            throw new Error('Email must use company domain (@conlantire.com)');
+            throw new Error('Enter a valid email address.');
+          }
+          if (!companyRegex.test(orderRecord.email)) {
+            throw new Error('Email must use company domain (@conlantire.com).');
           }
         } else {
-          // Fallback to user's email
-          orderRecord.email = user?.email || 'system@conlantire.com';
+          // Fallback must be the authenticated user's email to satisfy RLS
+          orderRecord.email = (user?.email || '').trim().toLowerCase();
+          if (!orderRecord.email) {
+            throw new Error('No authenticated email found for submission.');
+          }
         }
 
         const storeNumber = extractStoreNumber(order.store);

@@ -130,6 +130,7 @@ export function ContactSection({ form }: ContactSectionProps) {
               filterPlant={null}  // ignored for elevated users
               placeholder="Select destination store..."
               className="w-full"
+              allowUnassigned={false}  // Destination store cannot be unassigned
             />
           </div>
         ) : (

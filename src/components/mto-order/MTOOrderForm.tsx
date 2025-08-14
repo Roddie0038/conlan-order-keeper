@@ -203,6 +203,7 @@ export const MTOOrderForm = () => {
                   }}
                   filterPlant={null}  // ignored for elevated users
                   placeholder="Select source store..."
+                  allowUnassigned={true}  // Acting-As selector allows unassigned
                 />
               </div>
             </div>
