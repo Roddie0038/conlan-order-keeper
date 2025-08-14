@@ -22,6 +22,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { getCurrentDateTime } from "@/utils/dateTime";
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
+import { hasFullStoreAccess } from "@/lib/roles";
+import StoreSelector from "@/components/common/StoreSelector";
+import { normalizeStoreName } from "@/lib/stores";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -30,6 +33,7 @@ interface ContactSectionProps {
 export function ContactSection({ form }: ContactSectionProps) {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin || false;
+  const elevated = hasFullStoreAccess(user);
   const [managerEmails, setManagerEmails] = useState<string>("");
   const [isLoadingEmails, setIsLoadingEmails] = useState(false);
   const [recipientCount, setRecipientCount] = useState(0);
@@ -109,42 +113,62 @@ export function ContactSection({ form }: ContactSectionProps) {
           )}
         />
         
-        <FormField
-          control={form.control}
-          name="store"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center">
-                <Building className="h-4 w-4 mr-1 text-gray-400" />
-                Store*
-                {!isAdmin && !user?.hasFullStoreAccess && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
-              </FormLabel>
-               <Select 
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                value={field.value}
-                 disabled={!isAdmin && !user?.hasFullStoreAccess}
-               >
-                 <FormControl>
-                   <SelectTrigger className={`transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200 ${!isAdmin && !user?.hasFullStoreAccess ? 'bg-gray-100' : ''}`}>
-                     <SelectValue placeholder="Select a store" />
-                   </SelectTrigger>
-                 </FormControl>
-                 <SelectContent>
-                   {(isAdmin || user?.hasFullStoreAccess) && (
-                     <SelectItem value="Admin">Admin Only</SelectItem>
-                   )}
-                   {stores.map((store) => (
-                     <SelectItem key={store.id} value={store.name}>
-                       {store.name}
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {elevated ? (
+          <div className="space-y-2">
+            <div className="flex items-center">
+              <Building className="h-4 w-4 mr-1 text-gray-400" />
+              <span className="text-sm font-medium">Store (Destination)*</span>
+            </div>
+            <StoreSelector
+              label=""
+              value={form.watch("store") || ''}
+              onChange={(value) => {
+                const normalized = normalizeStoreName(value) || '';
+                form.setValue("store", normalized);
+              }}
+              filterPlant={null}  // ignored for elevated users
+              placeholder="Select destination store..."
+              className="w-full"
+            />
+          </div>
+        ) : (
+          <FormField
+            control={form.control}
+            name="store"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center">
+                  <Building className="h-4 w-4 mr-1 text-gray-400" />
+                  Store*
+                  {!isAdmin && !user?.hasFullStoreAccess && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
+                </FormLabel>
+                 <Select 
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                   disabled={!isAdmin && !user?.hasFullStoreAccess}
+                 >
+                   <FormControl>
+                     <SelectTrigger className={`transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200 ${!isAdmin && !user?.hasFullStoreAccess ? 'bg-gray-100' : ''}`}>
+                       <SelectValue placeholder="Select a store" />
+                     </SelectTrigger>
+                   </FormControl>
+                   <SelectContent>
+                     {(isAdmin || user?.hasFullStoreAccess) && (
+                       <SelectItem value="Admin">Admin Only</SelectItem>
+                     )}
+                     {stores.map((store) => (
+                       <SelectItem key={store.id} value={store.name}>
+                         {store.name}
+                       </SelectItem>
+                     ))}
+                   </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         
         <FormField
           control={form.control}

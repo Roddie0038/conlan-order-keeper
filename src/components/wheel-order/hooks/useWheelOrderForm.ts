@@ -33,6 +33,10 @@ export function useWheelOrderForm() {
     userStore: "",
     storeColors: "", // ✅ Empty by default - auto-populates but can be overridden
     destinationPlant: "", // ✅ Empty by default - user must select
+    // Cross-plant fields for elevated users
+    ordering_store: "",
+    ordering_plant: "",
+    destination_plant: "",
   });
 
   const [managerEmail, setManagerEmail] = useState("");

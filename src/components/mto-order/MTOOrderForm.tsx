@@ -20,10 +20,20 @@ import { CrossPlantSection } from "@/components/orders/CrossPlantSection";
 import OrderSummaryPreview from "@/components/orders/OrderSummaryPreview";
 import ConfirmSamePlantModal from "@/components/common/ConfirmSamePlantModal";
 import { hasFullStoreAccess } from "@/lib/roles";
+import StoreSelector from "@/components/common/StoreSelector";
+import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
+import { normalizeStoreName } from "@/lib/stores";
 
 export const MTOOrderForm = () => {
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
+
+  // Add temporary debug log for triage
+  console.info('[Ordering Acting-As]', {
+    userEmail: user?.email,
+    userRole: user?.role,
+    elevated: elevated,
+  });
   const {
     formData,
     isSubmitting,
@@ -172,6 +182,32 @@ export const MTOOrderForm = () => {
         </div>
         
         <div className="p-6 space-y-8">
+          {/* Acting-As Store Section - For elevated users only */}
+          {elevated && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 border-l-4 border-purple-500 pl-3 py-1">
+                  <CheckCircle className="text-purple-500 h-5 w-5" />
+                  <h3 className="text-lg font-medium text-black">Acting As (Source Store)</h3>
+                </div>
+                <ActingAsStoreBadge orderingStore={formData.ordering_store} />
+              </div>
+              
+              <div className="pl-5">
+                <StoreSelector
+                  label="Ordering as (Source Store)"
+                  value={formData.ordering_store || ''}
+                  onChange={(v) => {
+                    const normalized = normalizeStoreName(v) || '';
+                    setFormData(prev => ({ ...prev, ordering_store: normalized }));
+                  }}
+                  filterPlant={null}  // ignored for elevated users
+                  placeholder="Select source store..."
+                />
+              </div>
+            </div>
+          )}
+
           {/* Store Info Section */}
           <div className="space-y-6">
             <div className="flex items-center space-x-2 border-l-4 border-blue-500 pl-3 py-1">

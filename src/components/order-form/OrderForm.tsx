@@ -23,10 +23,22 @@ import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import OrderIDService from "@/services/OrderIDService";
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
+import { hasFullStoreAccess } from "@/lib/roles";
+import StoreSelector from "@/components/common/StoreSelector";
+import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
+import { normalizeStoreName } from "@/lib/stores";
 
 export function OrderForm() {
   const { user } = useAuth();
   const { selectedPlant } = usePlant();
+  const elevated = hasFullStoreAccess(user);
+
+  // Add temporary debug log for triage
+  console.info('[Ordering Acting-As]', {
+    userEmail: user?.email,
+    userRole: user?.role,
+    elevated: elevated,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSummaries, setOrderSummaries] = useState<any[]>([]);
   const [recipientCount, setRecipientCount] = useState(0);
@@ -239,6 +251,29 @@ export function OrderForm() {
             )}
           </div>
         </div>
+
+        {/* Acting-As Store Section - For elevated users only */}
+        {elevated && (
+          <div className="p-6 border-b border-gray-100">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-black">Acting As (Source Store)</h3>
+                <ActingAsStoreBadge orderingStore={form.watch("ordering_store")} />
+              </div>
+              
+              <StoreSelector
+                label="Ordering as (Source Store)"
+                value={form.watch("ordering_store") || ''}
+                onChange={(v) => {
+                  const normalized = normalizeStoreName(v) || '';
+                  form.setValue("ordering_store", normalized);
+                }}
+                filterPlant={null}  // ignored for elevated users
+                placeholder="Select source store..."
+              />
+            </div>
+          </div>
+        )}
       </Card>
       
       <OrderFormContent 

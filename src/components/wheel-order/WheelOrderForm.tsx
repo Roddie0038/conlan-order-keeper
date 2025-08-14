@@ -13,9 +13,21 @@ import { usePlant } from "@/contexts/PlantContext";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import { WheelEmailPreview } from "./components/EmailPreview";
 import { useState, useEffect } from "react";
+import { hasFullStoreAccess } from "@/lib/roles";
+import StoreSelector from "@/components/common/StoreSelector";
+import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
+import { normalizeStoreName } from "@/lib/stores";
 
 export function WheelOrderForm() {
   const { user } = useAuth();
+  const elevated = hasFullStoreAccess(user);
+
+  // Add temporary debug log for triage
+  console.info('[Ordering Acting-As]', {
+    userEmail: user?.email,
+    userRole: user?.role,
+    elevated: elevated,
+  });
   const {
     formData,
     managerEmail,
@@ -104,6 +116,9 @@ export function WheelOrderForm() {
       userStore: "",
       storeColors: "",
       destinationPlant: "",
+      ordering_store: "",
+      ordering_plant: "",
+      destination_plant: "",
     });
     clearPersistedData();
   };
@@ -139,6 +154,29 @@ export function WheelOrderForm() {
             )}
           </div>
         </div>
+
+        {/* Acting-As Store Section - For elevated users only */}
+        {elevated && (
+          <div className="p-6 border-b border-gray-100">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-black">Acting As (Source Store)</h3>
+                <ActingAsStoreBadge orderingStore={formData.ordering_store} />
+              </div>
+              
+              <StoreSelector
+                label="Ordering as (Source Store)"
+                value={formData.ordering_store || ''}
+                onChange={(v) => {
+                  const normalized = normalizeStoreName(v) || '';
+                  setFormData(prev => ({ ...prev, ordering_store: normalized }));
+                }}
+                filterPlant={null}  // ignored for elevated users
+                placeholder="Select source store..."
+              />
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card className="bg-white shadow-xl transition-all duration-300 hover:shadow-2xl">

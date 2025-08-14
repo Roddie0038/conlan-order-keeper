@@ -8,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { MandatoryPlantSelector } from "@/components/ui/mandatory-plant-selector";
+import { useAuth } from "@/contexts/AuthContext";
+import { hasFullStoreAccess } from "@/lib/roles";
+import StoreSelector from "@/components/common/StoreSelector";
+import { normalizeStoreName } from "@/lib/stores";
 
 interface MTOFormFieldsProps {
   formData: MTOFormData;
@@ -24,6 +28,8 @@ export const MTOFormFields = ({
   section = "all",
   plantError
 }: MTOFormFieldsProps) => {
+  const { user } = useAuth();
+  const elevated = hasFullStoreAccess(user);
   const handleCasingGradeChange = (grade: string, checked: boolean) => {
     const updatedGrades = checked ? [...formData.casingGrade, grade] : formData.casingGrade.filter(g => g !== grade);
     onChange("casingGrade", updatedGrades);
@@ -37,7 +43,18 @@ export const MTOFormFields = ({
         <Separator className="bg-gray-300" />
       </div>
       
-      {isAdmin ? (
+      {elevated ? (
+        <StoreSelector
+          label="Store (Destination)"
+          value={formData.store}
+          onChange={(value) => {
+            const normalized = normalizeStoreName(value) || '';
+            onChange("store", normalized);
+          }}
+          filterPlant={null}  // ignored for elevated users
+          placeholder="Select destination store..."
+        />
+      ) : isAdmin ? (
         <FormField 
           label="Store" 
           value={formData.store} 

@@ -15,4 +15,8 @@ export interface WheelFormData {
   userStore: string;
   storeColors: string;
   destinationPlant: string; // ✅ Added mandatory plant field
+  // Cross-plant fields for elevated users
+  ordering_store?: string;
+  ordering_plant?: string;
+  destination_plant?: string;
 }
