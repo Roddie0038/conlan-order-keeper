@@ -11,6 +11,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { stores } from "@/components/order-form/formConfig";
 import { MapPin, Lock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StoreFieldsProps {
   form: UseFormReturn<OrderFormValues>;
@@ -19,6 +20,7 @@ interface StoreFieldsProps {
 }
 
 export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsProps) {
+  const { user } = useAuth();
   return (
     <>
       <FormField
@@ -29,15 +31,15 @@ export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsP
             <FormLabel className="flex items-center">
               <MapPin className="h-4 w-4 mr-1 text-gray-400" />
               FROM Store*
-              {!isAdmin && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
+              {!isAdmin && !user?.hasFullStoreAccess && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
             </FormLabel>
             <Select 
               onValueChange={field.onChange} 
               defaultValue={field.value} 
-              disabled={!isAdmin}
+              disabled={!isAdmin && !user?.hasFullStoreAccess}
             >
               <FormControl>
-                <SelectTrigger className={`transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200 ${!isAdmin ? 'bg-gray-100' : ''}`}>
+                <SelectTrigger className={`transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200 ${!isAdmin && !user?.hasFullStoreAccess ? 'bg-gray-100' : ''}`}>
                   <SelectValue placeholder="Select store" />
                 </SelectTrigger>
               </FormControl>
@@ -80,7 +82,7 @@ export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsP
                   <SelectItem 
                     key={store.id} 
                     value={store.id}
-                    disabled={!isAdmin && store.id === form.watch("store")}
+                    disabled={(!isAdmin && !user?.hasFullStoreAccess) && store.id === form.watch("store")}
                   >
                     {store.name}
                   </SelectItem>

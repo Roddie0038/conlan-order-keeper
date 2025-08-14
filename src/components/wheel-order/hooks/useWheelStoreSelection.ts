@@ -66,7 +66,7 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
   }, [user?.store, setFormData]);
 
   const handleStoreChange = async (value: string) => {
-    if (!user?.isAdmin) {
+    if (!user?.isAdmin && !user?.hasFullStoreAccess) {
       toast({
         title: "Unauthorized",
         description: "You can only submit orders for your own store.",

@@ -55,7 +55,7 @@ export const MTOOrderForm = () => {
       console.log('[AutoSave] Skipping defaults – restored data present.');
       return;
     }
-    if (user && user.store && !isAdmin) {
+    if (user && user.store && !isAdmin && !user.hasFullStoreAccess) {
       setFormData(prev => (prev.store ? prev : { ...prev, store: user.store }));
     }
   }, [user, isAdmin, setFormData, ready, didRestore]);
@@ -103,7 +103,7 @@ export const MTOOrderForm = () => {
   const handleLoadTemplate = (templateData: any) => {
     const newFormData = {
       ...templateData,
-      store: isAdmin ? templateData.store : user?.store || "",
+      store: (isAdmin || user?.hasFullStoreAccess) ? templateData.store : user?.store || "",
       timestamp: new Date().toLocaleString()
     };
     

@@ -71,7 +71,7 @@ export function OrderForm() {
       console.log('[AutoSave] Skipping defaults – restored data present.');
       return;
     }
-    if (user?.store && !user?.isAdmin) {
+    if (user?.store && !user?.isAdmin && !user?.hasFullStoreAccess) {
       const currentStore = form.getValues("store");
       const currentManagersEmail = form.getValues("managersEmail");
       if (!currentStore) form.setValue("store", user.store);
@@ -173,7 +173,7 @@ export function OrderForm() {
       }
     });
     
-    if (user && user.store && !user?.isAdmin) {
+    if (user && user.store && !user?.isAdmin && !user?.hasFullStoreAccess) {
       form.setValue("store", user.store);
       form.setValue("managersEmail", "");
     }

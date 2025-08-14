@@ -33,7 +33,7 @@ export const OrderFormInputs = ({
 
   // Set the store to the user's store on component mount for non-admin users
   useEffect(() => {
-    if (user && user.store && !user.isAdmin && formData.store !== user.store) {
+    if (user && user.store && !user.isAdmin && !user.hasFullStoreAccess && formData.store !== user.store) {
       onChange("store", user.store);
       
       // Set manager email when store changes
@@ -159,7 +159,7 @@ export const OrderFormInputs = ({
                   onChange("managersEmail", "");
                 }} 
                 options={stores} 
-                disabled={!user?.isAdmin}
+                disabled={!user?.isAdmin && !user?.hasFullStoreAccess}
               />
             </div>
 

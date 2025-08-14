@@ -68,8 +68,8 @@ export function ContactSection({ form }: ContactSectionProps) {
     // Set current date and time for all users
     form.setValue("dateReceived", getCurrentDateTime());
     
-    if (user && user.store && !isAdmin) {
-      // Set store
+    if (user && user.store && !isAdmin && !user.hasFullStoreAccess) {
+      // Set store for non-admin users without full store access
       form.setValue("store", user.store);
       // Fetch and set manager emails
       fetchManagerEmails(user.store);
@@ -117,29 +117,29 @@ export function ContactSection({ form }: ContactSectionProps) {
               <FormLabel className="flex items-center">
                 <Building className="h-4 w-4 mr-1 text-gray-400" />
                 Store*
-                {!isAdmin && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
+                {!isAdmin && !user?.hasFullStoreAccess && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
               </FormLabel>
                <Select 
                 onValueChange={field.onChange}
                 defaultValue={field.value}
                 value={field.value}
-                disabled={!isAdmin}
-              >
-                <FormControl>
-                  <SelectTrigger className={`transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200 ${!isAdmin ? 'bg-gray-100' : ''}`}>
-                    <SelectValue placeholder="Select a store" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {isAdmin && (
-                    <SelectItem value="Admin">Admin Only</SelectItem>
-                  )}
-                  {stores.map((store) => (
-                    <SelectItem key={store.id} value={store.name}>
-                      {store.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                 disabled={!isAdmin && !user?.hasFullStoreAccess}
+               >
+                 <FormControl>
+                   <SelectTrigger className={`transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200 ${!isAdmin && !user?.hasFullStoreAccess ? 'bg-gray-100' : ''}`}>
+                     <SelectValue placeholder="Select a store" />
+                   </SelectTrigger>
+                 </FormControl>
+                 <SelectContent>
+                   {(isAdmin || user?.hasFullStoreAccess) && (
+                     <SelectItem value="Admin">Admin Only</SelectItem>
+                   )}
+                   {stores.map((store) => (
+                     <SelectItem key={store.id} value={store.name}>
+                       {store.name}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>

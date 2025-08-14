@@ -20,6 +20,7 @@ interface ExtendedUser extends User {
   storeName: string;
   plant: string;
   isAdmin: boolean;
+  hasFullStoreAccess: boolean;
   username: string;
   
   // Keep nested object for backwards compatibility
@@ -124,6 +125,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return false;
   };
 
+  // Helper function to check if user has full store/plant access (Brad Perry)
+  const hasFullStoreAccess = (email: string, role?: string): boolean => {
+    return email?.toLowerCase() === 'bperry@conlantire.com' || 
+           role?.toLowerCase() === 'operations_manager';
+  };
+
   // Helper function to format store name
   const formatStoreName = (storeNumber: string): string => {
     // Convert store number to readable store name
@@ -149,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         storeName: storeNameNumber, // Use metadata format: "Store Name Store Number"
         plant: defaultPlant, // Use metadata default plant
         isAdmin: isUserAdmin(authUser.email!, storeManager.role),
+        hasFullStoreAccess: hasFullStoreAccess(authUser.email!, storeManager.role),
         username: storeManager.name, // Use name as username
         
         // Keep nested object for backwards compatibility
@@ -169,6 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       storeName: storeNameNumber,
       plant: defaultPlant,
       isAdmin: isUserAdmin(authUser.email!),
+      hasFullStoreAccess: hasFullStoreAccess(authUser.email!),
       username: userMetadata.role_title || authUser.email!,
       storeManager: undefined
     };
