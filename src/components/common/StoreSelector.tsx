@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasFullStoreAccess } from '@/lib/roles';
 import { STORES, searchStores, normalizeStoreName } from '@/lib/stores';
@@ -28,7 +29,8 @@ export default function StoreSelector({
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
 
-  // Local typing buffer; null => show committed `value`
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const [open, setOpen] = React.useState(false);
   const [q, setQ] = React.useState<string | null>(null);
   const display = q ?? value ?? '';
 
@@ -46,7 +48,25 @@ export default function StoreSelector({
     return baseList.filter(r => r.searchable.includes(term));
   }, [q, baseList]);
 
-  const [open, setOpen] = React.useState(false);
+  // Compute dropdown position under input (fixed; avoids clipping)
+  const [rect, setRect] = React.useState<{top:number,left:number,width:number} | null>(null);
+  const updatePosition = React.useCallback(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setRect({ top: r.bottom + window.scrollY, left: r.left + window.scrollX, width: r.width });
+  }, []);
+  React.useEffect(() => {
+    if (!open) return;
+    updatePosition();
+    const onWin = () => updatePosition();
+    window.addEventListener('scroll', onWin, true);
+    window.addEventListener('resize', onWin, true);
+    return () => {
+      window.removeEventListener('scroll', onWin, true);
+      window.removeEventListener('resize', onWin, true);
+    };
+  }, [open, updatePosition]);
 
   function commit(raw: string) {
     const t = (raw || '').trim();
@@ -75,49 +95,59 @@ export default function StoreSelector({
   return (
     <div className={`space-y-2 ${className}`}>
       <Label className="text-sm font-medium">{label}</Label>
-      <div className="relative">
-        <Input
-          placeholder={placeholder}
-          value={display}
-          onChange={(e) => setQ(e.target.value)}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              commit(display);
-            }
-          }}
-          className="w-full"
-        />
+      <Input
+        ref={inputRef}
+        placeholder={placeholder}
+        value={display}
+        onChange={(e) => setQ(e.target.value)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            commit(display);
+          }
+        }}
+        className="w-full"
+      />
 
-        {/* Suggestions */}
-        {open && results.length > 0 && (
-          <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-background shadow-lg">
-            {/* Optional "use typed value" if user entered something not yet normalized */}
-            {q && (
-              <button
-                type="button"
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
-                onClick={() => commit(display)}
-              >
-                Use "{display}"
-              </button>
-            )}
-            {results.map(r => (
-              <button
-                type="button"
-                key={r.name}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
-                onClick={() => commit(r.name)}
-              >
-                <div className="font-medium">{r.name}</div>
-                <div className="text-muted-foreground text-xs">{r.plant}</div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Portal dropdown */}
+      {open && rect && results.length > 0 && createPortal(
+        <div
+          style={{ 
+            position: 'fixed', 
+            top: rect.top, 
+            left: rect.left, 
+            width: rect.width, 
+            zIndex: 9999 
+          }}
+          className="max-h-[70vh] overflow-auto rounded-md border bg-background shadow-xl"
+        >
+          {q && (
+            <button
+              type="button"
+              className="block w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => commit(display)}
+            >
+              Use "{display}"
+            </button>
+          )}
+          {results.map(r => (
+            <button
+              type="button"
+              key={r.name}
+              className="block w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => commit(r.name)}
+            >
+              <div className="font-medium">{r.name}</div>
+              <div className="text-muted-foreground text-xs">{r.plant}</div>
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
 
       <div className="text-xs text-muted-foreground">
         {elevated

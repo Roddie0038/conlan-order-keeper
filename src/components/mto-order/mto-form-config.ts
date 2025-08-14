@@ -18,6 +18,10 @@ export interface MTOFormData {
   ordering_store?: string;
   ordering_plant?: string;
   destination_plant?: string;
+  // Transfer route and carrier fields
+  transfer_route?: 'store->store' | 'store->plant' | 'plant->store' | 'plant->plant';
+  carrier?: 'Central Transport' | 'PAM Transport' | 'Company Truck' | 'Third-Party';
+  arrival_date?: string;
 }
 
 export const stores = [

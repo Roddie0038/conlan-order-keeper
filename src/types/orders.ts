@@ -431,6 +431,33 @@ export interface WarrantyFormData {
   workOrder?: string;
 }
 
+// ============= TRANSFER AND CARRIER TYPES =============
+
+/**
+ * Transfer Route Types for enhanced ordering portal
+ */
+export type TransferRoute = 'store->store' | 'store->plant' | 'plant->store' | 'plant->plant';
+
+export const TRANSFER_ROUTES: { value: TransferRoute; label: string }[] = [
+  { value: 'store->store', label: 'Store → Store' },
+  { value: 'store->plant', label: 'Store → Plant' },
+  { value: 'plant->store', label: 'Plant → Store' },
+  { value: 'plant->plant', label: 'Plant → Plant' },
+];
+
+/**
+ * Carrier Types for shipping
+ */
+export const CARRIERS = ['Central Transport', 'PAM Transport', 'Company Truck', 'Third-Party'] as const;
+export type Carrier = typeof CARRIERS[number];
+
+export const CARRIER_OPTIONS: { value: Carrier; label: string }[] = [
+  { value: 'Central Transport', label: 'Central Transport' },
+  { value: 'PAM Transport', label: 'PAM Transport' },
+  { value: 'Company Truck', label: 'Company Truck' },
+  { value: 'Third-Party', label: 'Third-Party' },
+];
+
 // ============= UTILITY TYPES =============
 
 /**

@@ -15,9 +15,9 @@ export type StoreRecord = {
   searchable: string;   // lowercase for filtering
 };
 
-// Store data from existing config - expanded with all plants
+// Store data with real store directory
 const RAW_STORES: Array<{ city: string; code: string; plant: PlantName }> = [
-  // Grand Prairie 097 stores
+  // Grand Prairie 097 stores (keep existing if still active)
   { city: 'Fort Worth', code: '022', plant: 'Grand Prairie 097' },
   { city: 'Grand Prairie', code: '027', plant: 'Grand Prairie 097' },
   { city: 'Houston', code: '028', plant: 'Grand Prairie 097' },
@@ -29,22 +29,33 @@ const RAW_STORES: Array<{ city: string; code: string; plant: PlantName }> = [
   { city: 'Tulsa', code: '036', plant: 'Grand Prairie 097' },
   { city: 'Austin', code: '039', plant: 'Grand Prairie 097' },
   
-  // Romulus 098 stores (example stores for cross-plant testing)
-  { city: 'Detroit', code: '041', plant: 'Romulus 098' },
-  { city: 'Toledo', code: '042', plant: 'Romulus 098' },
-  { city: 'Indianapolis', code: '043', plant: 'Romulus 098' },
+  // Mulberry 099 stores (real directory)
+  { city: 'Tampa', code: '006', plant: 'Mulberry 099' },
+  { city: 'Orlando', code: '004', plant: 'Mulberry 099' },
+  { city: 'Mulberry', code: '001', plant: 'Mulberry 099' },
+  { city: 'Vero Beach', code: '021', plant: 'Mulberry 099' },
+  { city: 'Sarasota', code: '023', plant: 'Mulberry 099' },
+  { city: 'Tampa Foam Fill', code: '040', plant: 'Mulberry 099' },
+  { city: 'Jacksonville', code: '002', plant: 'Mulberry 099' },
+  { city: 'Ocala', code: '005', plant: 'Mulberry 099' },
+  { city: 'Tallahassee', code: '015', plant: 'Mulberry 099' },
+  { city: 'Miami', code: '003', plant: 'Mulberry 099' },
+  { city: 'Pompano Beach', code: '007', plant: 'Mulberry 099' },
+  { city: 'Fort Myers', code: '009', plant: 'Mulberry 099' },
   
-  // Mulberry 099 stores (example stores for cross-plant testing)
-  { city: 'Tampa', code: '051', plant: 'Mulberry 099' },
-  { city: 'Orlando', code: '052', plant: 'Mulberry 099' },
-  { city: 'Jacksonville', code: '053', plant: 'Mulberry 099' },
+  // Romulus 098 stores (real directory)
+  { city: 'Toledo', code: '008', plant: 'Romulus 098' },
+  { city: 'Detroit', code: '011', plant: 'Romulus 098' },
+  { city: 'Grand Rapids', code: '013', plant: 'Romulus 098' },
+  { city: 'Cleveland', code: '018', plant: 'Romulus 098' },
+  { city: 'Chicago', code: '041', plant: 'Romulus 098' },
   
   // Special option for elevated users
   { city: 'Unassigned', code: '000', plant: 'Grand Prairie 097' },
 ];
 
 export const STORES: StoreRecord[] = RAW_STORES.map(s => {
-  const name = `${s.city} ${s.code}`;
+  const name = `${s.city} ${String(s.code).padStart(3, '0')}`;
   return {
     code: s.code,
     name,
