@@ -22,20 +22,24 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
   const mapped = {
     timestamp: new Date().toISOString(),
     name: cleanForm.name,
-    store: normalizeStoreForSubmission(cleanForm.store), // ✅ FIX: Use display format for OT Platform compatibility
-    product_number: cleanForm.productNumber || cleanForm.product_number, // Handle both camelCase and snake_case
+    store: normalizeStoreForSubmission(cleanForm.store),
+    product_number: cleanForm.productNumber || cleanForm.product_number,
     casing_grade: cleanForm.casingGrade,
     tire_size: cleanForm.tireSize,
     tread: cleanForm.tread || cleanForm.tireTreadNeeded,
     quantity: Number(cleanForm.quantity),
     notes: cleanForm.notes || '',
     email: cleanForm.email || cleanForm.managerEmail,
-    plant: selectedPlant || user?.assignedPlant || cleanForm.plant || '', // ✅ Use selectedPlant first
+    plant: selectedPlant || user?.assignedPlant || cleanForm.plant || '',
     order_type: 'MTO',
     type: 'MTO',
-    status: 'open', // FIXED: Changed from "pending" to "open" to match Supabase constraint
+    status: 'open',
     status_updated_at: new Date().toISOString(),
-    description: cleanForm.description || `MTO - ${cleanForm.tireTreadNeeded || cleanForm.tread} - ${cleanForm.tireSize}`
+    description: cleanForm.description || `MTO - ${cleanForm.tireTreadNeeded || cleanForm.tread} - ${cleanForm.tireSize}`,
+    // Cross-plant ordering fields (Phase 2)
+    ordering_store: cleanForm.ordering_store || null,
+    ordering_plant: cleanForm.ordering_plant || null,
+    destination_plant: cleanForm.destination_plant || null,
     // NOTE: Explicitly NOT including 'id' or 'order_id' - let Supabase auto-generate the UUID
   };
 

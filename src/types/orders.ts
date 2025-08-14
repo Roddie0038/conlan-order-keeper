@@ -344,6 +344,11 @@ export interface OrderFormData {
   receiverNo?: string;
   etaDate?: string;
   
+  // Cross-plant ordering fields (optional)
+  ordering_store?: string;
+  ordering_plant?: string;
+  destination_plant?: string;
+  
   // Mixed compatibility fields (for wheel order forms)
   customerName?: string;
   wheelMaterial?: string;
@@ -375,6 +380,10 @@ export interface MTOFormData {
   type?: OrderType;
   orderType?: string;
   description: string;
+  // Cross-plant ordering fields (optional)
+  ordering_store?: string;
+  ordering_plant?: string;
+  destination_plant?: string;
 }
 
 /**

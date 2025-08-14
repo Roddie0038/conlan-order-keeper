@@ -19,11 +19,15 @@ export function mapOrderToSupabase(form: any, user: any, selectedPlant?: string)
     cross_dock_receiver_number: form.receiverNo || '',
     cross_dock_eta_date: form.etaDate || '',
     email: form.managersEmail || form.email,
-    destination_manager_email: form.destinationManagerEmail || '', // ✅ Added field
+    destination_manager_email: form.destinationManagerEmail || '',
     order_type: form.type || 'TRANSFER',
     status: 'pending',
     plant: selectedPlant || user?.assignedPlant || form.plant || '',
-    status_updated_at: new Date().toISOString()
+    status_updated_at: new Date().toISOString(),
+    // Cross-plant ordering fields (Phase 2)
+    ordering_store: form.ordering_store || null,
+    ordering_plant: form.ordering_plant || null,
+    destination_plant: form.destination_plant || null,
   };
   
   console.log("🔍 MAP TO SUPABASE - Mapped order:", mappedOrder);

@@ -13,7 +13,11 @@ export interface MTOFormData {
   quantity: string;
   notes: string;
   managerEmail: string;
-  destinationPlant: string; // ✅ Added mandatory plant field
+  destinationPlant: string;
+  // Cross-plant ordering fields (Phase 2)
+  ordering_store?: string;
+  ordering_plant?: string;
+  destination_plant?: string;
 }
 
 export const stores = [

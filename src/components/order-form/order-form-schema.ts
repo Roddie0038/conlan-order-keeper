@@ -21,7 +21,11 @@ export const formSchema = z
     crossDockConfirmation: z.boolean().optional().default(false),
     managersEmail: z.string(),
     destinationPlant: z.string().min(1, "Please select a destination plant"),
-    destinationManagerEmail: z.string().optional(), // ✅ Added missing field
+    destinationManagerEmail: z.string().optional(),
+    // Cross-plant ordering fields (optional)
+    ordering_store: z.string().optional(),
+    ordering_plant: z.string().optional(),
+    destination_plant: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.crossDock === "Yes") {

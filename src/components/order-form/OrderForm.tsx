@@ -47,6 +47,10 @@ export function OrderForm() {
     crossDockConfirmation: false,
     managersEmail: "",
     destinationPlant: "", // Empty by default - user must select
+    // Cross-plant fields (defaults to null)
+    ordering_store: "",
+    ordering_plant: "",
+    destination_plant: "",
   };
 
   const form = useForm<z.infer<typeof formSchema>>({

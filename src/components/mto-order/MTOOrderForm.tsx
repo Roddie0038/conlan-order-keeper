@@ -16,9 +16,13 @@ import { useMTOFormDebug } from "./hooks/useMTOFormDebug";
 import { logger } from '@/utils/logger';
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 import { useState } from "react";
+import { CrossPlantSection } from "@/components/orders/CrossPlantSection";
+import { OrderSummaryPreview } from "@/components/orders/OrderSummaryPreview";
+import { hasFullStoreAccess } from "@/lib/roles";
 
 export const MTOOrderForm = () => {
   const { user } = useAuth();
+  const elevated = hasFullStoreAccess(user);
   const {
     formData,
     isSubmitting,
@@ -234,6 +238,46 @@ export const MTOOrderForm = () => {
             </div>
           </div>
         </div>
+
+        {/* Cross-Plant Ordering - For elevated users only */}
+        {elevated && (
+          <div className="px-6 pb-4">
+            <CrossPlantSection
+              enabled={elevated}
+              value={{
+                ordering_store: formData.ordering_store || null,
+                ordering_plant: formData.ordering_plant || null,
+                destination_plant: formData.destination_plant || null,
+              }}
+              onChange={(crossPlantData) => {
+                setFormData({
+                  ...formData,
+                  ordering_store: crossPlantData.ordering_store || "",
+                  ordering_plant: crossPlantData.ordering_plant || "",
+                  destination_plant: crossPlantData.destination_plant || "",
+                });
+              }}
+            />
+          </div>
+        )}
+
+        {/* Order Summary Preview - For elevated users only */}
+        {elevated && (
+          <div className="px-6 pb-4">
+            <OrderSummaryPreview
+              enabled={elevated}
+              crossPlantData={{
+                ordering_store: formData.ordering_store || null,
+                ordering_plant: formData.ordering_plant || null,
+                destination_plant: formData.destination_plant || null,
+              }}
+              legacyData={{
+                store: formData.store || "",
+                plant: formData.destinationPlant || selectedPlant || "",
+              }}
+            />
+          </div>
+        )}
 
         {/* Email Recipients Preview */}
         {formData.store && (formData.destinationPlant || selectedPlant) && (
