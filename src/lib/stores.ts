@@ -17,6 +17,7 @@ export type StoreRecord = {
 
 // Store data from existing config - expanded with all plants
 const RAW_STORES: Array<{ city: string; code: string; plant: PlantName }> = [
+  // Grand Prairie 097 stores
   { city: 'Fort Worth', code: '022', plant: 'Grand Prairie 097' },
   { city: 'Grand Prairie', code: '027', plant: 'Grand Prairie 097' },
   { city: 'Houston', code: '028', plant: 'Grand Prairie 097' },
@@ -27,6 +28,19 @@ const RAW_STORES: Array<{ city: string; code: string; plant: PlantName }> = [
   { city: 'Laredo', code: '035', plant: 'Grand Prairie 097' },
   { city: 'Tulsa', code: '036', plant: 'Grand Prairie 097' },
   { city: 'Austin', code: '039', plant: 'Grand Prairie 097' },
+  
+  // Romulus 098 stores (example stores for cross-plant testing)
+  { city: 'Detroit', code: '041', plant: 'Romulus 098' },
+  { city: 'Toledo', code: '042', plant: 'Romulus 098' },
+  { city: 'Indianapolis', code: '043', plant: 'Romulus 098' },
+  
+  // Mulberry 099 stores (example stores for cross-plant testing)
+  { city: 'Tampa', code: '051', plant: 'Mulberry 099' },
+  { city: 'Orlando', code: '052', plant: 'Mulberry 099' },
+  { city: 'Jacksonville', code: '053', plant: 'Mulberry 099' },
+  
+  // Special option for elevated users
+  { city: 'Unassigned', code: '000', plant: 'Grand Prairie 097' },
 ];
 
 export const STORES: StoreRecord[] = RAW_STORES.map(s => {
@@ -42,6 +56,11 @@ export const STORES: StoreRecord[] = RAW_STORES.map(s => {
 export function normalizeStoreName(raw?: string | null): string | null {
   if (!raw) return null;
   const s = String(raw).trim();
+  
+  // Handle "unassigned" keyword
+  if (s.toLowerCase() === 'unassigned' || s.toLowerCase() === 'unassigned 000') {
+    return 'Unassigned 000';
+  }
   
   // Already looks like "City XXX"
   if (/\s\d{3}$/.test(s)) return s;

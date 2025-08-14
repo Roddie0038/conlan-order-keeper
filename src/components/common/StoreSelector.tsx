@@ -26,23 +26,49 @@ export default function StoreSelector({
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
 
-  const [q, setQ] = React.useState('');
-  const [open, setOpen] = React.useState(false);
+  // Local typing buffer; null => show committed `value`
+  const [q, setQ] = React.useState<string | null>(null);
+  const display = q ?? value ?? '';
 
+  // Base list (filtered for non-elevated users)
   const baseList = React.useMemo(() => {
     if (elevated) return STORES;                        // ALL STORES for elevated users
-    if (!filterPlant) return STORES;                    // fallback (no filter)
-    return STORES.filter(s => s.plant === filterPlant); // restricted list for normal users
+    if (!filterPlant) return STORES;                    // fallback
+    return STORES.filter(s => s.plant === filterPlant); // restricted for normal users
   }, [elevated, filterPlant]);
 
   const results = React.useMemo(() => {
-    return q ? searchStores(q).filter(s => baseList.includes(s)) : baseList;
+    const term = (q ?? '').trim().toLowerCase();
+    if (!term) return baseList;
+    // search inside the current base list (avoids showing stores user shouldn't see)
+    return baseList.filter(r => r.searchable.includes(term));
   }, [q, baseList]);
 
-  const commit = (raw: string) => {
-    const normalized = normalizeStoreName(raw);
-    if (normalized) onChange(normalized);
-  };
+  const [open, setOpen] = React.useState(false);
+
+  function commit(raw: string) {
+    const t = (raw || '').trim();
+
+    // Allow "unassigned" keyword -> Unassigned 000 (passes City 0XX rule)
+    if (t.toLowerCase() === 'unassigned' || t.toLowerCase() === 'unassigned 000') {
+      onChange('Unassigned 000');
+      setOpen(false);
+      setQ(null);
+      return;
+    }
+
+    const normalized = normalizeStoreName(t);
+    if (normalized) {
+      onChange(normalized);
+      setOpen(false);
+      setQ(null);
+      return;
+    }
+
+    // Not normalized -> keep q visible, do not commit
+    setQ(t);
+    setOpen(true);
+  }
 
   return (
     <div className={`space-y-2 ${className}`}>
@@ -50,33 +76,38 @@ export default function StoreSelector({
       <div className="relative">
         <Input
           placeholder={placeholder}
-          value={value}
-          onChange={(e) => { 
-            setQ(e.target.value); 
-            onChange(e.target.value); 
-          }}
+          value={display}
+          onChange={(e) => setQ(e.target.value)}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
-          onKeyDown={(e) => { 
+          onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
-              commit(q || value);
+              commit(display);
             }
           }}
           className="w-full"
         />
+
+        {/* Suggestions */}
         {open && results.length > 0 && (
           <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-background shadow-lg">
+            {/* Optional "use typed value" if user entered something not yet normalized */}
+            {q && (
+              <button
+                type="button"
+                className="block w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+                onClick={() => commit(display)}
+              >
+                Use "{display}"
+              </button>
+            )}
             {results.map(r => (
               <button
                 type="button"
                 key={r.name}
                 className="block w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
-                onClick={() => { 
-                  onChange(r.name); 
-                  setQ(''); 
-                  setOpen(false); 
-                }}
+                onClick={() => commit(r.name)}
               >
                 <div className="font-medium">{r.name}</div>
                 <div className="text-muted-foreground text-xs">{r.plant}</div>
@@ -85,11 +116,17 @@ export default function StoreSelector({
           </div>
         )}
       </div>
+
       <div className="text-xs text-muted-foreground">
         {elevated
-          ? 'Elevated access: all stores visible. Manual entry allowed; must normalize to "City 0XX".'
+          ? 'Elevated access: all stores visible. Manual entry allowed; type a city or code and press Enter. Tip: type "unassigned".'
           : 'Manual entry allowed; must match your plant and normalize to "City 0XX".'}
       </div>
+
+      {/* Inline nudge if the text isn't normalized yet */}
+      {q && !normalizeStoreName(q) && (
+        <div className="text-xs text-amber-700">Not recognized yet. Press Enter to try normalize or type "unassigned".</div>
+      )}
     </div>
   );
 }
