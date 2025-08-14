@@ -7,10 +7,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { errorHandler, ErrorType } from '@/utils/errorHandler';
 import type { OrderRecord, MTOOrderRecord, WheelOrderRecord } from '@/types/orders';
+import { isElevated } from '@/server/access/elevated';
+import { getCurrentUser } from '@/server/auth/getUser';
+import { baseOrderSchema, scrubCrossPlantForNonElevated, assertCrossPlantConsistency } from '@/server/validators/order';
 
-/**
- * Submit order to Supabase with error handling
- */
 export async function submitOrder(
   orderData: any,
   orderType: 'transfer' | 'mto' | 'wheel' | 'warranty' = 'transfer'
@@ -18,12 +18,48 @@ export async function submitOrder(
   logger.info('Submitting order', { orderType, service: 'order_submission' });
 
   try {
+    // Get current user for role-based validation
+    const user = await getCurrentUser();
+    const elevated = isElevated(user);
+    
+    logger.info('Order submission access check', { 
+      elevated, 
+      userEmail: user.email, 
+      userRole: user.role, 
+      service: 'order_submission' 
+    });
+
     // Ensure required fields are present
-    const submissionData = {
+    let submissionData = {
       ...orderData,
       timestamp: orderData.timestamp || new Date().toISOString(),
       id: undefined // Let Supabase generate the ID
     };
+
+    // Validate and scrub cross-plant fields for non-elevated users
+    if (!elevated) {
+      submissionData = scrubCrossPlantForNonElevated(submissionData);
+      logger.info('Cross-plant fields scrubbed for non-elevated user', { 
+        userEmail: user.email, 
+        service: 'order_submission' 
+      });
+    } else {
+      // For elevated users, validate cross-plant consistency
+      try {
+        assertCrossPlantConsistency(submissionData);
+        logger.info('Cross-plant validation passed for elevated user', { 
+          userEmail: user.email, 
+          service: 'order_submission' 
+        });
+      } catch (validationError: any) {
+        logger.error('Cross-plant validation failed', { 
+          error: validationError.message, 
+          userEmail: user.email, 
+          service: 'order_submission' 
+        });
+        throw validationError;
+      }
+    }
 
     const { data, error } = await supabase
       .from('orders')
@@ -38,6 +74,8 @@ export async function submitOrder(
     logger.info('Order submitted successfully', { 
       orderId: data?.id?.toString() || 'unknown', 
       orderType, 
+      elevated,
+      hasCrossPlantFields: !!((submissionData as any).ordering_store || (submissionData as any).ordering_plant || (submissionData as any).destination_plant),
       service: 'order_submission' 
     });
 
@@ -50,16 +88,51 @@ export async function submitOrder(
   }
 }
 
-/**
- * Submit MTO order to Supabase with error handling
- */
-export async function submitMTOOrder(orderData: Partial<MTOOrderRecord>) {
+export async function submitMTOOrder(orderData: any) {
   logger.info('Submitting MTO order', { service: 'mto_submission' });
 
   try {
+    // Get current user for role-based validation
+    const user = await getCurrentUser();
+    const elevated = isElevated(user);
+    
+    logger.info('MTO order submission access check', { 
+      elevated, 
+      userEmail: user.email, 
+      userRole: user.role, 
+      service: 'mto_submission' 
+    });
+
+    let submissionData = { ...orderData };
+
+    // Validate and scrub cross-plant fields for non-elevated users
+    if (!elevated) {
+      submissionData = scrubCrossPlantForNonElevated(submissionData);
+      logger.info('Cross-plant fields scrubbed for non-elevated MTO user', { 
+        userEmail: user.email, 
+        service: 'mto_submission' 
+      });
+    } else {
+      // For elevated users, validate cross-plant consistency
+      try {
+        assertCrossPlantConsistency(submissionData);
+        logger.info('Cross-plant validation passed for elevated MTO user', { 
+          userEmail: user.email, 
+          service: 'mto_submission' 
+        });
+      } catch (validationError: any) {
+        logger.error('Cross-plant validation failed for MTO', { 
+          error: validationError.message, 
+          userEmail: user.email, 
+          service: 'mto_submission' 
+        });
+        throw validationError;
+      }
+    }
+
     const { data, error } = await supabase
       .from('mto_orders')
-      .insert(orderData)
+      .insert(submissionData)
       .select()
       .single();
 
@@ -69,6 +142,8 @@ export async function submitMTOOrder(orderData: Partial<MTOOrderRecord>) {
 
     logger.info('MTO order submitted successfully', { 
       orderId: data.id, 
+      elevated,
+      hasCrossPlantFields: !!((submissionData as any).ordering_store || (submissionData as any).ordering_plant || (submissionData as any).destination_plant),
       service: 'mto_submission' 
     });
 
@@ -80,16 +155,51 @@ export async function submitMTOOrder(orderData: Partial<MTOOrderRecord>) {
   }
 }
 
-/**
- * Submit wheel order to Supabase with error handling
- */
 export async function submitWheelOrder(orderData: any) {
   logger.info('Submitting wheel order', { service: 'wheel_submission' });
 
   try {
+    // Get current user for role-based validation
+    const user = await getCurrentUser();
+    const elevated = isElevated(user);
+    
+    logger.info('Wheel order submission access check', { 
+      elevated, 
+      userEmail: user.email, 
+      userRole: user.role, 
+      service: 'wheel_submission' 
+    });
+
+    let submissionData = { ...orderData };
+
+    // Validate and scrub cross-plant fields for non-elevated users
+    if (!elevated) {
+      submissionData = scrubCrossPlantForNonElevated(submissionData);
+      logger.info('Cross-plant fields scrubbed for non-elevated wheel user', { 
+        userEmail: user.email, 
+        service: 'wheel_submission' 
+      });
+    } else {
+      // For elevated users, validate cross-plant consistency
+      try {
+        assertCrossPlantConsistency(submissionData);
+        logger.info('Cross-plant validation passed for elevated wheel user', { 
+          userEmail: user.email, 
+          service: 'wheel_submission' 
+        });
+      } catch (validationError: any) {
+        logger.error('Cross-plant validation failed for wheel order', { 
+          error: validationError.message, 
+          userEmail: user.email, 
+          service: 'wheel_submission' 
+        });
+        throw validationError;
+      }
+    }
+
     const { data, error } = await supabase
       .from('wheel_orders')
-      .insert(orderData)
+      .insert(submissionData)
       .select()
       .single();
 
@@ -99,6 +209,8 @@ export async function submitWheelOrder(orderData: any) {
 
     logger.info('Wheel order submitted successfully', { 
       orderId: data.id, 
+      elevated,
+      hasCrossPlantFields: !!((submissionData as any).ordering_store || (submissionData as any).ordering_plant || (submissionData as any).destination_plant),
       service: 'wheel_submission' 
     });
 
