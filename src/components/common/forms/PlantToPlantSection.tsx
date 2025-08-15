@@ -51,12 +51,20 @@ export function PlantToPlantSection({
   }, [isPlantToPlant, onScheduledArrivalChange, hideScheduledArrival]);
 
   const plants = Object.keys(PLANT_STORE_MAP);
-  const allStores = Object.values(PLANT_STORE_MAP).flat();
   
   // Get stores for selected destination plant
   const destinationStores = value.destination_plant 
     ? PLANT_STORE_MAP[value.destination_plant] || []
-    : allStores;
+    : [];
+
+  // Clear destination_store if it doesn't belong to the selected plant
+  useEffect(() => {
+    if (value.destination_plant && value.destination_store && destinationStores.length > 0) {
+      if (!destinationStores.includes(value.destination_store)) {
+        onChange({ destination_store: null });
+      }
+    }
+  }, [value.destination_plant, value.destination_store, destinationStores, onChange]);
 
   return (
     <section className={`rounded-2xl border border-muted bg-card/40 backdrop-blur p-4 mt-6 ${className}`}>
@@ -176,9 +184,18 @@ export function PlantToPlantSection({
                 <Select
                   value={value.destination_store || ''}
                   onValueChange={(val) => onChange({ destination_store: val })}
+                  disabled={!value.destination_plant}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select destination store..." />
+                    <SelectValue 
+                      placeholder={
+                        !value.destination_plant 
+                          ? "Select destination plant first" 
+                          : destinationStores.length === 0 
+                            ? "No stores available for selected plant"
+                            : "Select destination store..."
+                      } 
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {destinationStores.map((store) => (

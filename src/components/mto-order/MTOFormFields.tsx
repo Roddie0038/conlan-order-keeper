@@ -44,36 +44,19 @@ export const MTOFormFields = ({
         <Separator className="bg-gray-300" />
       </div>
       
-      {elevated ? (
-        <StoreSelector
-          label="Store (Destination)"
-          value={formData.store}
-          onChange={(value) => {
-            const normalized = normalizeStoreName(value) || '';
-            onChange("store", normalized);
-          }}
-          filterPlant={null}  // ignored for elevated users
-          placeholder="Select destination store..."
-          allowUnassigned={false}  // Destination store cannot be unassigned
-        />
-      ) : isAdmin ? (
-        <FormField 
-          label="Store" 
-          value={formData.store} 
-          onChange={value => onChange("store", value)} 
-          options={stores} 
-          placeholder="Select store" 
-          required 
-        />
-      ) : (
-        <FormField 
-          label="Store" 
-          value={formData.store} 
-          onChange={() => {}} 
-          disabled={true} 
-          required 
-        />
-      )}
+      <div className="space-y-2">
+        <label className="text-sm font-medium flex items-center">
+          Store (Destination)
+          <span className="text-xs text-muted-foreground ml-2">
+            (Configured in Plant-to-Plant section below)
+          </span>
+        </label>
+        <div className="p-3 bg-muted/50 border rounded-md">
+          <span className="text-sm text-muted-foreground">
+            {formData.destination_store || formData.store || "Will be set via Plant-to-Plant section"}
+          </span>
+        </div>
+      </div>
 
       <FormField 
         label="Timestamp" 
