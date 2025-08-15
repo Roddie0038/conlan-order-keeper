@@ -29,6 +29,11 @@ export const formSchema = z
     // Transfer route and carrier fields
     transfer_route: z.enum(['store->store', 'store->plant', 'plant->store', 'plant->plant']).optional(),
     carrier: z.enum(['Central Transport', 'PAM Transport']).optional(),
+    // Additional transfer fields
+    destination_store: z.string().optional(),
+    cross_dock_from: z.string().optional(),
+    cross_dock_to: z.string().optional(),
+    cross_dock_type: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.crossDock === "Yes") {

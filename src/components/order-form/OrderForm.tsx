@@ -27,7 +27,7 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
 import { normalizeStoreName } from "@/lib/stores";
-import { CollapsibleTransferSection } from "@/components/common/forms/CollapsibleTransferSection";
+import { PlantToPlantSection } from "@/components/common/forms/PlantToPlantSection";
 import { type TransferRoute, type Carrier } from "@/types/orders";
 
 export function OrderForm() {
@@ -279,21 +279,25 @@ export function OrderForm() {
         )}
       </Card>
 
-      {/* Transfer & Shipping Details Section */}
-      <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-6">
-          <CollapsibleTransferSection
-            transferRoute={form.watch("transfer_route")}
-            carrier={form.watch("carrier")}
-            onTransferRouteChange={(value: TransferRoute) => 
-              form.setValue("transfer_route", value)
-            }
-            onCarrierChange={(value) => 
-              form.setValue("carrier", value)
-            }
-          />
-        </div>
-      </Card>
+      {/* Plant-to-Plant / Cross-Region Shipment Section */}
+      <PlantToPlantSection
+        value={{
+          transfer_route: form.watch("transfer_route"),
+          carrier: form.watch("carrier"),
+          fulfillment_plant: form.watch("ordering_plant"),
+          destination_plant: form.watch("destination_plant"),
+          destination_store: form.watch("destination_store"),
+          cross_dock_from: form.watch("cross_dock_from"),
+          cross_dock_to: form.watch("cross_dock_to"),
+          cross_dock_type: form.watch("cross_dock_type"),
+        }}
+        onChange={(patch) => {
+          Object.entries(patch).forEach(([key, value]) => {
+            form.setValue(key as any, value);
+          });
+        }}
+        onScheduledArrivalChange={(value) => form.setValue("scheduleArrival", value)}
+      />
       
       <OrderFormContent 
         form={form} 

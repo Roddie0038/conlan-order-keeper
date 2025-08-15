@@ -49,7 +49,14 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const formDestinationPlant = order.destinationPlant ? normalizePlantName(order.destinationPlant) : null;
   const mappedPlant = getPlantForStore(displayStore);
   
+  // NEW: Priority for plant-to-plant transfers - destination_plant overrides store-based mapping
   const finalPlant = destinationPlant || formDestinationPlant || mappedPlant || selectedPlant || 'Grand Prairie 097';
+  
+  // NEW: Store priority for plant-to-plant transfers
+  const finalStore = order.destination_store?.trim() || 
+                     displayStore || 
+                     (destinationPlant ? "Unassigned" : displayStore) || 
+                     "Unassigned";
   
   console.log("🔍 SUBMIT - Plant selection logic:", {
     destinationPlant,
@@ -128,7 +135,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Google Sheets payload (display format)
   const baseGoogleSheetsPayload = {
     ...order,
-    store: displayStore, // Use display format "Grand Prairie 027"
+    store: finalStore, // Use final store with proper priority
     plant: finalPlant,
     type: orderType,
     name: order.yourName || order.name || "Unknown",
@@ -140,19 +147,23 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     destinationManagerEmail: destinationManagerEmail,
     timestamp: formattedTimestamp,
     managerEmail: storeManagerEmail,
-    managersEmail: storeManagerEmail
+    managersEmail: storeManagerEmail,
+    // Auto-set scheduled arrival to N/A for plant-to-plant transfers
+    scheduleArrival: order.transfer_route === 'plant->plant' ? 'N/A' : order.scheduleArrival
   };
   
   const googleSheetsPayload = normalizeOrderStoreFields(baseGoogleSheetsPayload);
 
   // Supabase payload (database format)
+  const supabaseStoreFormat = storeSanitizeForSupabase(finalStore);
+  
   let baseSupabaseOrder: any = {
     name: order.yourName || order.name || "Unknown",
-    store: supabaseStore, // Use database format "27"
+    store: supabaseStoreFormat, // Use final store with sanitization
     product_number: order.productNumber,
     description: order.description,
     quantity: parseInt(order.quantity?.toString() || "0") || 0,
-    schedule_arrival: order.scheduleArrival,
+    schedule_arrival: order.transfer_route === 'plant->plant' ? 'N/A' : order.scheduleArrival,
     notes: order.notes,
     email: storeManagerEmail,
     plant: finalPlant,
@@ -160,13 +171,17 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     timestamp: formattedTimestamp,
     status: 'pending',
     status_updated_at: new Date().toISOString(),
-    // Transfer fields
+    // Transfer fields - MUST be included
     transfer_route: order.transfer_route || (destinationPlant ? "plant->plant" : "store->store"),
     carrier: order.carrier || null,
-    // Cross-plant fields
+    // Cross-plant fields - MUST be included
     destination_plant: destinationPlant,
     ordering_plant: order.ordering_plant || null,
-    ordering_store: order.ordering_store || null
+    ordering_store: order.ordering_store || null,
+    // Additional transfer fields - MUST be included
+    cross_dock_from: order.cross_dock_from || null,
+    cross_dock_to: order.cross_dock_to || null,
+    cross_dock_type: order.cross_dock_type || null
   };
   
   // Add cross-dock fields for transfer orders

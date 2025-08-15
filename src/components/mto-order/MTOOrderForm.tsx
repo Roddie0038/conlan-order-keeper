@@ -23,8 +23,8 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
 import { normalizeStoreName } from "@/lib/stores";
-import { CollapsibleTransferSection } from "@/components/common/forms/CollapsibleTransferSection";
-import { type TransferRoute, type Carrier } from "@/types/orders";
+import { PlantToPlantSection } from "@/components/common/forms/PlantToPlantSection";
+import { type TransferRoute, type Carrier, type MTOFormData } from "@/types/orders";
 
 export const MTOOrderForm = () => {
   const { user } = useAuth();
@@ -280,17 +280,23 @@ export const MTOOrderForm = () => {
             </div>
           </div>
 
-          {/* Transfer & Shipping Details Section */}
+          {/* Plant-to-Plant / Cross-Region Shipment Section */}
           <div className="space-y-6">
-            <CollapsibleTransferSection
-              transferRoute={formData.transfer_route}
-              carrier={formData.carrier}
-              onTransferRouteChange={(value: TransferRoute) => 
-                setFormData(prev => ({ ...prev, transfer_route: value }))
-              }
-              onCarrierChange={(value) => 
-                setFormData(prev => ({ ...prev, carrier: value }))
-              }
+            <PlantToPlantSection
+              value={{
+                transfer_route: formData.transfer_route,
+                carrier: formData.carrier,
+                fulfillment_plant: formData.ordering_plant,
+                destination_plant: formData.destination_plant,
+                destination_store: formData.destination_store,
+                cross_dock_from: formData.cross_dock_from,
+                cross_dock_to: formData.cross_dock_to,
+                cross_dock_type: formData.cross_dock_type,
+              }}
+              onChange={(patch) => {
+                setFormData(prev => ({ ...prev, ...patch } as any));
+              }}
+              onScheduledArrivalChange={(value) => setFormData(prev => ({ ...prev, scheduleArrival: value }))}
             />
           </div>
         </div>

@@ -390,8 +390,14 @@ export interface MTOFormData {
   destination_plant?: string;
   
   // Transfer fields
-  transfer_route?: string;
-  carrier?: string;
+  transfer_route?: TransferRoute;
+  carrier?: Carrier;
+  
+  // Additional transfer fields
+  destination_store?: string;
+  cross_dock_from?: string;
+  cross_dock_to?: string;
+  cross_dock_type?: string;
 }
 
 /**
@@ -413,6 +419,18 @@ export interface WheelFormData {
   userStore: string;
   storeColors: string;
   destinationPlant: string; // Mandatory plant field
+  // Cross-plant fields for elevated users
+  ordering_store?: string;
+  ordering_plant?: string;
+  destination_plant?: string;
+  // Transfer route and carrier fields
+  transfer_route?: TransferRoute;
+  carrier?: Carrier;
+  // Additional transfer fields
+  destination_store?: string;
+  cross_dock_from?: string;
+  cross_dock_to?: string;
+  cross_dock_type?: string;
 }
 
 /**

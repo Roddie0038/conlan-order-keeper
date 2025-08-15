@@ -17,7 +17,7 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
 import { normalizeStoreName } from "@/lib/stores";
-import { CollapsibleTransferSection } from "@/components/common/forms/CollapsibleTransferSection";
+import { PlantToPlantSection } from "@/components/common/forms/PlantToPlantSection";
 import { type TransferRoute, type Carrier } from "@/types/orders";
 
 export function WheelOrderForm() {
@@ -182,21 +182,24 @@ export function WheelOrderForm() {
         )}
       </Card>
 
-      {/* Transfer & Shipping Details Section */}
-      <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-6">
-          <CollapsibleTransferSection
-            transferRoute={formData.transfer_route}
-            carrier={formData.carrier}
-            onTransferRouteChange={(value: TransferRoute) => 
-              setFormData(prev => ({ ...prev, transfer_route: value }))
-            }
-            onCarrierChange={(value) => 
-              setFormData(prev => ({ ...prev, carrier: value }))
-            }
-          />
-        </div>
-      </Card>
+      {/* Plant-to-Plant / Cross-Region Shipment Section */}
+      <PlantToPlantSection
+        value={{
+          transfer_route: formData.transfer_route,
+          carrier: formData.carrier,
+          fulfillment_plant: formData.ordering_plant,
+          destination_plant: formData.destination_plant,
+          destination_store: formData.destination_store,
+          cross_dock_from: formData.cross_dock_from,
+          cross_dock_to: formData.cross_dock_to,
+          cross_dock_type: formData.cross_dock_type,
+        }}
+        onChange={(patch) => {
+          setFormData(prev => ({ ...prev, ...patch } as any));
+        }}
+        onScheduledArrivalChange={(value) => setFormData(prev => ({ ...prev, scheduleArrival: value }))}
+        hideScheduledArrival={true}
+      />
 
       <Card className="bg-white shadow-xl transition-all duration-300 hover:shadow-2xl">
         <FormHeader />
