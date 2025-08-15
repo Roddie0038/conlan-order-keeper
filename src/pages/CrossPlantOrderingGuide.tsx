@@ -54,9 +54,6 @@ const CrossPlantOrderingGuide = () => {
               <CardTitle className="text-4xl font-bold text-primary mb-4">
                 Cross-Plant Ordering Training Guide
               </CardTitle>
-              <CardDescription className="text-xl">
-                For Admins, Super Admins, and Operations Managers
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center space-y-4">
