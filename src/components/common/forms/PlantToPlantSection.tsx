@@ -205,7 +205,6 @@ export function PlantToPlantSection({
                       <SelectValue placeholder="—" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       {plants.map((plant) => (
                         <SelectItem key={plant} value={plant}>
                           {plant}
@@ -225,7 +224,6 @@ export function PlantToPlantSection({
                       <SelectValue placeholder="—" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       {plants.map((plant) => (
                         <SelectItem key={plant} value={plant}>
                           {plant}
@@ -245,7 +243,6 @@ export function PlantToPlantSection({
                       <SelectValue placeholder="—" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       <SelectItem value="Direct">Direct</SelectItem>
                       <SelectItem value="Relay">Relay</SelectItem>
                     </SelectContent>
