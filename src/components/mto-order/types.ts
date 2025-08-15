@@ -25,6 +25,5 @@ export interface MTOFormData {
   
   // Transfer route and carrier fields
   transfer_route?: 'store->store' | 'store->plant' | 'plant->store' | 'plant->plant';
-  carrier?: string;
-  arrival_date?: string;
+  carrier?: 'Central Transport' | 'PAM Transport';
 }

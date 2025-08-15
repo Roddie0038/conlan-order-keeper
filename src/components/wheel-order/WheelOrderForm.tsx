@@ -17,7 +17,7 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
 import { normalizeStoreName } from "@/lib/stores";
-import { TransferFieldsSection } from "@/components/common/forms/TransferFieldsSection";
+import { CollapsibleTransferSection } from "@/components/common/forms/CollapsibleTransferSection";
 import { type TransferRoute, type Carrier } from "@/types/orders";
 
 export function WheelOrderForm() {
@@ -185,18 +185,14 @@ export function WheelOrderForm() {
       {/* Transfer & Shipping Details Section */}
       <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
         <div className="p-6">
-          <TransferFieldsSection
+          <CollapsibleTransferSection
             transferRoute={formData.transfer_route}
             carrier={formData.carrier}
-            arrivalDate={formData.arrival_date}
             onTransferRouteChange={(value: TransferRoute) => 
               setFormData(prev => ({ ...prev, transfer_route: value }))
             }
             onCarrierChange={(value) => 
-              setFormData(prev => ({ ...prev, carrier: value as any }))
-            }
-            onArrivalDateChange={(value: string) => 
-              setFormData(prev => ({ ...prev, arrival_date: value }))
+              setFormData(prev => ({ ...prev, carrier: value }))
             }
           />
         </div>

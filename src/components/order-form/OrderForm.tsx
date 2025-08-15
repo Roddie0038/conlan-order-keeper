@@ -27,7 +27,7 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
 import { normalizeStoreName } from "@/lib/stores";
-import { TransferFieldsSection } from "@/components/common/forms/TransferFieldsSection";
+import { CollapsibleTransferSection } from "@/components/common/forms/CollapsibleTransferSection";
 import { type TransferRoute, type Carrier } from "@/types/orders";
 
 export function OrderForm() {
@@ -282,18 +282,14 @@ export function OrderForm() {
       {/* Transfer & Shipping Details Section */}
       <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
         <div className="p-6">
-          <TransferFieldsSection
+          <CollapsibleTransferSection
             transferRoute={form.watch("transfer_route")}
             carrier={form.watch("carrier")}
-            arrivalDate={form.watch("arrival_date")}
             onTransferRouteChange={(value: TransferRoute) => 
               form.setValue("transfer_route", value)
             }
             onCarrierChange={(value) => 
-              form.setValue("carrier", value as any)
-            }
-            onArrivalDateChange={(value: string) => 
-              form.setValue("arrival_date", value)
+              form.setValue("carrier", value)
             }
           />
         </div>

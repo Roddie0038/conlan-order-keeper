@@ -23,7 +23,7 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
 import { normalizeStoreName } from "@/lib/stores";
-import { TransferFieldsSection } from "@/components/common/forms/TransferFieldsSection";
+import { CollapsibleTransferSection } from "@/components/common/forms/CollapsibleTransferSection";
 import { type TransferRoute, type Carrier } from "@/types/orders";
 
 export const MTOOrderForm = () => {
@@ -282,18 +282,14 @@ export const MTOOrderForm = () => {
 
           {/* Transfer & Shipping Details Section */}
           <div className="space-y-6">
-            <TransferFieldsSection
+            <CollapsibleTransferSection
               transferRoute={formData.transfer_route}
               carrier={formData.carrier}
-              arrivalDate={formData.arrival_date}
               onTransferRouteChange={(value: TransferRoute) => 
                 setFormData(prev => ({ ...prev, transfer_route: value }))
               }
               onCarrierChange={(value) => 
                 setFormData(prev => ({ ...prev, carrier: value }))
-              }
-              onArrivalDateChange={(value: string) => 
-                setFormData(prev => ({ ...prev, arrival_date: value }))
               }
             />
           </div>

@@ -448,14 +448,12 @@ export const TRANSFER_ROUTES: { value: TransferRoute; label: string }[] = [
 /**
  * Carrier Types for shipping
  */
-export const CARRIERS = ['Central Transport', 'PAM Transport', 'Company Truck', 'Third-Party'] as const;
+export const CARRIERS = ['Central Transport', 'PAM Transport'] as const;
 export type Carrier = typeof CARRIERS[number];
 
 export const CARRIER_OPTIONS: { value: Carrier; label: string }[] = [
   { value: 'Central Transport', label: 'Central Transport' },
   { value: 'PAM Transport', label: 'PAM Transport' },
-  { value: 'Company Truck', label: 'Company Truck' },
-  { value: 'Third-Party', label: 'Third-Party' },
 ];
 
 // ============= UTILITY TYPES =============
