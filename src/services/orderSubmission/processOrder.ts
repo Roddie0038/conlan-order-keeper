@@ -3,7 +3,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { storeData } from "@/config/storeData";
 import { OrderType } from "@/services/webhook/config";
-import { getPlantForStore } from "@/utils/plantMapping";
+import { getPlantForStore, normalizePlantName } from "@/utils/plantMapping";
 import { logger } from "@/utils/logger";
 import type { OrderFormData } from "@/types/orders";
 import { formatDateForSupabase } from "@/utils/dateTime";
@@ -43,15 +43,22 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const storeNumber = extractStoreNumber(displayStore);
   const storeManagerEmail = "";
   
-  // PHASE 2: Plant determination
+  // PHASE 2: Plant determination with cross-plant transfer priority
+  // Priority order: destination_plant -> destinationPlant -> getPlantForStore -> selectedPlant -> fallback
+  const destinationPlant = order.destination_plant ? normalizePlantName(order.destination_plant) : null;
+  const formDestinationPlant = order.destinationPlant ? normalizePlantName(order.destinationPlant) : null;
   const mappedPlant = getPlantForStore(displayStore);
-  const finalPlant = selectedPlant || mappedPlant || 'Grand Prairie 097';
+  
+  const finalPlant = destinationPlant || formDestinationPlant || mappedPlant || selectedPlant || 'Grand Prairie 097';
   
   console.log("🔍 SUBMIT - Plant selection logic:", {
-    selectedPlant,
+    destinationPlant,
+    formDestinationPlant,
     mappedPlant,
+    selectedPlant,
     finalPlant,
-    store: displayStore
+    store: displayStore,
+    transferType: order.transfer_route || (destinationPlant ? "plant->plant" : "store->store")
   });
   
   if (!mappedPlant && !selectedPlant) {
@@ -152,7 +159,14 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     order_type: orderType,
     timestamp: formattedTimestamp,
     status: 'pending',
-    status_updated_at: new Date().toISOString()
+    status_updated_at: new Date().toISOString(),
+    // Transfer fields
+    transfer_route: order.transfer_route || (destinationPlant ? "plant->plant" : "store->store"),
+    carrier: order.carrier || null,
+    // Cross-plant fields
+    destination_plant: destinationPlant,
+    ordering_plant: order.ordering_plant || null,
+    ordering_store: order.ordering_store || null
   };
   
   // Add cross-dock fields for transfer orders

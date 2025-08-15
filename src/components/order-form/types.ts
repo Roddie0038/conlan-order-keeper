@@ -9,7 +9,16 @@ export interface OrderSummary extends FormData {
   managersEmail?: string;
   type?: OrderType;
   
-  // Add Cross Dock fields
+  // Transfer fields
+  transfer_route?: string;
+  carrier?: string;
+  
+  // Cross-plant fields
+  destination_plant?: string;
+  ordering_plant?: string;
+  ordering_store?: string;
+  
+  // Cross Dock fields
   destinationManagerEmail?: string;
   receiverNo?: string;
   etaDate?: string;

@@ -349,6 +349,10 @@ export interface OrderFormData {
   ordering_plant?: string;
   destination_plant?: string;
   
+  // Transfer fields
+  transfer_route?: string;
+  carrier?: string;
+  
   // Mixed compatibility fields (for wheel order forms)
   customerName?: string;
   wheelMaterial?: string;
@@ -384,6 +388,10 @@ export interface MTOFormData {
   ordering_store?: string;
   ordering_plant?: string;
   destination_plant?: string;
+  
+  // Transfer fields
+  transfer_route?: string;
+  carrier?: string;
 }
 
 /**
