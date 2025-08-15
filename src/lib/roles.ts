@@ -8,14 +8,20 @@ const ELEVATED_ROLES = new Set([
   'Admin',
   'Super Admin', 
   'Operations Manager',
+  'super_admin',
+  'admin',
+  'operations_manager'
 ]);
 
-const BRAD_EMAIL = 'bperry@conlantire.com';
+const ELEVATED_EMAILS = new Set([
+  'bperry@conlantire.com',
+  'roderickdemarais@aol.com'
+]);
 
 export function hasFullStoreAccess(user?: UserLike | null): boolean {
   if (!user) return false;
   const email = (user.email || '').trim().toLowerCase();
   const role = (user.role || '').trim();
-  if (email === BRAD_EMAIL) return true;
+  if (ELEVATED_EMAILS.has(email)) return true;
   return ELEVATED_ROLES.has(role);
 }
