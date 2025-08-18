@@ -69,18 +69,20 @@ export function RoutingTransferSection({
 
   // Auto-populate source from user context
   useEffect(() => {
-    if (!elevated || value.source_store) return;
+    if (value.source_store) return;
     
-    const defaultSourceStore = user?.store || "Unassigned";
+    const defaultSourceStore = user?.store && user.store !== "Unassigned" ? user.store : "Fort Worth 022";
     const defaultSourcePlant = getPlantForStore(defaultSourceStore);
     
+    // For non-elevated users, always auto-populate from their profile
+    // For elevated users, auto-populate as default but let them change it
     onChange({
       source_store: defaultSourceStore,
       source_plant: defaultSourcePlant,
       ordering_store: defaultSourceStore,
       ordering_plant: defaultSourcePlant,
     });
-  }, [user, elevated, value.source_store, onChange]);
+  }, [user, value.source_store, onChange]);
 
   // Auto-populate destination plant based on transfer route and destination store
   useEffect(() => {
@@ -222,13 +224,15 @@ export function RoutingTransferSection({
                     <SelectTrigger>
                       <SelectValue placeholder="Select source store" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(PLANT_STORE_MAP).flat().map((store) => (
-                        <SelectItem key={store} value={store}>
-                          {store}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                     <SelectContent>
+                       {Object.values(PLANT_STORE_MAP).flat()
+                         .filter(store => store !== "Unassigned")
+                         .map((store) => (
+                         <SelectItem key={store} value={store}>
+                           {store}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
                   </Select>
                 </div>
                 
@@ -299,13 +303,15 @@ export function RoutingTransferSection({
                     <SelectTrigger>
                       <SelectValue placeholder="Select destination store" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(PLANT_STORE_MAP).flat().map((store) => (
-                        <SelectItem key={store} value={store}>
-                          {store}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                     <SelectContent>
+                       {Object.values(PLANT_STORE_MAP).flat()
+                         .filter(store => store !== "Unassigned")
+                         .map((store) => (
+                         <SelectItem key={store} value={store}>
+                           {store}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
                   </Select>
                 ) : (
                   // For plant-to-store, filter by selected destination plant
@@ -347,7 +353,7 @@ export function RoutingTransferSection({
                   value={value.destination_store || ""}
                   onValueChange={(store) => onChange({
                     destination_store: store || undefined,
-                    store: store || "Unassigned",
+                    store: store || undefined,
                   })}
                 >
                   <SelectTrigger>

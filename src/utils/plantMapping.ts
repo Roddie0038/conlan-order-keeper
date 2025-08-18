@@ -9,11 +9,15 @@ export const PLANT_STORE_MAP = {
   ],
   // Plant 098 – Romulus (Midwest Region)
   "Romulus 098": [
-    "Detroit 040", "Chicago 041", "Indianapolis 042", "Milwaukee 043",
-    "Columbus 044", "Cincinnati 045", "Louisville 046", "Nashville 047"
+    "Toledo 008", "Detroit 011", "Grand Rapids 013", "Cleveland 018", "Chicago 041",
+    "Detroit 040", "Indianapolis 042", "Milwaukee 043", "Columbus 044", 
+    "Cincinnati 045", "Louisville 046", "Nashville 047"
   ],
   // Plant 099 – Mulberry (Central Florida Region)  
   "Mulberry 099": [
+    "Mulberry 001", "Jacksonville 002", "Miami 003", "Orlando 004", "Ocala 005",
+    "Tampa 006", "Pompano Beach 007", "Fort Myers 009", "Tallahassee 015",
+    "Vero Beach 021", "Sarasota 023",
     "Tampa 050", "Orlando 051", "Jacksonville 052", "Miami 053",
     "Fort Lauderdale 054", "West Palm Beach 055", "Gainesville 056"
   ]
@@ -71,7 +75,23 @@ export function normalizeStoreName(input: string): string {
   
   // Map store numbers to proper city names with leading zeros
   const storeMap: Record<number, string> = {
+    // Mulberry 099 stores
+    1: "Mulberry 001",
+    2: "Jacksonville 002", 
+    3: "Miami 003",
+    4: "Orlando 004",
+    5: "Ocala 005",
+    6: "Tampa 006",
+    7: "Pompano Beach 007",
+    8: "Toledo 008",
+    9: "Fort Myers 009",
+    11: "Detroit 011",
+    13: "Grand Rapids 013",
+    15: "Tallahassee 015",
+    18: "Cleveland 018",
+    21: "Vero Beach 021",
     22: "Fort Worth 022",
+    23: "Sarasota 023",
     27: "Grand Prairie 027", 
     28: "Houston 028",
     29: "San Antonio 029",
@@ -133,14 +153,14 @@ export function getPlantForStore(store: string): string {
       return "Grand Prairie 097";
     }
     
-    // Romulus 098 stores (40-47)
-    if ([40, 41, 42, 43, 44, 45, 46, 47].includes(num)) {
+    // Romulus 098 stores (8, 11, 13, 18, 40-47)
+    if ([8, 11, 13, 18, 40, 41, 42, 43, 44, 45, 46, 47].includes(num)) {
       console.log(`✅ PLANT MAPPING - Mapped to Romulus 098`);
       return "Romulus 098";
     }
     
-    // Mulberry 099 stores (50-56)
-    if ([50, 51, 52, 53, 54, 55, 56].includes(num)) {
+    // Mulberry 099 stores (1-7, 9, 15, 21, 23, 50-56)
+    if ([1, 2, 3, 4, 5, 6, 7, 9, 15, 21, 23, 50, 51, 52, 53, 54, 55, 56].includes(num)) {
       console.log(`✅ PLANT MAPPING - Mapped to Mulberry 099`);
       return "Mulberry 099";
     }
