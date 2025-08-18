@@ -5,11 +5,9 @@ import { Form } from "@/components/ui/form";
 import { ContactSection } from "./sections/ContactSection";
 import { ProductSection } from "./sections/ProductSection";
 import { ScheduleSection } from "./sections/ScheduleSection";
-import { CrossDockSection } from "./sections/CrossDockSection";
-import { MandatoryPlantSelector } from "@/components/ui/mandatory-plant-selector";
-import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
-import { CrossPlantSection } from "@/components/orders/CrossPlantSection";
-import OrderSummaryPreview from "@/components/orders/OrderSummaryPreview";
+import { RoutingTransferSection } from "@/components/common/forms/RoutingTransferSection";
+import { UnifiedOrderSummary } from "@/components/common/forms/UnifiedOrderSummary";
+import { useRoutingTransferData } from "./hooks/useRoutingTransferData";
 import ConfirmSamePlantModal from "@/components/common/ConfirmSamePlantModal";
 import { hasFullStoreAccess } from "@/lib/roles";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +28,24 @@ export function OrderFormContent({
   const elevated = hasFullStoreAccess(user);
   const [needSamePlantConfirm, setNeedSamePlantConfirm] = React.useState(false);
   const [pendingSubmit, setPendingSubmit] = React.useState<((e: React.FormEvent<HTMLFormElement>) => void) | null>(null);
+  
+  // Initialize unified routing data
+  const { routingData, updateRoutingData } = useRoutingTransferData({
+    form,
+    initialData: {
+      transfer_route: 'store->store',
+      crossDock: form.watch("crossDock") || 'No',
+      destination_plant: form.watch("destination_plant") || form.watch("destinationPlant"),
+      destination_store: form.watch("store"),
+      ordering_store: form.watch("ordering_store"),
+      ordering_plant: form.watch("ordering_plant"),
+      carrier: form.watch("carrier"),
+      crossDockDestination: form.watch("crossDockDestination"),
+      receiverNo: form.watch("receiverNo"),
+      etaDate: form.watch("etaDate"),
+      crossDockConfirmation: form.watch("crossDockConfirmation"),
+    }
+  });
 
   const requiresSamePlantConfirm = () => {
     const orderingPlant = form.watch("ordering_plant");
@@ -56,65 +72,43 @@ export function OrderFormContent({
           <ContactSection form={form} />
         </div>
         
-        {/* Mandatory Plant Selector */}
-        <MandatoryPlantSelector
-          value={form.watch("destinationPlant") || ""}
-          onChange={(value) => form.setValue("destinationPlant", value)}
-          error={form.formState.errors.destinationPlant?.message}
-        />
-        
-        {/* Order Details */}
+        {/* Product Details */}
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-100 dark:border-blue-900/30">
           <ProductSection form={form} />
         </div>
         
-        {/* Logistics */}
+        {/* Schedule & Notes */}
         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6 border border-green-100 dark:border-green-900/30">
           <ScheduleSection form={form} />
         </div>
         
-        {/* Cross-Plant Ordering - For elevated users only */}
-        {elevated && (
-          <CrossPlantSection
-            enabled={elevated}
-            value={{
-              ordering_store: form.watch("ordering_store") || null,
-              ordering_plant: form.watch("ordering_plant") || null,
-              destination_plant: form.watch("destination_plant") || null,
-            }}
-            onChange={(crossPlantData) => {
-              form.setValue("ordering_store", crossPlantData.ordering_store || "");
-              form.setValue("ordering_plant", crossPlantData.ordering_plant || "");
-              form.setValue("destination_plant", crossPlantData.destination_plant || "");
-            }}
-          />
-        )}
-
-        {/* Order Summary Preview - For elevated users only */}
-        {elevated && (
-          <OrderSummaryPreview
-            enabled={elevated}
-            cross={{
-              ordering_store: form.watch("ordering_store") || null,
-              ordering_plant: form.watch("ordering_plant") || null,
-              destination_plant: form.watch("destination_plant") || null,
-            }}
-            legacy={{
-              store: form.watch("store") || "",
-              plant: form.watch("destinationPlant") || "",
-            }}
-          />
-        )}
-
-        {/* Cross Dock - Only show if feature flag is enabled */}
-        {SHOW_CROSS_DOCK && (
-          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6 border border-purple-100 dark:border-purple-900/30">
-            <CrossDockSection 
-              form={form} 
-              showCrossDockDestination={showCrossDockDestination} 
-            />
-          </div>
-        )}
+        {/* 🎯 NEW: Unified Routing & Transfer Details Section */}
+        <RoutingTransferSection
+          form={form}
+          value={routingData}
+          onChange={updateRoutingData}
+        />
+        
+        {/* Single Order Summary */}
+        <UnifiedOrderSummary
+          data={{
+            source_store: routingData.source_store,
+            source_plant: routingData.source_plant,
+            transfer_route: routingData.transfer_route,
+            carrier: routingData.carrier,
+            destination_plant: routingData.destination_plant,
+            destination_store: routingData.destination_store,
+            crossDock: routingData.crossDock,
+            crossDockDestination: routingData.crossDockDestination,
+            receiverNo: routingData.receiverNo,
+            etaDate: routingData.etaDate,
+            crossDockConfirmation: routingData.crossDockConfirmation,
+            productNumber: form.watch("productNumber"),
+            description: form.watch("description"),
+            quantity: form.watch("quantity"),
+            scheduleArrival: routingData.scheduleArrival,
+          }}
+        />
       </form>
     </Form>
 
