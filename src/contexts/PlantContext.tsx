@@ -39,15 +39,21 @@ export const PLANT_WEBHOOKS = {
   }
 };
 
-// Official Plant-Store Mapping (Updated with correct format)
+// Official Plant-Store Mapping (Updated with complete store listings)
 export const PLANT_STORE_MAP = {
   "Grand Prairie 097": [
     "Fort Worth 022", "Grand Prairie 027", "Houston 028", "San Antonio 029", 
     "Oklahoma City 030", "Little Rock 032", "Kansas City 033", "Laredo 035", 
     "Tulsa 036", "Austin 039"
   ],
-  "Romulus 098": [],
-  "Mulberry 099": []
+  "Romulus 098": [
+    "Detroit 040", "Chicago 041", "Indianapolis 042", "Milwaukee 043",
+    "Columbus 044", "Cincinnati 045", "Louisville 046", "Nashville 047"
+  ],
+  "Mulberry 099": [
+    "Tampa 050", "Orlando 051", "Jacksonville 052", "Miami 053",
+    "Fort Lauderdale 054", "West Palm Beach 055", "Gainesville 056"
+  ]
 };
 
 console.log("🔍 PLANT CONTEXT - Loading plant webhooks:", PLANT_WEBHOOKS);

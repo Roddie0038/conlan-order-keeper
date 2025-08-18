@@ -48,12 +48,12 @@ export const MTOFormFields = ({
         <label className="text-sm font-medium flex items-center">
           Store (Destination)
           <span className="text-xs text-muted-foreground ml-2">
-            (Configured in Plant-to-Plant section below)
+            (Configured in Routing & Transfer section below)
           </span>
         </label>
         <div className="p-3 bg-muted/50 border rounded-md">
           <span className="text-sm text-muted-foreground">
-            {formData.destination_store || formData.store || "Will be set via Plant-to-Plant section"}
+            {formData.destination_store || formData.store || "Will be set via Routing & Transfer section"}
           </span>
         </div>
       </div>

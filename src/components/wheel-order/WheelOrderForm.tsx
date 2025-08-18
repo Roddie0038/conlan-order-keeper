@@ -17,7 +17,9 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
 import { normalizeStoreName } from "@/lib/stores";
-import { PlantToPlantSection } from "@/components/common/forms/PlantToPlantSection";
+import { RoutingTransferSection } from "@/components/common/forms/RoutingTransferSection";
+import { UnifiedOrderSummary } from "@/components/common/forms/UnifiedOrderSummary";
+import { useRoutingTransferData } from "@/components/order-form/hooks/useRoutingTransferData";
 import { type TransferRoute, type Carrier } from "@/types/orders";
 
 export function WheelOrderForm() {
@@ -50,6 +52,22 @@ export function WheelOrderForm() {
 
   const [recipientCount, setRecipientCount] = useState(0);
   const { selectedPlant } = usePlant();
+
+  // Initialize unified routing data
+  const { routingData, updateRoutingData } = useRoutingTransferData({
+    form: { setValue: (key: string, value: any) => handleInputChange(key, value), watch: (key: string) => (formData as any)[key] } as any,
+    initialData: {
+      transfer_route: (formData.transfer_route as TransferRoute) || 'store->store',
+      crossDock: 'No', // Wheel orders don't have cross-dock by default
+      destination_plant: formData.destination_plant || formData.destinationPlant,
+      destination_store: formData.destination_store,
+      ordering_store: formData.ordering_store,
+      ordering_plant: formData.ordering_plant,
+      carrier: formData.carrier,
+      source_store: formData.ordering_store,
+      source_plant: formData.ordering_plant,
+    }
+  });
 
   // Auto-save now handled by the hook
 
@@ -182,23 +200,11 @@ export function WheelOrderForm() {
         )}
       </Card>
 
-      {/* Plant-to-Plant / Cross-Region Shipment Section */}
-      <PlantToPlantSection
-        value={{
-          transfer_route: formData.transfer_route,
-          carrier: formData.carrier,
-          fulfillment_plant: formData.ordering_plant,
-          destination_plant: formData.destination_plant,
-          destination_store: formData.destination_store,
-          cross_dock_from: formData.cross_dock_from,
-          cross_dock_to: formData.cross_dock_to,
-          cross_dock_type: formData.cross_dock_type,
-        }}
-        onChange={(patch) => {
-          setFormData(prev => ({ ...prev, ...patch } as any));
-        }}
-        onScheduledArrivalChange={(value) => setFormData(prev => ({ ...prev, scheduleArrival: value }))}
-        hideScheduledArrival={true}
+      {/* 🎯 NEW: Unified Routing & Transfer Details Section */}
+      <RoutingTransferSection
+        form={{ setValue: (key: string, value: any) => handleInputChange(key, value), watch: (key: string) => (formData as any)[key] } as any}
+        value={routingData}
+        onChange={updateRoutingData}
       />
 
       <Card className="bg-white shadow-xl transition-all duration-300 hover:shadow-2xl">
@@ -230,6 +236,29 @@ export function WheelOrderForm() {
           
           <FormFooter isSubmitting={isSubmitting} recipientCount={recipientCount} />
         </form>
+        
+        {/* 🎯 NEW: Single Order Summary */}
+        <div className="px-6 pb-6">
+          <UnifiedOrderSummary
+            data={{
+              source_store: routingData.source_store,
+              source_plant: routingData.source_plant,
+              transfer_route: routingData.transfer_route,
+              carrier: routingData.carrier,
+              destination_plant: routingData.destination_plant,
+              destination_store: routingData.destination_store,
+              crossDock: routingData.crossDock,
+              crossDockDestination: routingData.crossDockDestination,
+              receiverNo: routingData.receiverNo,
+              etaDate: routingData.etaDate,
+              crossDockConfirmation: routingData.crossDockConfirmation,
+              productNumber: `${formData.wheelType} ${formData.wheelSize}`,
+              description: `${formData.wheelMaterial} wheels for ${formData.customerName}`,
+              quantity: formData.qtyWheels,
+              scheduleArrival: routingData.scheduleArrival,
+            }}
+          />
+        </div>
       </Card>
     </div>
   );
