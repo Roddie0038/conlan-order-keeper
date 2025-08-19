@@ -13,16 +13,21 @@ export async function processOrderSecure(orderData: any, tableName: string) {
   try {
     const securePayload = toSecurePayload(orderData);
     console.log("🔧 SECURE PAYLOAD PREVIEW (snake_case only):", securePayload);
+    // Guard: prevent "Unassigned"/missing destination store on non plant->plant routes
+    if (securePayload.transfer_route !== 'plant->plant' && !securePayload.store) {
+      console.error('❌ SECURE SUBMIT - Missing destination store (likely Unassigned)');
+      throw new Error('Destination store is required for this route');
+    }
+
+    const debugBody = { orderData: securePayload, tableName, action: 'create_order' };
+    console.log('📤 SECURE FN REQUEST BODY:', JSON.stringify(debugBody));
 
     const { data, error } = await supabase.functions.invoke('secure-order-processing', {
-      body: {
-        orderData: securePayload,
-        tableName,
-        action: 'create_order'
-      }
+      body: debugBody,
+      headers: { 'x-client-debug': '1' }
     });
 
-    console.log("🔍 SECURE FN RESPONSE:", { status: error ? 'error' : 'ok', data, error });
+    console.log('🔍 SECURE FN RESPONSE (invoke):', { status: error ? 'error' : 'ok', data, errorMessage: error?.message });
 
     if (error) {
       console.error("❌ SECURE SUBMIT - Edge function error:", error);

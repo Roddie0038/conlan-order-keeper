@@ -30,8 +30,55 @@ export function toSecurePayload(d: any) {
   let destination_store = destination_store_raw ? normalizeStoreForSubmission(destination_store_raw) : undefined;
   const destination_plant = destination_plant_raw ? normalizePlantName(destination_plant_raw) : undefined;
 
+  // Ensure canonical city labels when STORE_NAME_MAP fallback returns "Store XXX"
+  const canonicalizeStoreLabel = (label?: string, plantHint?: string) => {
+    if (!label) return label;
+    const m = label.match(/^Store\s+(\d{2,3})$/i);
+    if (!m) return label;
+    const num = m[1];
+    const CANONICAL: Record<string, string> = {
+      '022': 'Fort Worth 022',
+      '027': 'Grand Prairie 027',
+      '028': 'Houston 028',
+      '029': 'San Antonio 029',
+      '030': 'Oklahoma City 030',
+      '032': 'Little Rock 032',
+      '033': 'Kansas City 033',
+      '035': 'Laredo 035',
+      '036': 'Tulsa 036',
+      '039': 'Austin 039',
+      '040': 'Detroit 040',
+      '041': 'Chicago 041',
+      '042': 'Indianapolis 042',
+      '043': 'Milwaukee 043',
+      '044': 'Columbus 044',
+      '045': 'Cincinnati 045',
+      '046': 'Louisville 046',
+      '047': 'Nashville 047',
+      '006': 'Tampa 006',
+      '004': 'Orlando 004',
+      '001': 'Mulberry 001',
+      '021': 'Vero Beach 021',
+      '023': 'Sarasota 023',
+      '002': 'Jacksonville 002',
+      '005': 'Ocala 005',
+      '015': 'Tallahassee 015',
+      '003': 'Miami 003',
+      '007': 'Pompano Beach 007',
+      '009': 'Fort Myers 009',
+      '008': 'Toledo 008',
+      '011': 'Detroit 011',
+      '013': 'Grand Rapids 013',
+      '018': 'Cleveland 018',
+    };
+    return CANONICAL[num] || label;
+  };
+
   // Prevent sending Unassigned destination store
   if (isUnassigned(destination_store)) destination_store = undefined;
+  // Enforce canonical city labels if fallback produced generic label
+  destination_store = canonicalizeStoreLabel(destination_store, destination_plant);
+  const ordering_store_final = canonicalizeStoreLabel(ordering_store, ordering_plant);
 
   // Schedule arrival handling
   const schedule_arrival_input = d?.schedule_arrival || d?.scheduleArrival;
@@ -48,7 +95,7 @@ export function toSecurePayload(d: any) {
 
     // Routing
     transfer_route: route,
-    ordering_store, // Source store
+    ordering_store: ordering_store_final, // Source store (canonicalized)
     ordering_plant, // Source plant
     destination_plant,
 
