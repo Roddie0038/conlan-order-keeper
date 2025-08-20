@@ -99,6 +99,17 @@ export const useEmailRecipientsPreview = (
   const optimisticUpdateRef = useRef<string | null>(null);
   const previousStateRef = useRef<RecipientState | null>(null);
 
+  // Stable callback refs to prevent re-renders/infinite loops
+  const onRecipientsChangeRef = useRef<typeof onRecipientsChange>();
+  const onRecipientsErrorRef = useRef<typeof onRecipientsError>();
+
+  useEffect(() => {
+    onRecipientsChangeRef.current = onRecipientsChange;
+  }, [onRecipientsChange]);
+
+  useEffect(() => {
+    onRecipientsErrorRef.current = onRecipientsError;
+  }, [onRecipientsError]);
   const loadRecipientsWithOverrides = useCallback(async () => {
     if (!enabled || !orderData || !orderData.store || !emailType) {
       if (aliveRef.current) {
@@ -113,8 +124,8 @@ export const useEmailRecipientsPreview = (
         setResolveError(undefined);
         
         // Emit change even for empty state
-        if (onRecipientsChange) {
-          onRecipientsChange(0, true, false);
+        if (onRecipientsChangeRef.current) {
+          onRecipientsChangeRef.current(0, true, false);
           lastEmittedCountRef.current = 0;
           lastEmittedReadyRef.current = true;
         }
@@ -124,7 +135,7 @@ export const useEmailRecipientsPreview = (
 
     // Check cache validity
     const now = Date.now();
-    if (cacheTime > 0 && (now - lastFetchRef.current) < cacheTime && recipientState.finalRecipients.length > 0) {
+    if (cacheTime > 0 && (now - lastFetchRef.current) < cacheTime) {
       return;
     }
 
@@ -134,8 +145,8 @@ export const useEmailRecipientsPreview = (
       setResolveError(undefined);
       
       // Emit loading state immediately
-      if (onRecipientsChange) {
-        onRecipientsChange(lastEmittedCountRef.current, false, true);
+      if (onRecipientsChangeRef.current) {
+        onRecipientsChangeRef.current(lastEmittedCountRef.current, false, true);
         lastEmittedReadyRef.current = false;
       }
     }
@@ -165,8 +176,8 @@ export const useEmailRecipientsPreview = (
         
         // Emit successful resolution
         const count = result.finalRecipients.length;
-        if (onRecipientsChange && (count !== lastEmittedCountRef.current || !lastEmittedReadyRef.current)) {
-          onRecipientsChange(count, true, false);
+        if (onRecipientsChangeRef.current && (count !== lastEmittedCountRef.current || !lastEmittedReadyRef.current)) {
+          onRecipientsChangeRef.current(count, true, false);
           lastEmittedCountRef.current = count;
           lastEmittedReadyRef.current = true;
         }
@@ -192,14 +203,14 @@ export const useEmailRecipientsPreview = (
         setSource('');
         
         // Emit error state
-        if (onRecipientsChange) {
-          onRecipientsChange(0, true, false);
+        if (onRecipientsChangeRef.current) {
+          onRecipientsChangeRef.current(0, true, false);
           lastEmittedCountRef.current = 0;
           lastEmittedReadyRef.current = true;
         }
         
-        if (onRecipientsError) {
-          onRecipientsError(error);
+        if (onRecipientsErrorRef.current) {
+          onRecipientsErrorRef.current(error);
         }
       }
     } finally {
@@ -207,7 +218,7 @@ export const useEmailRecipientsPreview = (
         setLoading(false);
       }
     }
-  }, [key?.storeId || orderData?.store, key?.plant || orderData?.plant, key?.emailType || emailType, key?.overridesHash, enabled, cacheTime, templateId, orderId, onRecipientsChange, onRecipientsError]);
+  }, [key?.storeId || orderData?.store, key?.plant || orderData?.plant, key?.emailType || emailType, key?.overridesHash, enabled, cacheTime, templateId, orderId]);
 
   // Initial fetch and dependency updates
   useEffect(() => {
