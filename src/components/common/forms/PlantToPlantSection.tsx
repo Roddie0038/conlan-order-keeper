@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronRight, Info } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { TRANSFER_ROUTES, CARRIER_OPTIONS, type TransferRoute, type Carrier } from '@/types/orders';
@@ -18,11 +18,13 @@ interface PlantToPlantSectionProps {
     cross_dock_from?: string;
     cross_dock_to?: string;
     cross_dock_type?: string;
+    crossDockConfirmation?: boolean;
   };
   onChange: (patch: Partial<PlantToPlantSectionProps['value']>) => void;
   onScheduledArrivalChange?: (value: string) => void;
   hideScheduledArrival?: boolean;
   className?: string;
+  form?: any; // For form control access
 }
 
 export function PlantToPlantSection({
@@ -31,17 +33,13 @@ export function PlantToPlantSection({
   onScheduledArrivalChange,
   hideScheduledArrival = false,
   className = '',
+  form,
 }: PlantToPlantSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   
   const isPlantToPlant = value.transfer_route === 'plant->plant';
   
-  // Auto-expand when user selects plant-to-plant or destination plant
-  useEffect(() => {
-    if (isPlantToPlant || (value.destination_plant && value.destination_plant.length > 0)) {
-      setIsOpen(true);
-    }
-  }, [isPlantToPlant, value.destination_plant]);
+  // Auto-expand disabled - section remains collapsed by default
 
   // Auto-set scheduled arrival to N/A for plant-to-plant transfers
   useEffect(() => {
@@ -67,20 +65,22 @@ export function PlantToPlantSection({
   }, [value.destination_plant, value.destination_store, destinationStores, onChange]);
 
   return (
-    <section className={`rounded-2xl border border-muted bg-card/40 backdrop-blur p-4 mt-6 ${className}`}>
+    <section className={`rounded-2xl border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-secondary/5 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 p-4 mt-6 ${className}`}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-between h-auto p-0 hover:bg-transparent"
+            className="w-full justify-between h-auto p-4 hover:bg-primary/10 rounded-xl transition-all duration-200 border border-primary/20 hover:border-primary/40"
             type="button"
           >
             <div className="text-left">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                Plant-to-Plant / Cross-Region Shipment
+              <h3 className="text-lg font-bold flex items-center gap-3 text-primary">
+                {isOpen ? <ChevronDown className="h-5 w-5 text-primary" /> : <ChevronRight className="h-5 w-5 text-primary" />}
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Plant-to-Plant / Cross-Region Shipment
+                </span>
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/70 font-medium mt-1">
                 For orders shipped between plants or to stores in another region. Configure route, carrier, and destination.
               </p>
             </div>
@@ -88,14 +88,7 @@ export function PlantToPlantSection({
         </CollapsibleTrigger>
 
         <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
-          <div className="mt-4 space-y-4">
-            {/* Auto-expand info */}
-            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-xs text-blue-800">
-                This section automatically expands when Plant→Plant is selected or a destination plant is chosen.
-              </div>
-            </div>
+          <div className="mt-6 space-y-6">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Transfer Route */}
@@ -209,9 +202,9 @@ export function PlantToPlantSection({
             </div>
 
             {/* Cross-Dock (optional) */}
-            <div className="border-t pt-4">
-              <h4 className="text-sm font-medium text-muted-foreground mb-3">Cross-Dock Configuration (Optional)</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="border-t border-primary/20 pt-6">
+              <h4 className="text-base font-semibold text-primary mb-4">Cross-Dock Configuration (Optional)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Cross-Dock From (Plant)</Label>
                   <Select
@@ -266,6 +259,29 @@ export function PlantToPlantSection({
                   </Select>
                 </div>
               </div>
+
+              {/* Cross-Dock Confirmation */}
+              {form && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                  <div className="flex flex-row items-start space-x-3 space-y-0">
+                    <input
+                      type="checkbox"
+                      id="crossDockConfirmation"
+                      checked={value.crossDockConfirmation || false}
+                      onChange={(e) => onChange({ crossDockConfirmation: e.target.checked })}
+                      className="mt-1 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                    />
+                    <div className="space-y-1 leading-none">
+                      <Label htmlFor="crossDockConfirmation" className="text-sm font-medium cursor-pointer">
+                        I confirm Cross Dock paperwork is printed and attached
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        This confirmation is required for cross dock orders
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Notes */}

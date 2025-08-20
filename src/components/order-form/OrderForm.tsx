@@ -303,6 +303,7 @@ export function OrderForm() {
           cross_dock_from: form.watch("cross_dock_from"),
           cross_dock_to: form.watch("cross_dock_to"),
           cross_dock_type: form.watch("cross_dock_type"),
+          crossDockConfirmation: form.watch("crossDockConfirmation"),
         }}
         onChange={(patch) => {
           Object.entries(patch).forEach(([key, value]) => {
@@ -310,6 +311,7 @@ export function OrderForm() {
           });
         }}
         onScheduledArrivalChange={(value) => form.setValue("scheduleArrival", value)}
+        form={form}
       />
       
       <OrderFormContent 

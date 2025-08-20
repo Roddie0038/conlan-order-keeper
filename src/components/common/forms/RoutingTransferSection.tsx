@@ -495,29 +495,6 @@ export function RoutingTransferSection({
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="crossDockConfirmation"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={(checked) => {
-                                field.onChange(checked);
-                                onChange({ crossDockConfirmation: !!checked });
-                              }}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel className="text-xs">
-                              Cross Dock paperwork attached *
-                            </FormLabel>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </div>
                 </div>
               )}
