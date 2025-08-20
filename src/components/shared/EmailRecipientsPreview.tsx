@@ -46,7 +46,8 @@ interface EmailRecipientsPreviewProps {
   currentUserEmail?: string;
   currentUserName?: string;
   className?: string;
-  onRecipientsChange?: (count: number) => void;
+  onRecipientsChange?: (count: number, ready: boolean, isLoading?: boolean) => void;
+  onRecipientsError?: (error: Error) => void;
 }
 
 export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
@@ -59,7 +60,8 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
   currentUserEmail = 'user@conlantire.com',
   currentUserName = 'Current User',
   className = "",
-  onRecipientsChange
+  onRecipientsChange,
+  onRecipientsError
 }) => {
   const { toast } = useToast();
   
@@ -93,18 +95,24 @@ export const EmailRecipientsPreview: React.FC<EmailRecipientsPreviewProps> = ({
     resetToDefaults,
     canAddRecipient,
     isDefaultRecipient,
+    resolveError,
     isCustomRecipient,
     isRemovedDefault
   } = useEmailRecipientsPreview(orderDataInput, emailType, {
+    key: {
+      storeId: store,
+      plant: plant,
+      emailType: emailType,
+      overridesHash: templateId || orderId
+    },
     templateId,
     orderId,
-    enabled: true
+    enabled: !!store && !!plant && !!orderData,
+    onRecipientsChange: onRecipientsChange,
+    onRecipientsError: onRecipientsError
   });
 
-  // Notify parent component of recipient count changes
-  useEffect(() => {
-    onRecipientsChange?.(recipientCount);
-  }, [recipientCount, onRecipientsChange]);
+  // Hook already handles onRecipientsChange callback, no need for duplicate
 
   // Validate zero recipients
   useEffect(() => {

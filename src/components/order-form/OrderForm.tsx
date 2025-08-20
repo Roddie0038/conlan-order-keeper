@@ -44,6 +44,19 @@ export function OrderForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSummaries, setOrderSummaries] = useState<any[]>([]);
   const [recipientCount, setRecipientCount] = useState(0);
+  const [isRecipientsLoading, setIsRecipientsLoading] = useState(false);
+  const [recipientsReady, setRecipientsReady] = useState(true);
+  const [recipientError, setRecipientError] = useState<Error | undefined>();
+
+  const handleRecipientsChange = (count: number, ready: boolean, isLoading?: boolean) => {
+    setRecipientCount(count);
+    setRecipientsReady(ready);
+    setIsRecipientsLoading(isLoading || false);
+  };
+
+  const handleRecipientsError = (error: Error) => {
+    setRecipientError(error);
+  };
 
   const defaultValues = {
     yourName: "",
@@ -316,7 +329,8 @@ export function OrderForm() {
               manager_email: form.watch("managersEmail")
             }}
             className="w-full"
-            onRecipientsChange={setRecipientCount}
+            onRecipientsChange={handleRecipientsChange}
+            onRecipientsError={handleRecipientsError}
           />
         </div>
       )}
@@ -333,8 +347,11 @@ export function OrderForm() {
         <OrderSubmissionHandler 
           orderSummaries={orderSummaries}
           setOrderSummaries={setOrderSummaries}
-          destinationPlant={form.watch("destinationPlant") || ""}
+          destinationPlant={form.watch("destinationPlant") || selectedPlant}
           recipientCount={recipientCount}
+          isRecipientsLoading={isRecipientsLoading}
+          recipientsReady={recipientsReady}
+          recipientError={recipientError}
         />
       
       <OrderFormActions 
