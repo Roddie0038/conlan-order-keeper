@@ -16,15 +16,13 @@ import { useMTOFormDebug } from "./hooks/useMTOFormDebug";
 import { logger } from '@/utils/logger';
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 import { useState } from "react";
+import { CrossPlantSection } from "@/components/orders/CrossPlantSection";
+import OrderSummaryPreview from "@/components/orders/OrderSummaryPreview";
 import ConfirmSamePlantModal from "@/components/common/ConfirmSamePlantModal";
 import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
 import { normalizeStoreName } from "@/lib/stores";
-import { RoutingTransferSection } from "@/components/common/forms/RoutingTransferSection";
-import { UnifiedOrderSummary } from "@/components/common/forms/UnifiedOrderSummary";
-import { useRoutingTransferData } from "@/components/order-form/hooks/useRoutingTransferData";
-import { type TransferRoute, type Carrier, type MTOFormData } from "@/types/orders";
 
 export const MTOOrderForm = () => {
   const { user } = useAuth();
@@ -53,22 +51,6 @@ export const MTOOrderForm = () => {
   const [needSamePlantConfirm, setNeedSamePlantConfirm] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState<(() => Promise<void>) | null>(null);
   const { selectedPlant } = usePlant();
-
-  // Initialize unified routing data
-  const { routingData, updateRoutingData } = useRoutingTransferData({
-    form: { setValue: (key: string, value: any) => handleChange(key, value), watch: (key: string) => (formData as any)[key] } as any,
-    initialData: {
-      transfer_route: (formData.transfer_route as TransferRoute) || 'store->store',
-      crossDock: 'No', // MTO doesn't have cross-dock by default
-      destination_plant: formData.destination_plant || formData.destinationPlant,
-      destination_store: formData.destination_store || formData.store,
-      ordering_store: formData.ordering_store,
-      ordering_plant: formData.ordering_plant,
-      carrier: formData.carrier,
-      source_store: formData.ordering_store,
-      source_plant: formData.ordering_plant,
-    }
-  });
 
   // Enhanced form persistence (only for non-admin users)
   const { lastSaved, isRestoring, clearPersistedData, saveCount, ready, didRestore } = useStatefulFormAutosave(
@@ -221,7 +203,6 @@ export const MTOOrderForm = () => {
                   }}
                   filterPlant={null}  // ignored for elevated users
                   placeholder="Select source store..."
-                  allowUnassigned={true}  // Acting-As selector allows unassigned
                 />
               </div>
             </div>
@@ -244,6 +225,23 @@ export const MTOOrderForm = () => {
             </div>
           </div>
 
+          {/* Plant Selection Section */}
+          <div className="space-y-6">
+            <div className="flex items-center space-x-2 border-l-4 border-yellow-500 pl-3 py-1">
+              <CheckCircle className="text-yellow-500 h-5 w-5" />
+              <h3 className="text-lg font-medium text-black">Destination Plant</h3>
+            </div>
+            
+            <div className="pl-5">
+              <MTOFormFields 
+                formData={formData} 
+                onChange={handleChange} 
+                isAdmin={isAdmin} 
+                section="plant"
+                plantError={errors.destinationPlant}
+              />
+            </div>
+          </div>
           
           {/* Product Details Section */}
           <div className="space-y-6">
@@ -278,37 +276,47 @@ export const MTOOrderForm = () => {
               />
             </div>
           </div>
+        </div>
 
-          {/* 🎯 NEW: Unified Routing & Transfer Details Section */}
-          <RoutingTransferSection
-            form={{ setValue: (key: string, value: any) => handleChange(key, value), watch: (key: string) => (formData as any)[key] } as any}
-            value={routingData}
-            onChange={updateRoutingData}
-          />
-        </div>
-        
-        {/* 🎯 NEW: Single Order Summary */}
-        <div className="px-6 pb-4">
-          <UnifiedOrderSummary
-            data={{
-              source_store: routingData.source_store,
-              source_plant: routingData.source_plant,
-              transfer_route: routingData.transfer_route,
-              carrier: routingData.carrier,
-              destination_plant: routingData.destination_plant,
-              destination_store: routingData.destination_store,
-              crossDock: routingData.crossDock,
-              crossDockDestination: routingData.crossDockDestination,
-              receiverNo: routingData.receiverNo,
-              etaDate: routingData.etaDate,
-              crossDockConfirmation: routingData.crossDockConfirmation,
-              productNumber: formData.productNumber,
-              description: `${formData.casing_grade.join(', ')} - ${formData.tire_size}`,
-              quantity: formData.quantity,
-              scheduleArrival: routingData.scheduleArrival,
-            }}
-          />
-        </div>
+        {/* Cross-Plant Ordering - For elevated users only */}
+        {elevated && (
+          <div className="px-6 pb-4">
+            <CrossPlantSection
+              enabled={elevated}
+              value={{
+                ordering_store: formData.ordering_store || null,
+                ordering_plant: formData.ordering_plant || null,
+                destination_plant: formData.destination_plant || null,
+              }}
+              onChange={(crossPlantData) => {
+                setFormData({
+                  ...formData,
+                  ordering_store: crossPlantData.ordering_store || "",
+                  ordering_plant: crossPlantData.ordering_plant || "",
+                  destination_plant: crossPlantData.destination_plant || "",
+                });
+              }}
+            />
+          </div>
+        )}
+
+        {/* Order Summary Preview - For elevated users only */}
+        {elevated && (
+          <div className="px-6 pb-4">
+            <OrderSummaryPreview
+              enabled={elevated}
+              cross={{
+                ordering_store: formData.ordering_store || null,
+                ordering_plant: formData.ordering_plant || null,
+                destination_plant: formData.destination_plant || null,
+              }}
+              legacy={{
+                store: formData.store || "",
+                plant: formData.destinationPlant || selectedPlant || "",
+              }}
+            />
+          </div>
+        )}
 
         {/* Email Recipients Preview */}
         {formData.store && (formData.destinationPlant || selectedPlant) && (

@@ -32,8 +32,8 @@ export const MTOFormFields = ({
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
   const handleCasingGradeChange = (grade: string, checked: boolean) => {
-    const updatedGrades = checked ? [...formData.casing_grade, grade] : formData.casing_grade.filter(g => g !== grade);
-    onChange("casing_grade", updatedGrades);
+    const updatedGrades = checked ? [...formData.casingGrade, grade] : formData.casingGrade.filter(g => g !== grade);
+    onChange("casingGrade", updatedGrades);
   };
   
   // Store Information Fields
@@ -44,19 +44,35 @@ export const MTOFormFields = ({
         <Separator className="bg-gray-300" />
       </div>
       
-      <div className="space-y-2">
-        <label className="text-sm font-medium flex items-center">
-          Store (Destination)
-          <span className="text-xs text-muted-foreground ml-2">
-            (Configured in Routing & Transfer section below)
-          </span>
-        </label>
-        <div className="p-3 bg-muted/50 border rounded-md">
-          <span className="text-sm text-muted-foreground">
-            {formData.destination_store || formData.store || "Will be set via Routing & Transfer section"}
-          </span>
-        </div>
-      </div>
+      {elevated ? (
+        <StoreSelector
+          label="Store (Destination)"
+          value={formData.store}
+          onChange={(value) => {
+            const normalized = normalizeStoreName(value) || '';
+            onChange("store", normalized);
+          }}
+          filterPlant={null}  // ignored for elevated users
+          placeholder="Select destination store..."
+        />
+      ) : isAdmin ? (
+        <FormField 
+          label="Store" 
+          value={formData.store} 
+          onChange={value => onChange("store", value)} 
+          options={stores} 
+          placeholder="Select store" 
+          required 
+        />
+      ) : (
+        <FormField 
+          label="Store" 
+          value={formData.store} 
+          onChange={() => {}} 
+          disabled={true} 
+          required 
+        />
+      )}
 
       <FormField 
         label="Timestamp" 
@@ -115,8 +131,8 @@ export const MTOFormFields = ({
                 <div className="relative">
                   <Checkbox 
                     id={grade.value} 
-                    checked={formData.casing_grade.includes(grade.value)} 
-                    onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)}
+                    checked={formData.casingGrade.includes(grade.value)} 
+                    onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)} 
                     className="h-5 w-5 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 transition-all" 
                   />
                 </div>
@@ -144,14 +160,14 @@ export const MTOFormFields = ({
       
       <FormField 
         label="Tire Size" 
-        value={formData.tire_size} 
-        onChange={value => onChange("tire_size", value)}
+        value={formData.tireSize} 
+        onChange={value => onChange("tireSize", value)} 
         options={tireSizes} 
         placeholder="Select tire size" 
         required 
       />
 
-      {formData.tire_size === 'custom' && (
+      {formData.tireSize === 'custom' && (
         <FormField 
           label="Custom Tire Size" 
           value={formData.customTireSize} 

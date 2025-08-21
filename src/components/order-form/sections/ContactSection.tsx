@@ -119,15 +119,18 @@ export function ContactSection({ form }: ContactSectionProps) {
             <div className="flex items-center">
               <Building className="h-4 w-4 mr-1 text-gray-400" />
               <span className="text-sm font-medium">Store (Destination)*</span>
-              <span className="text-xs text-muted-foreground ml-2">
-                (Configured in Plant-to-Plant section below)
-              </span>
             </div>
-            <div className="p-3 bg-muted/50 border rounded-md">
-              <span className="text-sm text-muted-foreground">
-                {form.watch("destination_store") || form.watch("store") || "Will be set via Plant-to-Plant section"}
-              </span>
-            </div>
+            <StoreSelector
+              label=""
+              value={form.watch("store") || ''}
+              onChange={(value) => {
+                const normalized = normalizeStoreName(value) || '';
+                form.setValue("store", normalized);
+              }}
+              filterPlant={null}  // ignored for elevated users
+              placeholder="Select destination store..."
+              className="w-full"
+            />
           </div>
         ) : (
           <FormField

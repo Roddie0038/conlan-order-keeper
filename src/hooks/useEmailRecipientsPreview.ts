@@ -11,14 +11,11 @@ import { useRecipientAudit } from '@/hooks/useRecipientAudit';
 import type { EmailRecipient, EmailType, OrderDataInput } from '@/services/emailRecipientResolver';
 
 interface UseEmailRecipientsPreviewOptions {
-  key?: { storeId: string; plant: string; emailType: EmailType; overridesHash?: string };
   enabled?: boolean;
   refetchInterval?: number;
   cacheTime?: number;
   templateId?: string;
   orderId?: string;
-  onRecipientsChange?: (count: number, ready: boolean, isLoading?: boolean) => void;
-  onRecipientsError?: (error: Error) => void;
 }
 
 interface RecipientState {
@@ -38,11 +35,9 @@ interface UseEmailRecipientsPreviewReturn {
   // UI state
   loading: boolean;
   error: string | null;
-  resolveError?: Error;
   source: string;
   recipientCount: number;
   hasRecipients: boolean;
-  recipientsReady: boolean;
   
   // Management methods
   addRecipient: (email: string, name: string, role: string, addedByEmail: string, addedByName?: string) => Promise<{ success: boolean; error?: string }>;
@@ -63,14 +58,11 @@ export const useEmailRecipientsPreview = (
   options: UseEmailRecipientsPreviewOptions = {}
 ): UseEmailRecipientsPreviewReturn => {
   const { 
-    key,
     enabled = true, 
     refetchInterval, 
     cacheTime = 5 * 60 * 1000,
     templateId,
-    orderId,
-    onRecipientsChange,
-    onRecipientsError
+    orderId
   } = options;
   
   // Core state
@@ -83,14 +75,7 @@ export const useEmailRecipientsPreview = (
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resolveError, setResolveError] = useState<Error | undefined>(undefined);
   const [source, setSource] = useState<string>('');
-  const [recipientsReady, setRecipientsReady] = useState(false);
-  
-  // Track component lifecycle
-  const aliveRef = useRef(true);
-  const lastEmittedCountRef = useRef<number>(-1);
-  const lastEmittedReadyRef = useRef<boolean>(false);
   
   // Cache tracking using ref to avoid triggering re-renders
   const lastFetchRef = useRef<number>(0);
@@ -99,67 +84,34 @@ export const useEmailRecipientsPreview = (
   const optimisticUpdateRef = useRef<string | null>(null);
   const previousStateRef = useRef<RecipientState | null>(null);
 
-  // Stable callback refs to prevent re-renders/infinite loops
-  const onRecipientsChangeRef = useRef<typeof onRecipientsChange>();
-  const onRecipientsErrorRef = useRef<typeof onRecipientsError>();
-
-  useEffect(() => {
-    onRecipientsChangeRef.current = onRecipientsChange;
-  }, [onRecipientsChange]);
-
-  useEffect(() => {
-    onRecipientsErrorRef.current = onRecipientsError;
-  }, [onRecipientsError]);
   const loadRecipientsWithOverrides = useCallback(async () => {
     if (!enabled || !orderData || !orderData.store || !emailType) {
-      if (aliveRef.current) {
-        setRecipientState({
-          defaultRecipients: [],
-          customRecipients: [],
-          removedDefaults: [],
-          finalRecipients: []
-        });
-        setSource('');
-        setRecipientsReady(true);
-        setResolveError(undefined);
-        
-        // Emit change even for empty state
-        if (onRecipientsChangeRef.current) {
-          onRecipientsChangeRef.current(0, true, false);
-          lastEmittedCountRef.current = 0;
-          lastEmittedReadyRef.current = true;
-        }
-      }
+      setRecipientState({
+        defaultRecipients: [],
+        customRecipients: [],
+        removedDefaults: [],
+        finalRecipients: []
+      });
+      setSource('');
       return;
     }
 
     // Check cache validity
     const now = Date.now();
-    if (cacheTime > 0 && (now - lastFetchRef.current) < cacheTime) {
+    if (cacheTime > 0 && (now - lastFetchRef.current) < cacheTime && recipientState.finalRecipients.length > 0) {
       return;
     }
 
-    if (aliveRef.current) {
-      setLoading(true);
-      setError(null);
-      setResolveError(undefined);
-      
-      // Emit loading state immediately
-      if (onRecipientsChangeRef.current) {
-        onRecipientsChangeRef.current(lastEmittedCountRef.current, false, true);
-        lastEmittedReadyRef.current = false;
-      }
-    }
+    setLoading(true);
+    setError(null);
 
     try {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log("📧 HOOK - Loading recipients with overrides", {
-          store: orderData.store,
-          emailType,
-          templateId,
-          orderId
-        });
-      }
+      console.log("📧 HOOK - Loading recipients with overrides", {
+        store: orderData.store,
+        emailType,
+        templateId,
+        orderId
+      });
 
       const result = await emailRecipientManagementService.loadRecipientsWithOverrides(
         orderData,
@@ -168,71 +120,31 @@ export const useEmailRecipientsPreview = (
         orderId
       );
 
-      if (aliveRef.current) {
-        setRecipientState(result);
-        setSource('management_service');
-        setRecipientsReady(true);
-        lastFetchRef.current = now;
-        
-        // Emit successful resolution
-        const count = result.finalRecipients.length;
-        if (onRecipientsChangeRef.current && (count !== lastEmittedCountRef.current || !lastEmittedReadyRef.current)) {
-          onRecipientsChangeRef.current(count, true, false);
-          lastEmittedCountRef.current = count;
-          lastEmittedReadyRef.current = true;
-        }
-      }
+      setRecipientState(result);
+      setSource('management_service');
+      lastFetchRef.current = now;
 
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to load recipients');
-      
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('❌ HOOK - Error loading recipients:', error);
-      }
-      
-      if (aliveRef.current) {
-        setError(error.message);
-        setResolveError(error);
-        setRecipientsReady(true); // Ready but with error
-        setRecipientState({
-          defaultRecipients: [],
-          customRecipients: [],
-          removedDefaults: [],
-          finalRecipients: []
-        });
-        setSource('');
-        
-        // Emit error state
-        if (onRecipientsChangeRef.current) {
-          onRecipientsChangeRef.current(0, true, false);
-          lastEmittedCountRef.current = 0;
-          lastEmittedReadyRef.current = true;
-        }
-        
-        if (onRecipientsErrorRef.current) {
-          onRecipientsErrorRef.current(error);
-        }
-      }
+      console.error('❌ HOOK - Error loading recipients:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load recipients');
+      setRecipientState({
+        defaultRecipients: [],
+        customRecipients: [],
+        removedDefaults: [],
+        finalRecipients: []
+      });
+      setSource('');
     } finally {
-      if (aliveRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, [key?.storeId || orderData?.store, key?.plant || orderData?.plant, key?.emailType || emailType, key?.overridesHash, enabled, cacheTime, templateId, orderId]);
+  }, [orderData, emailType, enabled, cacheTime, templateId, orderId]);
 
   // Initial fetch and dependency updates
   useEffect(() => {
     if (enabled && orderData?.store && emailType) {
       loadRecipientsWithOverrides();
     }
-  }, [loadRecipientsWithOverrides]);
-  
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      aliveRef.current = false;
-    };
-  }, []);
+  }, [enabled, orderData?.store, emailType, templateId, orderId]);
 
   // Polling interval
   useEffect(() => {
@@ -581,11 +493,9 @@ export const useEmailRecipientsPreview = (
     // UI state
     loading,
     error,
-    resolveError,
     source,
     recipientCount: recipientState.finalRecipients.length,
     hasRecipients: recipientState.finalRecipients.length > 0,
-    recipientsReady,
     
     // Management methods
     addRecipient,

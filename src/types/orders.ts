@@ -349,10 +349,6 @@ export interface OrderFormData {
   ordering_plant?: string;
   destination_plant?: string;
   
-  // Transfer fields
-  transfer_route?: string;
-  carrier?: string;
-  
   // Mixed compatibility fields (for wheel order forms)
   customerName?: string;
   wheelMaterial?: string;
@@ -365,7 +361,7 @@ export interface OrderFormData {
 }
 
 /**
- * MTO Order Form Data - snake_case for database consistency
+ * MTO Order Form Data - camelCase for UI forms
  */
 export interface MTOFormData {
   id?: string;
@@ -373,8 +369,8 @@ export interface MTOFormData {
   name: string;
   store: string;
   productNumber: string;
-  casing_grade: string;
-  tire_size: string;
+  casingGrade: string;
+  tireSize: string;
   tread?: string;
   quantity: number;
   notes?: string;
@@ -388,16 +384,6 @@ export interface MTOFormData {
   ordering_store?: string;
   ordering_plant?: string;
   destination_plant?: string;
-  
-  // Transfer fields
-  transfer_route?: TransferRoute;
-  carrier?: Carrier;
-  
-  // Additional transfer fields
-  destination_store?: string;
-  cross_dock_from?: string;
-  cross_dock_to?: string;
-  cross_dock_type?: string;
 }
 
 /**
@@ -419,18 +405,6 @@ export interface WheelFormData {
   userStore: string;
   storeColors: string;
   destinationPlant: string; // Mandatory plant field
-  // Cross-plant fields for elevated users
-  ordering_store?: string;
-  ordering_plant?: string;
-  destination_plant?: string;
-  // Transfer route and carrier fields
-  transfer_route?: TransferRoute;
-  carrier?: Carrier;
-  // Additional transfer fields
-  destination_store?: string;
-  cross_dock_from?: string;
-  cross_dock_to?: string;
-  cross_dock_type?: string;
 }
 
 /**
@@ -456,31 +430,6 @@ export interface WarrantyFormData {
   purchaseDate?: string;
   workOrder?: string;
 }
-
-// ============= TRANSFER AND CARRIER TYPES =============
-
-/**
- * Transfer Route Types for enhanced ordering portal
- */
-export type TransferRoute = 'store->store' | 'store->plant' | 'plant->store' | 'plant->plant';
-
-export const TRANSFER_ROUTES: { value: TransferRoute; label: string }[] = [
-  { value: 'store->store', label: 'Store → Store' },
-  { value: 'store->plant', label: 'Store → Plant' },
-  { value: 'plant->store', label: 'Plant → Store' },
-  { value: 'plant->plant', label: 'Plant → Plant' },
-];
-
-/**
- * Carrier Types for shipping
- */
-export const CARRIERS = ['Central Transport', 'PAM Transport'] as const;
-export type Carrier = typeof CARRIERS[number];
-
-export const CARRIER_OPTIONS: { value: Carrier; label: string }[] = [
-  { value: 'Central Transport', label: 'Central Transport' },
-  { value: 'PAM Transport', label: 'PAM Transport' },
-];
 
 // ============= UTILITY TYPES =============
 

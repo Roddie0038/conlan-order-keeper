@@ -27,8 +27,6 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { ActingAsStoreBadge } from "@/components/common/ActingAsStoreBadge";
 import { normalizeStoreName } from "@/lib/stores";
-import { PlantToPlantSection } from "@/components/common/forms/PlantToPlantSection";
-import { type TransferRoute, type Carrier } from "@/types/orders";
 
 export function OrderForm() {
   const { user } = useAuth();
@@ -44,19 +42,6 @@ export function OrderForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSummaries, setOrderSummaries] = useState<any[]>([]);
   const [recipientCount, setRecipientCount] = useState(0);
-  const [isRecipientsLoading, setIsRecipientsLoading] = useState(false);
-  const [recipientsReady, setRecipientsReady] = useState(true);
-  const [recipientError, setRecipientError] = useState<Error | undefined>();
-
-  const handleRecipientsChange = (count: number, ready: boolean, isLoading?: boolean) => {
-    setRecipientCount(count);
-    setRecipientsReady(ready);
-    setIsRecipientsLoading(isLoading || false);
-  };
-
-  const handleRecipientsError = (error: Error) => {
-    setRecipientError(error);
-  };
 
   const defaultValues = {
     yourName: "",
@@ -285,34 +270,11 @@ export function OrderForm() {
                 }}
                 filterPlant={null}  // ignored for elevated users
                 placeholder="Select source store..."
-                allowUnassigned={true}  // Acting-As selector allows unassigned
               />
             </div>
           </div>
         )}
       </Card>
-
-      {/* Plant-to-Plant / Cross-Region Shipment Section */}
-      <PlantToPlantSection
-        value={{
-          transfer_route: form.watch("transfer_route"),
-          carrier: form.watch("carrier"),
-          fulfillment_plant: form.watch("ordering_plant"),
-          destination_plant: form.watch("destination_plant"),
-          destination_store: form.watch("destination_store"),
-          cross_dock_from: form.watch("cross_dock_from"),
-          cross_dock_to: form.watch("cross_dock_to"),
-          cross_dock_type: form.watch("cross_dock_type"),
-          crossDockConfirmation: form.watch("crossDockConfirmation"),
-        }}
-        onChange={(patch) => {
-          Object.entries(patch).forEach(([key, value]) => {
-            form.setValue(key as any, value);
-          });
-        }}
-        onScheduledArrivalChange={(value) => form.setValue("scheduleArrival", value)}
-        form={form}
-      />
       
       <OrderFormContent 
         form={form} 
@@ -331,8 +293,7 @@ export function OrderForm() {
               manager_email: form.watch("managersEmail")
             }}
             className="w-full"
-            onRecipientsChange={handleRecipientsChange}
-            onRecipientsError={handleRecipientsError}
+            onRecipientsChange={setRecipientCount}
           />
         </div>
       )}
@@ -349,11 +310,8 @@ export function OrderForm() {
         <OrderSubmissionHandler 
           orderSummaries={orderSummaries}
           setOrderSummaries={setOrderSummaries}
-          destinationPlant={form.watch("destinationPlant") || selectedPlant}
+          destinationPlant={form.watch("destinationPlant") || ""}
           recipientCount={recipientCount}
-          isRecipientsLoading={isRecipientsLoading}
-          recipientsReady={recipientsReady}
-          recipientError={recipientError}
         />
       
       <OrderFormActions 

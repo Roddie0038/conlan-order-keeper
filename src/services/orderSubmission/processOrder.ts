@@ -3,7 +3,7 @@ import { submitToGoogleSheets } from "@/services/sheets";
 import { saveOrderToSupabase } from "@/services/orderService";
 import { storeData } from "@/config/storeData";
 import { OrderType } from "@/services/webhook/config";
-import { getPlantForStore, normalizePlantName } from "@/utils/plantMapping";
+import { getPlantForStore } from "@/utils/plantMapping";
 import { logger } from "@/utils/logger";
 import type { OrderFormData } from "@/types/orders";
 import { formatDateForSupabase } from "@/utils/dateTime";
@@ -43,29 +43,15 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const storeNumber = extractStoreNumber(displayStore);
   const storeManagerEmail = "";
   
-  // PHASE 2: Plant determination with cross-plant transfer priority
-  // Priority order: destination_plant -> destinationPlant -> getPlantForStore -> selectedPlant -> fallback
-  const destinationPlant = order.destination_plant ? normalizePlantName(order.destination_plant) : null;
-  const formDestinationPlant = order.destinationPlant ? normalizePlantName(order.destinationPlant) : null;
+  // PHASE 2: Plant determination
   const mappedPlant = getPlantForStore(displayStore);
-  
-  // NEW: Priority for plant-to-plant transfers - destination_plant overrides store-based mapping
-  const finalPlant = destinationPlant || formDestinationPlant || mappedPlant || selectedPlant || 'Grand Prairie 097';
-  
-  // NEW: Store priority for plant-to-plant transfers
-  const finalStore = order.destination_store?.trim() || 
-                     displayStore || 
-                     (destinationPlant ? "Unassigned" : displayStore) || 
-                     "Unassigned";
+  const finalPlant = selectedPlant || mappedPlant || 'Grand Prairie 097';
   
   console.log("🔍 SUBMIT - Plant selection logic:", {
-    destinationPlant,
-    formDestinationPlant,
-    mappedPlant,
     selectedPlant,
+    mappedPlant,
     finalPlant,
-    store: displayStore,
-    transferType: order.transfer_route || (destinationPlant ? "plant->plant" : "store->store")
+    store: displayStore
   });
   
   if (!mappedPlant && !selectedPlant) {
@@ -135,7 +121,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   // Google Sheets payload (display format)
   const baseGoogleSheetsPayload = {
     ...order,
-    store: finalStore, // Use final store with proper priority
+    store: displayStore, // Use display format "Grand Prairie 027"
     plant: finalPlant,
     type: orderType,
     name: order.yourName || order.name || "Unknown",
@@ -147,41 +133,26 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     destinationManagerEmail: destinationManagerEmail,
     timestamp: formattedTimestamp,
     managerEmail: storeManagerEmail,
-    managersEmail: storeManagerEmail,
-    // Auto-set scheduled arrival to N/A for plant-to-plant transfers
-    scheduleArrival: order.transfer_route === 'plant->plant' ? 'N/A' : order.scheduleArrival
+    managersEmail: storeManagerEmail
   };
   
   const googleSheetsPayload = normalizeOrderStoreFields(baseGoogleSheetsPayload);
 
   // Supabase payload (database format)
-  const supabaseStoreFormat = storeSanitizeForSupabase(finalStore);
-  
   let baseSupabaseOrder: any = {
     name: order.yourName || order.name || "Unknown",
-    store: supabaseStoreFormat, // Use final store with sanitization
+    store: supabaseStore, // Use database format "27"
     product_number: order.productNumber,
     description: order.description,
     quantity: parseInt(order.quantity?.toString() || "0") || 0,
-    schedule_arrival: order.transfer_route === 'plant->plant' ? 'N/A' : order.scheduleArrival,
+    schedule_arrival: order.scheduleArrival,
     notes: order.notes,
     email: storeManagerEmail,
     plant: finalPlant,
     order_type: orderType,
     timestamp: formattedTimestamp,
     status: 'pending',
-    status_updated_at: new Date().toISOString(),
-    // Transfer fields - MUST be included
-    transfer_route: order.transfer_route || (destinationPlant ? "plant->plant" : "store->store"),
-    carrier: order.carrier || null,
-    // Cross-plant fields - MUST be included
-    destination_plant: destinationPlant,
-    ordering_plant: order.ordering_plant || null,
-    ordering_store: order.ordering_store || null,
-    // Additional transfer fields - MUST be included
-    cross_dock_from: order.cross_dock_from || null,
-    cross_dock_to: order.cross_dock_to || null,
-    cross_dock_type: order.cross_dock_type || null
+    status_updated_at: new Date().toISOString()
   };
   
   // Add cross-dock fields for transfer orders

@@ -25,10 +25,10 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
     if (!formData.store) newErrors.store = "Store is required";
     if (!formData.name) newErrors.name = "Name is required";
     if (!formData.productNumber || formData.productNumber.trim() === '') newErrors.productNumber = "Product number is required";
-    if (!formData.tire_size) newErrors.tire_size = "Tire size is required";
+    if (!formData.tireSize) newErrors.tireSize = "Tire size is required";
     if (!formData.tireTreadNeeded) newErrors.tireTreadNeeded = "Tire tread needed is required";
     if (!formData.quantity) newErrors.quantity = "Quantity is required";
-    if (formData.casing_grade.length === 0) newErrors.casing_grade = "At least one casing grade must be selected";
+    if (formData.casingGrade.length === 0) newErrors.casingGrade = "At least one casing grade must be selected";
     if (!formData.destinationPlant) newErrors.destinationPlant = "Please select a destination plant";
 
     if (Object.keys(newErrors).length > 0) {
@@ -46,7 +46,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
     try {
       console.log("🔍 PHASE 2 MTO FORM - Starting submission with plant:", formData.destinationPlant);
       
-      const tireSize = formData.tire_size === 'custom' ? formData.customTireSize : formData.tire_size;
+      const tireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
       const timestamp = new Date().toISOString();
       
       // ✅ PHASE 2: Create standardized MTO data using unified interfaces
@@ -54,8 +54,8 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         name: formData.name,
         store: formData.store,
         productNumber: formData.productNumber,
-        casing_grade: Array.isArray(formData.casing_grade) ? formData.casing_grade.join(', ') : formData.casing_grade,
-        tire_size: tireSize,
+        casingGrade: Array.isArray(formData.casingGrade) ? formData.casingGrade.join(', ') : formData.casingGrade,
+        tireSize: tireSize,
         tread: formData.tireTreadNeeded,
         quantity: parseInt(formData.quantity) || 0,
         notes: formData.notes || "",

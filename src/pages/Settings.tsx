@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, MessageSquare, Building, Warehouse, CheckCircle, Paperclip, Mail, ArrowRightLeft, Building2 } from 'lucide-react';
+import { Download, MessageSquare, Building, Warehouse, CheckCircle, Paperclip, Mail, ArrowRightLeft } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
@@ -20,10 +20,6 @@ const Settings = () => {
 
   const openPlantSwitcherGuide = () => {
     navigate('/plant-switcher-guide');
-  };
-
-  const openCrossPlantOrderingGuide = () => {
-    navigate('/cross-plant-ordering-guide');
   };
 
   return (
@@ -68,38 +64,6 @@ const Settings = () => {
                   <Button onClick={openPlantSwitcherGuide} className="gap-2" size="lg">
                     <ArrowRightLeft className="h-4 w-4" />
                     📖 Open Plant Switcher Guide
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cross-Plant Ordering Guide Card */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-6 w-6 text-primary" />
-                  <CardTitle>Cross-Plant Ordering Training Guide</CardTitle>
-                  <Badge variant="secondary" className="ml-2">Elevated Users</Badge>
-                </div>
-                <CardDescription>
-                  Learn how to submit orders for other plants and stores (Admin/Super Admin/Operations Manager only)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                  <h4 className="font-medium mb-2">👑 What You'll Learn</h4>
-                  <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• How to use the "Acting-As (Source Store)" feature</li>
-                    <li>• Understanding transfer routes (Store↔Store, Plant↔Plant)</li>
-                    <li>• Carrier selection and arrival date scheduling</li>
-                    <li>• Validation rules and best practices</li>
-                    <li>• Complete store directory for all plants</li>
-                  </ul>
-                </div>
-                <div className="flex justify-center">
-                  <Button onClick={openCrossPlantOrderingGuide} className="gap-2" size="lg">
-                    <Building2 className="h-4 w-4" />
-                    📖 Open Cross-Plant Ordering Guide
                   </Button>
                 </div>
               </CardContent>

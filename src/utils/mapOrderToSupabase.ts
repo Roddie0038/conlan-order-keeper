@@ -2,16 +2,8 @@
 import type { OrderFormData } from "@/types/orders";
 import { normalizeStoreForSubmission } from './storeNormalization';
 
-import { normalizePlantName } from './plantMapping';
-
 export function mapOrderToSupabase(form: any, user: any, selectedPlant?: string): any {
   console.log("🔍 MAP TO SUPABASE - Input form data:", form);
-  
-  // Apply plant priority logic consistently
-  const destinationPlant = form.destination_plant ? normalizePlantName(form.destination_plant) : null;
-  const formDestinationPlant = form.destinationPlant ? normalizePlantName(form.destinationPlant) : null;
-  
-  const finalPlant = destinationPlant || formDestinationPlant || selectedPlant || user?.assignedPlant || form.plant || 'Grand Prairie 097';
   
   const mappedOrder = {
     timestamp: new Date().toISOString(),
@@ -30,15 +22,12 @@ export function mapOrderToSupabase(form: any, user: any, selectedPlant?: string)
     destination_manager_email: form.destinationManagerEmail || '',
     order_type: form.type || 'TRANSFER',
     status: 'pending',
-    plant: finalPlant,
+    plant: selectedPlant || user?.assignedPlant || form.plant || '',
     status_updated_at: new Date().toISOString(),
-    // Transfer fields  
-    transfer_route: form.transfer_route || (destinationPlant ? "plant->plant" : "store->store"),
-    carrier: form.carrier || null,
-    // Cross-plant ordering fields
+    // Cross-plant ordering fields (Phase 2)
     ordering_store: form.ordering_store || null,
     ordering_plant: form.ordering_plant || null,
-    destination_plant: destinationPlant,
+    destination_plant: form.destination_plant || null,
   };
   
   console.log("🔍 MAP TO SUPABASE - Mapped order:", mappedOrder);

@@ -2,7 +2,6 @@
 // This replaces the insecure client-side service role operations
 
 import { supabase } from "@/integrations/supabase/client";
-import { toSecurePayload } from "@/utils/toSecurePayload";
 
 /**
  * Secure order processing that uses edge functions instead of client-side service role operations
@@ -11,23 +10,14 @@ export async function processOrderSecure(orderData: any, tableName: string) {
   console.log("🔒 SECURE SUBMIT - Processing order via edge function");
   
   try {
-    const securePayload = toSecurePayload(orderData);
-    console.log("🔧 SECURE PAYLOAD PREVIEW (snake_case only):", securePayload);
-    // Guard: prevent "Unassigned"/missing destination store on non plant->plant routes
-    if (securePayload.transfer_route !== 'plant->plant' && !securePayload.store) {
-      console.error('❌ SECURE SUBMIT - Missing destination store (likely Unassigned)');
-      throw new Error('Destination store is required for this route');
-    }
-
-    const debugBody = { orderData: securePayload, tableName, action: 'create_order' };
-    console.log('📤 SECURE FN REQUEST BODY:', JSON.stringify(debugBody));
-
+    // Use edge function for secure order processing
     const { data, error } = await supabase.functions.invoke('secure-order-processing', {
-      body: debugBody,
-      headers: { 'x-client-debug': '1' }
+      body: {
+        orderData,
+        tableName,
+        action: 'create_order'
+      }
     });
-
-    console.log('🔍 SECURE FN RESPONSE (invoke):', { status: error ? 'error' : 'ok', data, errorMessage: error?.message });
 
     if (error) {
       console.error("❌ SECURE SUBMIT - Edge function error:", error);

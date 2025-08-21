@@ -10,14 +10,6 @@ interface ActingAsStoreBadgeProps {
 
 export function ActingAsStoreBadge({ orderingStore, className = '' }: ActingAsStoreBadgeProps) {
   const { user } = useAuth();
-  
-  // Debug logging for role detection
-  console.log('[Ordering Acting-As]', {
-    userEmail: user?.email,
-    userRole: user?.role || user?.title || 'authenticated',
-    elevated: hasFullStoreAccess(user)
-  });
-  
   const elevated = hasFullStoreAccess(user);
 
   if (!elevated || !orderingStore) {

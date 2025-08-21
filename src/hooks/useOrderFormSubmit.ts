@@ -73,14 +73,7 @@ export function useOrderFormSubmit() {
           email: user?.email || "",
           plant: order.destinationPlant, // ✅ Use selected plant directly
           timestamp: new Date().toISOString(),
-          type: orderType,
-          // Include transfer fields
-          transfer_route: order.transfer_route,
-          carrier: order.carrier,
-          // Include cross-plant fields 
-          destination_plant: order.destination_plant,
-          ordering_plant: order.ordering_plant,
-          ordering_store: order.ordering_store
+          type: orderType
         };
         
         const formattedOrder = normalizeOrderStoreFields(baseOrder);

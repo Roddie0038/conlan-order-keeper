@@ -11,9 +11,6 @@ interface OrderSubmitButtonProps {
   isAdmin: boolean;
   onSubmit: () => void;
   recipientCount?: number;
-  isRecipientsLoading?: boolean;
-  recipientsReady?: boolean;
-  recipientError?: Error;
 }
 
 export function OrderSubmitButton({ 
@@ -22,45 +19,20 @@ export function OrderSubmitButton({
   testMode, 
   isAdmin, 
   onSubmit,
-  recipientCount = 1,
-  isRecipientsLoading = false,
-  recipientsReady = true,
-  recipientError
+  recipientCount = 1
 }: OrderSubmitButtonProps) {
-  
-  // Clear submission logic with detailed reasons
-  const canSubmit = 
-    !isSubmitting &&
-    selectedOrders.length > 0 &&
-    !isRecipientsLoading &&
-    recipientsReady &&
-    recipientCount > 0;
-
-  const getDisabledReason = (): string | null => {
-    if (isSubmitting) return "Submitting...";
-    if (selectedOrders.length === 0) return "Select at least one order";
-    if (isRecipientsLoading) return "Loading recipients";
-    if (!recipientsReady) return "Preparing recipients";
-    if (recipientError) return "Recipients error (check logs)";
-    if (recipientCount === 0) return "No recipients resolved";
-    return null;
-  };
-
-  const disabledReason = getDisabledReason();
-  
   return (
     <Button
       onClick={onSubmit}
-      disabled={!canSubmit}
+      disabled={isSubmitting || selectedOrders.length === 0 || recipientCount === 0}
       className="bg-green-600 hover:bg-green-700"
-      title={disabledReason || undefined}
     >
       {isSubmitting ? (
         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
       ) : (
         <Check className="h-4 w-4 mr-2" />
       )}
-      {disabledReason || `Submit ${selectedOrders.length} Order${selectedOrders.length !== 1 ? 's' : ''}`}
+      {recipientCount === 0 ? "Add Recipients to Submit" : `Submit ${selectedOrders.length} Order${selectedOrders.length !== 1 ? 's' : ''}`}
       {isAdmin && !testMode && " (Test Mode)"}
     </Button>
   );

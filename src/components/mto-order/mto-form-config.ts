@@ -6,8 +6,8 @@ export interface MTOFormData {
   name: string;
   timestamp: string;
   productNumber: string;
-  casing_grade: string[];
-  tire_size: string;
+  casingGrade: string[];
+  tireSize: string;
   customTireSize: string;
   tireTreadNeeded: string;
   quantity: string;
@@ -18,14 +18,6 @@ export interface MTOFormData {
   ordering_store?: string;
   ordering_plant?: string;
   destination_plant?: string;
-  // Transfer route and carrier fields
-  transfer_route?: 'store->store' | 'store->plant' | 'plant->store' | 'plant->plant';
-  carrier?: 'Central Transport' | 'PAM Transport';
-  // Additional transfer fields
-  destination_store?: string;
-  cross_dock_from?: string;
-  cross_dock_to?: string;
-  cross_dock_type?: string;
 }
 
 export const stores = [

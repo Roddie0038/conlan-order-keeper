@@ -130,32 +130,6 @@ export async function submitMTOOrder(orderData: any) {
 
     let submissionData = { ...orderData };
 
-    // Validate destination store
-    if (!/^(?:[A-Za-z]+(?:\s[A-Za-z]+)*)\s0\d{2}$/.test(submissionData.store || '')) {
-      throw new Error('Destination store must be normalized as "City 0XX".');
-    }
-    if ((submissionData.store || '').toLowerCase().startsWith('unassigned')) {
-      throw new Error('Destination store cannot be "Unassigned". Pick a real store.');
-    }
-
-    // Email validation and fallback
-    if (submissionData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
-      const companyRegex = /@conlantire\.com$/i;
-      if (!emailRegex.test(submissionData.email)) {
-        throw new Error('Enter a valid email address.');
-      }
-      if (!companyRegex.test(submissionData.email)) {
-        throw new Error('Email must use company domain (@conlantire.com).');
-      }
-    } else {
-      // Fallback must be the authenticated user's email to satisfy RLS
-      submissionData.email = (user?.email || '').trim().toLowerCase();
-      if (!submissionData.email) {
-        throw new Error('No authenticated email found for submission.');
-      }
-    }
-
     // Validate and scrub cross-plant fields for non-elevated users
     if (!elevated) {
       submissionData = scrubCrossPlantForNonElevated(submissionData);
@@ -173,7 +147,7 @@ export async function submitMTOOrder(orderData: any) {
         });
       } catch (validationError: any) {
         logger.error('Cross-plant validation failed for MTO', { 
-          error: validationError.message,
+          error: validationError.message, 
           userEmail: user.email, 
           service: 'mto_submission' 
         });
@@ -246,37 +220,6 @@ export async function submitWheelOrder(orderData: any) {
     });
 
     let submissionData = { ...orderData };
-
-    // Validate destination store
-    if (!/^(?:[A-Za-z]+(?:\s[A-Za-z]+)*)\s0\d{2}$/.test(submissionData.store || '')) {
-      throw new Error('Destination store must be normalized as "City 0XX".');
-    }
-    if ((submissionData.store || '').toLowerCase().startsWith('unassigned')) {
-      throw new Error('Destination store cannot be "Unassigned". Pick a real store.');
-    }
-
-    // Email validation and fallback (check managerEmail field for wheel orders)
-    const emailField = submissionData.email || submissionData.managerEmail;
-    if (emailField) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
-      const companyRegex = /@conlantire\.com$/i;
-      if (!emailRegex.test(emailField)) {
-        throw new Error('Enter a valid email address.');
-      }
-      if (!companyRegex.test(emailField)) {
-        throw new Error('Email must use company domain (@conlantire.com).');
-      }
-      submissionData.email = emailField;
-      submissionData.managerEmail = emailField;
-    } else {
-      // Fallback must be the authenticated user's email to satisfy RLS
-      const fallbackEmail = (user?.email || '').trim().toLowerCase();
-      if (!fallbackEmail) {
-        throw new Error('No authenticated email found for submission.');
-      }
-      submissionData.email = fallbackEmail;
-      submissionData.managerEmail = fallbackEmail;
-    }
 
     // Validate and scrub cross-plant fields for non-elevated users
     if (!elevated) {

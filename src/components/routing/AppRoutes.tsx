@@ -28,7 +28,6 @@ import MyComplaints from '@/pages/MyComplaints';
 import EmailTestingSuite from '@/pages/EmailTestingSuite';
 import Settings from '@/pages/Settings';
 import PlantSwitcherGuide from '@/pages/PlantSwitcherGuide';
-import CrossPlantOrderingGuide from '@/pages/CrossPlantOrderingGuide';
 import UserManagement from '@/pages/UserManagement';
 import AdminEmailRouting from '@/pages/AdminEmailRouting';
 import { PlantBroadcastsPage } from '@/components/plant-broadcasts/PlantBroadcastsPage';
@@ -186,12 +185,6 @@ export function AppRoutes() {
       <Route path="/plant-switcher-guide" element={
         <AuthGuard>
           <PlantSwitcherGuide />
-        </AuthGuard>
-      } />
-      
-      <Route path="/cross-plant-ordering-guide" element={
-        <AuthGuard>
-          <CrossPlantOrderingGuide />
         </AuthGuard>
       } />
       

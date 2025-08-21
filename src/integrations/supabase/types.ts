@@ -4312,10 +4312,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
-      is_elevated_user: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
       is_inventory_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
