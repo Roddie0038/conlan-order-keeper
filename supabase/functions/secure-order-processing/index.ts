@@ -37,6 +37,62 @@ serve(async (req) => {
       orderData: redact(orderData),
     });
 
+    // Whitelist by table to avoid schema cache errors from unknown columns
+    const allowedKeysByTable: Record<string, string[]> = {
+      // Conservative set for 'orders' table to prevent PGRST204 unknown column errors
+      orders: [
+        'name',
+        'store',
+        'product_number',
+        'description',
+        'quantity',
+        'schedule_arrival',
+        'notes',
+        'email',
+        'plant',
+        'order_type',
+        'timestamp',
+        'status',
+        // add more known-safe columns here when confirmed to exist in schema
+      ],
+      // Ensure snake_case fields for MTO are preserved
+      mto_orders: [
+        'name',
+        'store',
+        'product_number',
+        'casing_grade',
+        'tire_size',
+        'tread',
+        'quantity',
+        'notes',
+        'email',
+        'plant',
+        'status',
+        'order_type',
+        'timestamp',
+        'description',
+      ],
+    };
+
+    const sanitizeForTable = (data: Record<string, any>, table: string) => {
+      const allowed = allowedKeysByTable[table] || [];
+      const sanitized: Record<string, any> = {};
+      for (const key of allowed) {
+        if (data[key] === undefined) continue;
+        // Prefer empty string over undefined to avoid omission by serializer
+        sanitized[key] = data[key] === null ? null : data[key];
+      }
+      return sanitized;
+    };
+
+    const sanitizedOrderData = sanitizeForTable(orderData || {}, tableName);
+
+    console.log('🧰 SECURE ORDER PROCESSING - Sanitized keys', {
+      tableName,
+      receivedKeys: Object.keys(orderData || {}),
+      insertedKeys: Object.keys(sanitizedOrderData),
+    });
+
     // Create Supabase client with service role key for secure operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -49,7 +105,7 @@ serve(async (req) => {
       // Securely insert order using service role permissions
       const { data, error } = await supabase
         .from(tableName)
-        .insert(orderData)
+        .insert(sanitizedOrderData)
         .select()
         .single();
 
