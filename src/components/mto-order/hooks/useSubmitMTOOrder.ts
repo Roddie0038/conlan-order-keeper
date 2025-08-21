@@ -23,10 +23,10 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
     if (!formData.store) newErrors.store = "Store is required";
     if (!formData.name) newErrors.name = "Name is required";
     if (!formData.productNumber || formData.productNumber.trim() === '') newErrors.productNumber = "Product number is required";
-    if (!formData.tireSize) newErrors.tireSize = "Tire size is required";
+    if (!formData.tire_size) newErrors.tire_size = "Tire size is required";
     if (!formData.tireTreadNeeded) newErrors.tireTreadNeeded = "Tire tread needed is required";
     if (!formData.quantity) newErrors.quantity = "Quantity is required";
-    if (formData.casingGrade.length === 0) newErrors.casingGrade = "At least one casing grade must be selected";
+    if (formData.casing_grade.length === 0) newErrors.casing_grade = "At least one casing grade must be selected";
     if (!formData.destinationPlant) newErrors.destinationPlant = "Please select a destination plant";
 
     if (Object.keys(newErrors).length > 0) {
@@ -49,7 +49,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
       const managerEmail = await getFirstManagerEmail(normalizedStore);
       console.log("🔍 MTO FORM - Manager email lookup result:", managerEmail);
       
-      const tireSize = formData.tireSize === 'custom' ? formData.customTireSize : formData.tireSize;
+      const tireSize = formData.tire_size === 'custom' ? formData.customTireSize : formData.tire_size;
       const timestamp = new Date().toISOString();
       
       console.log("✅ MTO FORM - Using selected plant:", formData.destinationPlant);
@@ -60,7 +60,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         plant: formData.destinationPlant,
         email: managerEmail,
         managerEmail: managerEmail,
-        tireSize: tireSize,
+        tire_size: tireSize,
         tread: formData.tireTreadNeeded
       };
       

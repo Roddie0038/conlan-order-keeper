@@ -32,8 +32,8 @@ export const MTOFormFields = ({
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
   const handleCasingGradeChange = (grade: string, checked: boolean) => {
-    const updatedGrades = checked ? [...formData.casingGrade, grade] : formData.casingGrade.filter(g => g !== grade);
-    onChange("casingGrade", updatedGrades);
+    const updatedGrades = checked ? [...formData.casing_grade, grade] : formData.casing_grade.filter(g => g !== grade);
+    onChange("casing_grade", updatedGrades);
   };
   
   // Store Information Fields
@@ -115,8 +115,8 @@ export const MTOFormFields = ({
                 <div className="relative">
                   <Checkbox 
                     id={grade.value} 
-                    checked={formData.casingGrade.includes(grade.value)} 
-                    onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)} 
+                    checked={formData.casing_grade.includes(grade.value)} 
+                    onCheckedChange={checked => handleCasingGradeChange(grade.value, checked as boolean)}
                     className="h-5 w-5 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 transition-all" 
                   />
                 </div>
@@ -144,14 +144,14 @@ export const MTOFormFields = ({
       
       <FormField 
         label="Tire Size" 
-        value={formData.tireSize} 
-        onChange={value => onChange("tireSize", value)} 
+        value={formData.tire_size} 
+        onChange={value => onChange("tire_size", value)}
         options={tireSizes} 
         placeholder="Select tire size" 
         required 
       />
 
-      {formData.tireSize === 'custom' && (
+      {formData.tire_size === 'custom' && (
         <FormField 
           label="Custom Tire Size" 
           value={formData.customTireSize} 

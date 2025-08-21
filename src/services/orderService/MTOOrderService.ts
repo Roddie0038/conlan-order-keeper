@@ -45,8 +45,8 @@ export class MTOOrderService {
     Object.assign(errors, fieldErrors);
 
     // MTO-specific validations
-    if (formData.casingGrade && formData.casingGrade.length === 0) {
-      errors.casingGrade = 'At least one casing grade must be selected';
+    if (formData.casing_grade && formData.casing_grade.length === 0) {
+      errors.casing_grade = 'At least one casing grade must be selected';
     }
 
     if (formData.quantity && isNaN(Number(formData.quantity))) {
@@ -105,10 +105,10 @@ export class MTOOrderService {
       name: formData.name,
       timestamp: formatTimestamp(new Date()),
       product_number: formData.productNumber,
-      casing_grade: Array.isArray(formData.casingGrade) 
-        ? formData.casingGrade.join(', ') 
-        : formData.casingGrade,
-      tire_size: formData.tireSize,
+      casing_grade: Array.isArray(formData.casing_grade) 
+        ? formData.casing_grade.join(', ') 
+        : formData.casing_grade,
+      tire_size: formData.tire_size,
       custom_tire_size: formData.customTireSize,
       tire_tread_needed: formData.tireTreadNeeded,
       quantity: parseInt(formData.quantity) || 0,
@@ -206,8 +206,8 @@ export class MTOOrderService {
       name: "",
       timestamp: formatTimestamp(new Date()),
       productNumber: "",
-      casingGrade: [],
-      tireSize: "",
+      casing_grade: [],
+      tire_size: "",
       customTireSize: "",
       tireTreadNeeded: "",
       quantity: "",

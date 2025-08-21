@@ -6,8 +6,8 @@ export interface MTOFormData {
   name: string;
   timestamp: string;
   productNumber: string;
-  casingGrade: string[];
-  tireSize: string;
+  casing_grade: string[];
+  tire_size: string;
   customTireSize: string;
   tireTreadNeeded: string;
   quantity: string;

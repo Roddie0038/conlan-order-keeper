@@ -37,8 +37,8 @@ describe('MTOOrderService', () => {
         name: 'John Doe',
         timestamp: '2024-01-15 10:00 AM',
         productNumber: 'ABC123',
-        casingGrade: ['Grade A'],
-        tireSize: '275/80R22.5',
+        casing_grade: ['Grade A'],
+        tire_size: '275/80R22.5',
         customTireSize: '',
         tireTreadNeeded: 'Standard',
         quantity: '10',
@@ -57,8 +57,8 @@ describe('MTOOrderService', () => {
         name: '',
         timestamp: '',
         productNumber: '',
-        casingGrade: [],
-        tireSize: '',
+        casing_grade: [],
+        tire_size: '',
         customTireSize: '',
         tireTreadNeeded: '',
         quantity: '',
@@ -82,8 +82,8 @@ describe('MTOOrderService', () => {
         name: 'John Doe',
         timestamp: '2024-01-15 10:00 AM',
         productNumber: 'ABC123',
-        casingGrade: ['Grade A'],
-        tireSize: '',
+        casing_grade: ['Grade A'],
+        tire_size: '',
         customTireSize: '',
         tireTreadNeeded: '',
         quantity: 'not-a-number',
@@ -102,8 +102,8 @@ describe('MTOOrderService', () => {
         name: 'John Doe',
         timestamp: '2024-01-15 10:00 AM',
         productNumber: 'ABC123',
-        casingGrade: [],
-        tireSize: '',
+        casing_grade: [],
+        tire_size: '',
         customTireSize: '',
         tireTreadNeeded: '',
         quantity: '10',
@@ -113,7 +113,7 @@ describe('MTOOrderService', () => {
       };
 
       const errors = MTOOrderService.validateMTOForm(formData);
-      expect(errors.casingGrade).toBe('At least one casing grade must be selected');
+      expect(errors.casing_grade).toBe('At least one casing grade must be selected');
     });
   });
 
@@ -149,8 +149,8 @@ describe('MTOOrderService', () => {
         name: 'John Doe',
         timestamp: '2024-01-15 10:00 AM',
         productNumber: 'ABC123',
-        casingGrade: ['Grade A', 'Grade B'],
-        tireSize: '275/80R22.5',
+        casing_grade: ['Grade A', 'Grade B'],
+        tire_size: '275/80R22.5',
         customTireSize: 'Custom Size',
         tireTreadNeeded: 'Standard',
         quantity: '10',
@@ -183,8 +183,8 @@ describe('MTOOrderService', () => {
         name: 'John Doe',
         timestamp: '2024-01-15 10:00 AM',
         productNumber: 'ABC123',
-        casingGrade: ['Grade A'],
-        tireSize: '',
+        casing_grade: ['Grade A'],
+        tire_size: '',
         customTireSize: '',
         tireTreadNeeded: '',
         quantity: '5',
@@ -203,8 +203,8 @@ describe('MTOOrderService', () => {
         name: 'John Doe',
         timestamp: '2024-01-15 10:00 AM',
         productNumber: 'ABC123',
-        casingGrade: 'Grade A' as any,
-        tireSize: '',
+        casing_grade: 'Grade A' as any,
+        tire_size: '',
         customTireSize: '',
         tireTreadNeeded: '',
         quantity: '5',
@@ -231,8 +231,8 @@ describe('MTOOrderService', () => {
         name: 'John Doe',
         timestamp: '2024-01-15 10:00 AM',
         productNumber: 'ABC123',
-        casingGrade: ['Grade A'],
-        tireSize: '275/80R22.5',
+        casing_grade: ['Grade A'],
+        tire_size: '275/80R22.5',
         customTireSize: '',
         tireTreadNeeded: 'Standard',
         quantity: '10',
@@ -253,8 +253,8 @@ describe('MTOOrderService', () => {
         name: '',
         timestamp: '',
         productNumber: '',
-        casingGrade: [],
-        tireSize: '',
+        casing_grade: [],
+        tire_size: '',
         customTireSize: '',
         tireTreadNeeded: '',
         quantity: '',
@@ -278,8 +278,8 @@ describe('MTOOrderService', () => {
         name: 'John Doe',
         timestamp: '2024-01-15 10:00 AM',
         productNumber: 'ABC123',
-        casingGrade: ['Grade A'],
-        tireSize: '',
+        casing_grade: ['Grade A'],
+        tire_size: '',
         customTireSize: '',
         tireTreadNeeded: '',
         quantity: '10',
@@ -302,7 +302,7 @@ describe('MTOOrderService', () => {
       expect(defaultData.store).toBe('');
       expect(defaultData.name).toBe('');
       expect(defaultData.productNumber).toBe('');
-      expect(defaultData.casingGrade).toEqual([]);
+      expect(defaultData.casing_grade).toEqual([]);
       expect(defaultData.quantity).toBe('');
       expect(defaultData.destinationPlant).toBe('');
     });

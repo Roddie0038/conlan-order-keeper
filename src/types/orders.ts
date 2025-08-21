@@ -365,7 +365,7 @@ export interface OrderFormData {
 }
 
 /**
- * MTO Order Form Data - camelCase for UI forms
+ * MTO Order Form Data - snake_case for database consistency
  */
 export interface MTOFormData {
   id?: string;
@@ -373,8 +373,8 @@ export interface MTOFormData {
   name: string;
   store: string;
   productNumber: string;
-  casingGrade: string;
-  tireSize: string;
+  casing_grade: string;
+  tire_size: string;
   tread?: string;
   quantity: number;
   notes?: string;

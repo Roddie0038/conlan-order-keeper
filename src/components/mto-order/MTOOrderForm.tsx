@@ -303,7 +303,7 @@ export const MTOOrderForm = () => {
               etaDate: routingData.etaDate,
               crossDockConfirmation: routingData.crossDockConfirmation,
               productNumber: formData.productNumber,
-              description: `${formData.casingGrade.join(', ')} - ${formData.tireSize}`,
+              description: `${formData.casing_grade.join(', ')} - ${formData.tire_size}`,
               quantity: formData.quantity,
               scheduleArrival: routingData.scheduleArrival,
             }}
