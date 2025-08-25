@@ -69,7 +69,7 @@ export function useServerOrderDraft({
     return makeDraftKey(formType, subType, store, plant, user.id);
   }, [formType, subType, store, plant, user?.id, enabled]);
 
-  const localStorageKey = `draft:${draftKey}`;
+  const localStorageKey = draftKey ? `draft:${draftKey}` : null;
 
   // Filter out excluded fields
   const filterData = useCallback((rawData: any) => {
@@ -144,7 +144,7 @@ export function useServerOrderDraft({
 
   // Save to local storage
   const saveToLocal = useCallback((formData: any) => {
-    if (!draftKey || !enabled) return;
+    if (!draftKey || !enabled || !localStorageKey) return;
     
     try {
       const filteredData = filterData(formData);
@@ -185,13 +185,15 @@ export function useServerOrderDraft({
       try {
         // Get local draft
         let localDraft: LocalDraftData | null = null;
-        try {
-          const localRaw = localStorage.getItem(localStorageKey);
-          if (localRaw) {
-            localDraft = JSON.parse(localRaw);
+        if (localStorageKey) {
+          try {
+            const localRaw = localStorage.getItem(localStorageKey);
+            if (localRaw) {
+              localDraft = JSON.parse(localRaw);
+            }
+          } catch (error) {
+            console.warn('Error parsing local draft:', error);
           }
-        } catch (error) {
-          console.warn('Error parsing local draft:', error);
         }
 
         // Get server draft
@@ -323,7 +325,9 @@ export function useServerOrderDraft({
         .eq('draft_key', draftKey);
       
       // Clear local draft
-      localStorage.removeItem(localStorageKey);
+      if (localStorageKey) {
+        localStorage.removeItem(localStorageKey);
+      }
       
       console.log(`✅ Draft marked as submitted: ${draftKey}`);
     } catch (error) {

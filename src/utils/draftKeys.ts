@@ -21,18 +21,30 @@ export const makeDraftKey = (
 };
 
 export const parseDraftKey = (draftKey: string) => {
-  const parts = draftKey.split(':');
-  if (parts.length !== 5) {
-    throw new Error(`Invalid draft key format: ${draftKey}`);
+  try {
+    const parts = draftKey.split(':');
+    if (parts.length !== 5) {
+      throw new Error(`Invalid draft key format: ${draftKey}`);
+    }
+    
+    return {
+      formType: parts[0] as FormType,
+      subType: parts[1] as SubType,
+      store: parts[2],
+      plant: parts[3],
+      userId: parts[4]
+    };
+  } catch (error) {
+    console.warn('Failed to parse draft key:', draftKey, error);
+    // Return a safe fallback
+    return {
+      formType: 'standard' as FormType,
+      subType: 'transfer' as SubType,
+      store: 'unknown',
+      plant: 'unknown',
+      userId: 'unknown'
+    };
   }
-  
-  return {
-    formType: parts[0] as FormType,
-    subType: parts[1] as SubType,
-    store: parts[2],
-    plant: parts[3],
-    userId: parts[4]
-  };
 };
 
 // Legacy compatibility with existing autosave keys

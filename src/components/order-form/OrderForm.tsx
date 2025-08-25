@@ -22,6 +22,7 @@ import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import { DraftStatus } from "@/components/common/forms/DraftStatus";
+import { formatStoreForDraft, formatPlantForDraft } from "@/utils/formatters";
 import OrderIDService from "@/services/OrderIDService";
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 import { hasFullStoreAccess } from "@/lib/roles";
@@ -83,9 +84,9 @@ export function OrderForm() {
     saveNow
   } = useFormAutosave(form, 'order', {
     enabled: !user?.isAdmin,
-    excludeFields: ['managersEmail', 'destinationPlant'], // Exclude auto-generated fields
-    store: form.watch("store") || user?.store || 'Unknown Store',
-    plant: selectedPlant || 'Unknown Plant',
+    excludeFields: ['managersEmail'], // Only exclude auto-generated fields
+    store: formatStoreForDraft(form.watch("store") || user?.store || 'Unknown Store'),
+    plant: formatPlantForDraft(selectedPlant || 'Unknown Plant'),
     onRestore: () => {
       console.log('🔄 Order form data restored');
     }
