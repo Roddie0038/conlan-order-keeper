@@ -8,26 +8,14 @@ export function useRouteFlush(saveNow: () => void) {
   const location = useLocation();
   const navigation = useContext(UNSAFE_NavigationContext);
 
-  // Flush on route change (SPA navigation)
+  // Flush on route change (React Router navigation)
   useEffect(() => {
-    if (!navigation?.navigator) return;
-
-    const navigator = navigation.navigator as any;
-    
-    // Listen for navigation events if available
-    if (navigator.listen && typeof navigator.listen === 'function') {
-      const unlisten = navigator.listen(() => {
-        console.log("🚀 Route change detected, flushing draft");
-        saveNow();
-      });
-      
-      return () => {
-        if (unlisten && typeof unlisten === 'function') {
-          unlisten();
-        }
-      };
-    }
-  }, [navigation, saveNow]);
+    // Use location change effect instead of navigation listener to avoid conflicts
+    return () => {
+      console.log("🚀 Location cleanup, flushing draft");
+      saveNow();
+    };
+  }, [location.pathname, saveNow]);
 
   // Flush on page unload/beforeunload
   useEffect(() => {
