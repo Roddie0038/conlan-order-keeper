@@ -1,7 +1,19 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
+ * Helper to detect placeholder values that should use temp keys
+ */
+export const isPlaceholder = (v?: string): boolean => {
+  if (!v) return true;
+  if (/^\s*$/.test(v)) return true;
+  if (/^unknown/i.test(v)) return true;
+  if (/^unassigned/i.test(v)) return true;
+  return false;
+};
+
+/**
  * Migrates a draft from one key to another, handling both local storage and server persistence
+ * Enhanced with better winner logic and telemetry
  */
 export async function migrateDraftKey(
   oldKey: string,
@@ -13,24 +25,35 @@ export async function migrateDraftKey(
 
   console.log(`🔄 Migrating draft: ${oldKey} → ${newKey}`);
 
-  // Migrate local storage
-  const oldLocalKey = `draft:${oldKey}`;
-  const newLocalKey = `draft:${newKey}`;
-  
-  const oldLocalData = localStorage.getItem(oldLocalKey);
-  if (oldLocalData) {
-    try {
-      // Move the data to the new key
-      localStorage.setItem(newLocalKey, oldLocalData);
-      localStorage.removeItem(oldLocalKey);
-      console.log(`✅ Local storage migrated: ${oldLocalKey} → ${newLocalKey}`);
-    } catch (error) {
-      console.error("❌ Failed to migrate local storage:", error);
-    }
-  }
+  // Start telemetry
+  const migrationStart = Date.now();
+  const telemetry = {
+    oldKey,
+    newKey,
+    success: false,
+    winner: null as string | null,
+    oldKeyClosed: false,
+    error: null as string | null,
+    timestamp: new Date().toISOString()
+  };
 
   try {
-    // Get the old draft from server
+    // Migrate local storage first
+    const oldLocalKey = `draft:${oldKey}`;
+    const newLocalKey = `draft:${newKey}`;
+    
+    const oldLocalData = localStorage.getItem(oldLocalKey);
+    if (oldLocalData) {
+      try {
+        localStorage.setItem(newLocalKey, oldLocalData);
+        localStorage.removeItem(oldLocalKey);
+        console.log(`✅ Local storage migrated: ${oldLocalKey} → ${newLocalKey}`);
+      } catch (error) {
+        console.error("❌ Failed to migrate local storage:", error);
+      }
+    }
+
+    // Get both drafts from server
     const { data: oldDraft, error: oldError } = await supabase
       .from("order_drafts")
       .select("*")
@@ -39,16 +62,17 @@ export async function migrateDraftKey(
       .maybeSingle();
 
     if (oldError) {
+      telemetry.error = `Error fetching old draft: ${oldError.message}`;
       console.error("Error fetching old draft:", oldError);
       return;
     }
 
     if (!oldDraft) {
       console.log("No old draft to migrate");
+      telemetry.success = true;
       return;
     }
 
-    // Check if new key already has a draft
     const { data: existingNewDraft, error: newError } = await supabase
       .from("order_drafts")
       .select("*")
@@ -57,12 +81,14 @@ export async function migrateDraftKey(
       .maybeSingle();
 
     if (newError) {
+      telemetry.error = `Error fetching new draft: ${newError.message}`;
       console.error("Error fetching existing new draft:", newError);
       return;
     }
 
-    // Determine which draft to keep (newest wins)
+    // Determine winner (newest wins by updated_at)
     let finalDraft = oldDraft;
+    let shouldCloseOldKey = true;
     
     if (existingNewDraft) {
       const oldTime = new Date(oldDraft.updated_at).getTime();
@@ -70,13 +96,18 @@ export async function migrateDraftKey(
       
       if (newTime > oldTime) {
         finalDraft = existingNewDraft;
-        console.log("Keeping existing new draft (newer)");
+        telemetry.winner = 'existing_new_draft';
+        console.log(`Keeping existing new draft (newer: ${existingNewDraft.updated_at} > ${oldDraft.updated_at})`);
       } else {
-        console.log("Using old draft (newer)");
+        telemetry.winner = 'old_draft';
+        console.log(`Using old draft (newer: ${oldDraft.updated_at} >= ${existingNewDraft.updated_at})`);
       }
+    } else {
+      telemetry.winner = 'old_draft';
+      console.log("No existing new draft, migrating old draft");
     }
 
-    // Upsert the final draft with the new key
+    // Upsert the winner under the new key
     const { error: upsertError } = await supabase
       .from("order_drafts")
       .upsert({
@@ -88,26 +119,39 @@ export async function migrateDraftKey(
       });
 
     if (upsertError) {
+      telemetry.error = `Error upserting draft: ${upsertError.message}`;
       console.error("Error upserting migrated draft:", upsertError);
       return;
     }
 
-    // Mark the old draft as submitted (soft delete)
-    const { error: markError } = await supabase
-      .from("order_drafts")
-      .update({ submitted: true })
-      .eq("draft_key", oldKey)
-      .eq("submitted", false);
+    // Close the old draft key (only if we didn't just move the same row)
+    if (shouldCloseOldKey) {
+      const { error: markError } = await supabase
+        .from("order_drafts")
+        .update({ submitted: true })
+        .eq("draft_key", oldKey)
+        .eq("submitted", false);
 
-    if (markError) {
-      console.error("Error marking old draft as submitted:", markError);
-    } else {
-      console.log(`✅ Old draft marked as submitted: ${oldKey}`);
+      if (markError) {
+        telemetry.error = `Error closing old key: ${markError.message}`;
+        console.error("Error marking old draft as submitted:", markError);
+      } else {
+        telemetry.oldKeyClosed = true;
+        console.log(`✅ Old draft marked as submitted: ${oldKey}`);
+      }
     }
 
+    telemetry.success = true;
     console.log(`✅ Draft migration completed: ${oldKey} → ${newKey}`);
+    console.log('🔄 Migration telemetry:', {
+      ...telemetry,
+      durationMs: Date.now() - migrationStart
+    });
+
   } catch (error) {
+    telemetry.error = error instanceof Error ? error.message : String(error);
     console.error("❌ Error during draft migration:", error);
+    console.log('🔄 Migration telemetry (failed):', telemetry);
   }
 }
 

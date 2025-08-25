@@ -3,7 +3,26 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { makeDraftKey, FormType, SubType } from '@/utils/draftKeys';
-import { migrateDraftKey, makeTempDraftKey } from '@/utils/draftKeyMigration';
+import { migrateDraftKey, makeTempDraftKey, isPlaceholder } from '@/utils/draftKeyMigration';
+import { debounce } from 'lodash';
+
+// Enhanced types for telemetry
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+type SaveSource = 'button' | 'autosave' | 'route_flush' | 'manual';
+
+interface TelemetryEvent {
+  event: string;
+  userId?: string;
+  draftKey?: string;
+  store?: string;
+  plant?: string;
+  formType?: string;
+  subtype?: string;
+  source?: SaveSource;
+  timestamp: string;
+  durationMs?: number;
+  error?: string;
+}
 
 interface ServerDraftOptions {
   formType: FormType;
@@ -30,21 +49,18 @@ interface ServerDraftData {
   subtype: string;
   store: string;
   plant: string;
+  author_user_id: string;
   data: any;
-  updated_at: string;
   submitted: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
-
-// Debounce utility
-function debounce<T extends (...args: any[]) => void>(fn: T, ms: number): T {
-  let timeoutId: NodeJS.Timeout;
-  return ((...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), ms);
-  }) as T;
-}
+// Telemetry logging function
+const logTelemetry = (event: TelemetryEvent) => {
+  console.log(`📊 DRAFT_TELEMETRY - ${event.event}:`, event);
+  // In production, this could send to analytics service
+};
 
 export function useServerOrderDraft({
   formType,
@@ -65,12 +81,14 @@ export function useServerOrderDraft({
   const [hasRestored, setHasRestored] = useState(false);
   const pendingRef = useRef<any>(null);
   const isRestoringRef = useRef(false);
+  const savingNowRef = useRef(false); // Re-entry lock for saveNow()
 
-  // Generate draft key with temp->final migration support
+  // Generate draft key with enhanced temp key logic (Deliverable 1)
   const draftKey = useMemo(() => {
     if (!user?.id || !enabled) return null;
     
-    if (useTempKey && (store === 'Unknown Store' || plant === 'Unknown Plant' || !store || !plant)) {
+    // Broaden temp-key gating for all placeholder values
+    if (useTempKey && (isPlaceholder(store) || isPlaceholder(plant))) {
       return makeTempDraftKey(formType, subType, user.id);
     }
     
@@ -80,7 +98,7 @@ export function useServerOrderDraft({
   // Track previous draft key for migration
   const prevDraftKeyRef = useRef<string | null>(null);
 
-  // Handle draft key migration when store/plant resolve
+  // Handle draft key migration when store/plant resolve (Deliverable 2)
   useEffect(() => {
     if (!user?.id || !enabled || !useTempKey) return;
     
@@ -91,14 +109,41 @@ export function useServerOrderDraft({
       // Check if we're migrating from temp key to final key
       if (previousKey.includes('__temp__') && !currentKey.includes('__temp__')) {
         console.log(`🔄 Migrating from temp key to final key: ${previousKey} → ${currentKey}`);
-        migrateDraftKey(previousKey, currentKey).catch(error => {
-          console.error('Migration failed:', error);
-        });
+        
+        const migrationStart = Date.now();
+        migrateDraftKey(previousKey, currentKey)
+          .then(() => {
+            logTelemetry({
+              event: 'draft_migrated',
+              userId: user.id,
+              draftKey: currentKey,
+              store,
+              plant,
+              formType,
+              subtype: subType,
+              timestamp: new Date().toISOString(),
+              durationMs: Date.now() - migrationStart
+            });
+          })
+          .catch(error => {
+            console.error('Migration failed:', error);
+            logTelemetry({
+              event: 'draft_migration_failed',
+              userId: user.id,
+              draftKey: currentKey,
+              store,
+              plant,
+              formType,
+              subtype: subType,
+              timestamp: new Date().toISOString(),
+              error: error.message
+            });
+          });
       }
     }
     
     prevDraftKeyRef.current = currentKey;
-  }, [draftKey, user?.id, enabled, useTempKey]);
+  }, [draftKey, user?.id, enabled, useTempKey, store, plant, formType, subType]);
 
   const localStorageKey = draftKey ? `draft:${draftKey}` : null;
 
@@ -126,10 +171,11 @@ export function useServerOrderDraft({
     });
   }, [filterData]);
 
-  // Save to server
-  const saveToServer = useCallback(async (formData: any) => {
+  // Save to server with telemetry
+  const saveToServer = useCallback(async (formData: any, source: SaveSource = 'autosave') => {
     if (!draftKey || !user?.id || !enabled || isRestoringRef.current) return;
     
+    const saveStart = Date.now();
     try {
       const filteredData = filterData(formData);
       
@@ -139,6 +185,19 @@ export function useServerOrderDraft({
           .from('order_drafts')
           .update({ submitted: true })
           .eq('draft_key', draftKey);
+        
+        logTelemetry({
+          event: 'draft_cleared',
+          userId: user.id,
+          draftKey,
+          store,
+          plant,
+          formType,
+          subtype: subType,
+          source,
+          timestamp: new Date().toISOString(),
+          durationMs: Date.now() - saveStart
+        });
         return;
       }
 
@@ -160,16 +219,55 @@ export function useServerOrderDraft({
       if (error) {
         console.error('Error saving draft to server:', error);
         setSaveStatus('error');
+        
+        logTelemetry({
+          event: 'draft_save_failed',
+          userId: user.id,
+          draftKey,
+          store,
+          plant,
+          formType,
+          subtype: subType,
+          source,
+          timestamp: new Date().toISOString(),
+          error: error.message
+        });
         return;
       }
 
       setLastSaved(new Date());
       setSaveStatus('saved');
       
+      logTelemetry({
+        event: 'draft_saved',
+        userId: user.id,
+        draftKey,
+        store,
+        plant,
+        formType,
+        subtype: subType,
+        source,
+        timestamp: new Date().toISOString(),
+        durationMs: Date.now() - saveStart
+      });
+      
       console.log(`✅ Server draft saved: ${draftKey}`);
     } catch (error) {
       console.error('Error in saveToServer:', error);
       setSaveStatus('error');
+      
+      logTelemetry({
+        event: 'draft_save_error',
+        userId: user.id,
+        draftKey,
+        store,
+        plant,
+        formType,
+        subtype: subType,
+        source,
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   }, [draftKey, user?.id, enabled, filterData, hasMeaningfulData, formType, subType, store, plant]);
 
@@ -200,219 +298,288 @@ export function useServerOrderDraft({
       // Save locally immediately
       saveToLocal(formData);
       
-      // Save to server with debounce
-      await saveToServer(formData);
+      // Then save to server
+      await saveToServer(formData, 'autosave');
     }, debounceMs),
-    [enabled, saveToLocal, saveToServer, debounceMs]
+    [debounceMs, enabled, saveToLocal, saveToServer]
   );
 
-  // Restore from storage on mount
-  useEffect(() => {
-    if (!draftKey || !enabled || hasRestored) return;
-
-    (async () => {
-      isRestoringRef.current = true;
-      
-      try {
-        // Get local draft
-        let localDraft: LocalDraftData | null = null;
-        if (localStorageKey) {
-          try {
-            const localRaw = localStorage.getItem(localStorageKey);
-            if (localRaw) {
-              localDraft = JSON.parse(localRaw);
-            }
-          } catch (error) {
-            console.warn('Error parsing local draft:', error);
-          }
-        }
-
-        // Get server draft
-        const { data: serverDraft, error } = await supabase
-          .from('order_drafts')
-          .select('*')
-          .eq('draft_key', draftKey)
-          .eq('submitted', false)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching server draft:', error);
-        }
-
-        // Determine which draft to use (newest wins)
-        let restoredData = initialData;
-        let restoredFrom: 'none' | 'local' | 'server' = 'none';
-
-        if (serverDraft && localDraft) {
-          const serverTime = new Date(serverDraft.updated_at).getTime();
-          const localTime = new Date(localDraft.updatedAt).getTime();
-          
-          if (serverTime >= localTime) {
-            restoredData = serverDraft.data;
-            restoredFrom = 'server';
-          } else {
-            restoredData = localDraft.data;
-            restoredFrom = 'local';
-          }
-        } else if (serverDraft) {
-          restoredData = serverDraft.data;
-          restoredFrom = 'server';
-        } else if (localDraft) {
-          restoredData = localDraft.data;
-          restoredFrom = 'local';
-        }
-
-        // Only restore if we have meaningful data
-        if (restoredFrom !== 'none' && hasMeaningfulData(restoredData)) {
-          setData(restoredData);
-          
-          const timestamp = restoredFrom === 'server' 
-            ? new Date(serverDraft!.updated_at)
-            : new Date(localDraft!.updatedAt);
-          
-          setLastSaved(timestamp);
-          
-          toast({
-            title: "Draft Restored",
-            description: `Your previous work from ${timestamp.toLocaleString()} has been restored.`,
-          });
-
-          onRestore?.(restoredData);
-          
-          console.log(`🔄 Draft restored from ${restoredFrom}: ${draftKey}`);
-        }
-      } catch (error) {
-        console.error('Error during draft restoration:', error);
-        toast({
-          title: "Draft Restoration Failed",
-          description: "Could not restore your previous work. Starting with a clean form.",
-          variant: "destructive"
-        });
-      } finally {
-        setHasRestored(true);
-        isRestoringRef.current = false;
-      }
-    })();
-  }, [draftKey, enabled, hasRestored, initialData, hasMeaningfulData, onRestore, localStorageKey]);
-
-  // Update function
-  const update = useCallback((nextData: any | ((prev: any) => any)) => {
-    if (!enabled || isRestoringRef.current) return;
+  // Immediate save function with re-entry lock (Deliverable 5)
+  const saveNow = useCallback(async (source: SaveSource = 'button') => {
+    // Re-entry lock to prevent concurrent saves
+    if (savingNowRef.current) {
+      console.log('🔒 saveNow() already in progress, skipping...');
+      return;
+    }
     
-    const newData = typeof nextData === 'function' ? nextData(data) : nextData;
+    savingNowRef.current = true;
+    
+    try {
+      const dataToSave = pendingRef.current ?? data;
+      if (!dataToSave) return;
+
+      setSaveStatus('saving');
+      
+      // Save locally immediately (optimistic)
+      saveToLocal(dataToSave);
+      
+      // Log telemetry for save now action
+      logTelemetry({
+        event: 'draft_save_now',
+        userId: user?.id,
+        draftKey,
+        store,
+        plant,
+        formType,
+        subtype: subType,
+        source,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Then save to server
+      await saveToServer(dataToSave, source);
+      
+      // Show success toast
+      toast({
+        title: "Draft saved",
+        description: `Saved at ${new Date().toLocaleTimeString()}`,
+        className: "bg-green-50 border-green-200"
+      });
+      
+    } finally {
+      savingNowRef.current = false;
+    }
+  }, [data, saveToLocal, saveToServer, draftKey, store, plant, formType, subType, user?.id]);
+
+  // Update function for external data changes
+  const update = useCallback((newData: any) => {
+    if (isRestoringRef.current) return;
+    
     setData(newData);
     pendingRef.current = newData;
     
     // Trigger debounced save
     debouncedSave(newData);
-  }, [enabled, data, debouncedSave]);
+  }, [debouncedSave]);
 
-  // Flush pending saves on visibility change/page unload
-  useEffect(() => {
-    if (!enabled) return;
-
-    const flush = async () => {
-      if (!pendingRef.current || !draftKey) return;
-      
-      try {
-        // Force immediate save
-        saveToLocal(pendingRef.current);
-        await saveToServer(pendingRef.current);
-      } catch (error) {
-        console.error('Error flushing draft:', error);
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        flush();
-      }
-    };
-
-    const handlePageHide = () => {
-      flush();
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pagehide', handlePageHide);
-    window.addEventListener('beforeunload', handlePageHide);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pagehide', handlePageHide);
-      window.removeEventListener('beforeunload', handlePageHide);
-    };
-  }, [enabled, draftKey, saveToLocal, saveToServer]);
-
-  // Mark draft as submitted
-  const markSubmitted = useCallback(async () => {
-    if (!draftKey || !enabled) return;
+  // Restore from local storage
+  const restoreFromLocal = useCallback((): any => {
+    if (!localStorageKey) return null;
     
     try {
-      // Mark server draft as submitted
-      await supabase
-        .from('order_drafts')
-        .update({ submitted: true })
-        .eq('draft_key', draftKey);
+      const stored = localStorage.getItem(localStorageKey);
+      if (!stored) return null;
       
-      // Clear local draft
+      const parsed: LocalDraftData = JSON.parse(stored);
+      return parsed.data;
+    } catch (error) {
+      console.error('Error restoring from localStorage:', error);
+      return null;
+    }
+  }, [localStorageKey]);
+
+  // Restore from server
+  const restoreFromServer = useCallback(async (): Promise<any> => {
+    if (!draftKey || !user?.id) return null;
+    
+    try {
+      const { data: draft, error } = await supabase
+        .from('order_drafts')
+        .select('*')
+        .eq('draft_key', draftKey)
+        .eq('submitted', false)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error restoring from server:', error);
+        return null;
+      }
+      
+      return draft?.data || null;
+    } catch (error) {
+      console.error('Error in restoreFromServer:', error);
+      return null;
+    }
+  }, [draftKey, user?.id]);
+
+  // Fallback restore - find newest unsubmitted draft for user (Deliverable 3)
+  const fallbackRestore = useCallback(async (): Promise<any> => {
+    if (!user?.id || !enabled) return null;
+    
+    try {
+      const { data: newest, error } = await supabase
+        .from('order_drafts')
+        .select('*')
+        .eq('author_user_id', user.id)
+        .eq('form_type', formType)
+        .eq('submitted', false)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error || !newest || newest.draft_key === draftKey) {
+        return null;
+      }
+      
+      console.log(`🔍 Found fallback draft from ${newest.updated_at}: ${newest.draft_key}`);
+      
+      // Offer to restore with a toast
+      const shouldRestore = true; // Auto-restore for now - could show UI prompt
+      
+      if (shouldRestore) {
+        console.log(`🔄 Auto-restoring fallback draft: ${newest.draft_key} → ${draftKey}`);
+        
+        // Migrate to current key
+        if (draftKey) {
+          await migrateDraftKey(newest.draft_key, draftKey);
+        }
+        
+        logTelemetry({
+          event: 'draft_fallback_restored',
+          userId: user.id,
+          draftKey,
+          store,
+          plant,
+          formType,
+          subtype: subType,
+          timestamp: new Date().toISOString()
+        });
+        
+        toast({
+          title: "Draft restored",
+          description: `Restored recent draft from ${new Date(newest.updated_at).toLocaleString()}`,
+          className: "bg-blue-50 border-blue-200"
+        });
+        
+        return newest.data;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error in fallbackRestore:', error);
+      return null;
+    }
+  }, [user?.id, enabled, formType, draftKey, store, plant, subType]);
+
+  // Main restore function with enhanced UX truth (Deliverable 6)
+  const restoreData = useCallback(async () => {
+    if (!enabled || hasRestored || isRestoringRef.current) return;
+    
+    isRestoringRef.current = true;
+    
+    try {
+      // Try local first, then server, then fallback
+      let restoredData = restoreFromLocal();
+      let source = 'local';
+      
+      if (!restoredData) {
+        restoredData = await restoreFromServer();
+        source = 'server';
+      }
+      
+      if (!restoredData) {
+        restoredData = await fallbackRestore();
+        source = 'fallback';
+      }
+      
+      if (restoredData) {
+        setData(restoredData);
+        pendingRef.current = restoredData;
+        
+        // Set restore flags and UI truth (Deliverable 6)
+        setHasRestored(true);
+        setLastSaved(new Date());
+        setSaveStatus('saved');
+        
+        onRestore?.(restoredData);
+        
+        logTelemetry({
+          event: 'draft_restored',
+          userId: user?.id,
+          draftKey,
+          store,
+          plant,
+          formType,
+          subtype: subType,
+          source: source as SaveSource,
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log(`✅ Draft restored from ${source}:`, draftKey);
+      } else {
+        // No data to restore, but still mark as restored to prevent further attempts
+        setHasRestored(true);
+        setSaveStatus('idle');
+      }
+    } finally {
+      isRestoringRef.current = false;
+    }
+  }, [enabled, hasRestored, restoreFromLocal, restoreFromServer, fallbackRestore, onRestore, draftKey, store, plant, formType, subType, user?.id]);
+
+  // Discard draft (soft-close)
+  const discardDraft = useCallback(async () => {
+    if (!draftKey || !user?.id) return;
+    
+    try {
+      // Clear local storage
       if (localStorageKey) {
         localStorage.removeItem(localStorageKey);
       }
       
-      console.log(`✅ Draft marked as submitted: ${draftKey}`);
-    } catch (error) {
-      console.error('Error marking draft as submitted:', error);
-    }
-  }, [draftKey, enabled, localStorageKey]);
-
-  // Discard draft
-  const discardDraft = useCallback(async () => {
-    if (!draftKey || !enabled) return;
-    
-    try {
-      // Mark as submitted (soft delete)
-      await markSubmitted();
+      // Soft-close server draft
+      await supabase
+        .from('order_drafts')
+        .update({ submitted: true })
+        .eq('draft_key', draftKey)
+        .eq('submitted', false);
       
-      // Reset form data
+      // Reset state
       setData(initialData);
-      setSaveStatus('idle');
       setLastSaved(null);
+      setSaveStatus('idle');
+      pendingRef.current = null;
+      
+      logTelemetry({
+        event: 'draft_discarded',
+        userId: user.id,
+        draftKey,
+        store,
+        plant,
+        formType,
+        subtype: subType,
+        timestamp: new Date().toISOString()
+      });
       
       toast({
-        title: "Draft Discarded",
-        description: "Your draft has been cleared and the form has been reset.",
+        title: "Draft discarded",
+        description: "Your draft has been discarded",
+        variant: "destructive"
       });
       
       console.log(`🗑️ Draft discarded: ${draftKey}`);
     } catch (error) {
       console.error('Error discarding draft:', error);
-      toast({
-        title: "Error",
-        description: "Failed to discard draft. Please try again.",
-        variant: "destructive"
-      });
     }
-  }, [draftKey, enabled, markSubmitted, initialData]);
+  }, [draftKey, user?.id, localStorageKey, initialData, store, plant, formType, subType]);
 
-  // Force save now
-  const saveNow = useCallback(async () => {
-    if (!enabled || !pendingRef.current) return;
-    
-    setSaveStatus('saving');
-    saveToLocal(pendingRef.current);
-    await saveToServer(pendingRef.current);
-  }, [enabled, saveToLocal, saveToServer]);
+  // Initialize restoration on mount
+  useEffect(() => {
+    if (enabled && draftKey && !hasRestored) {
+      restoreData();
+    }
+  }, [enabled, draftKey, hasRestored, restoreData]);
 
   return {
     data,
-    update,
     saveStatus,
     lastSaved,
-    markSubmitted,
-    discardDraft,
-    saveNow,
     hasRestored,
-    draftKey
+    draftKey,
+    update,
+    saveNow,
+    discardDraft,
+    // Legacy compatibility
+    ready: hasRestored,
+    didRestore: hasRestored
   };
 }

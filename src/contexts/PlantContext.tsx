@@ -54,15 +54,20 @@ console.log("🔍 PLANT CONTEXT - Loading plant webhooks:", PLANT_WEBHOOKS);
 console.log("🔍 PLANT CONTEXT - Transfer webhook for Grand Prairie 097:", PLANT_WEBHOOKS["Grand Prairie 097"].transferRequests);
 console.log("🔍 PLANT CONTEXT - Admin webhook for Grand Prairie 097:", PLANT_WEBHOOKS["Grand Prairie 097"].adminOrders);
 
-// Helper function to convert plant names between formats
+// Helper function to convert plant names between formats and normalize
 const convertPlantName = (plantName: string): Plant => {
-  // Convert from plantMapping format to PlantContext format
-  if (plantName === 'Grand Prairie 097') return 'Grand Prairie 097';
-  if (plantName === 'Romulus 098') return 'Romulus 098';
-  if (plantName === 'Mulberry 099') return 'Mulberry 099';
+  // Normalize plant number to 3 digits to prevent key splits
+  const normalized = plantName.replace(/Plant (\d+)/, (match, num) => {
+    return `Plant ${num.padStart(3, '0')}`;
+  });
   
-  // Return as-is if already in correct format
-  return plantName as Plant;
+  // Convert from plantMapping format to PlantContext format
+  if (normalized === 'Grand Prairie 097') return 'Grand Prairie 097';
+  if (normalized === 'Romulus 098') return 'Romulus 098';
+  if (normalized === 'Mulberry 099') return 'Mulberry 099';
+  
+  // Return normalized version if already in correct format
+  return normalized as Plant;
 };
 
 export function PlantProvider({ children }: { children: React.ReactNode }) {
