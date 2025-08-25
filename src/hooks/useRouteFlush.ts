@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
 type Params = {
-  saveNow: () => void;
-  isSubmittingRef?: React.MutableRefObject<boolean>;
+  saveNow: (source?: string) => void | Promise<void>;  // allow optional source
+  isSubmittingRef?: React.MutableRefObject<boolean>;    // properly typed ref
   enabled?: boolean;
 };
 
@@ -30,10 +30,11 @@ export function useRouteFlush({ saveNow, isSubmittingRef, enabled = true }: Para
 
       console.log("🚀 Location cleanup, flushing draft");
       const watchdog = window.setTimeout(() => {}, 4000);
-      try { 
-        saveNow(); 
-      } finally { 
-        window.clearTimeout(watchdog); 
+      try {
+        // tag the source for telemetry
+        saveNow("location_cleanup");
+      } finally {
+        window.clearTimeout(watchdog);
       }
     };
     // unmount-only; no deps to prevent re-registration
@@ -44,18 +45,18 @@ export function useRouteFlush({ saveNow, isSubmittingRef, enabled = true }: Para
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       console.log("🚀 Page unload detected, flushing draft");
-      saveNow();
+      saveNow("page_unload");
     };
 
     const handlePageHide = () => {
       console.log("🚀 Page hide detected, flushing draft");
-      saveNow();
+      saveNow("page_hide");
     };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         console.log("🚀 Page hidden, flushing draft");
-        saveNow();
+        saveNow("page_hidden");
       }
     };
 

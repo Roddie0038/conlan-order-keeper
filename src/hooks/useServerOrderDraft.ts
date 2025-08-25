@@ -328,9 +328,15 @@ export function useServerOrderDraft({
 
   // Immediate save function with bulletproof re-entry lock (Deliverable 5)
   const saveNow = useCallback(async (source: SaveSource = 'button') => {
-    // Validate critical requirements FIRST before setting any locks
-    if (!draftKey || !user?.id) {
-      console.log('⚠️ saveNow() skipped - missing draftKey or userId', { draftKey, userId: user?.id });
+    // Generate a key on the fly if needed (so unmount cleanup still works right after mount)
+    let key = draftKey;
+    if (!key && user?.id) {
+      key = `${formType}:${user.id}:${Date.now().toString(36)}`;
+      console.log('🔧 Generated fallback draft key:', key);
+    }
+    
+    if (!user?.id) {
+      console.log('⚠️ saveNow() skipped - missing userId', { key, userId: user?.id });
       return;
     }
     
@@ -355,10 +361,14 @@ export function useServerOrderDraft({
       saveToLocal(dataToSave);
       
       // Log telemetry for save now action
+      if (process.env.NODE_ENV === "development") {
+        console.log('📊 DRAFT_TELEMETRY - draft_save_now', { key, source, hasMeaningfulData: hasMeaningfulData(dataToSave) });
+      }
+      
       logTelemetry({
         event: 'draft_save_now',
         userId: user?.id,
-        draftKey,
+        draftKey: key,
         store,
         plant,
         formType,
