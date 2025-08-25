@@ -392,6 +392,54 @@ export type Database = {
         }
         Relationships: []
       }
+      draft_telemetry_log: {
+        Row: {
+          created_at: string | null
+          draft_key: string | null
+          duration_ms: number | null
+          error_message: string | null
+          event: string
+          form_type: string | null
+          id: string
+          metadata: Json | null
+          plant: string | null
+          source: string | null
+          store: string | null
+          subtype: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          draft_key?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          event: string
+          form_type?: string | null
+          id?: string
+          metadata?: Json | null
+          plant?: string | null
+          source?: string | null
+          store?: string | null
+          subtype?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          draft_key?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          event?: string
+          form_type?: string | null
+          id?: string
+          metadata?: Json | null
+          plant?: string | null
+          source?: string | null
+          store?: string | null
+          subtype?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       edge_function_logs: {
         Row: {
           created_at: string | null
@@ -3126,6 +3174,8 @@ export type Database = {
           id: string | null
           is_active: boolean | null
           platform_source: string | null
+          quarantine_reason: string | null
+          quarantined_at: string | null
           recipient_email: string | null
           recipient_name: string | null
           recipient_role:
@@ -3143,6 +3193,8 @@ export type Database = {
           id?: string | null
           is_active?: boolean | null
           platform_source?: string | null
+          quarantine_reason?: string | null
+          quarantined_at?: string | null
           recipient_email?: string | null
           recipient_name?: string | null
           recipient_role?:
@@ -3160,6 +3212,8 @@ export type Database = {
           id?: string | null
           is_active?: boolean | null
           platform_source?: string | null
+          quarantine_reason?: string | null
+          quarantined_at?: string | null
           recipient_email?: string | null
           recipient_name?: string | null
           recipient_role?:

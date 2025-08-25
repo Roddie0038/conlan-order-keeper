@@ -56,10 +56,31 @@ interface ServerDraftData {
   updated_at: string;
 }
 
-// Telemetry logging function
-const logTelemetry = (event: TelemetryEvent) => {
+// Enhanced telemetry logging function (Deliverable 7)
+const logTelemetry = async (event: TelemetryEvent) => {
   console.log(`📊 DRAFT_TELEMETRY - ${event.event}:`, event);
-  // In production, this could send to analytics service
+  
+  // Log to database for monitoring
+  try {
+    await supabase.from('draft_telemetry_log').insert({
+      event: event.event,
+      user_id: event.userId,
+      draft_key: event.draftKey,
+      store: event.store,
+      plant: event.plant,
+      form_type: event.formType,
+      subtype: event.subtype,
+      source: event.source,
+      duration_ms: event.durationMs,
+      error_message: event.error,
+      metadata: {
+        timestamp: event.timestamp,
+        ...event
+      }
+    });
+  } catch (error) {
+    console.warn('Failed to log telemetry to database:', error);
+  }
 };
 
 export function useServerOrderDraft({
