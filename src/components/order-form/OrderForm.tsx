@@ -108,7 +108,10 @@ export function OrderForm() {
     didRestore,
     saveStatus,
     discardDraft,
-    saveNow
+    saveNow,
+    isSubmittingRef,
+    markSubmitting,
+    clearSubmitting
   } = useFormAutosave(form, 'order', {
     enabled: !user?.isAdmin,
     excludeFields: ['managersEmail'], // Only exclude auto-generated fields
@@ -120,7 +123,7 @@ export function OrderForm() {
   });
 
   // Flush draft saves on route changes and page unload
-  useRouteFlush(saveNow);
+  useRouteFlush({ saveNow, isSubmittingRef });
 
   // Update store when user changes — Ordering Platform — Autosave Patch D: guard defaults with {ready, didRestore}
   useEffect(() => {
@@ -361,6 +364,8 @@ export function OrderForm() {
           setOrderSummaries={setOrderSummaries}
           destinationPlant={form.watch("destinationPlant") || ""}
           recipientCount={recipientCount}
+          markSubmitting={markSubmitting}
+          clearSubmitting={clearSubmitting}
         />
       
       <OrderFormActions 

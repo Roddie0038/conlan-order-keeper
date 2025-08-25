@@ -10,13 +10,17 @@ interface OrderSubmissionHandlerProps {
   setOrderSummaries: React.Dispatch<React.SetStateAction<OrderSummary[]>>;
   destinationPlant: string;
   recipientCount?: number;
+  markSubmitting?: () => void;
+  clearSubmitting?: () => void;
 }
 
 export function OrderSubmissionHandler({ 
   orderSummaries, 
   setOrderSummaries,
   destinationPlant,
-  recipientCount = 1
+  recipientCount = 1,
+  markSubmitting,
+  clearSubmitting
 }: OrderSubmissionHandlerProps) {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin || false;
@@ -36,9 +40,14 @@ export function OrderSubmissionHandler({
   };
   
   // Submit orders handler
-  const submitOrders = () => {
+  const submitOrders = async () => {
     console.log("✅ Order submitted to plant:", destinationPlant);
-    handleSubmitOrders(selectedOrders, testMode, destinationPlant, handleSubmissionSuccess);
+    markSubmitting?.();
+    try {
+      await handleSubmitOrders(selectedOrders, testMode, destinationPlant, handleSubmissionSuccess);
+    } finally {
+      clearSubmitting?.();
+    }
   };
   
   if (orderSummaries.length === 0) {

@@ -1,35 +1,44 @@
-import { useEffect, useContext, useRef } from "react";
-import { useLocation, UNSAFE_NavigationContext } from "react-router-dom";
+import { useEffect, useRef } from "react";
+
+type Params = {
+  saveNow: () => void;
+  isSubmittingRef?: React.MutableRefObject<boolean>;
+  enabled?: boolean;
+};
 
 /**
  * Hook to flush draft saves on route changes and page unload
- * Fixed to prevent save loops during submission
+ * Fixed to prevent save loops during submission - unmount-only
  */
-export function useRouteFlush(saveNow: () => void, isSubmitting?: boolean) {
-  const location = useLocation();
-  const navigation = useContext(UNSAFE_NavigationContext);
+export function useRouteFlush({ saveNow, isSubmittingRef, enabled = true }: Params) {
   const preventFlushRef = useRef(false);
 
-  // Method to temporarily prevent flushes during submission
   const preventFlush = () => {
     preventFlushRef.current = true;
-    setTimeout(() => {
-      preventFlushRef.current = false;
-    }, 5000); // Reset after 5 seconds as safety
+    window.setTimeout(() => (preventFlushRef.current = false), 5000);
   };
 
-  // Flush on route change (React Router navigation) - SINGLE EFFECT
+  // Unmount-only effect to prevent re-registration on every render
   useEffect(() => {
     return () => {
-      // Guard against flush during submission or when prevented
-      if (isSubmitting || preventFlushRef.current) {
+      if (!enabled) return;
+      if (isSubmittingRef?.current) {
         console.log("🚀 Location cleanup skipped - submission in progress");
         return;
       }
+      if (preventFlushRef.current) return;
+
       console.log("🚀 Location cleanup, flushing draft");
-      saveNow();
+      const watchdog = window.setTimeout(() => {}, 4000);
+      try { 
+        saveNow(); 
+      } finally { 
+        window.clearTimeout(watchdog); 
+      }
     };
-  }, [location.pathname, saveNow, isSubmitting]);
+    // unmount-only; no deps to prevent re-registration
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Flush on page unload/beforeunload
   useEffect(() => {

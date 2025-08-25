@@ -98,6 +98,7 @@ export function useServerOrderDraft({
   const { user } = useAuth();
   const [data, setData] = useState<any>(initialData);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const isSubmittingRef = useRef(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasRestored, setHasRestored] = useState(false);
   const pendingRef = useRef<any>(null);
@@ -600,15 +601,27 @@ export function useServerOrderDraft({
     }
   }, [enabled, draftKey, hasRestored, restoreData]);
 
+  // Submission tracking methods
+  const markSubmitting = useCallback(() => {
+    isSubmittingRef.current = true;
+  }, []);
+
+  const clearSubmitting = useCallback(() => {
+    isSubmittingRef.current = false;
+  }, []);
+
   return {
     data,
     saveStatus,
     lastSaved,
     hasRestored,
     draftKey,
+    isSubmittingRef,
     update,
     saveNow,
     discardDraft,
+    markSubmitting,
+    clearSubmitting,
     // Legacy compatibility
     ready: hasRestored,
     didRestore: hasRestored
