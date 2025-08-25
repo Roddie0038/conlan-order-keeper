@@ -32,8 +32,25 @@ export const formatPlantForDraft = (plantObj: PlantData | string): string => {
   }
   
   if (plantObj.number && plantObj.city) {
-    return `Plant ${plantObj.number} – ${plantObj.city}`;
+    // Ensure plant number is always 3 digits (097 not 97)
+    const paddedNumber = String(plantObj.number).padStart(3, '0');
+    return `Plant ${paddedNumber} – ${plantObj.city}`;
   }
   
   return plantObj.name || plantObj.number || 'Unknown Plant';
+};
+
+/**
+ * Canonical formatter for store names in draft keys
+ */
+export const formatStore = (number: string | number, city: string): string => {
+  return `Store ${String(number).trim()} – ${city}`;
+};
+
+/**
+ * Canonical formatter for plant names in draft keys
+ */
+export const formatPlant = (number: string | number, city: string): string => {
+  const paddedNumber = String(number).padStart(3, '0');
+  return `Plant ${paddedNumber} – ${city}`;
 };

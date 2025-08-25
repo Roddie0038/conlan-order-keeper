@@ -42,6 +42,7 @@ export function useFormAutosave<T extends Record<string, any>>(
     enabled: options?.enabled ?? true,
     excludeFields: options?.excludeFields,
     debounceMs: 1500, // Slower debounce to prevent save storms
+    useTempKey: true, // Enable temp->final key migration
     onRestore: (data) => {
       if (data && typeof data === 'object') {
         form.reset(data);
@@ -102,6 +103,7 @@ export function useStatefulFormAutosave<T extends Record<string, any>>(
     enabled: options?.enabled ?? true,
     excludeFields: options?.excludeFields,
     debounceMs: 1000,
+    useTempKey: true, // Enable temp->final key migration
     onRestore: (data) => {
       if (data && typeof data === 'object') {
         setFormData(data as T);

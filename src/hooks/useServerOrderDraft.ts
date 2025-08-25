@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { makeDraftKey, FormType, SubType } from '@/utils/draftKeys';
+import { migrateDraftKey, makeTempDraftKey } from '@/utils/draftKeyMigration';
 
 interface ServerDraftOptions {
   formType: FormType;
@@ -14,6 +15,7 @@ interface ServerDraftOptions {
   excludeFields?: string[];
   onRestore?: (data: any) => void;
   enabled?: boolean;
+  useTempKey?: boolean; // Enable temp->final key migration
 }
 
 interface LocalDraftData {
@@ -53,7 +55,8 @@ export function useServerOrderDraft({
   debounceMs = 1000,
   excludeFields = [],
   onRestore,
-  enabled = true
+  enabled = true,
+  useTempKey = false
 }: ServerDraftOptions) {
   const { user } = useAuth();
   const [data, setData] = useState<any>(initialData);
@@ -63,11 +66,39 @@ export function useServerOrderDraft({
   const pendingRef = useRef<any>(null);
   const isRestoringRef = useRef(false);
 
-  // Generate draft key
+  // Generate draft key with temp->final migration support
   const draftKey = useMemo(() => {
     if (!user?.id || !enabled) return null;
+    
+    if (useTempKey && (store === 'Unknown Store' || plant === 'Unknown Plant' || !store || !plant)) {
+      return makeTempDraftKey(formType, subType, user.id);
+    }
+    
     return makeDraftKey(formType, subType, store, plant, user.id);
-  }, [formType, subType, store, plant, user?.id, enabled]);
+  }, [formType, subType, store, plant, user?.id, enabled, useTempKey]);
+
+  // Track previous draft key for migration
+  const prevDraftKeyRef = useRef<string | null>(null);
+
+  // Handle draft key migration when store/plant resolve
+  useEffect(() => {
+    if (!user?.id || !enabled || !useTempKey) return;
+    
+    const currentKey = draftKey;
+    const previousKey = prevDraftKeyRef.current;
+    
+    if (previousKey && currentKey && previousKey !== currentKey) {
+      // Check if we're migrating from temp key to final key
+      if (previousKey.includes('__temp__') && !currentKey.includes('__temp__')) {
+        console.log(`🔄 Migrating from temp key to final key: ${previousKey} → ${currentKey}`);
+        migrateDraftKey(previousKey, currentKey).catch(error => {
+          console.error('Migration failed:', error);
+        });
+      }
+    }
+    
+    prevDraftKeyRef.current = currentKey;
+  }, [draftKey, user?.id, enabled, useTempKey]);
 
   const localStorageKey = draftKey ? `draft:${draftKey}` : null;
 

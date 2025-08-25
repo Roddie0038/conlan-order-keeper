@@ -21,8 +21,9 @@ import { Card } from "@/components/ui/card";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
-import { DraftStatus } from "@/components/common/forms/DraftStatus";
-import { formatStoreForDraft, formatPlantForDraft } from "@/utils/formatters";
+import { DraftTopBar } from "@/components/common/forms/DraftTopBar";
+import { formatStoreForDraft, formatPlantForDraft, formatStore, formatPlant } from "@/utils/formatters";
+import { useRouteFlush } from "@/hooks/useRouteFlush";
 import OrderIDService from "@/services/OrderIDService";
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 import { hasFullStoreAccess } from "@/lib/roles";
@@ -73,10 +74,36 @@ export function OrderForm() {
   });
 
   // Form persistence (only for non-admin users) - Enhanced with server-side drafts
+  // Generate canonical store/plant strings for stable draft keys
+  const currentStore = form.watch("store") || user?.store;
+  const storeString = (() => {
+    if (currentStore && 
+        typeof currentStore === 'object' && 
+        currentStore !== null) {
+      const storeObj = currentStore as any;
+      if ('number' in storeObj && 'city' in storeObj && storeObj.number && storeObj.city) {
+        return formatStore(storeObj.number, storeObj.city);
+      }
+    }
+    return formatStoreForDraft(currentStore || 'Unknown Store');
+  })();
+    
+  const plantString = (() => {
+    if (selectedPlant && 
+        typeof selectedPlant === 'object' && 
+        selectedPlant !== null) {
+      const plantObj = selectedPlant as any;
+      if ('number' in plantObj && 'city' in plantObj && plantObj.number && plantObj.city) {
+        return formatPlant(plantObj.number, plantObj.city);
+      }
+    }
+    return formatPlantForDraft(selectedPlant || 'Unknown Plant');
+  })();
+
   const { 
     lastSaved, 
     isRestoring, 
-    clearPersistedData, 
+    clearPersistedData,
     ready, 
     didRestore,
     saveStatus,
@@ -85,12 +112,15 @@ export function OrderForm() {
   } = useFormAutosave(form, 'order', {
     enabled: !user?.isAdmin,
     excludeFields: ['managersEmail'], // Only exclude auto-generated fields
-    store: formatStoreForDraft(form.watch("store") || user?.store || 'Unknown Store'),
-    plant: formatPlantForDraft(selectedPlant || 'Unknown Plant'),
+    store: storeString,
+    plant: plantString,
     onRestore: () => {
       console.log('🔄 Order form data restored');
     }
   });
+
+  // Flush draft saves on route changes and page unload
+  useRouteFlush(saveNow);
 
   // Update store when user changes — Ordering Platform — Autosave Patch D: guard defaults with {ready, didRestore}
   useEffect(() => {
@@ -235,13 +265,13 @@ export function OrderForm() {
       
       {!user?.isAdmin && (
         <div className="mb-4 space-y-2">
-          <FormRestorationBanner isRestoring={isRestoring} lastSaved={lastSaved} />
-          <DraftStatus 
+          <DraftTopBar
             saveStatus={saveStatus}
             lastSaved={lastSaved}
-            onDiscardDraft={discardDraft}
             onSaveNow={saveNow}
+            onDiscard={discardDraft}
           />
+          <FormRestorationBanner isRestoring={isRestoring} lastSaved={lastSaved} />
         </div>
       )}
       
