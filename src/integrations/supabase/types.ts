@@ -180,6 +180,27 @@ export type Database = {
         }
         Relationships: []
       }
+      app_internal_secret: {
+        Row: {
+          created_at: string | null
+          id: number
+          secret_value: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          secret_value: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          secret_value?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       approved_treads: {
         Row: {
           category: string | null
@@ -213,6 +234,30 @@ export type Database = {
           status?: string | null
           tread_code?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      backfill_run_logs: {
+        Row: {
+          affected_count: number
+          details: Json | null
+          id: string
+          run_at: string
+          step: string
+        }
+        Insert: {
+          affected_count: number
+          details?: Json | null
+          id?: string
+          run_at?: string
+          step: string
+        }
+        Update: {
+          affected_count?: number
+          details?: Json | null
+          id?: string
+          run_at?: string
+          step?: string
         }
         Relationships: []
       }
@@ -609,6 +654,42 @@ export type Database = {
         }
         Relationships: []
       }
+      http_call_logs: {
+        Row: {
+          created_at: string | null
+          error_msg: string | null
+          id: number
+          new_status: string | null
+          order_id: string | null
+          order_type: string | null
+          prev_status: string | null
+          request_id: number | null
+          status_code: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_msg?: string | null
+          id?: number
+          new_status?: string | null
+          order_id?: string | null
+          order_type?: string | null
+          prev_status?: string | null
+          request_id?: number | null
+          status_code?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          error_msg?: string | null
+          id?: number
+          new_status?: string | null
+          order_id?: string | null
+          order_type?: string | null
+          prev_status?: string | null
+          request_id?: number | null
+          status_code?: number | null
+        }
+        Relationships: []
+      }
       inventory_counts: {
         Row: {
           created_at: string
@@ -721,6 +802,21 @@ export type Database = {
           plant?: string
           role?: Database["public"]["Enums"]["inventory_user_role"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      kv: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
         }
         Relationships: []
       }
@@ -1020,6 +1116,7 @@ export type Database = {
       }
       mto_orders: {
         Row: {
+          carrier: string | null
           casing_grade: string | null
           casings_eta: string | null
           casings_in_stock: boolean | null
@@ -1063,6 +1160,7 @@ export type Database = {
           timestamp: string | null
           tire_pull_status: string | null
           tire_size: string | null
+          transfer_route: string | null
           tread: string | null
           tread_eta: string | null
           tread_in_inventory: boolean | null
@@ -1072,6 +1170,7 @@ export type Database = {
           warehouse_notified_at: string | null
         }
         Insert: {
+          carrier?: string | null
           casing_grade?: string | null
           casings_eta?: string | null
           casings_in_stock?: boolean | null
@@ -1115,6 +1214,7 @@ export type Database = {
           timestamp?: string | null
           tire_pull_status?: string | null
           tire_size?: string | null
+          transfer_route?: string | null
           tread?: string | null
           tread_eta?: string | null
           tread_in_inventory?: boolean | null
@@ -1124,6 +1224,7 @@ export type Database = {
           warehouse_notified_at?: string | null
         }
         Update: {
+          carrier?: string | null
           casing_grade?: string | null
           casings_eta?: string | null
           casings_in_stock?: boolean | null
@@ -1167,6 +1268,7 @@ export type Database = {
           timestamp?: string | null
           tire_pull_status?: string | null
           tire_size?: string | null
+          transfer_route?: string | null
           tread?: string | null
           tread_eta?: string | null
           tread_in_inventory?: boolean | null
@@ -1526,6 +1628,48 @@ export type Database = {
         }
         Relationships: []
       }
+      order_drafts: {
+        Row: {
+          author_user_id: string
+          created_at: string
+          data: Json
+          draft_key: string
+          form_type: string
+          id: string
+          plant: string
+          store: string
+          submitted: boolean
+          subtype: string
+          updated_at: string
+        }
+        Insert: {
+          author_user_id: string
+          created_at?: string
+          data?: Json
+          draft_key: string
+          form_type: string
+          id?: string
+          plant: string
+          store: string
+          submitted?: boolean
+          subtype?: string
+          updated_at?: string
+        }
+        Update: {
+          author_user_id?: string
+          created_at?: string
+          data?: Json
+          draft_key?: string
+          form_type?: string
+          id?: string
+          plant?: string
+          store?: string
+          submitted?: boolean
+          subtype?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_email_overrides: {
         Row: {
           action_type: string
@@ -1686,6 +1830,7 @@ export type Database = {
           created_at: string | null
           email_type: string | null
           error_details: string | null
+          error_msg: string | null
           id: number
           order_id: string | null
           order_type: string | null
@@ -1698,6 +1843,7 @@ export type Database = {
           created_at?: string | null
           email_type?: string | null
           error_details?: string | null
+          error_msg?: string | null
           id?: never
           order_id?: string | null
           order_type?: string | null
@@ -1710,6 +1856,7 @@ export type Database = {
           created_at?: string | null
           email_type?: string | null
           error_details?: string | null
+          error_msg?: string | null
           id?: never
           order_id?: string | null
           order_type?: string | null
@@ -1852,6 +1999,7 @@ export type Database = {
       orders: {
         Row: {
           archived: boolean | null
+          carrier: string | null
           completed: boolean | null
           completed_at: string | null
           completed_by: string | null
@@ -1912,10 +2060,12 @@ export type Database = {
           store_response_status: string | null
           timestamp: string
           tire_pull_status: string | null
+          transfer_route: string | null
           warehouse_received: boolean | null
         }
         Insert: {
           archived?: boolean | null
+          carrier?: string | null
           completed?: boolean | null
           completed_at?: string | null
           completed_by?: string | null
@@ -1976,10 +2126,12 @@ export type Database = {
           store_response_status?: string | null
           timestamp: string
           tire_pull_status?: string | null
+          transfer_route?: string | null
           warehouse_received?: boolean | null
         }
         Update: {
           archived?: boolean | null
+          carrier?: string | null
           completed?: boolean | null
           completed_at?: string | null
           completed_by?: string | null
@@ -2040,7 +2192,29 @@ export type Database = {
           store_response_status?: string | null
           timestamp?: string
           tire_pull_status?: string | null
+          transfer_route?: string | null
           warehouse_received?: boolean | null
+        }
+        Relationships: []
+      }
+      orders_transfer_backfill_snapshot: {
+        Row: {
+          reason: string
+          row_data: Json
+          snapshot_at: string
+          snapshot_id: string
+        }
+        Insert: {
+          reason: string
+          row_data: Json
+          snapshot_at?: string
+          snapshot_id?: string
+        }
+        Update: {
+          reason?: string
+          row_data?: Json
+          snapshot_at?: string
+          snapshot_id?: string
         }
         Relationships: []
       }
@@ -2944,6 +3118,60 @@ export type Database = {
         }
         Relationships: []
       }
+      store_email_recipients_quarantine: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email_type: Database["public"]["Enums"]["email_type_enum"] | null
+          id: string | null
+          is_active: boolean | null
+          platform_source: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          recipient_role:
+            | Database["public"]["Enums"]["recipient_role_enum"]
+            | null
+          store_name: string | null
+          store_number: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email_type?: Database["public"]["Enums"]["email_type_enum"] | null
+          id?: string | null
+          is_active?: boolean | null
+          platform_source?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_role?:
+            | Database["public"]["Enums"]["recipient_role_enum"]
+            | null
+          store_name?: string | null
+          store_number?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email_type?: Database["public"]["Enums"]["email_type_enum"] | null
+          id?: string | null
+          is_active?: boolean | null
+          platform_source?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_role?:
+            | Database["public"]["Enums"]["recipient_role_enum"]
+            | null
+          store_name?: string | null
+          store_number?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       store_user_roles: {
         Row: {
           created_at: string
@@ -3708,6 +3936,7 @@ export type Database = {
       }
       wheel_orders: {
         Row: {
+          carrier: string | null
           completed: boolean | null
           completed_at: string | null
           completedat: string | null
@@ -3741,6 +3970,7 @@ export type Database = {
           store: string | null
           timestamp: string | null
           tire_pull_status: string | null
+          transfer_route: string | null
           wheelmaterial: string | null
           wheels_received: boolean | null
           wheelsize: string | null
@@ -3748,6 +3978,7 @@ export type Database = {
           workorderlink: string | null
         }
         Insert: {
+          carrier?: string | null
           completed?: boolean | null
           completed_at?: string | null
           completedat?: string | null
@@ -3781,6 +4012,7 @@ export type Database = {
           store?: string | null
           timestamp?: string | null
           tire_pull_status?: string | null
+          transfer_route?: string | null
           wheelmaterial?: string | null
           wheels_received?: boolean | null
           wheelsize?: string | null
@@ -3788,6 +4020,7 @@ export type Database = {
           workorderlink?: string | null
         }
         Update: {
+          carrier?: string | null
           completed?: boolean | null
           completed_at?: string | null
           completedat?: string | null
@@ -3821,6 +4054,7 @@ export type Database = {
           store?: string | null
           timestamp?: string | null
           tire_pull_status?: string | null
+          transfer_route?: string | null
           wheelmaterial?: string | null
           wheels_received?: boolean | null
           wheelsize?: string | null
@@ -4126,6 +4360,39 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_active_email_recipients: {
+        Row: {
+          email_type: Database["public"]["Enums"]["email_type_enum"] | null
+          is_active: boolean | null
+          recipient_email: string | null
+          recipient_role:
+            | Database["public"]["Enums"]["recipient_role_enum"]
+            | null
+          store_name: string | null
+          store_number: string | null
+        }
+        Insert: {
+          email_type?: Database["public"]["Enums"]["email_type_enum"] | null
+          is_active?: boolean | null
+          recipient_email?: string | null
+          recipient_role?:
+            | Database["public"]["Enums"]["recipient_role_enum"]
+            | null
+          store_name?: string | null
+          store_number?: string | null
+        }
+        Update: {
+          email_type?: Database["public"]["Enums"]["email_type_enum"] | null
+          is_active?: boolean | null
+          recipient_email?: string | null
+          recipient_role?:
+            | Database["public"]["Enums"]["recipient_role_enum"]
+            | null
+          store_name?: string | null
+          store_number?: string | null
+        }
+        Relationships: []
+      }
       zone_summary_view: {
         Row: {
           avg_fill_rate: number | null
@@ -4143,6 +4410,10 @@ export type Database = {
       }
     }
     Functions: {
+      _safe_text: {
+        Args: { v: string }
+        Returns: string
+      }
       approve_user_registration: {
         Args: { approved_by_email: string; registration_id: string }
         Returns: boolean
@@ -4150,6 +4421,16 @@ export type Database = {
       archive_order_by_invoice: {
         Args: { p_invoice: string }
         Returns: undefined
+      }
+      call_notification_controller: {
+        Args: { payload: Json }
+        Returns: {
+          body_preview: string
+          message: string
+          recipients_count: number
+          status_code: number
+          success: boolean
+        }[]
       }
       can_manage_plant_users: {
         Args: { target_plant: string }
@@ -4296,6 +4577,20 @@ export type Database = {
         Args: { target_store: string }
         Returns: boolean
       }
+      http_post_sync: {
+        Args: {
+          p_body: Json
+          p_headers: Json
+          p_timeout_ms?: number
+          p_url: string
+          p_wait_ms?: number
+        }
+        Returns: {
+          content: string
+          headers: Json
+          status_code: number
+        }[]
+      }
       is_cross_plant_order: {
         Args: { order_plant: string; user_default_plant: string }
         Returns: boolean
@@ -4310,6 +4605,10 @@ export type Database = {
       }
       is_dynamic_super_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_elevated_user: {
+        Args: { user_email: string }
         Returns: boolean
       }
       is_inventory_admin: {
@@ -4408,6 +4707,12 @@ export type Database = {
       normalize_store_number_for_email: {
         Args: { input_store: string }
         Returns: string
+      }
+      preview_recipients: {
+        Args: { p_email_type: string; p_store_number: string }
+        Returns: {
+          recipient_email: string
+        }[]
       }
       refresh_zone_alerts: {
         Args: Record<PropertyKey, never>

@@ -21,6 +21,7 @@ import { Card } from "@/components/ui/card";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
+import { DraftStatus } from "@/components/common/forms/DraftStatus";
 import OrderIDService from "@/services/OrderIDService";
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 import { hasFullStoreAccess } from "@/lib/roles";
@@ -70,10 +71,21 @@ export function OrderForm() {
     defaultValues,
   });
 
-  // Form persistence (only for non-admin users)
-  const { lastSaved, isRestoring, clearPersistedData, ready, didRestore } = useFormAutosave(form, 'order', {
+  // Form persistence (only for non-admin users) - Enhanced with server-side drafts
+  const { 
+    lastSaved, 
+    isRestoring, 
+    clearPersistedData, 
+    ready, 
+    didRestore,
+    saveStatus,
+    discardDraft,
+    saveNow
+  } = useFormAutosave(form, 'order', {
     enabled: !user?.isAdmin,
     excludeFields: ['managersEmail', 'destinationPlant'], // Exclude auto-generated fields
+    store: form.watch("store") || user?.store || 'Unknown Store',
+    plant: selectedPlant || 'Unknown Plant',
     onRestore: () => {
       console.log('🔄 Order form data restored');
     }
@@ -221,8 +233,14 @@ export function OrderForm() {
       <OrderFormHeader />
       
       {!user?.isAdmin && (
-        <div className="mb-4">
+        <div className="mb-4 space-y-2">
           <FormRestorationBanner isRestoring={isRestoring} lastSaved={lastSaved} />
+          <DraftStatus 
+            saveStatus={saveStatus}
+            lastSaved={lastSaved}
+            onDiscardDraft={discardDraft}
+            onSaveNow={saveNow}
+          />
         </div>
       )}
       
