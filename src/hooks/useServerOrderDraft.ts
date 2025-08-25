@@ -325,8 +325,14 @@ export function useServerOrderDraft({
     [debounceMs, enabled, saveToLocal, saveToServer]
   );
 
-  // Immediate save function with re-entry lock (Deliverable 5)
+  // Immediate save function with bulletproof re-entry lock (Deliverable 5)
   const saveNow = useCallback(async (source: SaveSource = 'button') => {
+    // Validate critical requirements FIRST before setting any locks
+    if (!draftKey || !user?.id) {
+      console.log('⚠️ saveNow() skipped - missing draftKey or userId', { draftKey, userId: user?.id });
+      return;
+    }
+    
     // Re-entry lock to prevent concurrent saves
     if (savingNowRef.current) {
       console.log('🔒 saveNow() already in progress, skipping...');
@@ -337,7 +343,10 @@ export function useServerOrderDraft({
     
     try {
       const dataToSave = pendingRef.current ?? data;
-      if (!dataToSave) return;
+      if (!dataToSave) {
+        console.log('⚠️ saveNow() skipped - no data to save');
+        return;
+      }
 
       setSaveStatus('saving');
       
@@ -368,6 +377,7 @@ export function useServerOrderDraft({
       });
       
     } finally {
+      // ALWAYS clear the lock, even if early returns happen above
       savingNowRef.current = false;
     }
   }, [data, saveToLocal, saveToServer, draftKey, store, plant, formType, subType, user?.id]);
