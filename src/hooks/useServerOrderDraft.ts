@@ -8,7 +8,7 @@ import { debounce } from 'lodash';
 
 // Enhanced types for telemetry
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
-type SaveSource = 'button' | 'autosave' | 'route_flush' | 'manual';
+export type SaveSource = 'button' | 'autosave' | 'route_flush' | 'manual' | 'pre_submit' | 'location_cleanup' | 'page_unload' | 'page_hide' | 'page_hidden';
 
 interface TelemetryEvent {
   event: string;

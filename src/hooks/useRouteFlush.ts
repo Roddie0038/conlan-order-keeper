@@ -1,9 +1,17 @@
 import { useEffect, useRef } from "react";
+import type { SaveSource } from "./useServerOrderDraft";
 
 type Params = {
-  saveNow: (source?: string) => void | Promise<void>;  // allow optional source
-  isSubmittingRef?: React.MutableRefObject<boolean>;    // properly typed ref
+  saveNow: (source?: SaveSource) => void | Promise<void>;   // precise return
+  isSubmittingRef?: React.MutableRefObject<boolean>;        // boolean ref
   enabled?: boolean;
+};
+
+// Compile-time guard (prevents regressions)
+const _paramsTypecheck: Params = {
+  saveNow: async (_src?: SaveSource): Promise<void> => {},
+  isSubmittingRef: { current: false },
+  enabled: true,
 };
 
 /**
