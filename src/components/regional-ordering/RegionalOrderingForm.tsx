@@ -10,6 +10,8 @@ import { Building2 } from 'lucide-react';
 interface RegionalOrderFormData {
   orderingStore: string;
   sourcePlant: string;
+  fulfilledByPlant: string;
+  isPlantToPlant: boolean;
   orderType: 'transfer' | 'mto';
   carrier?: string;
   requestedPickupTime?: string;
@@ -24,6 +26,8 @@ export function RegionalOrderingForm() {
   const [formData, setFormData] = useState<RegionalOrderFormData>({
     orderingStore: '',
     sourcePlant: '',
+    fulfilledByPlant: '',
+    isPlantToPlant: false,
     orderType: 'transfer',
   });
 
@@ -34,30 +38,52 @@ export function RegionalOrderingForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.orderingStore || !formData.sourcePlant) {
-      toast({
-        title: "Validation Error",
-        description: "Please select both ordering store and source plant",
-        variant: "destructive",
-      });
-      return;
+    // Validation logic for both modes
+    if (formData.isPlantToPlant) {
+      if (!formData.sourcePlant || !formData.fulfilledByPlant) {
+        toast({
+          title: "Validation Error",
+          description: "Please select both source plant and fulfilled by plant for plant-to-plant transfers",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      if (!formData.orderingStore || !formData.fulfilledByPlant) {
+        toast({
+          title: "Validation Error",
+          description: "Please select both ordering store and fulfilled by plant",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIsSubmitting(true);
     
     try {
-      // TODO: Implement regional order creation logic
-      console.log('Regional order data:', formData);
+      // TODO: Implement regional order creation logic with proper payload
+      const orderDescription = formData.isPlantToPlant 
+        ? `${formData.sourcePlant} to ${formData.fulfilledByPlant}` 
+        : formData.orderingStore;
+      
+      console.log('Regional order data:', {
+        ...formData,
+        orderDescription,
+        mode: formData.isPlantToPlant ? 'plant-to-plant' : 'store-to-plant'
+      });
       
       toast({
         title: "Order Created",
-        description: `${formData.orderType.toUpperCase()} order created for ${formData.orderingStore}`,
+        description: `${formData.orderType.toUpperCase()} order created for ${orderDescription}`,
       });
       
       // Reset form
       setFormData({
         orderingStore: '',
         sourcePlant: '',
+        fulfilledByPlant: '',
+        isPlantToPlant: false,
         orderType: 'transfer',
       });
       
@@ -86,8 +112,12 @@ export function RegionalOrderingForm() {
         <PlantStoreSelector
           orderingStore={formData.orderingStore}
           sourcePlant={formData.sourcePlant}
+          fulfilledByPlant={formData.fulfilledByPlant}
+          isPlantToPlant={formData.isPlantToPlant}
           onOrderingStoreChange={(value) => handleFormChange('orderingStore', value)}
           onSourcePlantChange={(value) => handleFormChange('sourcePlant', value)}
+          onFulfilledByPlantChange={(value) => handleFormChange('fulfilledByPlant', value)}
+          onModeChange={(isPlantToPlant) => handleFormChange('isPlantToPlant', isPlantToPlant)}
         />
 
         <OrderTypeSelector
