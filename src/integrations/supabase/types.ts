@@ -261,7 +261,7 @@ export type Database = {
         }
         Relationships: []
       }
-      complaint_email_logs: {
+      complaint_email_logs_quarantine_20250826: {
         Row: {
           complaint_id: string
           created_at: string | null
@@ -506,7 +506,7 @@ export type Database = {
         }
         Relationships: []
       }
-      email_template_versions: {
+      email_template_versions_quarantine_20250826: {
         Row: {
           created_at: string | null
           created_by: string
@@ -1179,6 +1179,7 @@ export type Database = {
           email_message: string | null
           have_casings: boolean | null
           id: string
+          idempotency_key: string | null
           in_transit_at: string | null
           inventory_last_updated: string | null
           invoice_number: string | null
@@ -1233,6 +1234,7 @@ export type Database = {
           email_message?: string | null
           have_casings?: boolean | null
           id?: string
+          idempotency_key?: string | null
           in_transit_at?: string | null
           inventory_last_updated?: string | null
           invoice_number?: string | null
@@ -1287,6 +1289,7 @@ export type Database = {
           email_message?: string | null
           have_casings?: boolean | null
           id?: string
+          idempotency_key?: string | null
           in_transit_at?: string | null
           inventory_last_updated?: string | null
           invoice_number?: string | null
@@ -1327,7 +1330,7 @@ export type Database = {
         }
         Relationships: []
       }
-      notification_delivery_log: {
+      notification_delivery_log_quarantine_20250826: {
         Row: {
           clicked_at: string | null
           created_at: string
@@ -1376,6 +1379,13 @@ export type Database = {
             columns: ["notification_id"]
             isOneToOne: false
             referencedRelation: "notification_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_delivery_log_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notification_queue_quarantine_20250826"
             referencedColumns: ["id"]
           },
         ]
@@ -1443,7 +1453,7 @@ export type Database = {
         }
         Relationships: []
       }
-      notification_queue: {
+      notification_queue_quarantine_20250826: {
         Row: {
           created_at: string
           email_type: string
@@ -1967,6 +1977,7 @@ export type Database = {
           role: string | null
           store_name: string | null
           store_number: string | null
+          updated_at: string | null
           user_role: string | null
         }
         Insert: {
@@ -1981,6 +1992,7 @@ export type Database = {
           role?: string | null
           store_name?: string | null
           store_number?: string | null
+          updated_at?: string | null
           user_role?: string | null
         }
         Update: {
@@ -1995,6 +2007,7 @@ export type Database = {
           role?: string | null
           store_name?: string | null
           store_number?: string | null
+          updated_at?: string | null
           user_role?: string | null
         }
         Relationships: []
@@ -2071,6 +2084,7 @@ export type Database = {
           email: string | null
           email_message: string | null
           id: number
+          idempotency_key: string | null
           in_transit_at: string | null
           invoice_number: string | null
           is_cross_dock: boolean
@@ -2137,6 +2151,7 @@ export type Database = {
           email?: string | null
           email_message?: string | null
           id?: number
+          idempotency_key?: string | null
           in_transit_at?: string | null
           invoice_number?: string | null
           is_cross_dock?: boolean
@@ -2203,6 +2218,7 @@ export type Database = {
           email?: string | null
           email_message?: string | null
           id?: number
+          idempotency_key?: string | null
           in_transit_at?: string | null
           invoice_number?: string | null
           is_cross_dock?: boolean
@@ -2317,7 +2333,7 @@ export type Database = {
           },
         ]
       }
-      ot_password_resets: {
+      ot_password_resets_quarantine_20250826: {
         Row: {
           created_at: string | null
           expires_at: string
@@ -2446,7 +2462,7 @@ export type Database = {
         }
         Relationships: []
       }
-      ot_user_sessions: {
+      ot_user_sessions_quarantine_20250826: {
         Row: {
           created_at: string | null
           expires_at: string
@@ -2548,7 +2564,7 @@ export type Database = {
         }
         Relationships: []
       }
-      pending_user_registrations: {
+      pending_user_registrations_quarantine_20250826: {
         Row: {
           admin_notes: string | null
           approved_at: string | null
@@ -2602,7 +2618,7 @@ export type Database = {
         }
         Relationships: []
       }
-      plant_admins: {
+      plant_admins_quarantine_20250826: {
         Row: {
           created_at: string
           id: string
@@ -2746,7 +2762,7 @@ export type Database = {
         }
         Relationships: []
       }
-      platform_users: {
+      platform_users_quarantine_20250826: {
         Row: {
           auth_user_id: string | null
           created_at: string | null
@@ -2893,7 +2909,7 @@ export type Database = {
         }
         Relationships: []
       }
-      regional_message_recipients: {
+      regional_message_recipients_quarantine_20250826: {
         Row: {
           created_at: string | null
           id: string
@@ -3135,11 +3151,13 @@ export type Database = {
       }
       store_email_recipients: {
         Row: {
+          active: boolean | null
           created_at: string | null
           created_by: string | null
           email_type: Database["public"]["Enums"]["email_type_enum"]
           id: string
           is_active: boolean | null
+          plant: string | null
           platform_source: string | null
           recipient_email: string
           recipient_email_norm: string | null
@@ -3149,13 +3167,16 @@ export type Database = {
           store_number: string
           updated_at: string | null
           updated_by: string | null
+          variant: string | null
         }
         Insert: {
+          active?: boolean | null
           created_at?: string | null
           created_by?: string | null
           email_type: Database["public"]["Enums"]["email_type_enum"]
           id?: string
           is_active?: boolean | null
+          plant?: string | null
           platform_source?: string | null
           recipient_email: string
           recipient_email_norm?: string | null
@@ -3165,13 +3186,16 @@ export type Database = {
           store_number: string
           updated_at?: string | null
           updated_by?: string | null
+          variant?: string | null
         }
         Update: {
+          active?: boolean | null
           created_at?: string | null
           created_by?: string | null
           email_type?: Database["public"]["Enums"]["email_type_enum"]
           id?: string
           is_active?: boolean | null
+          plant?: string | null
           platform_source?: string | null
           recipient_email?: string
           recipient_email_norm?: string | null
@@ -3181,6 +3205,7 @@ export type Database = {
           store_number?: string
           updated_at?: string | null
           updated_by?: string | null
+          variant?: string | null
         }
         Relationships: []
       }
@@ -3839,7 +3864,7 @@ export type Database = {
         }
         Relationships: []
       }
-      warehouse_trigger_notes: {
+      warehouse_trigger_notes_quarantine_20250826: {
         Row: {
           added_by: string
           created_at: string | null
@@ -4214,6 +4239,262 @@ export type Database = {
         }
         Relationships: []
       }
+      complaint_email_logs: {
+        Row: {
+          complaint_id: string | null
+          created_at: string | null
+          email_type: string | null
+          error_details: string | null
+          id: string | null
+          message_id: string | null
+          sent_to: string | null
+          status: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          complaint_id?: string | null
+          created_at?: string | null
+          email_type?: string | null
+          error_details?: string | null
+          id?: string | null
+          message_id?: string | null
+          sent_to?: string | null
+          status?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          complaint_id?: string | null
+          created_at?: string | null
+          email_type?: string | null
+          error_details?: string | null
+          id?: string | null
+          message_id?: string | null
+          sent_to?: string | null
+          status?: string | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_email_logs_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_template_versions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          html_template: string | null
+          id: string | null
+          subject_template: string | null
+          template_id: string | null
+          template_name: string | null
+          variables: Json | null
+          version_number: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          html_template?: string | null
+          id?: string | null
+          subject_template?: string | null
+          template_id?: string | null
+          template_name?: string | null
+          variables?: Json | null
+          version_number?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          html_template?: string | null
+          id?: string | null
+          subject_template?: string | null
+          template_id?: string | null
+          template_name?: string | null
+          variables?: Json | null
+          version_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_delivery_log: {
+        Row: {
+          clicked_at: string | null
+          created_at: string | null
+          delivered_at: string | null
+          delivery_provider: string | null
+          delivery_status: string | null
+          error_details: string | null
+          id: string | null
+          notification_id: string | null
+          opened_at: string | null
+          provider_message_id: string | null
+          recipient_email: string | null
+          recipient_role: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_provider?: string | null
+          delivery_status?: string | null
+          error_details?: string | null
+          id?: string | null
+          notification_id?: string | null
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email?: string | null
+          recipient_role?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_provider?: string | null
+          delivery_status?: string | null
+          error_details?: string | null
+          id?: string | null
+          notification_id?: string | null
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email?: string | null
+          recipient_role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_delivery_log_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notification_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_delivery_log_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notification_queue_quarantine_20250826"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_queue: {
+        Row: {
+          created_at: string | null
+          email_type: string | null
+          error_message: string | null
+          id: string | null
+          max_retries: number | null
+          metadata: Json | null
+          order_id: string | null
+          order_type: string | null
+          plant: string | null
+          priority: number | null
+          processed_at: string | null
+          recipients: Json | null
+          retry_count: number | null
+          scheduled_at: string | null
+          status: string | null
+          store_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_type?: string | null
+          error_message?: string | null
+          id?: string | null
+          max_retries?: number | null
+          metadata?: Json | null
+          order_id?: string | null
+          order_type?: string | null
+          plant?: string | null
+          priority?: number | null
+          processed_at?: string | null
+          recipients?: Json | null
+          retry_count?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+          store_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_type?: string | null
+          error_message?: string | null
+          id?: string | null
+          max_retries?: number | null
+          metadata?: Json | null
+          order_id?: string | null
+          order_type?: string | null
+          plant?: string | null
+          priority?: number | null
+          processed_at?: string | null
+          recipients?: Json | null
+          retry_count?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+          store_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ot_password_resets: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string | null
+          ip_address: unknown | null
+          reset_token: string | null
+          used_at: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          ip_address?: unknown | null
+          reset_token?: string | null
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          ip_address?: unknown | null
+          reset_token?: string | null
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ot_password_resets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ot_password_resets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users_searchable"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ot_platform_users_searchable: {
         Row: {
           auth_user_id: string | null
@@ -4277,6 +4558,135 @@ export type Database = {
         }
         Relationships: []
       }
+      ot_user_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string | null
+          ip_address: unknown | null
+          is_active: boolean | null
+          last_accessed: string | null
+          platform: string | null
+          session_token: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_accessed?: string | null
+          platform?: string | null
+          session_token?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_accessed?: string | null
+          platform?: string | null
+          session_token?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ot_user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ot_user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ot_platform_users_searchable"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pending_user_registrations: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          auth_user_id: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          plant: string | null
+          platform: Database["public"]["Enums"]["platform_type"] | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          status: string | null
+          store: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          auth_user_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          plant?: string | null
+          platform?: Database["public"]["Enums"]["platform_type"] | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          status?: string | null
+          store?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          auth_user_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          plant?: string | null
+          platform?: Database["public"]["Enums"]["platform_type"] | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          status?: string | null
+          store?: string | null
+        }
+        Relationships: []
+      }
+      plant_admins: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          plant: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          plant?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          plant?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       plant_normalization_verification: {
         Row: {
           non_normalized_plants: number | null
@@ -4284,6 +4694,66 @@ export type Database = {
           table_name: string | null
           total_records: number | null
           unique_plant_values: string[] | null
+        }
+        Relationships: []
+      }
+      platform_users: {
+        Row: {
+          auth_user_id: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          last_login: string | null
+          must_change_password: boolean | null
+          plant: string | null
+          platform: Database["public"]["Enums"]["platform_type"] | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          status: Database["public"]["Enums"]["user_status"] | null
+          store: string | null
+          temporary_password_expires_at: string | null
+          temporary_password_set_at: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          last_login?: string | null
+          must_change_password?: boolean | null
+          plant?: string | null
+          platform?: Database["public"]["Enums"]["platform_type"] | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          status?: Database["public"]["Enums"]["user_status"] | null
+          store?: string | null
+          temporary_password_expires_at?: string | null
+          temporary_password_set_at?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          last_login?: string | null
+          must_change_password?: boolean | null
+          plant?: string | null
+          platform?: Database["public"]["Enums"]["platform_type"] | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          status?: Database["public"]["Enums"]["user_status"] | null
+          store?: string | null
+          temporary_password_expires_at?: string | null
+          temporary_password_set_at?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -4316,6 +4786,41 @@ export type Database = {
           seconds_to_read?: never
         }
         Relationships: []
+      }
+      regional_message_recipients: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          message_id: string | null
+          read_at: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          message_id?: string | null
+          read_at?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          message_id?: string | null
+          read_at?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regional_message_recipients_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "regional_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       unread_message_summary: {
         Row: {
@@ -4464,6 +4969,50 @@ export type Database = {
           store_number?: string | null
         }
         Relationships: []
+      }
+      warehouse_trigger_notes: {
+        Row: {
+          added_by: string | null
+          created_at: string | null
+          id: string | null
+          note: string | null
+          status:
+            | Database["public"]["Enums"]["trigger_review_status_enum"]
+            | null
+          trigger_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string | null
+          id?: string | null
+          note?: string | null
+          status?:
+            | Database["public"]["Enums"]["trigger_review_status_enum"]
+            | null
+          trigger_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string | null
+          id?: string | null
+          note?: string | null
+          status?:
+            | Database["public"]["Enums"]["trigger_review_status_enum"]
+            | null
+          trigger_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_trigger_notes_trigger_id_fkey"
+            columns: ["trigger_id"]
+            isOneToOne: false
+            referencedRelation: "email_trigger_usage_log"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       zone_summary_view: {
         Row: {

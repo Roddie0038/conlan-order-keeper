@@ -63,7 +63,7 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
           quantity: parseInt(formData.quantity, 10),
           notes: formData.notes.trim(),
           store, plant,
-          name: user?.full_name ?? user?.name ?? '',
+          name: user?.name ?? '',
           email: user?.email ?? '',
           role: user?.role ?? '',
           timestamp: new Date().toISOString(),
@@ -143,7 +143,7 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
             </div>
             <div>
               <Label className="font-medium">Name</Label>
-              <p className="text-muted-foreground">{user?.full_name ?? user?.name ?? 'Not provided'}</p>
+              <p className="text-muted-foreground">{user?.name ?? 'Not provided'}</p>
             </div>
             <div>
               <Label className="font-medium">Email</Label>
