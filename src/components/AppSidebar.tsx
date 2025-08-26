@@ -30,10 +30,12 @@ import {
   MessageSquare,
   Users,
   Mail,
-  Globe
+  Globe,
+  Network
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
+import { hasRegionalOrderingAccess } from "@/utils/regionalOrderingAccess";
 
 const navigationItems = [
   {
@@ -85,6 +87,15 @@ const navigationItems = [
     title: "Plant Broadcasts",
     url: "/plant-broadcasts",
     icon: Globe,
+  },
+];
+
+// Regional ordering for management roles
+const regionalOrderingItems = [
+  {
+    title: "Regional Ordering",
+    url: "/regional-ordering",
+    icon: Network,
   },
 ];
 
@@ -202,6 +213,31 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Regional Ordering for Management Roles */}
+        {hasRegionalOrderingAccess(user) && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-blue-100 font-semibold">Management</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {regionalOrderingItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={location.pathname === item.url}
+                      className="text-blue-100 hover:bg-blue-500/30 hover:text-white data-[active=true]:bg-blue-500/50 data-[active=true]:text-white rounded-lg transition-all duration-200 backdrop-blur-sm border border-transparent hover:border-blue-400/30"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Store User Navigation */}
         {user && !user.isAdmin && (

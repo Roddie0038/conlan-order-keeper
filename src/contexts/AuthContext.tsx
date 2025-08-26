@@ -12,7 +12,7 @@ interface StoreManager {
   is_active: boolean;
 }
 
-interface ExtendedUser extends User {
+export interface ExtendedUser extends User {
   // Flattened fields that components expect
   name: string;
   title: string;
