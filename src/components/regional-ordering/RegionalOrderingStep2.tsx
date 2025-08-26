@@ -10,6 +10,15 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, ArrowLeft, Package } from 'lucide-react';
 
+// Helper function to get display name from user object
+function getDisplayName(user?: any): string {
+  return user?.full_name
+      ?? user?.name
+      ?? user?.user_metadata?.full_name
+      ?? user?.email
+      ?? 'Not provided';
+}
+
 interface RegionalOrderingStep2Props {
   plant: string;
   store: string;
@@ -63,7 +72,7 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
           quantity: parseInt(formData.quantity, 10),
           notes: formData.notes.trim(),
           store, plant,
-          name: user?.name ?? '',
+          name: getDisplayName(user),
           email: user?.email ?? '',
           role: user?.role ?? '',
           timestamp: new Date().toISOString(),
@@ -143,7 +152,7 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
             </div>
             <div>
               <Label className="font-medium">Name</Label>
-              <p className="text-muted-foreground">{user?.name ?? 'Not provided'}</p>
+              <p className="text-muted-foreground">{getDisplayName(user)}</p>
             </div>
             <div>
               <Label className="font-medium">Email</Label>

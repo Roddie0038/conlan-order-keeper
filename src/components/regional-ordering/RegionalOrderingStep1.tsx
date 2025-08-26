@@ -8,6 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Building2, MapPin, ArrowRight } from 'lucide-react';
 
+// Helper function to get display name from user object
+function getDisplayName(user?: any): string {
+  return user?.full_name
+      ?? user?.name
+      ?? user?.user_metadata?.full_name
+      ?? user?.email
+      ?? 'Not provided';
+}
+
 interface RegionalOrderingStep1Props {
   onContinue: (plant: string, store: string) => void;
 }
@@ -65,7 +74,7 @@ export function RegionalOrderingStep1({ onContinue }: RegionalOrderingStep1Props
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-medium">Name</Label>
-              <p className="text-sm text-muted-foreground">{user?.email || 'Not provided'}</p>
+              <p className="text-sm text-muted-foreground">{getDisplayName(user)}</p>
             </div>
             <div>
               <Label className="text-sm font-medium">Email</Label>
