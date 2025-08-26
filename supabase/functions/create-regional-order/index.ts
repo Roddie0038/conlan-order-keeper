@@ -9,7 +9,7 @@ type SourceMode = 'PLANT_TO_PLANT' | 'STORE_TO_PLANT';
 interface RegionalOrderPayload {
   order_type: OrderType;
   regional_enabled: true;
-  destination_store_id: string; // uuid (stores.id)
+  destination_store_id: string; // bigint as string (stores.id)
   source_mode: SourceMode;
   source_plant: PlantCode;
   source_store_id?: string | null;
