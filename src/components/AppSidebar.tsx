@@ -222,11 +222,11 @@ export function AppSidebar() {
               <SidebarMenu>
                 {regionalOrderingItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={location.pathname === item.url}
-                      className="text-blue-100 hover:bg-blue-500/30 hover:text-white data-[active=true]:bg-blue-500/50 data-[active=true]:text-white rounded-lg transition-all duration-200 backdrop-blur-sm border border-transparent hover:border-blue-400/30"
-                    >
+                     <SidebarMenuButton 
+                       asChild 
+                       isActive={location.pathname === item.url}
+                       className="text-orange-200 hover:bg-orange-500/30 hover:text-orange-100 data-[active=true]:bg-orange-500/50 data-[active=true]:text-orange-100 rounded-lg transition-all duration-200 backdrop-blur-sm border border-transparent hover:border-orange-400/30"
+                     >
                       <Link to={item.url}>
                         <item.icon className="w-4 h-4" />
                         <span>{item.title}</span>

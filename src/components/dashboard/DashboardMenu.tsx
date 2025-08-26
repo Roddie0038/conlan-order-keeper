@@ -4,6 +4,7 @@ import { DashboardTile, DashboardTileProps } from "./DashboardTile";
 import { OptimizedApprovedTreadsCard } from "./OptimizedApprovedTreadsCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { DeploymentControls } from "@/components/admin/DeploymentControls";
+import { hasRegionalOrderingAccess } from "@/utils/regionalOrderingAccess";
 import { useMemo } from "react";
 
 interface DashboardMenuProps {
@@ -110,6 +111,23 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
       }
     ];
     
+    // Add Regional Ordering for management roles
+    if (hasRegionalOrderingAccess(user)) {
+      baseItems.push({
+        title: "REGIONAL ORDERING",
+        icon: null,
+        path: "/regional-ordering",
+        color: "",
+        borderColor: "border-orange-400",
+        delay: 0.75,
+        size: "col-span-1",
+        hideTitle: true,
+        fullSizeImage: true,
+        backgroundImage: "/lovable-uploads/310fc0d8-29ad-4965-98d1-a236b46f73e8.png",
+        loaded
+      });
+    }
+    
     // Only add admin items if user is admin (memoized check)
     if (user?.isAdmin) {
       baseItems.push({
@@ -144,7 +162,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     }
 
     return baseItems;
-  }, [user?.isAdmin, loaded]);
+  }, [user?.isAdmin, loaded, hasRegionalOrderingAccess(user)]);
 
   return (
     <>
