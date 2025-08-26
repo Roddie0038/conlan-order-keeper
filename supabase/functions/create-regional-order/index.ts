@@ -121,9 +121,9 @@ serve(async (req) => {
       });
     }
 
-    // Insert payload
+    // Insert payload (align with your tables)
     const insertPayload = {
-      order_type: body.order_type,
+      order_type: body.order_type, // ensure 'orders' has this column; otherwise remove for that table
       is_regional: true,
       source_plant: body.source_plant,
       destination_plant,
