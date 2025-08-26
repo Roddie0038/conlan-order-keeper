@@ -9,7 +9,7 @@ type SourceMode = 'PLANT_TO_PLANT' | 'STORE_TO_PLANT';
 interface RegionalOrderPayload {
   order_type: OrderType;
   regional_enabled: true;
-  destination_store_id: string; // uuid
+  destination_store_id: string; // uuid (stores.id)
   source_mode: SourceMode;
   source_plant: PlantCode;
   source_store_id?: string | null;
@@ -28,13 +28,11 @@ const corsHeaders = {
 };
 
 const TABLES = {
-  transfer: "orders",
+  transfer: "orders",   // adjust if your transfer "new requests" table is named differently
   mto: "mto_orders",
 };
 
 serve(async (req) => {
-  console.log('create-regional-order called:', req.method);
-  
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -45,13 +43,10 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization") || "";
     const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
-    const userClient = createClient(supabaseUrl, anon, { 
-      global: { headers: { Authorization: `Bearer ${jwt}` } } 
-    });
+    const userClient = createClient(supabaseUrl, anon, { global: { headers: { Authorization: `Bearer ${jwt}` } } });
     const svcClient = createClient(supabaseUrl, svc);
 
     const body = (await req.json()) as RegionalOrderPayload;
-    console.log('Payload received:', body);
 
     // Shape checks
     if (body.regional_enabled !== true) throw new Error("regional_enabled must be true");
@@ -64,61 +59,50 @@ serve(async (req) => {
     // Who's calling?
     const { data: authUserRes } = await userClient.auth.getUser();
     const userId = authUserRes.user?.id;
-    if (!userId) return new Response(JSON.stringify({ message: "Unauthorized" }), { 
-      status: 401, headers: corsHeaders 
-    });
+    if (!userId) {
+      return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
 
-    // Role gate
+    // Role gate (uses your real columns)
     const { data: me, error: meErr } = await svcClient
       .from("ot_platform_users")
-      .select("id, role, plant, store")
+      .select("id, role, plant, store, status")
       .eq("auth_user_id", userId)
       .eq("status", "active")
       .single();
-    
+
     if (meErr || !me) {
-      console.log('User not found or error:', meErr);
-      return new Response(JSON.stringify({ message: "Forbidden" }), { 
-        status: 403, headers: corsHeaders 
-      });
+      return new Response(JSON.stringify({ message: "Forbidden" }), { status: 403, headers: corsHeaders });
     }
 
     const allowedRoles = new Set(["super_admin","warehouse_manager","retread_manager","plant_manager","operations_manager"]);
     if (!allowedRoles.has(me.role)) {
-      console.log('Role not allowed:', me.role);
-      return new Response(JSON.stringify({ message: "Forbidden" }), { 
-        status: 403, headers: corsHeaders 
-      });
+      return new Response(JSON.stringify({ message: "Forbidden" }), { status: 403, headers: corsHeaders });
     }
 
-    // Resolve destination store & plant
+    // Resolve destination store & plant from actual columns
     const { data: storeRow, error: storeErr } = await svcClient
       .from("stores")
-      .select("id, store_number, store_name, plant")
+      .select("id, store_number, store_name, plant") // plant is the code
       .eq("id", body.destination_store_id)
       .single();
-    
-    if (storeErr || !storeRow) {
-      console.log('Store not found:', storeErr);
-      throw new Error("Invalid destination_store_id");
-    }
+    if (storeErr || !storeRow) throw new Error("Invalid destination_store_id");
     if (["097","098","099"].includes(storeRow.store_number)) throw new Error("Destination cannot be a plant");
 
     const destination_plant = storeRow.plant as PlantCode;
 
-    // Idempotency check
+    // (Optional but recommended) Grant check — quick allow-all for MVP or add your mapping table later:
+    // If you later add user_plant_access: verify body.source_plant is allowed for this user.
+
+    // Idempotency
     const table = TABLES[body.order_type];
     const { data: already } = await svcClient
       .from(table)
       .select("id, order_type, source_plant, destination_plant, destination_store_id")
       .eq("idempotency_key", body.idempotency_key)
       .limit(1);
-    
     if (already && already.length > 0) {
-      console.log('Idempotency conflict found:', already[0]);
-      return new Response(JSON.stringify({ ok: true, conflict: true, order: already[0] }), { 
-        status: 409, headers: corsHeaders 
-      });
+      return new Response(JSON.stringify({ ok: true, conflict: true, order: already[0] }), { status: 409, headers: corsHeaders });
     }
 
     // Insert payload (align with your tables)
@@ -137,28 +121,16 @@ serve(async (req) => {
       transport_notes: body.transport?.notes ?? null,
     };
 
-    console.log('Inserting into table:', table, insertPayload);
-
     const { data: inserted, error: insErr } = await svcClient
       .from(table)
       .insert(insertPayload)
       .select("id, order_type, source_plant, destination_plant, destination_store_id")
       .single();
-    
-    if (insErr) {
-      console.log('Insert error:', insErr);
-      throw insErr;
-    }
+    if (insErr) throw insErr;
 
-    console.log('Successfully created order:', inserted);
-    return new Response(JSON.stringify({ ok: true, order: inserted }), { 
-      status: 200, headers: corsHeaders 
-    });
+    return new Response(JSON.stringify({ ok: true, order: inserted }), { status: 200, headers: corsHeaders });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
-    console.error('Error:', message);
-    return new Response(JSON.stringify({ message }), { 
-      status: 400, headers: corsHeaders 
-    });
+    return new Response(JSON.stringify({ message }), { status: 400, headers: corsHeaders });
   }
 });

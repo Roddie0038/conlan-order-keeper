@@ -4821,6 +4821,10 @@ export type Database = {
         }
         Returns: string
       }
+      store_name_conflicts_with_plant_real: {
+        Args: { _name: string }
+        Returns: boolean
+      }
       update_last_login_timestamp: {
         Args: Record<PropertyKey, never>
         Returns: undefined
