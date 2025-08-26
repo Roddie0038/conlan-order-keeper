@@ -2695,6 +2695,21 @@ export type Database = {
         }
         Relationships: []
       }
+      plants: {
+        Row: {
+          plant_code: string
+          plant_name_normalized: string
+        }
+        Insert: {
+          plant_code: string
+          plant_name_normalized: string
+        }
+        Update: {
+          plant_code?: string
+          plant_name_normalized?: string
+        }
+        Relationships: []
+      }
       platform_access_logs: {
         Row: {
           access_granted: boolean | null
