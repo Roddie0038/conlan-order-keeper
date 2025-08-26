@@ -5,10 +5,10 @@ export type SourceMode = 'PLANT_TO_PLANT' | 'STORE_TO_PLANT';
 export interface RegionalOrderPayload {
   order_type: RegionalOrderType;
   regional_enabled: true;
-  destination_store_id: string;  // uuid
+  destination_store_id: number | string;  // bigint id or numeric string
   source_mode: SourceMode;
   source_plant: PlantCode;
-  source_store_id?: string | null;
+  source_store_id?: number | string | null;
   transport?: {
     carrier?: string;
     requested_pickup_at?: string | null;
