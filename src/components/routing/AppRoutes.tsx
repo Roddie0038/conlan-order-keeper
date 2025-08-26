@@ -32,6 +32,7 @@ import UserManagement from '@/pages/UserManagement';
 import AdminEmailRouting from '@/pages/AdminEmailRouting';
 import { PlantBroadcastsPage } from '@/components/plant-broadcasts/PlantBroadcastsPage';
 import RegionalOrdering from '@/pages/RegionalOrdering';
+import RegionalOrderingSubmit from '@/pages/RegionalOrderingSubmit';
 
 export function AppRoutes() {
   return (
@@ -210,6 +211,12 @@ export function AppRoutes() {
       <Route path="/regional-ordering" element={
         <AuthGuard>
           <RegionalOrdering />
+        </AuthGuard>
+      } />
+      
+      <Route path="/regional-ordering/submit" element={
+        <AuthGuard>
+          <RegionalOrderingSubmit />
         </AuthGuard>
       } />
     </Routes>
