@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { SaveSource } from "./useServerOrderDraft";
+import type { SaveSource } from "@/hooks/useServerOrderDraft";
 
 type Params = {
   saveNow: (source?: SaveSource) => void | Promise<void>;   // precise return
@@ -13,6 +13,7 @@ const _paramsTypecheck: Params = {
   isSubmittingRef: { current: false },
   enabled: true,
 };
+void _paramsTypecheck; // silence unused var
 
 /**
  * Hook to flush draft saves on route changes and page unload
