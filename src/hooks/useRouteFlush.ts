@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import type { SaveSource } from "@/hooks/useServerOrderDraft";
+import type { SaveSource } from "@/hooks/useServerOrderDraft"; // adjust if needed
 
 type Params = {
-  saveNow: (source?: SaveSource) => void | Promise<void>;
-  isSubmittingRef?: React.MutableRefObject<boolean>;
+  saveNow: (source?: SaveSource) => void | Promise<void>;   // precise return
+  isSubmittingRef?: React.MutableRefObject<boolean>;        // boolean ref
   enabled?: boolean;
 };
 
@@ -28,8 +28,6 @@ export function useRouteFlush({ saveNow, isSubmittingRef, enabled = true }: Para
       const watchdog = window.setTimeout(() => {}, 4000);
       try {
         // Tag the source for consistent telemetry
-        // Note: page visibility/unload handlers elsewhere should use their own sources.
-        // This path is purely the route unmount.
         // eslint-disable-next-line no-console
         console.log("🚀 Location cleanup, flushing draft");
         saveNow("location_cleanup");
