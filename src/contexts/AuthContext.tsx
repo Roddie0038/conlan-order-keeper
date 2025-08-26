@@ -22,6 +22,7 @@ export interface ExtendedUser extends User {
   isAdmin: boolean;
   hasFullStoreAccess: boolean;
   username: string;
+  role?: string; // Role from ot_platform_users table for access control
   
   // Keep nested object for backwards compatibility
   storeManager?: StoreManager;
@@ -93,6 +94,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Helper function to fetch OT platform user profile
+  const fetchOTPlatformUser = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('ot_platform_users')
+        .select('role, plant, store, status')
+        .eq('email', email)
+        .eq('status', 'active')
+        .single();
+
+      if (error) {
+        console.error('Error fetching OT platform user:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error calling OT platform user query:', error);
+      return null;
+    }
+  };
+
   // Helper function to determine admin status
   const isUserAdmin = (email: string, role?: string): boolean => {
     // Check for specific admin emails
@@ -139,7 +162,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Enhanced user object with flattened store manager data
   const enrichUserWithStoreData = async (authUser: User): Promise<ExtendedUser> => {
-    const storeManager = await fetchStoreManagerProfile(authUser.email!);
+    // Fetch both manager and OT platform data in parallel
+    const [storeManager, otPlatformUser] = await Promise.all([
+      fetchStoreManagerProfile(authUser.email!),
+      fetchOTPlatformUser(authUser.email!)
+    ]);
     
     // Get plant and store info from user metadata if available
     const userMetadata = authUser.user_metadata || {};
@@ -158,6 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin: isUserAdmin(authUser.email!, storeManager.role),
         hasFullStoreAccess: hasFullStoreAccess(authUser.email!, storeManager.role),
         username: storeManager.name, // Use name as username
+        role: otPlatformUser?.role || undefined, // Add OT platform role for access control
         
         // Keep nested object for backwards compatibility
         storeManager: {
@@ -179,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAdmin: isUserAdmin(authUser.email!),
       hasFullStoreAccess: hasFullStoreAccess(authUser.email!),
       username: userMetadata.role_title || authUser.email!,
+      role: otPlatformUser?.role || undefined, // Add OT platform role even for fallback users
       storeManager: undefined
     };
   };
