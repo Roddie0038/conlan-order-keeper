@@ -114,7 +114,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
     // Add Regional Ordering for management roles
     if (hasRegionalOrderingAccess(user)) {
       baseItems.push({
-        title: "REGIONAL ORDERING",
+        title: "REGIONAL ORDERS",
         icon: null,
         path: "/regional-ordering",
         color: "",
@@ -123,7 +123,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         size: "col-span-1",
         hideTitle: true,
         fullSizeImage: true,
-        backgroundImage: "/lovable-uploads/310fc0d8-29ad-4965-98d1-a236b46f73e8.png",
+        backgroundImage: "/lovable-uploads/e99ad623-5720-4b73-acdd-964291dbf952.png",
         loaded
       });
     }
