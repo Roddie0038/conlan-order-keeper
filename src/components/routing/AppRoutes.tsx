@@ -31,7 +31,8 @@ import PlantSwitcherGuide from '@/pages/PlantSwitcherGuide';
 import UserManagement from '@/pages/UserManagement';
 import AdminEmailRouting from '@/pages/AdminEmailRouting';
 import { PlantBroadcastsPage } from '@/components/plant-broadcasts/PlantBroadcastsPage';
-import RegionalOrdering from '@/pages/RegionalOrdering';
+import RegionalOrdering from '@/pages/RegionalOrderingStep1';
+import RegionalOrderingStep2 from '@/pages/RegionalOrderingStep2';
 
 export function AppRoutes() {
   return (
@@ -210,6 +211,12 @@ export function AppRoutes() {
       <Route path="/regional-ordering" element={
         <AuthGuard>
           <RegionalOrdering />
+        </AuthGuard>
+      } />
+      
+      <Route path="/regional-ordering/submit" element={
+        <AuthGuard>
+          <RegionalOrderingStep2 />
         </AuthGuard>
       } />
     </Routes>
