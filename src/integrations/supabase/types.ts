@@ -3127,6 +3127,7 @@ export type Database = {
           is_active: boolean | null
           platform_source: string | null
           recipient_email: string
+          recipient_email_norm: string | null
           recipient_name: string | null
           recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
           store_name: string
@@ -3142,6 +3143,7 @@ export type Database = {
           is_active?: boolean | null
           platform_source?: string | null
           recipient_email: string
+          recipient_email_norm?: string | null
           recipient_name?: string | null
           recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
           store_name: string
@@ -3157,6 +3159,7 @@ export type Database = {
           is_active?: boolean | null
           platform_source?: string | null
           recipient_email?: string
+          recipient_email_norm?: string | null
           recipient_name?: string | null
           recipient_role?: Database["public"]["Enums"]["recipient_role_enum"]
           store_name?: string
