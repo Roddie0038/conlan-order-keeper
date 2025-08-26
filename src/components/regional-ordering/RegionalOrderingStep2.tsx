@@ -56,30 +56,28 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
     setIsSubmitting(true);
 
     try {
-      // Call the handleOrdersPost edge function
+      const idemKey = crypto.randomUUID();
       const { data, error } = await supabase.functions.invoke('handleOrdersPost', {
         body: {
           product_number: formData.productNumber.trim(),
-          quantity: parseInt(formData.quantity),
+          quantity: parseInt(formData.quantity, 10),
           notes: formData.notes.trim(),
-          store: store,
-          plant: plant,
-          name: user?.email || '',
-          email: user?.email || '',
-          role: user?.role || '',
-          timestamp: new Date().toISOString()
+          store, plant,
+          name: user?.full_name ?? user?.name ?? '',
+          email: user?.email ?? '',
+          role: user?.role ?? '',
+          timestamp: new Date().toISOString(),
+          idempotency_key: idemKey
         }
       });
 
-      if (error) {
-        console.error('Edge function error:', error);
-        throw new Error(error.message || 'Failed to submit order');
-      }
+      if (error) throw new Error(error.message || 'Failed to submit order');
 
-      toast({
-        title: "Order Submitted Successfully!",
-        description: `Your regional order has been submitted and will be processed by ${plant}.`
-      });
+      if (data?.duplicate) {
+        toast({ title: 'Already submitted', description: 'We recognized a retry and kept your original submission.' });
+      } else {
+        toast({ title: 'Order Submitted', description: `Processed by ${plant}.` });
+      }
 
       // Navigate back to step 1
       navigate('/regional-ordering');
@@ -145,7 +143,7 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
             </div>
             <div>
               <Label className="font-medium">Name</Label>
-              <p className="text-muted-foreground">{user?.email || 'Not provided'}</p>
+              <p className="text-muted-foreground">{user?.full_name ?? user?.name ?? 'Not provided'}</p>
             </div>
             <div>
               <Label className="font-medium">Email</Label>

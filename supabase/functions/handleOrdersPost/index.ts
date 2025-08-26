@@ -16,6 +16,7 @@ interface OrderRequest {
   email: string;
   role: string;
   timestamp: string;
+  idempotency_key?: string;
 }
 
 serve(async (req) => {
@@ -30,79 +31,51 @@ serve(async (req) => {
 
     // Get the request body
     const body: OrderRequest = await req.json();
-    
-    // Validate required fields
-    if (!body.product_number || !body.quantity || !body.store || !body.plant) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        { status: 400, headers: corsHeaders }
-      );
+
+    // validate minimal fields
+    const qty = Number(body.quantity);
+    if (!body.product_number?.trim() || Number.isNaN(qty) || qty <= 0 || !body.store || !body.plant) {
+      return new Response(JSON.stringify({ error: "Missing/invalid fields" }), { status: 400, headers: corsHeaders });
     }
 
-    // Normalize store format to "City Name 0XX"
-    const normalizeStore = (store: string): string => {
-      // Extract the numeric part
-      const match = store.match(/(\d+)/);
-      if (!match) return store;
-      
-      const storeNumber = match[1].padStart(3, '0');
-      
-      // Map store numbers to city names
-      const storeMap: Record<string, string> = {
-        '022': 'Fort Worth',
-        '027': 'Grand Prairie', 
-        '039': 'Irving',
-        '048': 'Garland'
-      };
-      
-      const cityName = storeMap[storeNumber];
-      return cityName ? `${cityName} ${storeNumber}` : store;
-    };
+    // idempotency: accept from client or mint once
+    const idem = (body as any).idempotency_key ?? crypto.randomUUID();
 
-    // Prepare the order data
+    // Use existing normalize_store_format RPC for consistency
+    const { data: normalizedStore } = await supabase.rpc('normalize_store_format', { store_input: body.store });
+
+    // normalize
     const orderData = {
-      product_number: body.product_number,
-      quantity: body.quantity,
-      notes: body.notes || null,
-      store: normalizeStore(body.store),
-      plant: body.plant,
-      name: body.name,
-      email: body.email,
-      role: body.role,
-      timestamp: body.timestamp,
-      status: 'pending',
+      product_number: body.product_number.trim(),
+      quantity: qty,
+      notes: body.notes?.trim() || null,
+      store: (normalizedStore || body.store).trim(),
+      plant: body.plant.trim(),
+      name: (body.name ?? "").trim(),
+      email: (body.email ?? "").trim(),
+      role: (body.role ?? "").trim(),
+      timestamp: body.timestamp ?? new Date().toISOString(),
+      status: "pending",
       completed: false,
-      idempotency_key: crypto.randomUUID()
+      idempotency_key: idem,
     };
 
-    // Insert into orders table
-    const { data, error } = await supabase
-      .from('orders')
-      .insert([orderData])
-      .select()
-      .single();
+    // insert
+    const ins = await supabase.from("orders").insert([orderData]).select().single();
 
-    if (error) {
-      console.error('Database error:', error);
-      return new Response(
-        JSON.stringify({ error: "Failed to create order" }),
-        { status: 500, headers: corsHeaders }
-      );
+    if (ins.error) {
+      if ((ins.error as any).code === "23505") {
+        // duplicate: return existing
+        const existing = await supabase.from("orders").select("*").eq("idempotency_key", idem).single();
+        console.log(JSON.stringify({ evt: "regional_order.create", idempotency_key: idem, plant: orderData.plant, store: orderData.store, duplicate: true }));
+        return new Response(JSON.stringify({ success: true, duplicate: true, order: existing.data, idempotency_key: idem }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      console.error("DB insert error:", ins.error);
+      return new Response(JSON.stringify({ error: "Failed to create order" }), { status: 500, headers: corsHeaders });
     }
 
-    console.log('Order created successfully:', data);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        order: data,
-        message: "Order submitted successfully"
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      }
-    );
+    console.log(JSON.stringify({ evt: "regional_order.create", idempotency_key: idem, plant: orderData.plant, store: orderData.store, duplicate: false }));
+    return new Response(JSON.stringify({ success: true, order: ins.data, idempotency_key: idem }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {
     console.error('Error processing order:', error);
