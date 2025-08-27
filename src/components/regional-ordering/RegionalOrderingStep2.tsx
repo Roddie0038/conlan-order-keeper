@@ -20,8 +20,9 @@ function getDisplayName(user?: any): string {
 }
 
 interface RegionalOrderingStep2Props {
-  plant: string;
-  store: string;
+  origin: string;
+  dest: string;
+  kind: string;
 }
 
 interface OrderData {
@@ -30,7 +31,7 @@ interface OrderData {
   notes: string;
 }
 
-export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Props) {
+export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingStep2Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -71,7 +72,9 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
           product_number: formData.productNumber.trim(),
           quantity: parseInt(formData.quantity, 10),
           notes: formData.notes.trim(),
-          store, plant,
+          origin_ot_id: origin,
+          destination_ot_id: dest,
+          destination_kind: kind,
           name: getDisplayName(user),
           email: user?.email ?? '',
           role: user?.role ?? '',
@@ -85,7 +88,7 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
       if (data?.duplicate) {
         toast({ title: 'Already submitted', description: 'We recognized a retry and kept your original submission.' });
       } else {
-        toast({ title: 'Order Submitted', description: `Processed by ${plant}.` });
+        toast({ title: 'Order Submitted', description: `Order submitted successfully.` });
       }
 
       // Navigate back to step 1
@@ -118,7 +121,7 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
           <h1 className="text-3xl font-bold">Regional Order Form</h1>
         </div>
         <p className="text-muted-foreground">
-          Complete your order for {store} from {plant}
+          Complete your {kind === 'plant' ? 'plant-to-plant' : 'plant-to-store'} order
         </p>
       </div>
 
@@ -143,12 +146,12 @@ export function RegionalOrderingStep2({ plant, store }: RegionalOrderingStep2Pro
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <Label className="font-medium">Store</Label>
-              <p className="text-muted-foreground">{store}</p>
+              <Label className="font-medium">Origin</Label>
+              <p className="text-muted-foreground">{origin}</p>
             </div>
             <div>
-              <Label className="font-medium">Plant</Label>
-              <p className="text-muted-foreground">{plant}</p>
+              <Label className="font-medium">Destination</Label>
+              <p className="text-muted-foreground">{dest}</p>
             </div>
             <div>
               <Label className="font-medium">Name</Label>

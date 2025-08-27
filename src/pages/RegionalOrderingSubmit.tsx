@@ -10,20 +10,21 @@ export default function RegionalOrderingSubmit() {
   const [searchParams] = useSearchParams();
 
   // Check for required parameters
-  const plant = searchParams.get('plant');
-  const store = searchParams.get('store');
+  const origin = searchParams.get('origin');
+  const dest = searchParams.get('dest');
+  const kind = searchParams.get('kind');
 
   useEffect(() => {
-    if (!plant || !store) navigate('/regional-ordering', { replace: true });
-  }, [plant, store, navigate]);
+    if (!origin || !dest || !kind) navigate('/regional-ordering', { replace: true });
+  }, [origin, dest, kind, navigate]);
 
   if (!hasRegionalOrderingAccess(user)) return <Navigate to="/" replace />;
-  if (!plant || !store) return null;
+  if (!origin || !dest || !kind) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="container mx-auto px-4 py-8">
-        <RegionalOrderingStep2 plant={plant} store={store} />
+        <RegionalOrderingStep2 origin={origin} dest={dest} kind={kind} />
       </div>
     </div>
   );

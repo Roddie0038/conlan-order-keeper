@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasRegionalOrderingAccess } from '@/utils/regionalOrderingAccess';
 import { RegionalOrderingStep1 } from '@/components/regional-ordering/RegionalOrderingStep1';
@@ -6,13 +7,19 @@ import { RoleAccessGuard } from '@/components/regional-ordering/RoleAccessGuard'
 
 export default function RegionalOrdering() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   if (!hasRegionalOrderingAccess(user)) {
     return <RoleAccessGuard />;
   }
 
-  const handleContinue = (plant: string, store: string) => {
-    // This will be handled by the component's navigation
+  const handleContinue = (originOtId: string, destinationOtId: string, destinationKind: 'plant' | 'store') => {
+    const params = new URLSearchParams({
+      origin: originOtId,
+      dest: destinationOtId,
+      kind: destinationKind,
+    });
+    navigate(`/regional-ordering/submit?${params.toString()}`);
   };
 
   return (
