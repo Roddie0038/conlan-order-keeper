@@ -15,7 +15,10 @@ export default function RegionalOrderingSubmit() {
   const kind = searchParams.get('kind');
 
   useEffect(() => {
-    if (!origin || !dest || !kind) navigate('/regional-ordering', { replace: true });
+    if (!origin || !dest || !kind) {
+      console.log('🧭 NAV: Missing regional ordering params, redirecting to step 1');
+      navigate('/regional-ordering', { replace: true });
+    }
   }, [origin, dest, kind, navigate]);
 
   if (!hasRegionalOrderingAccess(user)) return <Navigate to="/" replace />;

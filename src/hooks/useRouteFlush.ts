@@ -16,26 +16,34 @@ const _paramsTypecheck: Params = {
 void _paramsTypecheck;
 
 export function useRouteFlush({ saveNow, isSubmittingRef, enabled = true }: Params) {
-  // Unmount-only cleanup
+  // Unmount-only cleanup with stricter guards
   useEffect(() => {
+    let isCleaningUp = false;
+    
     return () => {
-      if (!enabled) return;
+      if (!enabled || isCleaningUp) {
+        console.log("💾 FLUSH: Route flush skipped -", { enabled, isCleaningUp });
+        return;
+      }
+      
       if (isSubmittingRef?.current) {
-        // Skip flush while a submit is in progress
+        console.log("💾 FLUSH: Route flush blocked - submission in progress");
         return;
       }
 
-      const watchdog = window.setTimeout(() => {}, 4000);
+      isCleaningUp = true;
+      const watchdog = window.setTimeout(() => {
+        console.log("💾 FLUSH: Route flush watchdog timeout");
+      }, 4000);
+      
       try {
-        // Tag the source for consistent telemetry
-        // eslint-disable-next-line no-console
-        console.log("🚀 Location cleanup, flushing draft");
+        console.log("💾 FLUSH: Executing route cleanup flush");
         saveNow("location_cleanup");
       } finally {
         window.clearTimeout(watchdog);
       }
     };
-    // unmount-only
+    // unmount-only - DO NOT add dependencies that could cause re-runs
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

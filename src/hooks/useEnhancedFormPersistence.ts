@@ -80,19 +80,34 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     };
   }, [storageKey, enabled]);
 
-  // Router-aware reset to ensure next mount restores
+  // Router-aware reset to ensure next mount restores - with less aggressive history wrapping
   useEffect(() => {
+    let lastResetTime = 0;
+    const RESET_COOLDOWN = 500; // 500ms cooldown between resets
+    
     const reset = () => {
+      const now = Date.now();
+      if (now - lastResetTime < RESET_COOLDOWN) {
+        console.log('🧭 NAV: Skipping reset due to cooldown');
+        return;
+      }
+      
       lastRestoredKeyRef.current = null;
+      lastResetTime = now;
+      console.log('🧭 NAV: Route change detected – reset restore guard');
       if (__autosaveShouldLog()) console.log('[AutoSave] Route change detected – reset restore guard');
     };
 
-    // Fire a custom event on history changes
+    // More conservative history API wrapping - less frequent locationchange events
     const wrap = (type: 'pushState' | 'replaceState') => {
       const orig = (history as any)[type];
       return function(this: any, ...args: any[]) {
         const ret = orig.apply(this, args as any);
-        window.dispatchEvent(new Event('locationchange'));
+        // Only fire locationchange for actual navigation, not internal state updates
+        if (arguments.length > 2 && arguments[2] !== window.location.href) {
+          console.log('🧭 NAV: History change detected:', type, arguments[2]);
+          window.dispatchEvent(new Event('locationchange'));
+        }
         return ret;
       };
     };
@@ -106,6 +121,7 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     window.addEventListener('locationchange', reset);
 
     return () => {
+      console.log('🧭 NAV: Cleaning up history tracking');
       (history as any).pushState = originalPush;
       (history as any).replaceState = originalReplace;
       window.removeEventListener('popstate', reset);
@@ -269,14 +285,17 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     };
 
     const handleVisibilityChange = () => {
+      console.log('🧭 NAV: Visibility changed to', document.visibilityState);
       if (__autosaveShouldLog()) console.log('[AutoSave] VISIBILITY CHANGE', document.visibilityState);
       const wasActive = isTabActiveRef.current;
       isTabActiveRef.current = !document.hidden;
       
-      // Save immediately when tab becomes hidden (user switching tabs)
+      // Only save when hiding (switching away), never when becoming visible (returning)
       if (wasActive && document.hidden) {
+        console.log('💾 FLUSH: Saving due to tab becoming hidden');
         handleImmediateSave('Tab hidden');
       }
+      // Explicitly do nothing when tab becomes visible to prevent unwanted refreshes
     };
 
     const handlePageHide = () => {
@@ -298,10 +317,11 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
     };
   }, []);
 
-  // Load saved data when auth is ready and per storage key
+  // Load saved data when auth is ready and per storage key (with enhanced protection)
   useEffect(() => {
     if (!enabled) return;
     if (loading) {
+      console.log('🧭 NAV: Auth loading - deferring restore');
       if (__autosaveShouldLog()) console.log('[AutoSave] Auth loading - deferring restore');
       return;
     }
@@ -309,13 +329,21 @@ export function useEnhancedFormPersistence<T extends Record<string, any>>(
 
     // Prevent multiple restore attempts per mount
     if (restoreFrozenRef.current) {
+      console.log('🧭 NAV: Skipping restore - already attempted this mount');
       if (__autosaveShouldLog()) console.log('[AutoSave] Skipping restore — already attempted this mount');
       setReady(true);
       return;
     }
 
+    // Prevent restore if already restoring to avoid conflicts
+    if (isRestoring) {
+      console.log('🧭 NAV: Skipping restore - currently restoring');
+      return;
+    }
+
     // Skip restore if the user has started typing
     if (userIsTypingRef.current) {
+      console.log('🧭 NAV: Skipping restore - user is typing');
       if (__autosaveShouldLog()) console.log('[AutoSave] Skipping restore — user is typing');
       setReady(true);
       setDidRestore(false);
