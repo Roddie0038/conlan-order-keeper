@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlant } from '@/contexts/PlantContext';
@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Building2, MapPin, ArrowRight } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 // Helper function to get display name from user object
 function getDisplayName(user?: any): string {
@@ -27,12 +28,26 @@ export function RegionalOrderingStep1({ onContinue }: RegionalOrderingStep1Props
   const navigate = useNavigate();
   const [selectedPlant, setSelectedPlant] = useState<string>(currentPlant || '');
   const [selectedStore, setSelectedStore] = useState<string>('');
+  const [plants, setPlants] = useState<{ value: string; label: string }[]>([]);
 
-  const plants = [
-    { value: 'Grand Prairie 097', label: 'Grand Prairie 097' },
-    { value: 'Romulus 098', label: 'Romulus 098' },
-    { value: 'Mulberry 099', label: 'Mulberry 099' }
-  ];
+  useEffect(() => {
+    const fetchPlants = async () => {
+      const { data, error } = await supabase
+        .from('app_plants' as any)
+        .select('ot_id,label,active')
+        .eq('active', true)
+        .order('label');
+      
+      if (data && !error) {
+        setPlants(data.map((plant: any) => ({
+          value: plant.ot_id,
+          label: plant.label
+        })));
+      }
+    };
+
+    fetchPlants();
+  }, []);
 
   const stores = [
     { value: 'Fort Worth 022', label: 'Fort Worth 022' },
