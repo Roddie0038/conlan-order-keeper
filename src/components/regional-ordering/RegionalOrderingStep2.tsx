@@ -44,41 +44,45 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
     try {
       const idemKey = crypto.randomUUID();
 
-      // Derive required Phase-1 fields for edge function (store, plant)
+      // TODO: replace these with your actual OT IDs from app_plants/app_stores
+      const PLANT_CODE_TO_OT_ID: Record<string, string> = {
+        '097': 'PLANT_097', // ← replace with real ot_id
+        '098': 'PLANT_098',
+        '099': 'PLANT_099',
+      };
+
+      // If Step 1 passed labels like "Grand Prairie 097", pull the 3-digit code
       const extractCode = (val: string) => {
-        const m = (val || '').match(/(\d{3})/);
+        const m = String(val || '').match(/\b(097|098|099)\b/);
         return m ? m[1] : '';
       };
-      const codeToPlant: Record<string, string> = {
-        '097': 'Grand Prairie 097',
-        '098': 'Romulus 098',
-        '099': 'Mulberry 099',
+
+      const normalizePlantLike = (val: string) => {
+        const code = extractCode(val);
+        if (code && PLANT_CODE_TO_OT_ID[code]) return PLANT_CODE_TO_OT_ID[code];
+        return val; // assume it's already an OT ID
       };
-      const plantCode = extractCode(origin);
-      const derivedPlant = codeToPlant[plantCode] || origin;
 
-      const destCode = extractCode(dest);
-      const derivedStore = kind === 'store'
-        ? (destCode ? `Store ${destCode}` : dest)
-        : 'Unassigned';
+      // Ensure exact kind
+      const destinationKind = kind === 'store' ? 'store' : 'plant';
 
-      const { data, error } = await supabase.functions.invoke('handleOrdersPost', {
-        body: {
-          origin_ot_id: origin,
-          destination_ot_id: dest,
-          destination_kind: kind,
-          product_number: productNumber.trim(),
-          quantity: Number(quantity),
-          notes: notes.trim() || '',
-          name: user?.user_metadata?.full_name || user?.email || 'Unknown',
-          email: user?.email ?? '',
-          role: user?.role ?? '',
-          timestamp: new Date().toISOString(),
-          idempotency_key: idemKey,
-          store: derivedStore,
-          plant: derivedPlant,
-        }
-      });
+      const payload = {
+        origin_ot_id: normalizePlantLike(origin),
+        destination_ot_id: normalizePlantLike(dest),
+        destination_kind: destinationKind,
+        product_number: productNumber.trim(),
+        quantity: Number(quantity),
+        notes: notes.trim() || '',
+        name: user?.user_metadata?.full_name || user?.email || 'Unknown',
+        email: user?.email ?? '',
+        role: (user as any)?.role ?? '',
+        timestamp: new Date().toISOString(),
+        idempotency_key: idemKey,
+      };
+
+      console.log('▶️ handleOrdersPost payload', payload);
+
+      const { data, error } = await supabase.functions.invoke('handleOrdersPost', { body: payload });
 
       if (error) throw new Error(error.message || 'Failed to submit order');
 
