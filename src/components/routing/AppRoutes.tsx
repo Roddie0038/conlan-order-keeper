@@ -33,7 +33,7 @@ import AdminEmailRouting from '@/pages/AdminEmailRouting';
 import { PlantBroadcastsPage } from '@/components/plant-broadcasts/PlantBroadcastsPage';
 import RegionalOrdering from '@/pages/RegionalOrdering';
 import RegionalOrderingSubmit from '@/pages/RegionalOrderingSubmit';
-import RegionalOrderingConfirmation from '@/pages/RegionalOrderingConfirmation';
+
 
 export function AppRoutes() {
   return (
@@ -221,11 +221,6 @@ export function AppRoutes() {
         </AuthGuard>
       } />
       
-      <Route path="/regional-ordering/confirmation" element={
-        <AuthGuard>
-          <RegionalOrderingConfirmation />
-        </AuthGuard>
-      } />
     </Routes>
   );
 }
