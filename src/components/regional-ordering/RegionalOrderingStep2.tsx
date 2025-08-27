@@ -42,18 +42,21 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        origin_ot_id: origin,
-        destination_ot_id: dest,
-        destination_kind: kind,
-        product_number: productNumber.trim(),
-        quantity: Number(quantity),
-        notes: notes.trim() || undefined,
-        idempotency_key: crypto.randomUUID()
-      };
-
-      const { data, error } = await supabase.functions.invoke('create-regional-order', {
-        body: payload
+      const idemKey = crypto.randomUUID();
+      const { data, error } = await supabase.functions.invoke('handleOrdersPost', {
+        body: {
+          origin_ot_id: origin,
+          destination_ot_id: dest,
+          destination_kind: kind,
+          product_number: productNumber.trim(),
+          quantity: Number(quantity),
+          notes: notes.trim() || '',
+          name: user?.user_metadata?.full_name || user?.email || 'Unknown',
+          email: user?.email ?? '',
+          role: user?.role ?? '',
+          timestamp: new Date().toISOString(),
+          idempotency_key: idemKey
+        }
       });
 
       if (error) throw new Error(error.message || 'Failed to submit order');
