@@ -19,16 +19,18 @@ function getDisplayName(user?: any): string {
 }
 
 interface RegionalOrderingStep1Props {
-  onContinue: (plant: string, store: string) => void;
+  onContinue: (originOtId: string, destinationOtId: string, destinationKind: 'plant' | 'store') => void;
 }
 
 export function RegionalOrderingStep1({ onContinue }: RegionalOrderingStep1Props) {
   const { user } = useAuth();
   const { currentPlant } = usePlant();
   const navigate = useNavigate();
-  const [selectedPlant, setSelectedPlant] = useState<string>(currentPlant || '');
-  const [selectedStore, setSelectedStore] = useState<string>('');
+  const [selectedOriginPlant, setSelectedOriginPlant] = useState<string>(currentPlant || '');
+  const [selectedDestination, setSelectedDestination] = useState<string>('');
+  const [shippingMode, setShippingMode] = useState<'plant' | 'store'>('store');
   const [plants, setPlants] = useState<{ value: string; label: string }[]>([]);
+  const [stores, setStores] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
     const fetchPlants = async () => {
@@ -46,23 +48,29 @@ export function RegionalOrderingStep1({ onContinue }: RegionalOrderingStep1Props
       }
     };
 
+    const fetchStores = async () => {
+      const { data, error } = await supabase
+        .from('app_stores' as any)
+        .select('ot_id,label,active')
+        .eq('active', true)
+        .order('label');
+
+      if (data && !error) {
+        setStores(data.map((s: any) => ({ value: s.ot_id, label: s.label })));
+      }
+    };
+
     fetchPlants();
+    fetchStores();
   }, []);
 
-  const stores = [
-    { value: 'Fort Worth 022', label: 'Fort Worth 022' },
-    { value: 'Grand Prairie 027', label: 'Grand Prairie 027' },
-    { value: 'Irving 039', label: 'Irving 039' },
-    { value: 'Garland 048', label: 'Garland 048' }
-  ];
-
   const handleContinue = () => {
-    if (selectedPlant && selectedStore) {
-      navigate(`/regional-ordering/submit?plant=${encodeURIComponent(selectedPlant)}&store=${encodeURIComponent(selectedStore)}`);
+    if (selectedOriginPlant && selectedDestination) {
+      onContinue(selectedOriginPlant, selectedDestination, shippingMode);
     }
   };
 
-  const isValid = selectedPlant && selectedStore;
+  const isValid = selectedOriginPlant && selectedDestination;
 
   return (
     <div className="space-y-6">
@@ -107,18 +115,42 @@ export function RegionalOrderingStep1({ onContinue }: RegionalOrderingStep1Props
         </CardContent>
       </Card>
 
-      {/* Plant and Store Selection */}
+      {/* Shipping Mode Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Select Plant and Store</CardTitle>
+          <CardTitle>Shipping Mode</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label>Select shipping mode</Label>
+            <Select value={shippingMode} onValueChange={(value: 'plant' | 'store') => {
+              setShippingMode(value);
+              setSelectedDestination('');
+            }}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="store">Plant → Store</SelectItem>
+                <SelectItem value="plant">Plant → Plant</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Origin and Destination Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Origin and Destination</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="plant">Plant</Label>
-              <Select value={selectedPlant} onValueChange={setSelectedPlant}>
+              <Label htmlFor="origin">Origin Plant</Label>
+              <Select value={selectedOriginPlant} onValueChange={setSelectedOriginPlant}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a plant" />
+                  <SelectValue placeholder="Select origin plant" />
                 </SelectTrigger>
                 <SelectContent>
                   {plants.map((plant) => (
@@ -131,15 +163,17 @@ export function RegionalOrderingStep1({ onContinue }: RegionalOrderingStep1Props
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="store">Store</Label>
-              <Select value={selectedStore} onValueChange={setSelectedStore}>
+              <Label htmlFor="destination">
+                {shippingMode === 'plant' ? 'Destination Plant' : 'Destination Store'}
+              </Label>
+              <Select value={selectedDestination} onValueChange={setSelectedDestination}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a store" />
+                  <SelectValue placeholder={`Select ${shippingMode === 'plant' ? 'destination plant' : 'destination store'}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {stores.map((store) => (
-                    <SelectItem key={store.value} value={store.value}>
-                      {store.label}
+                  {(shippingMode === 'plant' ? plants : stores).map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
