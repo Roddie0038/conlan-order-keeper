@@ -1,0 +1,27 @@
+name: Phase1 Guard
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Block forbidden Phase 2 strings in UI & functions
+        run: |
+          # fail if multi-line payload returns
+          ! git grep -n "line_items" -- "src/**" "supabase/functions/**"
+          # fail if create-regional-order is referenced by UI
+          ! git grep -n "create-regional-order" -- "src/**"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run test
