@@ -44,13 +44,12 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
     try {
       const idemKey = crypto.randomUUID();
 
-      // TODO: replace these with your actual OT IDs from app_plants/app_stores
+      // Map 3-digit plant codes to real OT IDs as stored in app_plants
       const PLANT_CODE_TO_OT_ID: Record<string, string> = {
-        '097': 'PLANT_097', // ← replace with real ot_id
-        '098': 'PLANT_098',
-        '099': 'PLANT_099',
+        '097': 'Grand Prairie 097',
+        '098': 'Romulus 098',
+        '099': 'Mulberry 099',
       };
-
       // If Step 1 passed labels like "Grand Prairie 097", pull the 3-digit code
       const extractCode = (val: string) => {
         const m = String(val || '').match(/\b(097|098|099)\b/);
