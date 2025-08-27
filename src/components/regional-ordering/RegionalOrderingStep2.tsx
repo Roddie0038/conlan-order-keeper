@@ -43,6 +43,25 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
 
     try {
       const idemKey = crypto.randomUUID();
+
+      // Derive required Phase-1 fields for edge function (store, plant)
+      const extractCode = (val: string) => {
+        const m = (val || '').match(/(\d{3})/);
+        return m ? m[1] : '';
+      };
+      const codeToPlant: Record<string, string> = {
+        '097': 'Grand Prairie 097',
+        '098': 'Romulus 098',
+        '099': 'Mulberry 099',
+      };
+      const plantCode = extractCode(origin);
+      const derivedPlant = codeToPlant[plantCode] || origin;
+
+      const destCode = extractCode(dest);
+      const derivedStore = kind === 'store'
+        ? (destCode ? `Store ${destCode}` : dest)
+        : 'Unassigned';
+
       const { data, error } = await supabase.functions.invoke('handleOrdersPost', {
         body: {
           origin_ot_id: origin,
@@ -55,7 +74,9 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
           email: user?.email ?? '',
           role: user?.role ?? '',
           timestamp: new Date().toISOString(),
-          idempotency_key: idemKey
+          idempotency_key: idemKey,
+          store: derivedStore,
+          plant: derivedPlant,
         }
       });
 
