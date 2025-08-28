@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isElevated, setIsElevated] = useState(false);
   const [user, setUser] = useState<ExtendedUser | null>(null);
   const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // start false; flip true only while bootstrapping
   const [isEnriching, setIsEnriching] = useState(false);
 
   // single-flight bootstrap
@@ -79,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const bootstrapOnce = useCallback(async () => {
     if (bootDoneRef.current) return;
     if (bootInFlight.current) return bootInFlight.current;
+    setLoading(true);
     setIsEnriching(true);
     console.time("bootstrapOnce");
     bootInFlight.current = (async () => {
@@ -132,6 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } finally {
         bootDoneRef.current = true;
         bootInFlight.current = null;
+        setLoading(false);
         setIsEnriching(false);
         console.timeEnd("bootstrapOnce");
         console.log("[Auth] bootstrapOnce: finished");
@@ -171,6 +173,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => sub?.subscription?.unsubscribe();
+  }, [bootstrapOnce]);
+
+  // NEW: Initial session kick so auth.event leaves UNKNOWN even if subscription is slow/silent
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await withTimeout(supabase.auth.getSession(), 5000);
+        if (cancelled) return;
+        const session = data?.session ?? null;
+        setAuth({
+          event: "INITIAL_SESSION",
+          userId: session?.user?.id ?? null,
+          email: session?.user?.email ?? null,
+        });
+        setSession(session);
+        if (session?.user?.id) {
+          bootstrapOnce().catch((e) => console.error("bootstrapOnce() failed", e));
+        }
+      } catch (err) {
+        console.warn("[Auth] getSession timeout/fail, proceeding", err);
+        if (!cancelled) setAuth({ event: "INITIAL_SESSION", userId: null, email: null });
+      }
+    })();
+    return () => { cancelled = true; };
   }, [bootstrapOnce]);
 
   // visibility changes must be inert
