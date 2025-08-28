@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './context/AuthContext';
 import { AuthHealthMonitor } from './components/auth/AuthHealthMonitor';
 import { PlantProvider } from './contexts/PlantContext';
 import { Toaster } from "@/components/ui/toaster"
@@ -29,14 +28,12 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <PlantProvider>
-          <QueryClientProvider client={queryClient}>
-            <Toaster />
-            <AppContent />
-          </QueryClientProvider>
-        </PlantProvider>
-      </AuthProvider>
+      <PlantProvider>
+        <QueryClientProvider client={queryClient}>
+          <Toaster />
+          <AppContent />
+        </QueryClientProvider>
+      </PlantProvider>
     </Router>
   );
 }
