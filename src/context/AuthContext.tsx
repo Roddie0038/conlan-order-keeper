@@ -1,13 +1,28 @@
 import React, {
-  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type AuthEvent =
-  | "SIGNED_IN" | "SIGNED_OUT" | "TOKEN_REFRESHED" | "USER_UPDATED"
-  | "INITIAL_SESSION" | "PASSWORD_RECOVERY" | "UNKNOWN";
+  | "SIGNED_IN"
+  | "SIGNED_OUT"
+  | "TOKEN_REFRESHED"
+  | "USER_UPDATED"
+  | "INITIAL_SESSION"
+  | "PASSWORD_RECOVERY"
+  | "UNKNOWN";
 
-type AuthState = { event: AuthEvent; userId: string | null; email: string | null; };
+type AuthState = {
+  event: AuthEvent;
+  userId: string | null;
+  email: string | null;
+};
 
 export interface ExtendedUser {
   id: string;
@@ -51,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [isEnriching, setIsEnriching] = useState(false);
 
+  // single-flight bootstrap
   const bootInFlight = useRef<Promise<void> | null>(null);
   const bootDoneRef = useRef(false);
 
@@ -114,7 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userId = session?.user?.id ?? null;
       const email = session?.user?.email ?? null;
 
-      if (prevEvent === (event as AuthEvent) && prevUserId === userId) return; // dedupe
+      // dedupe identical (event, userId) – prevents focus spam
+      if (prevEvent === (event as AuthEvent) && prevUserId === userId) return;
       prevEvent = event as AuthEvent;
       prevUserId = userId;
 
@@ -137,7 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => sub?.subscription?.unsubscribe();
   }, [bootstrapOnce]);
 
-  // Keep visibility listener inert (no reloads/refetches on focus/return)
+  // visibility changes must be inert
   useEffect(() => {
     const onVis = () => {};
     window.addEventListener("visibilitychange", onVis);
@@ -196,19 +213,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const value = useMemo<AuthContextValue>(() => ({ 
-    auth, 
-    isElevated, 
-    bootstrapOnce,
-    user,
-    session,
-    login,
-    logout,
-    resetPassword,
-    updatePassword,
-    loading,
-    isEnriching
-  }), [auth, isElevated, bootstrapOnce, user, session, login, logout, resetPassword, updatePassword, loading, isEnriching]);
+  const value = useMemo<AuthContextValue>(
+    () => ({ 
+      auth, 
+      isElevated, 
+      bootstrapOnce,
+      user,
+      session,
+      login,
+      logout,
+      resetPassword,
+      updatePassword,
+      loading,
+      isEnriching
+    }),
+    [auth, isElevated, bootstrapOnce, user, session, login, logout, resetPassword, updatePassword, loading, isEnriching]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

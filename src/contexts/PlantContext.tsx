@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { getPlantForStore } from '@/utils/plantMapping';
 
 export type Plant = 'Grand Prairie 097' | 'Romulus 098' | 'Mulberry 099';
