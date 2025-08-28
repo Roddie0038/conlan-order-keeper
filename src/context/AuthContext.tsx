@@ -70,21 +70,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const bootInFlight = useRef<Promise<void> | null>(null);
   const bootDoneRef = useRef(false);
 
+  const withTimeout = <T,>(p: Promise<T>, ms = 8000) =>
+    Promise.race<T>([
+      p,
+      new Promise<T>((_, rej) => setTimeout(() => rej(new Error("bootstrap timeout")), ms)),
+    ]);
+
   const bootstrapOnce = useCallback(async () => {
     if (bootDoneRef.current) return;
     if (bootInFlight.current) return bootInFlight.current;
+    setIsEnriching(true);
+    console.time("bootstrapOnce");
     bootInFlight.current = (async () => {
       try {
-        console.log("[Auth] Bootstrap starting...");
-        setIsEnriching(true);
+        console.log("[Auth] bootstrapOnce: starting");
         
         // Fetch user data and determine role
-        const { data: { user: authUser } } = await supabase.auth.getUser();
+        console.time("fetchAuthUser");
+        const { data: { user: authUser } } = await withTimeout(supabase.auth.getUser());
+        console.timeEnd("fetchAuthUser");
+        
         if (authUser?.email) {
-          const [managerResult, otUserResult] = await Promise.all([
-            supabase.from('managers').select('*').eq('email', authUser.email).eq('is_active', true).single(),
-            supabase.from('ot_platform_users').select('role, plant, store, status').eq('email', authUser.email).eq('status', 'active').single()
-          ]);
+          console.time("fetchManagers");
+          const managerPromise = supabase.from('managers').select('*').eq('email', authUser.email).eq('is_active', true).single();
+          console.timeEnd("fetchManagers");
+          
+          console.time("fetchOtUser");
+          const otUserPromise = supabase.from('ot_platform_users').select('role, plant, store, status').eq('email', authUser.email).eq('status', 'active').single();
+          console.timeEnd("fetchOtUser");
+          
+          const [managerResult, otUserResult] = await withTimeout(Promise.all([managerPromise, otUserPromise]));
           
           const managerData = managerResult.data;
           const otUserData = otUserResult.data;
@@ -112,11 +127,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsElevated(isAdmin);
           console.log("[Auth] Bootstrap completed for:", enrichedUser.storeName);
         }
+      } catch (err) {
+        console.error("[Auth] bootstrapOnce: error", err);
       } finally {
         bootDoneRef.current = true;
         bootInFlight.current = null;
         setIsEnriching(false);
-        setLoading(false);
+        console.timeEnd("bootstrapOnce");
+        console.log("[Auth] bootstrapOnce: finished");
       }
     })();
     return bootInFlight.current;
@@ -140,7 +158,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
 
       if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-        await bootstrapOnce();
+        // Non-blocking: start bootstrap but do not await here
+        bootstrapOnce().catch((e) => console.error("bootstrapOnce() failed", e));
       } else if (event === "SIGNED_OUT") {
         bootDoneRef.current = false;
         bootInFlight.current = null;
