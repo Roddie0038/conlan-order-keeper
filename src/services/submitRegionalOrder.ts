@@ -1,20 +1,19 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { RegionalOrderPayload } from '@/types/regionalOrder';
+import { mapRegionalOrderPayloadToPhase1 } from "./payloadAdapters";
 
 export async function submitRegionalOrder(payload: RegionalOrderPayload) {
   console.log('Submitting regional order:', payload);
   
-  const { data, error } = await supabase.functions.invoke('create-regional-order', {
-    body: payload,
+  const safePayload = mapRegionalOrderPayloadToPhase1(payload);
+
+  const { data, error } = await supabase.functions.invoke("handleOrdersPost", {
+    body: safePayload,
   });
 
   if (error) {
     console.error('Edge function error:', error);
     throw new Error(error.message || 'Submit failed');
-  }
-
-  if (data?.conflict) {
-    return { ok: true, conflict: true, ...data };
   }
 
   return data;
