@@ -33,7 +33,7 @@ import {
   Globe,
   Network
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { hasRegionalOrderingAccess } from "@/utils/regionalOrderingAccess";
 

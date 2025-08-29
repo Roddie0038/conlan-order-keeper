@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDebounce } from './useDebounce';
 import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UniversalPersistenceOptions {
   formType: 'order' | 'complaint' | 'warranty' | 'mto' | 'wheel-powder-coating';
