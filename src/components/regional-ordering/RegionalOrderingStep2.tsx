@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, ArrowLeft, Package } from 'lucide-react';
+import styles from './RegionalOrderingStep2.module.css';
 
 interface RegionalOrderingStep2Props {
   origin: string;
@@ -170,167 +171,57 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
         <CardHeader>
           <CardTitle>Order Details</CardTitle>
         </CardHeader>
-        <CardContent className="flex justify-center">
-          <div style={{
-            '--bg-light': '#efefef',
-            '--bg-dark': '#707070',
-            '--clr': '#58bc82',
-            '--clr-alpha': '#9c9c9c60'
-          } as React.CSSProperties}>
-            <form 
-              onSubmit={handleSubmit} 
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '1rem',
-                width: '100%',
-                maxWidth: '300px'
-              }}
-            >
-              <div style={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem'
-              }}>
-                <label 
-                  htmlFor="productNumber" 
-                  style={{
-                    alignSelf: 'flex-start',
-                    color: '#58bc82',
-                    fontWeight: 600
-                  }}
-                >
-                  Product Number *
-                </label>
+        <CardContent>
+          <div className={styles.formWrap}>
+            <form className={styles.form} onSubmit={handleSubmit}>
+              <div className={styles.inputSpan}>
+                <label htmlFor="productNumber" className={styles.label}>Product Number *</label>
                 <input
                   id="productNumber"
+                  name="productNumber"
                   value={productNumber}
                   onChange={(e) => setProductNumber(e.target.value)}
                   placeholder="Enter product number"
-                  style={{
-                    borderRadius: '0.5rem',
-                    padding: '1rem 0.75rem',
-                    width: '100%',
-                    border: 'none',
-                    backgroundColor: '#9c9c9c60',
-                    outline: '2px solid #707070',
-                    transition: 'all 300ms'
-                  }}
-                  onFocus={(e) => e.target.style.outline = '2px solid #58bc82'}
-                  onBlur={(e) => e.target.style.outline = '2px solid #707070'}
+                  className={styles.input}
+                  required
                 />
               </div>
 
-              <div style={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem'
-              }}>
-                <label 
-                  htmlFor="quantity" 
-                  style={{
-                    alignSelf: 'flex-start',
-                    color: '#58bc82',
-                    fontWeight: 600
-                  }}
-                >
-                  Quantity *
-                </label>
+              <div className={styles.inputSpan}>
+                <label htmlFor="quantity" className={styles.label}>Quantity *</label>
                 <input
                   id="quantity"
+                  name="quantity"
                   type="number"
                   min="1"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="Enter quantity"
-                  style={{
-                    borderRadius: '0.5rem',
-                    padding: '1rem 0.75rem',
-                    width: '100%',
-                    border: 'none',
-                    backgroundColor: '#9c9c9c60',
-                    outline: '2px solid #707070',
-                    transition: 'all 300ms'
-                  }}
-                  onFocus={(e) => e.target.style.outline = '2px solid #58bc82'}
-                  onBlur={(e) => e.target.style.outline = '2px solid #707070'}
+                  className={styles.input}
+                  required
+                  inputMode="numeric"
                 />
               </div>
 
-              <div style={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem'
-              }}>
-                <label 
-                  htmlFor="notes" 
-                  style={{
-                    alignSelf: 'flex-start',
-                    color: '#58bc82',
-                    fontWeight: 600
-                  }}
-                >
-                  Notes (Optional)
-                </label>
+              <div className={styles.inputSpan}>
+                <label htmlFor="notes" className={styles.label}>Notes (Optional)</label>
                 <textarea
                   id="notes"
+                  name="notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Additional notes or special instructions"
                   rows={3}
-                  style={{
-                    borderRadius: '0.5rem',
-                    padding: '1rem 0.75rem',
-                    width: '100%',
-                    border: 'none',
-                    backgroundColor: '#9c9c9c60',
-                    outline: '2px solid #707070',
-                    transition: 'all 300ms',
-                    resize: 'none'
-                  }}
-                  onFocus={(e) => e.target.style.outline = '2px solid #58bc82'}
-                  onBlur={(e) => e.target.style.outline = '2px solid #707070'}
+                  className={styles.textarea}
                 />
               </div>
 
-              <button 
-                type="submit" 
-                disabled={!isValid || isSubmitting}
-                style={{
-                  padding: '1rem 0.75rem',
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  borderRadius: '3rem',
-                  backgroundColor: isSubmitting || !isValid ? '#707070' : '#707070',
-                  color: '#efefef',
-                  border: 'none',
-                  cursor: isSubmitting || !isValid ? 'not-allowed' : 'pointer',
-                  transition: 'all 300ms',
-                  fontWeight: 600,
-                  fontSize: '0.9rem',
-                  opacity: isSubmitting || !isValid ? 0.5 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSubmitting && isValid) {
-                    e.currentTarget.style.backgroundColor = '#58bc82';
-                    e.currentTarget.style.color = '#707070';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSubmitting && isValid) {
-                    e.currentTarget.style.backgroundColor = '#707070';
-                    e.currentTarget.style.color = '#efefef';
-                  }
-                }}
+              <button
+                type="submit"
+                className={styles.submit}
+                disabled={isSubmitting || !isValid}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Order'}
+                {isSubmitting ? 'Submitting…' : 'Submit Order'}
               </button>
             </form>
           </div>
