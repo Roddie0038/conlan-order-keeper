@@ -165,56 +165,175 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
         </CardContent>
       </Card>
 
-      {/* Order Form */}
+      {/* Order Form with Uiverse.io styling */}
       <Card>
         <CardHeader>
           <CardTitle>Order Details</CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="productNumber">Product Number *</Label>
-              <Input
-                id="productNumber"
-                value={productNumber}
-                onChange={(e) => setProductNumber(e.target.value)}
-                placeholder="Enter product number"
-              />
-            </div>
+        <CardContent className="flex justify-center">
+          <div style={{
+            '--bg-light': '#efefef',
+            '--bg-dark': '#707070',
+            '--clr': '#58bc82',
+            '--clr-alpha': '#9c9c9c60'
+          } as React.CSSProperties}>
+            <form 
+              onSubmit={handleSubmit} 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '1rem',
+                width: '100%',
+                maxWidth: '300px'
+              }}
+            >
+              <div style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}>
+                <label 
+                  htmlFor="productNumber" 
+                  style={{
+                    alignSelf: 'flex-start',
+                    color: '#58bc82',
+                    fontWeight: 600
+                  }}
+                >
+                  Product Number *
+                </label>
+                <input
+                  id="productNumber"
+                  value={productNumber}
+                  onChange={(e) => setProductNumber(e.target.value)}
+                  placeholder="Enter product number"
+                  style={{
+                    borderRadius: '0.5rem',
+                    padding: '1rem 0.75rem',
+                    width: '100%',
+                    border: 'none',
+                    backgroundColor: '#9c9c9c60',
+                    outline: '2px solid #707070',
+                    transition: 'all 300ms'
+                  }}
+                  onFocus={(e) => e.target.style.outline = '2px solid #58bc82'}
+                  onBlur={(e) => e.target.style.outline = '2px solid #707070'}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity *</Label>
-              <Input
-                id="quantity"
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                placeholder="Enter quantity"
-              />
-            </div>
+              <div style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}>
+                <label 
+                  htmlFor="quantity" 
+                  style={{
+                    alignSelf: 'flex-start',
+                    color: '#58bc82',
+                    fontWeight: 600
+                  }}
+                >
+                  Quantity *
+                </label>
+                <input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  placeholder="Enter quantity"
+                  style={{
+                    borderRadius: '0.5rem',
+                    padding: '1rem 0.75rem',
+                    width: '100%',
+                    border: 'none',
+                    backgroundColor: '#9c9c9c60',
+                    outline: '2px solid #707070',
+                    transition: 'all 300ms'
+                  }}
+                  onFocus={(e) => e.target.style.outline = '2px solid #58bc82'}
+                  onBlur={(e) => e.target.style.outline = '2px solid #707070'}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Additional notes or special instructions"
-                rows={3}
-              />
-            </div>
+              <div style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}>
+                <label 
+                  htmlFor="notes" 
+                  style={{
+                    alignSelf: 'flex-start',
+                    color: '#58bc82',
+                    fontWeight: 600
+                  }}
+                >
+                  Notes (Optional)
+                </label>
+                <textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Additional notes or special instructions"
+                  rows={3}
+                  style={{
+                    borderRadius: '0.5rem',
+                    padding: '1rem 0.75rem',
+                    width: '100%',
+                    border: 'none',
+                    backgroundColor: '#9c9c9c60',
+                    outline: '2px solid #707070',
+                    transition: 'all 300ms',
+                    resize: 'none'
+                  }}
+                  onFocus={(e) => e.target.style.outline = '2px solid #58bc82'}
+                  onBlur={(e) => e.target.style.outline = '2px solid #707070'}
+                />
+              </div>
 
-            <div className="flex justify-end pt-4">
-              <Button 
+              <button 
                 type="submit" 
                 disabled={!isValid || isSubmitting}
-                size="lg"
+                style={{
+                  padding: '1rem 0.75rem',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  borderRadius: '3rem',
+                  backgroundColor: isSubmitting || !isValid ? '#707070' : '#707070',
+                  color: '#efefef',
+                  border: 'none',
+                  cursor: isSubmitting || !isValid ? 'not-allowed' : 'pointer',
+                  transition: 'all 300ms',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  opacity: isSubmitting || !isValid ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSubmitting && isValid) {
+                    e.currentTarget.style.backgroundColor = '#58bc82';
+                    e.currentTarget.style.color = '#707070';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSubmitting && isValid) {
+                    e.currentTarget.style.backgroundColor = '#707070';
+                    e.currentTarget.style.color = '#efefef';
+                  }
+                }}
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Order'}
-              </Button>
-            </div>
-          </form>
+              </button>
+            </form>
+          </div>
         </CardContent>
       </Card>
     </div>
