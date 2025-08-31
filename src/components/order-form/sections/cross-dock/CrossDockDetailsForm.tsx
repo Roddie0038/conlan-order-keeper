@@ -28,9 +28,14 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
         console.log("🔍 CROSS-DOCK - Loading manager email for store:", destStore);
         const email = await getFirstManagerEmail(destStore);
         console.log("🔍 CROSS-DOCK - Got manager email:", email);
-        setDestManagerEmail(email || "");
-        // ✅ Update the form field with the email
-        form.setValue("destinationManagerEmail", email || "");
+        
+        if (email) {
+          setDestManagerEmail(email);
+          form.setValue("destinationManagerEmail", email);
+        } else {
+          setDestManagerEmail(`No manager email found for ${destStore}`);
+          form.setValue("destinationManagerEmail", "");
+        }
       };
       loadEmail();
     }
@@ -40,9 +45,14 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
     console.log("🔍 CROSS-DOCK - Destination store changed to:", value);
     const email = await getFirstManagerEmail(value);
     console.log("🔍 CROSS-DOCK - Setting destination manager email to:", email);
-    setDestManagerEmail(email || "");
-    // ✅ Update the form field with the email
-    form.setValue("destinationManagerEmail", email || "");
+    
+    if (email) {
+      setDestManagerEmail(email);
+      form.setValue("destinationManagerEmail", email);
+    } else {
+      setDestManagerEmail(`No manager email found for ${value}`);
+      form.setValue("destinationManagerEmail", "");
+    }
   };
 
   // Auto-validate that FROM and TO stores are different

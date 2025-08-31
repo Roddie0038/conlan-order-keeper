@@ -67,8 +67,11 @@ export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsP
             </FormLabel>
             <Select 
               onValueChange={(value) => {
+                // Find the selected store and pass the full name to email lookup
+                const selectedStore = stores.find(s => s.id === value);
+                const fullStoreName = selectedStore?.name ?? value;
                 field.onChange(value);
-                onDestinationChange(value);
+                onDestinationChange(fullStoreName);
               }} 
               defaultValue={field.value}
             >

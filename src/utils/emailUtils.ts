@@ -5,17 +5,31 @@
 
 import { logger } from '@/utils/logger';
 import { supabase } from '@/integrations/supabase/client';
+import { stores } from '@/components/order-form/formConfig';
+
+/**
+ * Normalize store input to full store name format
+ */
+function toFullStoreName(input: string): string {
+  // If already a full name like "Fort Worth 022", keep it
+  if (/\D+\s0?\d{2,3}$/.test(input)) return input.trim();
+
+  // If it's an id like "22" or "022", map via stores array
+  const digits = (input.match(/\d{2,3}/)?.[0] ?? '').padStart(3, '0');
+  const matchedStore = stores.find(s => s.id.padStart(3, '0') === digits);
+  return matchedStore?.name ?? input;
+}
 
 /**
  * Get first manager email - resolves from actual data
  * Queries ot_platform_users to find real store managers
  */
-export async function getFirstManagerEmail(store: string): Promise<string> {
+export async function getFirstManagerEmail(store: string): Promise<string | null> {
   logger.debug('🔍 Getting first manager email for store', { store, service: 'email_utility' });
   
   try {
     // Normalize the store format for comparison
-    const normalizedStore = store.trim();
+    const normalizedStore = toFullStoreName(store.trim());
     
     // Query for store managers
     const { data: managers, error } = await supabase
@@ -51,13 +65,13 @@ export async function getFirstManagerEmail(store: string): Promise<string> {
       return altManagerEmail;
     }
 
-    // Only use fallback if absolutely no managers found
-    logger.warn('⚠️ No manager found for store, using fallback', { store, normalizedStore });
-    return 'system@conlantire.com';
+    // Return null if no manager found
+    logger.warn('⚠️ No manager found for store', { store, normalizedStore });
+    return null;
     
   } catch (error) {
     logger.error('❌ Error in getFirstManagerEmail:', { error, store });
-    return 'system@conlantire.com';
+    return null;
   }
 }
 
@@ -65,7 +79,7 @@ export async function getFirstManagerEmail(store: string): Promise<string> {
  * Get manager email string for backward compatibility
  * Now resolves to actual manager data instead of placeholder
  */
-export async function getManagerEmail(store: string): Promise<string> {
+export async function getManagerEmail(store: string): Promise<string | null> {
   logger.debug('Getting manager email for backward compatibility', { store, service: 'email_utility' });
   
   // Use the same real data resolution
