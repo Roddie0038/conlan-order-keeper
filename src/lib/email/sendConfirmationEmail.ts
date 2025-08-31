@@ -26,7 +26,7 @@ export async function sendConfirmationEmail(p: ConfirmationPayload): Promise<voi
 
     // Build body expected by the edge function. It accepts extra fields safely.
     const body = {
-      order_type: 'transfer',
+      order_type: 'confirmation',
       order_id: String(p.order_id),
       store_number: p.store_number,
       store_name: p.store_name,
