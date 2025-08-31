@@ -26,6 +26,8 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
 import { normalizeStoreName } from "@/lib/stores";
 import { OrderingEmailField } from "@/components/common/OrderingEmailField";
+import { NeoField } from "@/components/ui/NeoField";
+import { NeoSelect, NeoSelectContent, NeoSelectItem, NeoSelectTrigger, NeoSelectValue } from "@/components/ui/NeoSelect";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -90,120 +92,105 @@ export function ContactSection({ form }: ContactSectionProps) {
   }, [watchedStore]);
   
   return (
-    <>
-      <div className="flex items-center space-x-2 mb-6 border-l-4 border-blue-500 pl-3">
-        <User className="h-5 w-5 text-blue-500" />
-        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Contact Information</h3>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField
-          control={form.control}
-          name="yourName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center">
-                <User className="h-4 w-4 mr-1 text-gray-400" />
-                Your Name*
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your name" {...field} className="transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        {elevated ? (
-          <div className="space-y-2">
-            <div className="flex items-center">
-              <Building className="h-4 w-4 mr-1 text-gray-400" />
-              <span className="text-sm font-medium">Store (Destination)*</span>
-            </div>
-            <StoreSelector
-              label=""
-              value={form.watch("store") || ''}
-              onChange={(value) => {
-                const normalized = normalizeStoreName(value) || '';
-                form.setValue("store", normalized);
-              }}
-              filterPlant={null}  // ignored for elevated users
-              placeholder="Select destination store..."
-              className="w-full"
-            />
-          </div>
-        ) : (
-          <FormField
-            control={form.control}
-            name="store"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center">
-                  <Building className="h-4 w-4 mr-1 text-gray-400" />
-                  Store*
-                  {!isAdmin && !user?.hasFullStoreAccess && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
-                </FormLabel>
-                 <Select 
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                   disabled={!isAdmin && !user?.hasFullStoreAccess}
-                 >
-                   <FormControl>
-                     <SelectTrigger className={`transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200 ${!isAdmin && !user?.hasFullStoreAccess ? 'bg-gray-100' : ''}`}>
-                       <SelectValue placeholder="Select a store" />
-                     </SelectTrigger>
-                   </FormControl>
-                   <SelectContent>
-                     {(isAdmin || user?.hasFullStoreAccess) && (
-                       <SelectItem value="Admin">Admin Only</SelectItem>
-                     )}
-                     {stores.map((store) => (
-                       <SelectItem key={store.id} value={store.name}>
-                         {store.name}
-                       </SelectItem>
-                     ))}
-                   </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <FormField
+        control={form.control}
+        name="yourName"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-white">Your Name*</FormLabel>
+            <FormControl>
+              <NeoField placeholder="Enter your name" {...field} />
+            </FormControl>
+            <FormMessage className="text-red-300" />
+          </FormItem>
         )}
+      />
         
+      {elevated ? (
         <div className="space-y-2">
-          <OrderingEmailField
-            value={form.watch("managersEmail") || ''}
-            onChange={(email) => form.setValue("managersEmail", email)}
-            fallbackEmail={managerEmails}
+          <span className="text-white text-sm font-medium">Store (Destination)*</span>
+          <StoreSelector
+            label=""
+            value={form.watch("store") || ''}
+            onChange={(value) => {
+              const normalized = normalizeStoreName(value) || '';
+              form.setValue("store", normalized);
+            }}
+            filterPlant={null}  // ignored for elevated users
+            placeholder="Select destination store..."
+            className="neopill"
           />
         </div>
-
+      ) : (
         <FormField
           control={form.control}
-          name="dateReceived"
+          name="store"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel className="flex items-center">
-                <CalendarIcon2 className="h-4 w-4 mr-1 text-gray-400" />
-                Date Received*
-                <Lock className="h-3 w-3 ml-1 text-gray-500" />
+            <FormItem>
+              <FormLabel className="text-white">
+                Store*
+                {!isAdmin && !user?.hasFullStoreAccess && <Lock className="h-3 w-3 ml-1 text-gray-300" />}
               </FormLabel>
-              <FormControl>
-                <Input 
-                  type="datetime-local" 
-                  {...field}
-                  disabled={true}
-                  className="bg-gray-100 transition-all border-gray-300" 
-                />
-              </FormControl>
-              <FormMessage />
+              <NeoSelect 
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                value={field.value}
+                disabled={!isAdmin && !user?.hasFullStoreAccess}
+              >
+                <FormControl>
+                  <NeoSelectTrigger className={!isAdmin && !user?.hasFullStoreAccess ? 'opacity-70' : ''}>
+                    <NeoSelectValue placeholder="Select a store" />
+                  </NeoSelectTrigger>
+                </FormControl>
+                <NeoSelectContent>
+                  {(isAdmin || user?.hasFullStoreAccess) && (
+                    <NeoSelectItem value="Admin">Admin Only</NeoSelectItem>
+                  )}
+                  {stores.map((store) => (
+                    <NeoSelectItem key={store.id} value={store.name}>
+                      {store.name}
+                    </NeoSelectItem>
+                  ))}
+                </NeoSelectContent>
+              </NeoSelect>
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
-
-        {/* Email Recipients Preview moved to OrderForm.tsx to avoid duplication */}
+      )}
+        
+      <div className="space-y-2">
+        <OrderingEmailField
+          value={form.watch("managersEmail") || ''}
+          onChange={(email) => form.setValue("managersEmail", email)}
+          fallbackEmail={managerEmails}
+        />
       </div>
-    </>
+
+      <FormField
+        control={form.control}
+        name="dateReceived"
+        render={({ field }) => (
+          <FormItem className="flex flex-col">
+            <FormLabel className="text-white">
+              Date Received*
+              <Lock className="h-3 w-3 ml-1 text-gray-300" />
+            </FormLabel>
+            <FormControl>
+              <NeoField 
+                type="datetime-local" 
+                {...field}
+                disabled={true}
+                className="opacity-70 cursor-not-allowed" 
+              />
+            </FormControl>
+            <FormMessage className="text-red-300" />
+          </FormItem>
+        )}
+      />
+
+      {/* Email Recipients Preview moved to OrderForm.tsx to avoid duplication */}
+    </div>
   );
 }

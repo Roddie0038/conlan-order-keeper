@@ -14,6 +14,7 @@ import ConfirmSamePlantModal from "@/components/common/ConfirmSamePlantModal";
 import { hasFullStoreAccess } from "@/lib/roles";
 import { useAuth } from "@/contexts/AuthContext";
 import React from "react";
+import { SectionBox } from "@/components/ui/SectionBox";
 
 interface OrderFormContentProps {
   form: UseFormReturn<OrderFormValues>;
@@ -50,28 +51,30 @@ export function OrderFormContent({
   return (
     <>
       <Form {...form}>
-        <form onSubmit={handleFormSubmit} className="space-y-8">
+        <form onSubmit={handleFormSubmit} className="space-y-8 pb-28">
         {/* Contact Information */}
-        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-6 border border-gray-100 dark:border-gray-800">
+        <SectionBox title="Contact Information" tone="cyan">
           <ContactSection form={form} />
-        </div>
+        </SectionBox>
         
         {/* Mandatory Plant Selector */}
-        <MandatoryPlantSelector
-          value={form.watch("destinationPlant") || ""}
-          onChange={(value) => form.setValue("destinationPlant", value)}
-          error={form.formState.errors.destinationPlant?.message}
-        />
+        <SectionBox title="Select Destination Plant" tone="amber">
+          <MandatoryPlantSelector
+            value={form.watch("destinationPlant") || ""}
+            onChange={(value) => form.setValue("destinationPlant", value)}
+            error={form.formState.errors.destinationPlant?.message}
+          />
+        </SectionBox>
         
         {/* Order Details */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-100 dark:border-blue-900/30">
+        <SectionBox title="Product Details" tone="green">
           <ProductSection form={form} />
-        </div>
+        </SectionBox>
         
         {/* Logistics */}
-        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6 border border-green-100 dark:border-green-900/30">
+        <SectionBox title="Schedule & Notes" tone="purple">
           <ScheduleSection form={form} />
-        </div>
+        </SectionBox>
         
         {/* Cross-Plant Ordering - For elevated users only */}
         {elevated && (
@@ -108,12 +111,12 @@ export function OrderFormContent({
 
         {/* Cross Dock - Only show if feature flag is enabled */}
         {SHOW_CROSS_DOCK && (
-          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6 border border-purple-100 dark:border-purple-900/30">
+          <SectionBox title="Cross Dock Options" tone="fuchsia">
             <CrossDockSection 
               form={form} 
               showCrossDockDestination={showCrossDockDestination} 
             />
-          </div>
+          </SectionBox>
         )}
       </form>
     </Form>

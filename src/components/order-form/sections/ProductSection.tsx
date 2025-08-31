@@ -8,8 +8,8 @@ import {
   FormControl, 
   FormMessage 
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { NeoField } from "@/components/ui/NeoField";
+import { NeoTextarea } from "@/components/ui/NeoTextarea";
 import { Package, FileText, Hash } from "lucide-react";
 
 interface ProductSectionProps {
@@ -18,78 +18,60 @@ interface ProductSectionProps {
 
 export function ProductSection({ form }: ProductSectionProps) {
   return (
-    <>
-      <div className="flex items-center space-x-2 mb-6 border-l-4 border-green-500 pl-3">
-        <Package className="h-5 w-5 text-green-500" />
-        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Product Details</h3>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <FormField
+        control={form.control}
+        name="productNumber"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-white">Product Number*</FormLabel>
+            <FormControl>
+              <NeoField 
+                placeholder="Enter product number" 
+                {...field} 
+              />
+            </FormControl>
+            <FormMessage className="text-red-300" />
+          </FormItem>
+        )}
+      />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField
-          control={form.control}
-          name="productNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center">
-                <Hash className="h-4 w-4 mr-1 text-gray-400" />
-                Product Number*
-              </FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Enter product number" 
-                  {...field} 
-                  className="transition-all border-gray-300 focus:border-green-300 focus:ring-1 focus:ring-green-200" 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+      <FormField
+        control={form.control}
+        name="quantity"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-white">Quantity*</FormLabel>
+            <FormControl>
+              <NeoField 
+                placeholder="Enter quantity" 
+                {...field} 
+              />
+            </FormControl>
+            <FormMessage className="text-red-300" />
+          </FormItem>
+        )}
+      />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      <div className="md:col-span-2">
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="flex items-center">
-                <FileText className="h-4 w-4 mr-1 text-gray-400" />
-                Description*
-              </FormLabel>
+              <FormLabel className="text-white">Description*</FormLabel>
               <FormControl>
-                <Textarea 
+                <NeoTextarea 
                   placeholder="Enter product description" 
-                  className="resize-none min-h-[100px] transition-all border-gray-300 focus:border-green-300 focus:ring-1 focus:ring-green-200"
+                  className="min-h-[100px]"
                   {...field} 
                 />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="quantity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center">
-                <Hash className="h-4 w-4 mr-1 text-gray-400" />
-                Quantity*
-              </FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Enter quantity" 
-                  {...field} 
-                  className="transition-all border-gray-300 focus:border-green-300 focus:ring-1 focus:ring-green-200" 
-                />
-              </FormControl>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
       </div>
-    </>
+    </div>
   );
 }

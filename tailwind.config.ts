@@ -9,6 +9,15 @@ export default {
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
   ],
+  safelist: [
+    "rounded-[16px]","rounded-[22px]",
+    "shadow-[0_12px_28px_-14px_rgba(0,0,0,0.5)]",
+    "shadow-[0_10px_40px_-12px_rgba(0,0,0,0.6)]",
+    "shadow-[inset_0_1px_2px_rgba(255,255,255,0.35)]",
+    "ring-white/10","ring-white/15","ring-cyan-400/40","ring-amber-400/40",
+    "ring-emerald-400/40","ring-violet-400/40","ring-fuchsia-400/40","ring-sky-400/40",
+    "bg-white/5","bg-white/10","from-white/20","to-white/5"
+  ],
   prefix: "",
   theme: {
     container: {

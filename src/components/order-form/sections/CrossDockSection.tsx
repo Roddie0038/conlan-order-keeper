@@ -16,14 +16,9 @@ export function CrossDockSection({
   showCrossDockDestination 
 }: CrossDockSectionProps) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex items-center space-x-2 mb-6">
-        <Truck className="h-5 w-5 text-purple-500" />
-        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Cross Dock Options</h3>
-      </div>
-      
+    <div className="w-full">
       {/* Centered Cross Dock Options selector */}
-      <div className="w-full max-w-xs mb-6">
+      <div className="w-full max-w-xs mb-6 mx-auto">
         <CrossDockOptionSelect form={form} />
       </div>
       

@@ -25,13 +25,12 @@ export function OrderFormWrapper({ children, destinationPlant }: OrderFormWrappe
         </div>
       )}
       
-      <Card className="shadow-xl border border-gray-200 overflow-hidden bg-white dark:bg-gray-800 transition-all hover:shadow-2xl">
-        <CardContent className="p-0">
-          <div className="p-6 sm:p-8">
-            {children}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Dark container scoped to form only */}
+      <div className="bg-neutral-950 text-neutral-100 rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all hover:shadow-2xl">
+        <div className="p-6 sm:p-8">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
