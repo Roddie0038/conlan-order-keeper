@@ -311,6 +311,8 @@ export function OrderForm() {
         form={form} 
         showCrossDockDestination={showCrossDockDestination}
         onSubmit={handleSubmit(onSubmit)}
+        getCurrentFormData={getCurrentFormData}
+        onLoadTemplate={handleLoadTemplate}
       />
 
       {/* Email Recipients Preview */}

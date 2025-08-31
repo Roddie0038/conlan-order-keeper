@@ -8,6 +8,7 @@ import { ScheduleSection } from "./sections/ScheduleSection";
 import { CrossDockSection } from "./sections/CrossDockSection";
 import { MandatoryPlantSelector } from "@/components/ui/mandatory-plant-selector";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
+import { TemplateSection } from "./sections/TemplateSection";
 import { CrossPlantSection } from "@/components/orders/CrossPlantSection";
 import OrderSummaryPreview from "@/components/orders/OrderSummaryPreview";
 import ConfirmSamePlantModal from "@/components/common/ConfirmSamePlantModal";
@@ -20,12 +21,16 @@ interface OrderFormContentProps {
   form: UseFormReturn<OrderFormValues>;
   showCrossDockDestination: boolean;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  getCurrentFormData: () => any;
+  onLoadTemplate: (templateData: any) => void;
 }
 
 export function OrderFormContent({ 
   form, 
   showCrossDockDestination,
-  onSubmit 
+  onSubmit,
+  getCurrentFormData,
+  onLoadTemplate 
 }: OrderFormContentProps) {
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
@@ -52,6 +57,12 @@ export function OrderFormContent({
     <>
       <Form {...form}>
         <form onSubmit={handleFormSubmit} className="space-y-8 pb-28">
+        {/* Template Section */}
+        <TemplateSection 
+          getCurrentFormData={getCurrentFormData}
+          onLoadTemplate={onLoadTemplate}
+        />
+        
         {/* Contact Information */}
         <SectionBox title="Contact Information" tone="cyan">
           <ContactSection form={form} />

@@ -24,7 +24,10 @@ export function ProductSection({ form }: ProductSectionProps) {
         name="productNumber"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-white">Product Number*</FormLabel>
+            <FormLabel className="text-white flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Product Number*
+            </FormLabel>
             <FormControl>
               <NeoField 
                 placeholder="Enter product number" 
@@ -38,13 +41,37 @@ export function ProductSection({ form }: ProductSectionProps) {
       
       <FormField
         control={form.control}
-        name="quantity"
+        name="store"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-white">Quantity*</FormLabel>
+            <FormLabel className="text-white flex items-center gap-2">
+              <Hash className="w-4 h-4" />
+              TO Store*
+            </FormLabel>
             <FormControl>
               <NeoField 
-                placeholder="Enter quantity" 
+                placeholder="Select destination store" 
+                {...field} 
+                disabled
+              />
+            </FormControl>
+            <FormMessage className="text-red-300" />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="receiverNo"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-white flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Receiver*
+            </FormLabel>
+            <FormControl>
+              <NeoField 
+                placeholder="Enter receiver number" 
                 {...field} 
               />
             </FormControl>
@@ -53,25 +80,26 @@ export function ProductSection({ form }: ProductSectionProps) {
         )}
       />
       
-      <div className="md:col-span-2">
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Description*</FormLabel>
-              <FormControl>
-                <NeoTextarea 
-                  placeholder="Enter product description" 
-                  className="min-h-[100px]"
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage className="text-red-300" />
-            </FormItem>
-          )}
-        />
-      </div>
+      <FormField
+        control={form.control}
+        name="managersEmail"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-white flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Destination Manager Email
+            </FormLabel>
+            <FormControl>
+              <NeoField 
+                placeholder="Auto-filled from store" 
+                {...field} 
+                disabled
+              />
+            </FormControl>
+            <FormMessage className="text-red-300" />
+          </FormItem>
+        )}
+      />
     </div>
   );
 }

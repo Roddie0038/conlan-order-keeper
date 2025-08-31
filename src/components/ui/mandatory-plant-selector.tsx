@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertTriangle } from "lucide-react";
+import { NeoSelect, NeoSelectContent, NeoSelectItem, NeoSelectTrigger, NeoSelectValue } from "@/components/ui/NeoSelect";
 
 export const PLANT_OPTIONS = [
   { value: "Grand Prairie 097", label: "Grand Prairie 097" },
@@ -25,28 +26,32 @@ export function MandatoryPlantSelector({
   disabled = false 
 }: MandatoryPlantSelectorProps) {
   return (
-    <div className="space-y-3">
-      <Label className="text-sm font-medium text-neutral-200">
-        Destination Plant *
-      </Label>
-      <Select value={value} onValueChange={onChange} disabled={disabled} required>
-        <SelectTrigger className="neopill">
-          <SelectValue placeholder="Select destination plant" />
-        </SelectTrigger>
-        <SelectContent className="bg-neutral-900 border border-white/10 z-50">
+    <div className="space-y-4">
+      <div className="flex items-center space-x-3 p-4 bg-amber-950/30 border border-amber-500/30 rounded-lg">
+        <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+        <div>
+          <p className="text-sm text-amber-200">
+            Required: Select the plant that this order be routed to. if unsure, contact your warehouse manager.
+          </p>
+        </div>
+      </div>
+
+      <NeoSelect value={value} onValueChange={onChange} disabled={disabled}>
+        <NeoSelectTrigger>
+          <NeoSelectValue placeholder="Select destination plant" />
+        </NeoSelectTrigger>
+        <NeoSelectContent>
           {PLANT_OPTIONS.map((plant) => (
-            <SelectItem key={plant.value} value={plant.value} className="text-white hover:bg-white/10">
+            <NeoSelectItem key={plant.value} value={plant.value}>
               {plant.label}
-            </SelectItem>
+            </NeoSelectItem>
           ))}
-        </SelectContent>
-      </Select>
+        </NeoSelectContent>
+      </NeoSelect>
+      
       {error && (
         <p className="text-sm text-red-400 font-medium">{error}</p>
       )}
-      <p className="text-xs text-neutral-400">
-        Auto-mapped from your store selection. Plant assignment is determined by store-to-plant routing rules.
-      </p>
     </div>
   );
 }
