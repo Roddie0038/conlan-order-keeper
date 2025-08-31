@@ -12,6 +12,9 @@ export function StickyBar({ children }: StickyBarProps) {
         <NeoButton variant="primary" size="lg" className="w-full max-w-md">
           SUBMIT ORDER
         </NeoButton>
+        <div className="text-slate-300 text-sm">
+          Your order will be processed from Grand Prairie 097
+        </div>
       </div>
     </div>
   );

@@ -1,8 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasFullStoreAccess } from '@/lib/roles';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { NeoField } from '@/components/ui/NeoField';
 import { Mail, Lock, Unlock } from 'lucide-react';
 
 interface OrderingEmailFieldProps {
@@ -88,7 +87,7 @@ export function OrderingEmailField({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <Label className="flex items-center text-sm font-medium">
+      <div className="flex items-center text-white text-sm font-medium">
         <Mail className="h-4 w-4 mr-1 text-gray-400" />
         {label}
         {isEditable ? (
@@ -96,34 +95,19 @@ export function OrderingEmailField({
         ) : (
           <Lock className="h-3 w-3 ml-1 text-gray-500" />
         )}
-      </Label>
+      </div>
       
-      {elevated && isEditable && (
-        <p className="text-xs text-gray-500">
-          Set the contact/audit email for this order. Defaults to your login email.
-        </p>
-      )}
-      
-      <Input
+      <NeoField
         type="email"
         value={localValue}
         onChange={handleChange}
         onBlur={handleBlur}
         disabled={!isEditable}
-        placeholder={isEditable ? placeholder : "Email will be automatically set"}
-        className={`transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200 ${
-          !isEditable ? 'bg-gray-100' : ''
-        } ${validationError ? 'border-red-300 focus:border-red-300 focus:ring-red-200' : ''}`}
+        placeholder={isEditable ? placeholder : "Auto-filled from your profile"}
       />
       
       {validationError && (
-        <p className="text-sm text-red-600">{validationError}</p>
-      )}
-      
-      {!validationError && !localValue.trim() && elevated && (
-        <p className="text-xs text-amber-600">
-          Email was empty; will use your login email.
-        </p>
+        <p className="text-sm text-red-400">{validationError}</p>
       )}
     </div>
   );

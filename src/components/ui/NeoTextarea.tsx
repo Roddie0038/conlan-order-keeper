@@ -8,7 +8,11 @@ const NeoTextarea = React.forwardRef<HTMLTextAreaElement, NeoTextareaProps>(
   ({ className, ...props }, ref) => {
     return (
       <textarea
-        className={cn("neopill min-h-[80px]", className)}
+        className={cn(
+          "neopill min-h-[80px] text-slate-100 placeholder:text-slate-400", 
+          props.disabled && "text-slate-300 opacity-100",
+          className
+        )}
         ref={ref}
         {...props}
       />

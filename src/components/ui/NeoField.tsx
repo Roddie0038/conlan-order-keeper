@@ -8,7 +8,11 @@ const NeoField = React.forwardRef<HTMLInputElement, NeoFieldProps>(
   ({ className, ...props }, ref) => {
     return (
       <input
-        className={cn("neopill", className)}
+        className={cn(
+          "neopill text-slate-100 placeholder:text-slate-400", 
+          props.disabled && "text-slate-300 opacity-100",
+          className
+        )}
         ref={ref}
         {...props}
       />

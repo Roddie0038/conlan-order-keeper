@@ -41,18 +41,19 @@ export function ProductSection({ form }: ProductSectionProps) {
       
       <FormField
         control={form.control}
-        name="store"
+        name="quantity"
         render={({ field }) => (
           <FormItem>
             <FormLabel className="text-white flex items-center gap-2">
               <Hash className="w-4 h-4" />
-              TO Store*
+              Quantity*
             </FormLabel>
             <FormControl>
               <NeoField 
-                placeholder="Select destination store" 
+                type="number"
+                min="1"
+                placeholder="Enter quantity" 
                 {...field} 
-                disabled
               />
             </FormControl>
             <FormMessage className="text-red-300" />
@@ -62,38 +63,18 @@ export function ProductSection({ form }: ProductSectionProps) {
       
       <FormField
         control={form.control}
-        name="receiverNo"
+        name="description"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="md:col-span-2">
             <FormLabel className="text-white flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Receiver*
+              Description
             </FormLabel>
             <FormControl>
-              <NeoField 
-                placeholder="Enter receiver number" 
+              <NeoTextarea 
+                placeholder="Enter product description (optional)" 
                 {...field} 
-              />
-            </FormControl>
-            <FormMessage className="text-red-300" />
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="managersEmail"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-white flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              Destination Manager Email
-            </FormLabel>
-            <FormControl>
-              <NeoField 
-                placeholder="Auto-filled from store" 
-                {...field} 
-                disabled
+                rows={3}
               />
             </FormControl>
             <FormMessage className="text-red-300" />
