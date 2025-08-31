@@ -25,29 +25,27 @@ export function MandatoryPlantSelector({
   disabled = false 
 }: MandatoryPlantSelectorProps) {
   return (
-    <div className="space-y-2 p-4 border-2 border-yellow-400 rounded-lg bg-yellow-50">
-      <Label className="text-lg font-bold text-gray-900 flex items-center gap-2">
-        ⚠️ 📍 Select Destination Plant *
+    <div className="space-y-3">
+      <Label className="text-sm font-medium text-neutral-200">
+        Destination Plant *
       </Label>
       <Select value={value} onValueChange={onChange} disabled={disabled} required>
-        <SelectTrigger className={`h-12 border-2 text-lg font-medium ${
-          error ? 'border-red-500' : 'border-yellow-500'
-        }`}>
-          <SelectValue placeholder="-- Select Plant --" />
+        <SelectTrigger className="neopill">
+          <SelectValue placeholder="Select destination plant" />
         </SelectTrigger>
-        <SelectContent className="bg-white border-2 border-gray-300 z-50">
+        <SelectContent className="bg-neutral-900 border border-white/10 z-50">
           {PLANT_OPTIONS.map((plant) => (
-            <SelectItem key={plant.value} value={plant.value}>
+            <SelectItem key={plant.value} value={plant.value} className="text-white hover:bg-white/10">
               {plant.label}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
       {error && (
-        <p className="text-sm text-red-600 font-medium">{error}</p>
+        <p className="text-sm text-red-400 font-medium">{error}</p>
       )}
-      <p className="text-sm text-gray-600 italic">
-        Required: Select the plant that this order will be routed to. If unsure, contact your warehouse manager.
+      <p className="text-xs text-neutral-400">
+        Auto-mapped from your store selection. Plant assignment is determined by store-to-plant routing rules.
       </p>
     </div>
   );

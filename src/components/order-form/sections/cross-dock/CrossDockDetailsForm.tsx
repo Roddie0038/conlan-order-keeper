@@ -1,15 +1,15 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { OrderFormValues } from "../../order-form-schema";
-import { Card } from "@/components/ui/card";
-import { Truck } from "lucide-react";
+import { Truck, Printer } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getFirstManagerEmail } from "@/utils/emailUtils";
-import { StoreFields } from "./components/StoreFields";
-import { OrderInfoFields } from "./components/OrderInfoFields";
-import { ConfirmationCheckbox } from "./components/ConfirmationCheckbox";
-import { PrintFormButton } from "./components/PrintFormButton";
 import { useAuth } from "@/contexts/AuthContext";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { NeoField } from "@/components/ui/NeoField";
+import { NeoSelect } from "@/components/ui/NeoSelect";
+import { NeoButton } from "@/components/ui/NeoButton";
+import { PLANT_STORE_MAP } from "@/utils/plantMapping";
 
 interface CrossDockDetailsFormProps {
   form: UseFormReturn<OrderFormValues>;
@@ -72,39 +72,116 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
     }
   }, [form.watch("store"), form.watch("crossDockDestination"), form]);
   
+  // Generate destination options from plant-store mapping
+  const getAllStoresAndPlants = () => {
+    const destinations: Array<{ value: string; label: string; type: 'store' | 'plant' }> = [];
+    
+    // Add all stores from plant mapping
+    Object.values(PLANT_STORE_MAP).flat().forEach(store => {
+      destinations.push({ value: store, label: store, type: 'store' });
+    });
+    
+    // Add all plants
+    Object.keys(PLANT_STORE_MAP).forEach(plant => {
+      destinations.push({ value: plant, label: plant, type: 'plant' });
+    });
+    
+    return destinations.sort((a, b) => a.label.localeCompare(b.label));
+  };
+
+  const destinationOptions = getAllStoresAndPlants();
+
   return (
-    <Card className="mt-4 p-4 border border-purple-200 bg-purple-50 dark:bg-purple-900/20">
-      <div className="mb-4 border-b border-purple-200 pb-2">
-        <div className="flex justify-center items-center">
-          <h4 className="text-md font-medium text-purple-700 dark:text-purple-300 flex items-center">
-            <Truck className="h-4 w-4 mr-2" />
-            Cross Dock Form Details
-          </h4>
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <p className="mb-4 text-sm font-medium text-neutral-200 flex items-center">
+        <Truck className="h-4 w-4 mr-2" />
+        Cross Dock Details
+      </p>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="crossDockDestination"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium text-neutral-200">Cross Dock Destination *</FormLabel>
+              <FormControl>
+                <select
+                  className="neopill"
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                >
+                  <option value="" disabled hidden>Select destination store or plant</option>
+                  {destinationOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label} ({option.type === 'store' ? 'Store' : 'Plant'})
+                    </option>
+                  ))}
+                </select>
+              </FormControl>
+              <FormMessage className="text-red-400" />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="receiverNo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium text-neutral-200">Receiver No *</FormLabel>
+              <FormControl>
+                <NeoField {...field} placeholder="Receiver Number" />
+              </FormControl>
+              <FormMessage className="text-red-400" />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="etaDate"
+          render={({ field }) => (
+            <FormItem className="md:col-span-2">
+              <FormLabel className="text-sm font-medium text-neutral-200">ETA Date *</FormLabel>
+              <FormControl>
+                <NeoField {...field} type="date" placeholder="ETA Date" />
+              </FormControl>
+              <FormMessage className="text-red-400" />
+            </FormItem>
+          )}
+        />
+
+        <div className="md:col-span-2 flex items-center gap-3">
+          <FormField
+            control={form.control}
+            name="crossDockConfirmation"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    className="h-5 w-5 rounded border-white/10 bg-neutral-900 text-fuchsia-400 focus:ring-fuchsia-300"
+                  />
+                </FormControl>
+                <FormLabel className="text-sm text-neutral-300">
+                  I confirm Cross Dock paperwork is printed and attached
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+          <div className="ml-auto">
+            <NeoButton 
+              variant="ghost" 
+              onClick={() => console.log("Print cross dock form")}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print Only (Test)
+            </NeoButton>
+          </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <StoreFields 
-          form={form} 
-          onDestinationChange={handleDestinationChange}
-          isAdmin={isAdmin}
-        />
-
-        <OrderInfoFields 
-          form={form} 
-          destManagerEmail={destManagerEmail}
-          isAdmin={isAdmin} 
-        />
-      </div>
-
-      <div className="mt-4">
-        <ConfirmationCheckbox form={form} />
-      </div>
-
-      {/* Print button moved to the bottom */}
-      <div className="mt-6 flex justify-center">
-        <PrintFormButton form={form} isAdmin={isAdmin} />
-      </div>
-    </Card>
+    </div>
   );
 }

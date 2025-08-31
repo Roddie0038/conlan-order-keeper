@@ -1,9 +1,10 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOrderSubmission, OrderSummary } from "@/hooks/useOrderSubmission";
+import { useOrderFormSubmitV4, OrderSummary } from "./hooks/useOrderFormSubmitV4";
 import { OrderCountSummary } from "./OrderCountSummary";
-import { OrderSubmitButton } from "./OrderSubmitButton";
+import { StickyBar } from "@/components/ui/StickyBar";
+import { NeoButton } from "@/components/ui/NeoButton";
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: OrderSummary[];
@@ -28,23 +29,23 @@ export function OrderSubmissionHandler({
   // Always enable notifications - testMode is always true
   const [testMode] = useState(true);
 
-  // Use our custom submission hook
-  const { isSubmitting, handleSubmitOrders } = useOrderSubmission();
+  // Use new V4 submission hook for proper Supabase integration
+  const { isSubmitting, handleSubmitOrders } = useOrderFormSubmitV4();
 
   const selectedOrders = orderSummaries.filter(order => order.selected);
   
   // Handler for successful submission
-  const handleSubmissionSuccess = (submittedOrders: OrderSummary[]) => {
+  const handleSubmissionSuccess = () => {
     // Remove submitted orders from summary
     setOrderSummaries(prev => prev.filter(order => !order.selected));
   };
   
   // Submit orders handler
   const submitOrders = async () => {
-    console.log("✅ Order submitted to plant:", destinationPlant);
+    console.log("✅ Submitting transfer orders to plant:", destinationPlant);
     markSubmitting?.();
     try {
-      await handleSubmitOrders(selectedOrders, testMode, destinationPlant, handleSubmissionSuccess);
+      await handleSubmitOrders(selectedOrders, handleSubmissionSuccess);
     } finally {
       clearSubmitting?.();
     }
@@ -55,26 +56,22 @@ export function OrderSubmissionHandler({
   }
   
   return (
-    <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+    <StickyBar>
+      <div className="flex items-center gap-4">
         <OrderCountSummary 
           selectedOrders={selectedOrders} 
           totalOrders={orderSummaries.length} 
         />
         
-        <div className="flex items-center gap-4">
-          {/* Notifications are always enabled - AdminTestModeToggle removed */}
-          
-          <OrderSubmitButton 
-            isSubmitting={isSubmitting}
-            selectedOrders={selectedOrders}
-            testMode={testMode}
-            isAdmin={isAdmin}
-            onSubmit={submitOrders}
-            recipientCount={recipientCount}
-          />
-        </div>
+        <NeoButton 
+          variant="primary"
+          size="lg"
+          onClick={submitOrders}
+          disabled={isSubmitting || selectedOrders.length === 0}
+        >
+          {isSubmitting ? "Submitting..." : `Submit ${selectedOrders.length} Order${selectedOrders.length !== 1 ? 's' : ''}`}
+        </NeoButton>
       </div>
-    </div>
+    </StickyBar>
   );
 }

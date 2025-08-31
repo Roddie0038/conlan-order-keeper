@@ -278,38 +278,17 @@ export function OrderForm() {
         </div>
       )}
       
-      <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden mb-6">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 flex items-center">
-          <h2 className="text-2xl font-semibold text-white">Order Templates</h2>
-        </div>
-        
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <OrderTemplate 
-                type="regular" 
-                currentData={getCurrentFormData()} 
-                onLoadTemplate={handleLoadTemplate} 
-              />
-            </div>
-            {!user?.isAdmin && (
-              <div className="ml-4">
-                <ClearFormButton 
-                  onClear={handleClearForm}
-                  lastSaved={lastSaved}
-                  disabled={isRestoring}
-                />
-              </div>
-            )}
+      {/* Acting-As Store Section - For elevated users only */}
+      {elevated && (
+        <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden mb-6">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 flex items-center">
+            <h2 className="text-2xl font-semibold text-white">Acting As (Source Store)</h2>
           </div>
-        </div>
-
-        {/* Acting-As Store Section - For elevated users only */}
-        {elevated && (
-          <div className="p-6 border-b border-gray-100">
+          
+          <div className="p-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-black">Acting As (Source Store)</h3>
+                <h3 className="text-lg font-medium text-black">Source Store for Regional Transfer</h3>
                 <ActingAsStoreBadge orderingStore={form.watch("ordering_store")} />
               </div>
               
@@ -325,8 +304,8 @@ export function OrderForm() {
               />
             </div>
           </div>
-        )}
-      </Card>
+        </Card>
+      )}
       
       <OrderFormContent 
         form={form} 
