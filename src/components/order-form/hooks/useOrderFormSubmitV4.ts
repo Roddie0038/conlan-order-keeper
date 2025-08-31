@@ -10,6 +10,8 @@ import { submitRegionalOrder } from "@/services/submitRegionalOrder";
 import { normalizeOrderStoreFields } from "@/utils/storeNormalization";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { logger } from '@/utils/logger';
+import { sendConfirmationEmail } from '@/lib/email/sendConfirmationEmail';
+import { formatLocalTs } from '@/lib/time/formatLocalTs';
 
 export interface OrderSummary {
   id: string;
@@ -115,6 +117,42 @@ export function useOrderFormSubmitV4() {
             orderId: order.id,
             result
           });
+
+          // Avoid duplicate confirmations on server-detected retries
+          const isConflict = (result && (result as any).conflict) === true;
+
+          // Build single-recipient confirmation payload
+          if (!isConflict) {
+            const storeName = normalizedOrder.store;
+            const storeNumber = String(storeName?.match(/(\d{2,3})/)?.[1] || '').padStart(3, '0');
+            const plantCode = String(plant?.match(/(\d{2,3})/)?.[1] || '').padStart(3, '0');
+
+            // Try to extract a meaningful server order id; fall back to UI id
+            const serverOrderId =
+              (result && ((result as any).order_id || (result as any).id || (result as any).order?.id || (result as any).data?.id))
+              || order.id;
+
+            // Prefer explicit yourName/managersEmail; fall back to auth
+            const submitterName = normalizedOrder.yourName || (user as any)?.user_metadata?.full_name || user?.email || 'Unknown';
+            const submitterEmail = normalizedOrder.managersEmail || user?.email || '';
+
+            const timestamp = formatLocalTs(new Date());
+
+            // Fire-and-forget; do not block UX
+            sendConfirmationEmail({
+              order_id: serverOrderId,
+              store_number: storeNumber,
+              store_name: storeName,
+              plant: plantCode,
+              submitted_by_name: submitterName,
+              submitted_by_email: submitterEmail,
+              timestamp,
+              product_number: normalizedOrder.productNumber,
+              quantity: normalizedOrder.quantity ? parseInt(String(normalizedOrder.quantity)) : undefined,
+              description: normalizedOrder.description,
+              notes: normalizedOrder.notes,
+            });
+          }
 
           processedOrders.push(order);
 
