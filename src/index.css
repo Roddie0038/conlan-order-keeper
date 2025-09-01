@@ -123,7 +123,7 @@ button {
 
 /* Neumorphic pill used for inputs/selects/textarea */
 .neopill {
-  @apply w-full rounded-[16px] px-4 py-3 text-[15px] font-medium text-white
+  @apply w-full rounded-[16px] px-4 py-3 text-[15px] font-medium
          bg-gradient-to-b from-white/20 to-white/5
          border border-white/10 ring-1 ring-white/10
          placeholder:text-white/80 outline-none
