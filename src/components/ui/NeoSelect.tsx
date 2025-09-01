@@ -16,8 +16,8 @@ const NeoSelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "neopill flex items-center justify-between [&>span]:line-clamp-1 text-slate-100 placeholder:text-slate-400",
-      props.disabled && "text-slate-300 opacity-100",
+      "neopill flex items-center justify-between [&>span]:line-clamp-1 text-slate-900 placeholder:text-slate-400",
+      props.disabled && "text-slate-500 opacity-100",
       className
     )}
     {...props}
