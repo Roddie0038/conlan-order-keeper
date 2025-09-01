@@ -8,7 +8,13 @@ import {
   FormControl, 
   FormMessage 
 } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  NeoSelect, 
+  NeoSelectContent, 
+  NeoSelectItem, 
+  NeoSelectTrigger, 
+  NeoSelectValue 
+} from "@/components/ui/NeoSelect";
 import { crossDockOptions } from "@/components/order-form/formConfig";
 import { Truck } from "lucide-react";
 
@@ -27,24 +33,24 @@ export function CrossDockOptionSelect({ form }: CrossDockOptionSelectProps) {
             <Truck className="h-4 w-4 mr-1 text-gray-400" />
             Cross Dock*
           </FormLabel>
-          <Select
+          <NeoSelect
             onValueChange={field.onChange}
             defaultValue={field.value}
             value={field.value}
           >
             <FormControl>
-              <SelectTrigger className="transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200">
-                <SelectValue placeholder="Yes or No" />
-              </SelectTrigger>
+              <NeoSelectTrigger>
+                <NeoSelectValue placeholder="Yes or No" />
+              </NeoSelectTrigger>
             </FormControl>
-            <SelectContent>
+            <NeoSelectContent>
               {crossDockOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <NeoSelectItem key={option.value} value={option.value}>
                   {option.name}
-                </SelectItem>
+                </NeoSelectItem>
               ))}
-            </SelectContent>
-          </Select>
+            </NeoSelectContent>
+          </NeoSelect>
           <FormMessage />
         </FormItem>
       )}
