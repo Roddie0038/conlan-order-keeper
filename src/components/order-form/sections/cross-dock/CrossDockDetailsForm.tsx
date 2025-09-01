@@ -7,8 +7,9 @@ import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { NeoField } from "@/components/ui/NeoField";
-import { NeoSelect } from "@/components/ui/NeoSelect";
+import { NeoSelect, NeoSelectContent, NeoSelectItem, NeoSelectTrigger, NeoSelectValue } from "@/components/ui/NeoSelect";
 import { NeoButton } from "@/components/ui/NeoButton";
+import { NeoDatePicker } from "@/components/ui/NeoDatePicker";
 import { PLANT_STORE_MAP } from "@/utils/plantMapping";
 
 interface CrossDockDetailsFormProps {
@@ -105,18 +106,18 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
             <FormItem>
               <FormLabel className="text-sm font-medium text-neutral-200">Cross Dock Destination *</FormLabel>
               <FormControl>
-                <select
-                  className="neopill"
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                >
-                  <option value="" disabled hidden>Select destination store or plant</option>
-                  {destinationOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label} ({option.type === 'store' ? 'Store' : 'Plant'})
-                    </option>
-                  ))}
-                </select>
+                <NeoSelect onValueChange={field.onChange} value={field.value}>
+                  <NeoSelectTrigger>
+                    <NeoSelectValue placeholder="Select destination store or plant" />
+                  </NeoSelectTrigger>
+                  <NeoSelectContent>
+                    {destinationOptions.map((option) => (
+                      <NeoSelectItem key={option.value} value={option.value}>
+                        {option.label} ({option.type === 'store' ? 'Store' : 'Plant'})
+                      </NeoSelectItem>
+                    ))}
+                  </NeoSelectContent>
+                </NeoSelect>
               </FormControl>
               <FormMessage className="text-red-400" />
             </FormItem>
@@ -144,7 +145,11 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
             <FormItem className="md:col-span-2">
               <FormLabel className="text-sm font-medium text-neutral-200">ETA Date *</FormLabel>
               <FormControl>
-                <NeoField {...field} type="date" placeholder="ETA Date" />
+                <NeoDatePicker 
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select ETA date"
+                />
               </FormControl>
               <FormMessage className="text-red-400" />
             </FormItem>
