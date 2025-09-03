@@ -49,8 +49,6 @@ export function useOrderFormSubmitV4() {
     const tag = (stage: string, extra: any = {}) =>
       console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
     
-    tag('BUILD_PAYLOAD_ENTER', { count: selectedOrders.length });
-    
     if (selectedOrders.length === 0) {
       tag('GUARD_BLOCK', { reason: 'no_selected_orders' });
       toast({
@@ -72,11 +70,11 @@ export function useOrderFormSubmitV4() {
 
       const processedOrders: OrderSummary[] = [];
       const failedOrders: { order: OrderSummary; error: string }[] = [];
-      
-      tag('BUILD_PAYLOAD_EXIT', { hasPayload: true, orderCount: selectedOrders.length });
 
       for (const order of selectedOrders) {
         try {
+          tag('BUILD_PAYLOAD_ENTER', { selectedCount: selectedOrders.length });
+          
           // Normalize store fields for Supabase submission
           const normalizedOrder = normalizeOrderStoreFields(order, true);
           
@@ -114,6 +112,12 @@ export function useOrderFormSubmitV4() {
             cross_dock_eta_date: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.etaDate : null,
             timestamp: normalizedOrder.timestamp || new Date().toISOString()
           };
+
+          tag('BUILD_PAYLOAD_EXIT', {
+            hasPayload: !!payload,
+            keys: payload ? Object.keys(payload) : [],
+            orderId: order.id
+          });
 
           logger.info('Submitting order to handleOrdersPost', {
             service: 'useOrderFormSubmitV4',
@@ -249,6 +253,13 @@ export function useOrderFormSubmitV4() {
             error: errorMessage
           });
 
+          // Surface RPC error to user with correlation ID
+          toast({
+            title: 'Submission Failed',
+            description: `${errorMessage} [${corr}]`,
+            variant: 'destructive'
+          });
+
           failedOrders.push({ order, error: errorMessage });
         }
       }
@@ -279,6 +290,7 @@ export function useOrderFormSubmitV4() {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      tag('RPC_FAIL', { error: errorMessage });
       
       logger.error('Critical error in order submission', {
         service: 'useOrderFormSubmitV4',
@@ -287,7 +299,7 @@ export function useOrderFormSubmitV4() {
 
       toast({
         title: "Error Submitting Orders",
-        description: `There was an unexpected error. Please try again [${corr}]`,
+        description: `${errorMessage} [${corr}]`,
         variant: "destructive",
       });
     } finally {
