@@ -45,7 +45,7 @@ export function useFormAutosave<T extends Record<string, any>>(
       const out: Record<string, any> = {};
       for (const k of Object.keys(obj)) {
         if (OMIT_KEYS.has(k)) continue;
-        out[k] = strip(obj[k]);
+        out[k] = strip((obj as any)[k]);
       }
       return out;
     }
@@ -108,10 +108,9 @@ export function useFormAutosave<T extends Record<string, any>>(
   // Public controls for callers (submit/template flows)
   const suspendAutosave = useCallback(() => { suspendedRef.current = true; }, []);
   const resumeAutosave  = useCallback(() => { suspendedRef.current = false; }, []);
-  const flushAutosave   = useCallback(async () => {
-    // lodash debounce v4 exposes .flush(); if not, cancel+manual write
-    // @ts-ignore
-    if (debouncedSave.flush) debouncedSave.flush();
+  const flushAutosave   = useCallback(() => {
+    // lodash debounce v4 exposes .flush()
+    (debouncedSave as any).flush?.();
   }, [debouncedSave]);
 
   return {

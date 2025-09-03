@@ -134,7 +134,7 @@ export function OrderForm() {
       suspendAutosave();
       // Flush any pending debounced write; don't hang forever.
       const timeout = new Promise<void>((resolve) => setTimeout(resolve, 1500));
-      await Promise.race([flushAutosave(), timeout]).catch(() => {/* ignore */});
+      await Promise.race([Promise.resolve(flushAutosave()), timeout]).catch(() => {/* ignore */});
       try {
         return await fn(...args);
       } finally {
@@ -246,7 +246,7 @@ export function OrderForm() {
   };
 
   const handleAddToOrder = () => {
-    onSubmit(form.getValues());
+    form.handleSubmit(onSubmit)();
   };
 
   const handleLoadTemplate = withAutosaveFlush(async (templateData: any) => {
