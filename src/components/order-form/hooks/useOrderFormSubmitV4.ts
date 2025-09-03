@@ -152,6 +152,67 @@ export function useOrderFormSubmitV4() {
               description: normalizedOrder.description,
               notes: normalizedOrder.notes,
             });
+
+            // Send warehouse/plant notifications after successful confirmation
+            // Fire-and-forget; do not block UX
+            (async () => {
+              try {
+                logger.info('Sending warehouse/plant notifications', {
+                  service: 'useOrderFormSubmitV4',
+                  orderId: order.id,
+                  store_number: storeNumber
+                });
+
+                const warehousePayload = {
+                  order_type: 'transfer', // Default to transfer, adjust based on order type if needed
+                  store_number: storeNumber,
+                  plant: plantCode,
+                  payload: {
+                    order_id: serverOrderId,
+                    store_name: storeName,
+                    submitted_by_name: submitterName,
+                    submitted_by_email: submitterEmail,
+                    product_number: normalizedOrder.productNumber,
+                    quantity: normalizedOrder.quantity ? parseInt(String(normalizedOrder.quantity)) : undefined,
+                    description: normalizedOrder.description,
+                    notes: normalizedOrder.notes,
+                    timestamp
+                  }
+                };
+
+                // Call notification-controller with proper auth
+                const response = await fetch(`https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/notification-controller`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMzNzA2MSwiZXhwIjoyMDU1OTEzMDYxfQ.A2aA7KGKBFPdYKDxnK8TFSvJx-6LGzgNXLVOlGF5S7Y`
+                  },
+                  body: JSON.stringify(warehousePayload)
+                });
+
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  logger.error('Warehouse notification failed', {
+                    service: 'useOrderFormSubmitV4',
+                    orderId: order.id,
+                    status: response.status,
+                    error: errorText
+                  });
+                } else {
+                  logger.info('Warehouse notifications sent successfully', {
+                    service: 'useOrderFormSubmitV4',
+                    orderId: order.id
+                  });
+                }
+              } catch (warehouseError) {
+                logger.error('Error sending warehouse notifications', {
+                  service: 'useOrderFormSubmitV4',
+                  orderId: order.id,
+                  error: warehouseError instanceof Error ? warehouseError.message : 'Unknown error'
+                });
+                // Don't fail the main flow for warehouse notification errors
+              }
+            })();
           }
 
           processedOrders.push(order);
