@@ -36,12 +36,14 @@ export function OrderForm() {
   const { selectedPlant } = usePlant();
   const elevated = hasFullStoreAccess(user);
 
-  // Add temporary debug log for triage
-  console.info('[Ordering Acting-As]', {
-    userEmail: user?.email,
-    userRole: user?.role,
-    elevated: elevated,
-  });
+  // Controlled logging to prevent render spam
+  useEffect(() => {
+    console.info('[Ordering Acting-As]', {
+      userEmail: user?.email,
+      userRole: user?.role,
+      elevated: elevated,
+    });
+  }, [user?.email, user?.role, elevated]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSummaries, setOrderSummaries] = useState<any[]>([]);
   const [recipientCount, setRecipientCount] = useState(0);
@@ -111,7 +113,10 @@ export function OrderForm() {
     saveNow,
     isSubmittingRef,
     markSubmitting,
-    clearSubmitting
+    clearSubmitting,
+    suspendAutosave,
+    resumeAutosave,
+    flushAutosave
   } = useFormAutosave(form, 'order', {
     enabled: !user?.isAdmin,
     excludeFields: ['managersEmail'], // Only exclude auto-generated fields
@@ -121,6 +126,22 @@ export function OrderForm() {
       console.log('🔄 Order form data restored');
     }
   });
+
+  // Wrapper to suspend autosave during critical operations
+  function withAutosaveFlush<T extends (...args:any[]) => Promise<any>>(fn: T): T {
+    // Wrap actions that must not fight autosave (submit/template)
+    return (async (...args: any[]) => {
+      suspendAutosave();
+      // Flush any pending debounced write; don't hang forever.
+      const timeout = new Promise<void>((resolve) => setTimeout(resolve, 1500));
+      await Promise.race([flushAutosave(), timeout]).catch(() => {/* ignore */});
+      try {
+        return await fn(...args);
+      } finally {
+        resumeAutosave();
+      }
+    }) as T;
+  }
 
   // Flush draft saves on route changes and page unload
   useRouteFlush({ saveNow, isSubmittingRef });
@@ -169,7 +190,7 @@ export function OrderForm() {
   const { handleSubmit, formState, reset } = form;
   const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "Yes";
   
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = withAutosaveFlush(async (values: z.infer<typeof formSchema>) => {
     // Validate plant selection
     if (!values.destinationPlant) {
       toast({
@@ -214,7 +235,7 @@ export function OrderForm() {
         managersEmail: managerEmailValue
       });
     }
-  };
+  });
 
   const handleToggleSelection = (orderId: string) => {
     setOrderSummaries(prev => 
@@ -225,10 +246,10 @@ export function OrderForm() {
   };
 
   const handleAddToOrder = () => {
-    form.handleSubmit(onSubmit)();
+    onSubmit(form.getValues());
   };
 
-  const handleLoadTemplate = (templateData: any) => {
+  const handleLoadTemplate = withAutosaveFlush(async (templateData: any) => {
     Object.keys(templateData).forEach((key) => {
       if (key in defaultValues) {
         form.setValue(key as keyof typeof defaultValues, templateData[key]);
@@ -250,7 +271,7 @@ export function OrderForm() {
       title: "Template Loaded",
       description: "The template has been loaded successfully."
     });
-  };
+  });
 
   const handleClearForm = () => {
     form.reset(defaultValues);

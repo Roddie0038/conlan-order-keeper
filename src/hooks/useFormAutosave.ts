@@ -1,4 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useCallback } from 'react';
+import debounce from 'lodash.debounce';
+import isEqual from 'fast-deep-equal';
 import { useServerOrderDraft } from './useServerOrderDraft';
 import { FormType, SubType } from '@/utils/draftKeys';
 
@@ -23,8 +25,34 @@ export function useFormAutosave<T extends Record<string, any>>(
     plant?: string;
   }
 ) {
-  const formValues = form.watch();
   const hasInitialized = useRef(false);
+  const suspendedRef = useRef(false);
+  const lastSavedPayloadRef = useRef<any | null>(null);
+
+  // watch full form but we'll sanitize + compare before saving
+  const formValues = form.watch();
+
+  // Fields the server mutates or that are non-deterministic – never include in autosave
+  const OMIT_KEYS = new Set([
+    'id','created_at','createdAt','updated_at','updatedAt','version',
+    'serverVersion','telemetry','lastSavedAt','_meta','_internal'
+  ]);
+
+  const stripServerFields = useCallback(function strip(obj: any): any {
+    if (obj == null) return obj;
+    if (Array.isArray(obj)) return obj.map(strip);
+    if (typeof obj === 'object') {
+      const out: Record<string, any> = {};
+      for (const k of Object.keys(obj)) {
+        if (OMIT_KEYS.has(k)) continue;
+        out[k] = strip(obj[k]);
+      }
+      return out;
+    }
+    return obj;
+  }, []);
+
+  const userEditable = useMemo(() => stripServerFields(formValues), [formValues, stripServerFields]);
   
   // Get form type mapping
   const mapping = FORM_TYPE_MAPPINGS[formType];
@@ -41,27 +69,50 @@ export function useFormAutosave<T extends Record<string, any>>(
     initialData: {},
     enabled: options?.enabled ?? true,
     excludeFields: options?.excludeFields,
-    debounceMs: 1500, // Slower debounce to prevent save storms
+    debounceMs: 1000, // Controlled via our own debounce
     useTempKey: true, // Enable temp->final key migration
     onRestore: (data) => {
       if (data && typeof data === 'object') {
-        form.reset(data);
+        // Strip server-managed fields to avoid re-dirtying form
+        const sanitized = stripServerFields(data);
+        form.reset(sanitized);
         options?.onRestore?.();
       }
     }
   });
 
-  // Sync form values with draft system
-  useEffect(() => {
-    if (hasInitialized.current && formValues && Object.keys(formValues).length > 0) {
-      draft.update(formValues);
-    }
-  }, [formValues, draft]);
+  // Debounced saver (1s). NOTE: cancel on unmount.
+  const debouncedSave = useMemo(() => debounce((payload: any) => {
+    draft.update(payload);
+    lastSavedPayloadRef.current = payload;
+  }, 1000), [draft]);
 
-  // Mark as initialized after first render to prevent unwanted resets
   useEffect(() => {
-    hasInitialized.current = true;
-  }, []);
+    return () => {
+      debouncedSave.cancel();
+    };
+  }, [debouncedSave]);
+
+  // Core autosave logic
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      lastSavedPayloadRef.current = userEditable;
+      return;
+    }
+    if (suspendedRef.current) return;               // paused during submit/template
+    if (isEqual(lastSavedPayloadRef.current, userEditable)) return; // nothing meaningful changed
+    debouncedSave(userEditable);                    // queue one save
+  }, [userEditable, debouncedSave]);
+
+  // Public controls for callers (submit/template flows)
+  const suspendAutosave = useCallback(() => { suspendedRef.current = true; }, []);
+  const resumeAutosave  = useCallback(() => { suspendedRef.current = false; }, []);
+  const flushAutosave   = useCallback(async () => {
+    // lodash debounce v4 exposes .flush(); if not, cancel+manual write
+    // @ts-ignore
+    if (debouncedSave.flush) debouncedSave.flush();
+  }, [debouncedSave]);
 
   return {
     ...draft,
@@ -71,7 +122,11 @@ export function useFormAutosave<T extends Record<string, any>>(
     getPersistedDataInfo: () => draft.lastSaved ? { timestamp: draft.lastSaved } : null,
     isRestoring: !draft.hasRestored,
     ready: draft.hasRestored,
-    didRestore: draft.hasRestored
+    didRestore: draft.hasRestored,
+    // New autosave controls
+    suspendAutosave,
+    resumeAutosave,
+    flushAutosave
   };
 }
 
@@ -112,10 +167,20 @@ export function useStatefulFormAutosave<T extends Record<string, any>>(
     }
   });
 
-  // Sync form data with draft system
+  // Sync form data with draft system with deep comparison
+  const lastSavedStatefulRef = useRef<any | null>(null);
+  
   useEffect(() => {
     if (formData && Object.keys(formData).length > 0) {
-      draft.update(formData);
+      // Strip server fields and compare
+      const userEditableData = Object.fromEntries(
+        Object.entries(formData).filter(([key]) => !['id','created_at','createdAt','updated_at','updatedAt','version'].includes(key))
+      );
+      
+      if (!isEqual(lastSavedStatefulRef.current, userEditableData)) {
+        draft.update(userEditableData);
+        lastSavedStatefulRef.current = userEditableData;
+      }
     }
   }, [formData, draft]);
 
