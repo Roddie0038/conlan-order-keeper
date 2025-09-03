@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrderFormSubmitV4, OrderSummary } from "./hooks/useOrderFormSubmitV4";
@@ -14,6 +13,7 @@ interface OrderSubmissionHandlerProps {
   recipientCount?: number;
   markSubmitting?: () => void;
   clearSubmitting?: () => void;
+  formHandleSubmit?: (callback: () => Promise<void>) => (e?: React.BaseSyntheticEvent) => Promise<void>;
 }
 
 export function OrderSubmissionHandler({ 
@@ -22,7 +22,8 @@ export function OrderSubmissionHandler({
   destinationPlant,
   recipientCount = 1,
   markSubmitting,
-  clearSubmitting
+  clearSubmitting,
+  formHandleSubmit
 }: OrderSubmissionHandlerProps) {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin || false;
@@ -48,7 +49,7 @@ export function OrderSubmissionHandler({
   
   // Submit orders handler
   const submitOrders = async () => {
-    tag('CLICK');
+    tag('ONSUBMIT_ENTER', { selectedOrderCount: selectedOrders.length });
     
     // Guard: Check if any orders are selected
     if (selectedOrders.length === 0) {
@@ -61,7 +62,6 @@ export function OrderSubmissionHandler({
       return;
     }
 
-    tag('HANDLE_SUBMIT_ENTER', { selectedOrderCount: selectedOrders.length });
     markSubmitting?.();
     
     try {
@@ -69,6 +69,23 @@ export function OrderSubmissionHandler({
     } finally {
       clearSubmitting?.();
       tag('ONSUBMIT_EXIT');
+    }
+  };
+
+  // Create the properly wired submit handler
+  const handleSubmitClick = () => {
+    tag('CLICK');
+    
+    if (formHandleSubmit) {
+      // Wire through React Hook Form validation
+      const wrappedSubmit = formHandleSubmit(async () => {
+        tag('HANDLE_SUBMIT_ENTER');
+        await submitOrders();
+      });
+      wrappedSubmit();
+    } else {
+      // Fallback to direct submission
+      submitOrders();
     }
   };
   
@@ -87,7 +104,7 @@ export function OrderSubmissionHandler({
         <NeoButton 
           variant="primary"
           size="lg"
-          onClick={submitOrders}
+          onClick={handleSubmitClick}
           disabled={isSubmitting || selectedOrders.length === 0}
         >
           {isSubmitting ? "Submitting..." : `Submit ${selectedOrders.length} Order${selectedOrders.length !== 1 ? 's' : ''}`}

@@ -368,6 +368,7 @@ export function OrderForm() {
           recipientCount={recipientCount}
           markSubmitting={markSubmitting}
           clearSubmitting={clearSubmitting}
+          formHandleSubmit={form.handleSubmit}
         />
       
       <OrderFormActions 
