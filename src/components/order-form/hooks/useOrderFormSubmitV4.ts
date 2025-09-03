@@ -49,7 +49,8 @@ export function useOrderFormSubmitV4() {
     const tag = (stage: string, extra: any = {}) =>
       console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
     
-    tag('ONSUBMIT_ENTER', { orderCount: selectedOrders.length });
+    tag('BUILD_PAYLOAD_ENTER', { count: selectedOrders.length });
+    
     if (selectedOrders.length === 0) {
       tag('GUARD_BLOCK', { reason: 'no_selected_orders' });
       toast({
@@ -71,6 +72,8 @@ export function useOrderFormSubmitV4() {
 
       const processedOrders: OrderSummary[] = [];
       const failedOrders: { order: OrderSummary; error: string }[] = [];
+      
+      tag('BUILD_PAYLOAD_EXIT', { hasPayload: true, orderCount: selectedOrders.length });
 
       for (const order of selectedOrders) {
         try {
@@ -118,7 +121,7 @@ export function useOrderFormSubmitV4() {
             payload
           });
 
-          tag('RPC_CALL', { endpoint: 'submitRegionalOrder', orderId: order.id });
+          tag('RPC_DISPATCH');
           
           // Add 30s timeout wrapper
           const result = await Promise.race([
@@ -128,6 +131,7 @@ export function useOrderFormSubmitV4() {
             )
           ]);
           
+          tag('RPC_DISPATCH_DONE');
           tag('RPC_OK', { orderId: order.id, result });
           logger.info('Order successfully submitted', {
             service: 'useOrderFormSubmitV4',

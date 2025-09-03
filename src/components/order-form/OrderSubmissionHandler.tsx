@@ -38,8 +38,6 @@ export function OrderSubmissionHandler({
 
   // Use new V4 submission hook for proper Supabase integration
   const { isSubmitting, handleSubmitOrders } = useOrderFormSubmitV4();
-
-  const selectedOrders = orderSummaries.filter(order => order.selected);
   
   // Handler for successful submission
   const handleSubmissionSuccess = () => {
@@ -49,6 +47,8 @@ export function OrderSubmissionHandler({
   
   // Submit orders handler
   const submitOrders = async () => {
+    // Recompute selection at click time (no stale capture)
+    const selectedOrders = orderSummaries.filter(order => order.selected);
     tag('ONSUBMIT_ENTER', { selectedOrderCount: selectedOrders.length });
     
     // Guard: Check if any orders are selected
@@ -97,7 +97,7 @@ export function OrderSubmissionHandler({
     <StickyBar>
       <div className="flex items-center gap-4">
         <OrderCountSummary 
-          selectedOrders={selectedOrders} 
+          selectedOrders={orderSummaries.filter(order => order.selected)} 
           totalOrders={orderSummaries.length} 
         />
         
@@ -105,9 +105,9 @@ export function OrderSubmissionHandler({
           variant="primary"
           size="lg"
           onClick={handleSubmitClick}
-          disabled={isSubmitting || selectedOrders.length === 0}
+          disabled={isSubmitting || orderSummaries.filter(order => order.selected).length === 0}
         >
-          {isSubmitting ? "Submitting..." : `Submit ${selectedOrders.length} Order${selectedOrders.length !== 1 ? 's' : ''}`}
+          {isSubmitting ? "Submitting..." : `Submit ${orderSummaries.filter(order => order.selected).length} Order${orderSummaries.filter(order => order.selected).length !== 1 ? 's' : ''}`}
         </NeoButton>
       </div>
     </StickyBar>

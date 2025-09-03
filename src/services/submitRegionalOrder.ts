@@ -8,13 +8,16 @@ export async function submitRegionalOrder(payload: RegionalOrderPayload) {
   const tag = (stage: string, extra: any = {}) =>
     console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
   
-  tag('RPC_CALL', { endpoint: 'handleOrdersPost', payload: Object.keys(payload) });
+  tag('RPC_CALL', { endpoint: 'handleOrdersPost', items: (payload as any)?.items?.length ?? 0 });
   
   const safePayload = mapRegionalOrderPayloadToPhase1(payload);
 
   try {
     const result = await Promise.race([
-      supabase.functions.invoke("handleOrdersPost", { body: safePayload }),
+      supabase.functions.invoke("handleOrdersPost", { 
+        body: safePayload,
+        headers: { 'x-corr-id': corr }
+      }),
       new Promise<never>((_, reject) => 
         setTimeout(() => reject(new Error('RPC timeout after 30s')), 30000)
       )
