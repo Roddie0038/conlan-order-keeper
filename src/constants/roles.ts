@@ -8,12 +8,13 @@ export const CANONICAL_ROLES = {
   super_admin: 'Super Admin',
   operations_manager: 'Operations Manager', 
   plant_manager: 'Plant Manager',
+  plant_admin: 'Plant Manager', // Legacy role, render as Plant Manager
   warehouse_manager: 'Warehouse Manager',
   store_manager: 'Store Manager',
   service_manager: 'Service Manager',
   coordinator: 'Coordinator',
   retread_manager: 'Retread Manager',
-  warehouse_coordinator: 'Coordinator', // Legacy role, render as Coordinator
+  warehouse_coordinator: 'Warehouse Coordinator', // Distinct from Coordinator per requirements
   office_manager: 'Office Manager'
 } as const;
 
@@ -30,12 +31,8 @@ export type AllRoles = CanonicalRole | LegacyRole;
 
 // Get display label for any role (handles legacy mapping)
 export function getRoleDisplayLabel(role: string): string {
-  // Handle legacy mappings first
-  if (role === 'plant_admin') return CANONICAL_ROLES.plant_manager;
-  if (role === 'warehouse_coordinator') return CANONICAL_ROLES.coordinator;
-  
   // Return canonical label or default
-  return CANONICAL_ROLES[role as CanonicalRole] || role.replace('_', ' ');
+  return CANONICAL_ROLES[role as CanonicalRole] || role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
 // Get all roles for dropdowns (excludes duplicates from legacy mappings)
@@ -44,6 +41,21 @@ export function getAllRoleOptions(): Array<{ value: string; label: string }> {
     value,
     label
   }));
+}
+
+// Get role options for general user management (excludes office_manager)
+export function getGeneralRoleOptions(): Array<{ value: string; label: string }> {
+  return Object.entries(CANONICAL_ROLES)
+    .filter(([value]) => value !== 'office_manager')
+    .map(([value, label]) => ({
+      value,
+      label
+    }));
+}
+
+// Get role options for email recipient management (includes all roles)
+export function getEmailRecipientRoleOptions(): Array<{ value: string; label: string }> {
+  return getAllRoleOptions();
 }
 
 // Check if role is elevated (for access control)

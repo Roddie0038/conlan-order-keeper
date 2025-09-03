@@ -6,8 +6,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-internal-secret',
 };
 
+type EmailType = 
+  | 'transfer'
+  | 'mto'
+  | 'wheel'
+  | 'warranty'
+  | 'cross_dock'
+  | 'completion'
+  | 'out_of_stock'
+  | 'message'
+  | 'customer_complaints';
+
 interface NotificationRequest {
-  order_type: 'transfer' | 'mto' | 'wheel' | 'warranty' | 'cross_dock';
+  order_type: EmailType;
   store_number: string;
   plant?: string;
   payload: {
@@ -22,6 +33,8 @@ interface NotificationRequest {
     timestamp?: string;
     [key: string]: any;
   };
+  idempotency_key?: string;
+  source?: 'ordering_v4' | 'ot_trigger' | 'manual';
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -57,14 +70,39 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { order_type, store_number, plant, payload }: NotificationRequest = await req.json();
+    const { order_type, store_number, plant, payload, idempotency_key, source }: NotificationRequest = await req.json();
 
     console.log('Notification controller invoked:', { 
       order_type, 
       store_number, 
       plant,
+      idempotency_key,
+      source,
       payload_keys: Object.keys(payload)
     });
+
+    // Check for duplicate using idempotency key
+    if (idempotency_key) {
+      const { data: existingLog } = await supabase
+        .from('notification_logs')
+        .select('id')
+        .eq('metadata->>idempotency_key', idempotency_key)
+        .single();
+
+      if (existingLog) {
+        console.log('Duplicate notification prevented:', idempotency_key);
+        return new Response(
+          JSON.stringify({ 
+            message: 'Notification already processed',
+            idempotency_key
+          }),
+          { 
+            status: 200, 
+            headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          }
+        );
+      }
+    }
 
     // Validate required fields
     if (!order_type || !store_number) {
@@ -83,7 +121,11 @@ const handler = async (req: Request): Promise<Response> => {
       'mto': 'mto', 
       'wheel': 'wheel',
       'warranty': 'warranty',
-      'cross_dock': 'cross_dock'
+      'cross_dock': 'cross_dock',
+      'completion': 'completion',
+      'out_of_stock': 'out_of_stock',
+      'message': 'message',
+      'customer_complaints': 'customer_complaints'
     };
 
     const emailType = emailTypeMap[order_type];
@@ -216,7 +258,9 @@ const handler = async (req: Request): Promise<Response> => {
         metadata: {
           recipients_count: recipients.length,
           results,
-          trigger_source: 'notification_controller'
+          trigger_source: 'notification_controller',
+          idempotency_key,
+          source
         }
       });
     } catch (logError) {

@@ -12,6 +12,7 @@ import { getPlantForStore } from "@/utils/plantMapping";
 import { logger } from '@/utils/logger';
 import { sendConfirmationEmail } from '@/lib/email/sendConfirmationEmail';
 import { formatLocalTs } from '@/lib/time/formatLocalTs';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface OrderSummary {
   id: string;
@@ -164,7 +165,7 @@ export function useOrderFormSubmitV4() {
                 });
 
                 const warehousePayload = {
-                  order_type: 'transfer', // Default to transfer, adjust based on order type if needed
+                  order_type: 'transfer' as const, // Default to transfer, adjust based on order type if needed
                   store_number: storeNumber,
                   plant: plantCode,
                   payload: {
@@ -177,31 +178,33 @@ export function useOrderFormSubmitV4() {
                     description: normalizedOrder.description,
                     notes: normalizedOrder.notes,
                     timestamp
-                  }
+                  },
+                  idempotency_key: `ordering_v4:${serverOrderId}:transfer`,
+                  source: 'ordering_v4' as const
                 };
 
-                // Call notification-controller with proper auth
-                const response = await fetch(`https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/notification-controller`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMzNzA2MSwiZXhwIjoyMDU1OTEzMDYxfQ.A2aA7KGKBFPdYKDxnK8TFSvJx-6LGzgNXLVOlGF5S7Y`
-                  },
-                  body: JSON.stringify(warehousePayload)
-                });
+                // Call notification-controller using supabase.functions.invoke for proper auth
+                const { data: notificationResult, error: notificationError } = await supabase.functions.invoke(
+                  'notification-controller',
+                  {
+                    body: warehousePayload,
+                    headers: {
+                      'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDMzNzA2MSwiZXhwIjoyMDU1OTEzMDYxfQ.A2aA7KGKBFPdYKDxnK8TFSvJx-6LGzgNXLVOlGF5S7Y`
+                    }
+                  }
+                );
 
-                if (!response.ok) {
-                  const errorText = await response.text();
+                if (notificationError) {
                   logger.error('Warehouse notification failed', {
                     service: 'useOrderFormSubmitV4',
                     orderId: order.id,
-                    status: response.status,
-                    error: errorText
+                    error: notificationError.message
                   });
                 } else {
                   logger.info('Warehouse notifications sent successfully', {
                     service: 'useOrderFormSubmitV4',
-                    orderId: order.id
+                    orderId: order.id,
+                    result: notificationResult
                   });
                 }
               } catch (warehouseError) {

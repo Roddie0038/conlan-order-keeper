@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { getGeneralRoleOptions } from '@/constants/roles';
 import type { PlatformUser, UserRole, UserStatus } from '@/hooks/useUserManagement';
 
 interface EditUserDialogProps {
@@ -78,16 +79,8 @@ export function EditUserDialog({ open, onOpenChange, user, onUserUpdated }: Edit
     }
   };
 
-  const roleOptions: { value: UserRole; label: string }[] = [
-    { value: 'super_admin', label: 'Super Admin' },
-    { value: 'plant_admin', label: 'Plant Admin' },
-    { value: 'store_manager', label: 'Store Manager' },
-    { value: 'warehouse_manager', label: 'Warehouse Manager' },
-    { value: 'operations_manager', label: 'Operations Manager' },
-    { value: 'service_manager', label: 'Service Manager' },
-    { value: 'team_lead', label: 'Team Lead' },
-    { value: 'warehouse_staff', label: 'Warehouse Staff' }
-  ];
+  // Use canonical roles for general user management (excludes office_manager)
+  const roleOptions = getGeneralRoleOptions();
 
   const statusOptions: { value: UserStatus; label: string }[] = [
     { value: 'active', label: 'Active' },

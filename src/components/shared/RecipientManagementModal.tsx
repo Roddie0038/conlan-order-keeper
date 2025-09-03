@@ -70,18 +70,10 @@ interface RecipientManagementModalProps {
   defaultEmails?: string[];
 }
 
-const ROLE_OPTIONS = [
-  { value: 'store_manager', label: 'Store Manager' },
-  { value: 'warehouse_manager', label: 'Warehouse Manager' },
-  { value: 'plant_manager', label: 'Plant Manager' },
-  { value: 'operations_manager', label: 'Operations Manager' },
-  { value: 'service_manager', label: 'Service Manager' },
-  { value: 'retread_manager', label: 'Retread Manager' },
-  { value: 'warehouse_coordinator', label: 'Warehouse Coordinator' },
-  { value: 'office_manager', label: 'Office Manager' },
-  { value: 'admin', label: 'Administrator' },
-  { value: 'custom', label: 'Custom Role' }
-];
+import { getEmailRecipientRoleOptions } from "@/constants/roles";
+
+// Use canonical roles for email recipient management (includes office_manager)
+const ROLE_OPTIONS = getEmailRecipientRoleOptions();
 
 export const RecipientManagementModal: React.FC<RecipientManagementModalProps> = ({
   open,
