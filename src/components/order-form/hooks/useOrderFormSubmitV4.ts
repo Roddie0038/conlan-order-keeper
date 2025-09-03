@@ -42,12 +42,19 @@ export function useOrderFormSubmitV4() {
 
   const handleSubmitOrders = async (
     selectedOrders: OrderSummary[],
-    onSuccess?: () => void
+    onSuccess?: () => void,
+    corrId?: string
   ) => {
+    const corr = corrId || crypto.randomUUID();
+    const tag = (stage: string, extra: any = {}) =>
+      console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
+    
+    tag('ONSUBMIT_ENTER', { orderCount: selectedOrders.length });
     if (selectedOrders.length === 0) {
+      tag('GUARD_BLOCK', { reason: 'no_selected_orders' });
       toast({
         title: "No Orders Selected",
-        description: "Please select at least one order to submit.",
+        description: `Please select at least one order to submit [${corr}]`,
         variant: "destructive",
       });
       return;
@@ -111,8 +118,17 @@ export function useOrderFormSubmitV4() {
             payload
           });
 
-          const result = await submitRegionalOrder(payload);
+          tag('RPC_CALL', { endpoint: 'submitRegionalOrder', orderId: order.id });
           
+          // Add 30s timeout wrapper
+          const result = await Promise.race([
+            submitRegionalOrder(payload),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Submission timeout after 30s')), 30000)
+            )
+          ]);
+          
+          tag('RPC_OK', { orderId: order.id, result });
           logger.info('Order successfully submitted', {
             service: 'useOrderFormSubmitV4',
             orderId: order.id,
@@ -222,6 +238,7 @@ export function useOrderFormSubmitV4() {
 
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          tag('RPC_FAIL', { orderId: order.id, error: errorMessage });
           logger.error('Order submission failed', {
             service: 'useOrderFormSubmitV4',
             orderId: order.id,
@@ -236,7 +253,7 @@ export function useOrderFormSubmitV4() {
       if (processedOrders.length === selectedOrders.length) {
         toast({
           title: "Orders Submitted Successfully",
-          description: `${processedOrders.length} order(s) have been submitted and are being processed.`,
+          description: `${processedOrders.length} order(s) have been submitted and are being processed [${corr}]`,
         });
 
         if (onSuccess) {
@@ -245,13 +262,13 @@ export function useOrderFormSubmitV4() {
       } else if (processedOrders.length > 0) {
         toast({
           title: "Partial Success",
-          description: `${processedOrders.length} of ${selectedOrders.length} orders submitted successfully.`,
+          description: `${processedOrders.length} of ${selectedOrders.length} orders submitted successfully [${corr}]`,
           variant: "destructive",
         });
       } else {
         toast({
           title: "Submission Failed",
-          description: "No orders could be submitted. Please try again.",
+          description: `No orders could be submitted. Please try again [${corr}]`,
           variant: "destructive",
         });
       }
@@ -266,7 +283,7 @@ export function useOrderFormSubmitV4() {
 
       toast({
         title: "Error Submitting Orders",
-        description: "There was an unexpected error. Please try again.",
+        description: `There was an unexpected error. Please try again [${corr}]`,
         variant: "destructive",
       });
     } finally {

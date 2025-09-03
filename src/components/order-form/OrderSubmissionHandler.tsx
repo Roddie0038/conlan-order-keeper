@@ -5,6 +5,7 @@ import { useOrderFormSubmitV4, OrderSummary } from "./hooks/useOrderFormSubmitV4
 import { OrderCountSummary } from "./OrderCountSummary";
 import { StickyBar } from "@/components/ui/StickyBar";
 import { NeoButton } from "@/components/ui/NeoButton";
+import { toast } from "@/components/ui/use-toast";
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: OrderSummary[];
@@ -29,6 +30,11 @@ export function OrderSubmissionHandler({
   // Always enable notifications - testMode is always true
   const [testMode] = useState(true);
 
+  // Generate correlation ID for debugging
+  const corr = (window as any).__corrId ??= crypto.randomUUID();
+  const tag = (stage: string, extra: any = {}) =>
+    console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
+
   // Use new V4 submission hook for proper Supabase integration
   const { isSubmitting, handleSubmitOrders } = useOrderFormSubmitV4();
 
@@ -42,12 +48,27 @@ export function OrderSubmissionHandler({
   
   // Submit orders handler
   const submitOrders = async () => {
-    console.log("✅ Submitting transfer orders to plant:", destinationPlant);
+    tag('CLICK');
+    
+    // Guard: Check if any orders are selected
+    if (selectedOrders.length === 0) {
+      tag('GUARD_BLOCK', { reason: 'no_selected_orders' });
+      toast({
+        title: "No Orders Selected",
+        description: `Select at least one order to submit [${corr}]`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    tag('HANDLE_SUBMIT_ENTER', { selectedOrderCount: selectedOrders.length });
     markSubmitting?.();
+    
     try {
-      await handleSubmitOrders(selectedOrders, handleSubmissionSuccess);
+      await handleSubmitOrders(selectedOrders, handleSubmissionSuccess, corr);
     } finally {
       clearSubmitting?.();
+      tag('ONSUBMIT_EXIT');
     }
   };
   
