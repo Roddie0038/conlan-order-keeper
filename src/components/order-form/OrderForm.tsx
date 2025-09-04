@@ -376,6 +376,9 @@ export function OrderForm() {
         selectedPlant={selectedPlant}
         onAddClick={handleAddToOrder}
       />
+      
+      {/* Bottom padding to account for sticky submit bar */}
+      <div className="pb-24" />
     </OrderFormWrapper>
   );
 }

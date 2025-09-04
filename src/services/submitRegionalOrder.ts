@@ -8,7 +8,11 @@ export async function submitRegionalOrder(payload: RegionalOrderPayload) {
   const tag = (stage: string, extra: any = {}) =>
     console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
   
-  tag('RPC_CALL', { endpoint: 'handleOrdersPost', items: (payload as any)?.items?.length ?? 0 });
+  tag('RPC_CALL', { 
+    endpoint: 'handleOrdersPost', 
+    items: (payload as any)?.items?.length ?? 0,
+    payloadKeys: payload ? Object.keys(payload) : []
+  });
   
   const safePayload = mapRegionalOrderPayloadToPhase1(payload);
 

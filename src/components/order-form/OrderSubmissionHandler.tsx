@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrderFormSubmitV4, OrderSummary } from "./hooks/useOrderFormSubmitV4";
 import { OrderCountSummary } from "./OrderCountSummary";
-import { StickyBar } from "@/components/ui/StickyBar";
 import { NeoButton } from "@/components/ui/NeoButton";
 import { toast } from "@/components/ui/use-toast";
 
@@ -35,6 +34,16 @@ export function OrderSubmissionHandler({
   const corr = (window as any).__corrId ??= crypto.randomUUID();
   const tag = (stage: string, extra: any = {}) =>
     console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
+
+  // Add build info on component mount
+  useEffect(() => {
+    const buildInfo = { 
+      branch: 'main', 
+      sha: 'latest-fix-v1.0.0' // Build stamp for verification
+    };
+    console.info('[BUILD]', buildInfo);
+    console.info('[ORDER_SUBMIT][proof-of-life] OrderSubmissionHandler mounted', Date.now());
+  }, []);
 
   // Use new V4 submission hook for proper Supabase integration
   const { isSubmitting, handleSubmitOrders } = useOrderFormSubmitV4();
@@ -74,6 +83,7 @@ export function OrderSubmissionHandler({
 
   // Create the properly wired submit handler
   const handleSubmitClick = () => {
+    console.info('[ORDER_SUBMIT][proof-of-life] raw click fired', Date.now());
     tag('CLICK');
     
     if (formHandleSubmit) {
@@ -93,23 +103,34 @@ export function OrderSubmissionHandler({
     return null;
   }
   
+  const selectedCount = orderSummaries.filter(order => order.selected).length;
+
   return (
-    <StickyBar>
-      <div className="flex items-center gap-4">
-        <OrderCountSummary 
-          selectedOrders={orderSummaries.filter(order => order.selected)} 
-          totalOrders={orderSummaries.length} 
-        />
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-neutral-950/70 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/50">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4">
+        <div className="flex items-center gap-4">
+          <OrderCountSummary 
+            selectedOrders={orderSummaries.filter(order => order.selected)} 
+            totalOrders={orderSummaries.length} 
+          />
+        </div>
         
-        <NeoButton 
-          variant="primary"
-          size="lg"
-          onClick={handleSubmitClick}
-          disabled={isSubmitting || orderSummaries.filter(order => order.selected).length === 0}
-        >
-          {isSubmitting ? "Submitting..." : `Submit ${orderSummaries.filter(order => order.selected).length} Order${orderSummaries.filter(order => order.selected).length !== 1 ? 's' : ''}`}
-        </NeoButton>
+        <div className="flex flex-col items-center gap-1">
+          <NeoButton 
+            variant="primary"
+            size="lg"
+            onClick={handleSubmitClick}
+            disabled={isSubmitting || selectedCount === 0}
+            data-testid="submit-order-btn"
+            className="w-full max-w-md"
+          >
+            {isSubmitting ? "Submitting..." : `Submit ${selectedCount} Order${selectedCount !== 1 ? 's' : ''}`}
+          </NeoButton>
+          <div className="text-slate-300 text-xs">
+            BUILD: main@latest-fix-v1.0.0 | Plant: {destinationPlant || 'Select Plant'}
+          </div>
+        </div>
       </div>
-    </StickyBar>
+    </div>
   );
 }

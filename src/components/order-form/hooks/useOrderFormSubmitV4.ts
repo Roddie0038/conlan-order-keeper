@@ -71,6 +71,8 @@ export function useOrderFormSubmitV4() {
       const processedOrders: OrderSummary[] = [];
       const failedOrders: { order: OrderSummary; error: string }[] = [];
 
+      tag('RPC_DISPATCH');
+
       for (const order of selectedOrders) {
         try {
           tag('BUILD_PAYLOAD_ENTER', { selectedCount: selectedOrders.length });
@@ -116,17 +118,27 @@ export function useOrderFormSubmitV4() {
           tag('BUILD_PAYLOAD_EXIT', {
             hasPayload: !!payload,
             keys: payload ? Object.keys(payload) : [],
+            itemCount: 1, // Single order per payload
             orderId: order.id
           });
+
+          if (!payload || Object.keys(payload).length === 0) {
+            tag('PAYLOAD_EMPTY');
+            toast({
+              title: "Nothing to submit",
+              description: `Payload empty [${corr}]`,
+              variant: "destructive"
+            });
+            return;
+          }
 
           logger.info('Submitting order to handleOrdersPost', {
             service: 'useOrderFormSubmitV4',
             orderId: order.id,
-            payload
+            destinationPlant: payload.destination_plant,
+            corr
           });
 
-          tag('RPC_DISPATCH');
-          
           // Add 30s timeout wrapper
           const result = await Promise.race([
             submitRegionalOrder(payload),
@@ -263,6 +275,8 @@ export function useOrderFormSubmitV4() {
           failedOrders.push({ order, error: errorMessage });
         }
       }
+
+      tag('RPC_DISPATCH_DONE');
 
       // Handle results
       if (processedOrders.length === selectedOrders.length) {
