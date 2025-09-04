@@ -146,12 +146,17 @@ export function OrderForm() {
   // Flush draft saves on route changes and page unload
   useRouteFlush({ saveNow, isSubmittingRef });
 
-  // Update store when user changes — Ordering Platform — Autosave Patch D: guard defaults with {ready, didRestore}
+  // Update store when user changes — WITH SUBMIT GUARD
   useEffect(() => {
-    console.log('[AutoSave][OrderForm] defaults effect run', { ready, didRestore });
+    console.log('[AutoSave][OrderForm] defaults effect run', { ready, didRestore, submitting: isSubmittingRef.current });
     if (!ready) return;
     if (didRestore) {
       console.log('[AutoSave] Skipping defaults – restored data present.');
+      return;
+    }
+    // CRITICAL: Never reset during submit
+    if (isSubmittingRef.current) {
+      console.log('[AutoSave] BLOCKED defaults during submit');
       return;
     }
     if (user?.store && !user?.isAdmin && !user?.hasFullStoreAccess) {
@@ -160,13 +165,18 @@ export function OrderForm() {
       if (!currentStore) form.setValue("store", user.store);
       if (!currentManagersEmail) form.setValue("managersEmail", "");
     }
-  }, [user, form, ready, didRestore]);
+  }, [user, form, ready, didRestore, isSubmittingRef]);
 
-  // Auto-initialize destination plant based on store
+  // Auto-initialize destination plant based on store — WITH SUBMIT GUARD
   useEffect(() => {
     if (!ready) return;
     if (didRestore) {
       console.log('[AutoSave][OrderForm] Skipping auto-plant defaults – restored data present.');
+      return;
+    }
+    // CRITICAL: Never reset during submit
+    if (isSubmittingRef.current) {
+      console.log('[AutoSave] BLOCKED auto-plant during submit');
       return;
     }
     console.log('[AutoSave][OrderForm] auto-plant defaults effect', { ready, didRestore });
@@ -185,7 +195,7 @@ export function OrderForm() {
       
       console.log("✅ AUTO-PLANT - Destination plant auto-set to:", selectedPlant);
     }
-  }, [form.watch("store"), selectedPlant, form, ready, didRestore]);
+  }, [form.watch("store"), selectedPlant, form, ready, didRestore, isSubmittingRef]);
 
   const { handleSubmit, formState, reset } = form;
   const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "Yes";
@@ -222,18 +232,20 @@ export function OrderForm() {
       description: `Item added to order for ${values.destinationPlant}. You can add more items or submit the order.`,
     });
     
-    // Reset form for next item, but preserve store and manager email for non-admin users
-    if (user?.isAdmin) {
-      reset(defaultValues);
-    } else {
-      const storeValue = form.getValues("store");
-      const managerEmailValue = form.getValues("managersEmail");
-      
-      reset({
-        ...defaultValues,
-        store: storeValue,
-        managersEmail: managerEmailValue
-      });
+    // ONLY reset form after successful ADD (not during submit)
+    if (!isSubmittingRef.current) {
+      if (user?.isAdmin) {
+        reset(defaultValues);
+      } else {
+        const storeValue = form.getValues("store");
+        const managerEmailValue = form.getValues("managersEmail");
+        
+        reset({
+          ...defaultValues,
+          store: storeValue,
+          managersEmail: managerEmailValue
+        });
+      }
     }
   });
 
@@ -299,34 +311,7 @@ export function OrderForm() {
         </div>
       )}
       
-      {/* Acting-As Store Section - For elevated users only */}
-      {elevated && (
-        <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden mb-6">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 flex items-center">
-            <h2 className="text-2xl font-semibold text-white">Acting As (Source Store)</h2>
-          </div>
-          
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-black">Source Store for Regional Transfer</h3>
-                <ActingAsStoreBadge orderingStore={form.watch("ordering_store")} />
-              </div>
-              
-              <StoreSelector
-                label="Ordering as (Source Store)"
-                value={form.watch("ordering_store") || ''}
-                onChange={(v) => {
-                  const normalized = normalizeStoreName(v) || '';
-                  form.setValue("ordering_store", normalized);
-                }}
-                filterPlant={null}  // ignored for elevated users
-                placeholder="Select source store..."
-              />
-            </div>
-          </div>
-        </Card>
-      )}
+      {/* REMOVED: International/Regional UI moved to dedicated page */}
       
       <OrderFormContent 
         form={form} 

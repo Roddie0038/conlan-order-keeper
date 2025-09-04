@@ -35,14 +35,15 @@ export function OrderSubmissionHandler({
   const tag = (stage: string, extra: any = {}) =>
     console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
 
-  // Add build info on component mount
+  // Add build info on component mount + proper correlation logging
   useEffect(() => {
     const buildInfo = { 
       branch: 'main', 
-      sha: 'latest-fix-v1.0.0' // Build stamp for verification
+      sha: `v4-submit-fix-${Date.now()}`, // Real build stamp for verification
+      timestamp: new Date().toISOString()
     };
     console.info('[BUILD]', buildInfo);
-    console.info('[ORDER_SUBMIT][proof-of-life] OrderSubmissionHandler mounted', Date.now());
+    tag('MOUNT', { sha: buildInfo.sha, ts: buildInfo.timestamp });
   }, []);
 
   // Use new V4 submission hook for proper Supabase integration
@@ -71,6 +72,12 @@ export function OrderSubmissionHandler({
       return;
     }
 
+    // Log dispatch readiness with order IDs
+    tag('DISPATCH_READY', { 
+      selectedOrderIds: selectedOrders.map(o => o.id),
+      count: selectedOrders.length 
+    });
+
     markSubmitting?.();
     
     try {
@@ -83,9 +90,6 @@ export function OrderSubmissionHandler({
 
   // Create the properly wired submit handler
   const handleSubmitClick = () => {
-    console.info('[ORDER_SUBMIT][proof-of-life] raw click fired', Date.now());
-    tag('CLICK');
-    
     if (formHandleSubmit) {
       // Wire through React Hook Form validation
       const wrappedSubmit = formHandleSubmit(async () => {
@@ -119,7 +123,12 @@ export function OrderSubmissionHandler({
           <NeoButton 
             variant="primary"
             size="lg"
-            onClick={handleSubmitClick}
+            onClick={() => {
+              tag('BUTTON_RENDERED');
+              console.info('[ORDER_SUBMIT][proof-of-life] raw click fired', Date.now());
+              tag('CLICK');
+              handleSubmitClick();
+            }}
             disabled={isSubmitting || selectedCount === 0}
             data-testid="submit-order-btn"
             className="w-full max-w-md"
@@ -127,7 +136,7 @@ export function OrderSubmissionHandler({
             {isSubmitting ? "Submitting..." : `Submit ${selectedCount} Order${selectedCount !== 1 ? 's' : ''}`}
           </NeoButton>
           <div className="text-slate-300 text-xs">
-            BUILD: main@latest-fix-v1.0.0 | Plant: {destinationPlant || 'Select Plant'}
+            BUILD: v4-submit-fix-{Date.now().toString().slice(-6)} | Plant: {destinationPlant || 'Select Plant'}
           </div>
         </div>
       </div>

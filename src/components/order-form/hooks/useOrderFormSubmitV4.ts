@@ -75,7 +75,7 @@ export function useOrderFormSubmitV4() {
 
       for (const order of selectedOrders) {
         try {
-          tag('BUILD_PAYLOAD_ENTER', { selectedCount: selectedOrders.length });
+          tag('BUILD_PAYLOAD_ENTER', { selectedCount: selectedOrders.length, orderId: order.id });
           
           // Normalize store fields for Supabase submission
           const normalizedOrder = normalizeOrderStoreFields(order, true);
@@ -117,8 +117,9 @@ export function useOrderFormSubmitV4() {
 
           tag('BUILD_PAYLOAD_EXIT', {
             hasPayload: !!payload,
-            keys: payload ? Object.keys(payload) : [],
-            itemCount: 1, // Single order per payload
+            keys: payload ? Object.keys(payload).slice(0, 5) : [], // Limit keys for readability
+            destinationPlant: payload.destination_plant,
+            store: payload.store,
             orderId: order.id
           });
 
@@ -139,6 +140,8 @@ export function useOrderFormSubmitV4() {
             corr
           });
 
+          tag('RPC_DISPATCH', { orderId: order.id, endpoint: 'handleOrdersPost' });
+
           // Add 30s timeout wrapper
           const result = await Promise.race([
             submitRegionalOrder(payload),
@@ -146,6 +149,8 @@ export function useOrderFormSubmitV4() {
               setTimeout(() => reject(new Error('Submission timeout after 30s')), 30000)
             )
           ]);
+
+          tag('RPC_DISPATCH_DONE', { orderId: order.id });
           
           tag('RPC_DISPATCH_DONE');
           tag('RPC_OK', { orderId: order.id, result });
