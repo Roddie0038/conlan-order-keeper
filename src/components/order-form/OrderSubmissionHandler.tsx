@@ -90,15 +90,33 @@ export function OrderSubmissionHandler({
 
   // Create the properly wired submit handler
   const handleSubmitClick = () => {
+    tag('CLICK');
+    
+    // For order summary submission, skip form validation since we're submitting existing summaries
+    if (orderSummaries.length > 0 && orderSummaries.some(order => order.selected)) {
+      tag('DIRECT_SUBMIT_PATH', { summaryCount: orderSummaries.length });
+      submitOrders();
+      return;
+    }
+    
+    // For new item submission or empty summaries, use form validation
     if (formHandleSubmit) {
-      // Wire through React Hook Form validation
+      tag('FORM_VALIDATION_PATH');
       const wrappedSubmit = formHandleSubmit(async () => {
         tag('HANDLE_SUBMIT_ENTER');
         await submitOrders();
       });
+      
+      // Add timeout detection for silent validation failures
+      setTimeout(() => {
+        tag('VALIDATION_TIMEOUT_CHECK', { 
+          formState: 'checking if validation silently failed'
+        });
+      }, 100);
+      
       wrappedSubmit();
     } else {
-      // Fallback to direct submission
+      tag('FALLBACK_PATH');
       submitOrders();
     }
   };
