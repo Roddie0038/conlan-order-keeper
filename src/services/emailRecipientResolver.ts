@@ -257,12 +257,12 @@ async function checkOTPlatformUsers(
       log.push(`Tier 3 store managers error: ${storeError.message}`);
     }
 
-    // Query 2: Warehouse management team (any store, specific plant or all plants)
+    // Query 2: Warehouse management team (specific plant only - no global expansion)
     console.log(`🔍 TIER 3 DEBUGGING - Querying warehouse managers for plant: ${plant}`);
     const { data: warehouseManagers, error: warehouseError } = await supabase
       .from('ot_platform_users')
       .select('email, full_name, role, store, plant')
-      .or(`plant.eq.${plant},plant.eq.All Plants`)
+      .eq('plant', plant)
       .in('role', ['warehouse_manager', 'warehouse_coordinator', 'retread_manager', 'plant_manager', 'operations_manager', 'super_admin'])
       .eq('status', 'active')
       .not('email', 'is', null);

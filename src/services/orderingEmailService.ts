@@ -1,4 +1,10 @@
+/**
+ * DEPRECATED - Phase 2: Use otNotificationService instead
+ * This service routes through legacy system but will be removed
+ */
+
 import { supabase } from "@/integrations/supabase/client";
+import { otNotificationService } from "@/services/otNotification";
 
 export interface OrderingEmailRecipient {
   id: number;
@@ -34,6 +40,8 @@ export interface CreateOrderingEmailRecipient {
   is_active?: boolean;
   created_by?: string;
 }
+
+// ... keep existing code (recipient management functions) ...
 
 // Get all email recipients for order confirmations
 export async function getOrderingEmailRecipients(): Promise<OrderingEmailRecipient[]> {
@@ -131,7 +139,10 @@ export async function getOrderingEmailLogs(limit: number = 100): Promise<Orderin
   return data || [];
 }
 
-// Send order confirmation email using role-based routing
+/**
+ * DEPRECATED: Send order confirmation email using role-based routing
+ * Use otNotificationService.sendTransferOrderNotification() instead
+ */
 export async function sendOrderConfirmationEmail(orderData: {
   store_number: string;
   store_name: string;
@@ -145,26 +156,30 @@ export async function sendOrderConfirmationEmail(orderData: {
   description?: string;
   plant?: string;
 }): Promise<{ success: boolean; message: string }> {
+  
+  console.warn('⚠️ DEPRECATED - sendOrderConfirmationEmail. Use otNotificationService instead.');
+  
   try {
-    console.log('📧 ORDERING EMAIL - Sending confirmation using role-based routing:', {
+    // Route through new otNotificationService
+    const result = await otNotificationService.sendNotification({
+      email_type: orderData.order_type,
       store_number: orderData.store_number,
-      order_type: orderData.order_type,
-      order_id: orderData.order_id
+      plant_code: orderData.plant || '097',
+      idempotency_key: `legacy_ordering_${orderData.order_id}_${Date.now()}`,
+      admin_override: false,
+      payload: orderData
     });
 
-    const { data, error } = await supabase.functions.invoke('ordering-confirmation-email', {
-      body: orderData
-    });
+    return {
+      success: result.success,
+      message: result.error || result.message || 'Notification processed'
+    };
 
-    if (error) {
-      console.error('❌ ORDERING EMAIL - Error sending order confirmation email:', error);
-      throw error;
-    }
-
-    console.log('✅ ORDERING EMAIL - Successfully invoked email function:', data);
-    return data;
   } catch (error) {
-    console.error('❌ ORDERING EMAIL - Error invoking ordering confirmation email function:', error);
-    throw error;
+    console.error('❌ DEPRECATED ORDERING EMAIL - Error:', error);
+    return {
+      success: false,
+      message: `Legacy service error: ${error.message}`
+    };
   }
 }

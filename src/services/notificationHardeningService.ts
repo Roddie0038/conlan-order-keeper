@@ -309,12 +309,12 @@ export class NotificationHardeningService {
       };
     }
 
-    // Fallback Strategy 2: Expand to parent plant recipients
-    if (attempt === 3 && orderData.plant) {
+    // Fallback Strategy 2: Removed - no global plant expansions (Phase 2)
+    if (attempt === 3) {
       return {
-        applied: true,
-        fallbackType: 'parent_plant_expansion',
-        modifiedData: { plant: 'All Plants' }
+        applied: false,
+        fallbackType: 'global_expansion_disabled',
+        modifiedData: {}
       };
     }
 

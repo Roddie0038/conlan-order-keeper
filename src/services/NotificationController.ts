@@ -232,18 +232,28 @@ class NotificationController {
   }
 
   /**
-   * Invoke the centralized email edge function
+   * DEPRECATED: Use otNotificationService instead
+   * This method is kept for backward compatibility but will be removed
    */
   private async invokeEmailFunction(
     payload: NotificationPayload, 
     recipients: any[]
   ): Promise<{ success: boolean; message: string }> {
     
+    console.warn('⚠️ NOTIFICATION CONTROLLER - Using deprecated invokeEmailFunction. Migrate to otNotificationService.');
+    
     try {
-      const { data, error } = await supabase.functions.invoke('ordering-confirmation-email', {
+      // Legacy fallback - route through ot-notify
+      const { data, error } = await supabase.functions.invoke('ot-notify', {
         body: {
-          ...payload,
-          recipients: recipients.map(r => r.email)
+          email_type: payload.order_type,
+          store_number: payload.store_number,
+          idempotency_key: `legacy_${payload.order_id}_${Date.now()}`,
+          admin_override: false,
+          payload: {
+            ...payload,
+            recipients: recipients.map(r => r.email)
+          }
         }
       });
 

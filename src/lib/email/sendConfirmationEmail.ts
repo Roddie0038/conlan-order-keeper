@@ -1,4 +1,10 @@
+/**
+ * DEPRECATED - Phase 2: Use otNotificationService instead
+ * This service routes through legacy controller but will be removed
+ */
+
 import { supabase } from '@/integrations/supabase/client';
+import { otNotificationService } from '@/services/otNotification';
 
 export type ConfirmationPayload = {
   order_id: string | number;
@@ -15,44 +21,40 @@ export type ConfirmationPayload = {
 };
 
 /**
- * Sends a single-recipient confirmation email via the existing ordering-confirmation-email edge function.
- * - No recipient lookups. Passes recipients: [submitted_by_email] to avoid fallbacks.
- * - Swallows errors to avoid blocking UX.
+ * DEPRECATED: Use otNotificationService.sendTransferOrderNotification() instead
+ * Sends confirmation via ot-notify → OT controller pipeline
+ * Swallows errors to avoid blocking UX.
  */
 export async function sendConfirmationEmail(p: ConfirmationPayload): Promise<void> {
+  
+  console.warn('⚠️ DEPRECATED - sendConfirmationEmail lib. Use otNotificationService instead.');
+  
   try {
     const to = [p.submitted_by_email].filter(Boolean) as string[];
     if (to.length !== 1) return; // safety
 
-    // Build body expected by the edge function. It accepts extra fields safely.
-    const body = {
-      order_type: 'confirmation',
-      order_id: String(p.order_id),
+    // Route through new otNotificationService  
+    await otNotificationService.sendNotification({
+      email_type: 'transfer_confirmation',
       store_number: p.store_number,
-      store_name: p.store_name,
-      plant: p.plant,
-      // Edge function expects these names; include both to satisfy spec and function
-      name: p.submitted_by_name,
-      email: p.submitted_by_email,
-      submitted_by_name: p.submitted_by_name,
-      submitted_by_email: p.submitted_by_email,
-      timestamp: p.timestamp,
-      product_number: p.product_number,
-      quantity: p.quantity,
-      description: p.description ?? '',
-      notes: p.notes ?? '',
-      recipients: to,
-    };
-
-    const { error } = await supabase.functions.invoke('ordering-confirmation-email', {
-      body,
+      plant_code: p.plant,
+      idempotency_key: `legacy_lib_${p.order_id}_${Date.now()}`,
+      admin_override: false,
+      payload: {
+        order_id: String(p.order_id),
+        store_name: p.store_name,
+        name: p.submitted_by_name,
+        email: p.submitted_by_email,
+        timestamp: p.timestamp,
+        product_number: p.product_number,
+        quantity: p.quantity,
+        description: p.description ?? '',
+        notes: p.notes ?? '',
+        recipients: to
+      }
     });
 
-    if (error) {
-      // Non-blocking: log and continue
-      console.warn('Confirmation email invoke error:', error);
-    }
-  } catch (err) {
-    console.warn('Confirmation email failed:', err);
+  } catch (error) {
+    console.warn('❌ DEPRECATED CONFIRMATION EMAIL - Error:', error);
   }
 }
