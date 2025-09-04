@@ -112,7 +112,8 @@ export function useOrderFormSubmitV4() {
             cross_dock_destination: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.crossDockDestination : null,
             cross_dock_receiver_number: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.receiverNo : null,
             cross_dock_eta_date: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.etaDate : null,
-            timestamp: normalizedOrder.timestamp || new Date().toISOString()
+            timestamp: normalizedOrder.timestamp || new Date().toISOString(),
+            _corr: corr
           };
 
           tag('BUILD_PAYLOAD_EXIT', {

@@ -20,8 +20,7 @@ export async function submitRegionalOrder(payload: RegionalOrderPayload) {
   try {
     const result = await Promise.race([
       supabase.functions.invoke("handleOrdersPost", { 
-        body: safePayload,
-        headers: { 'x-corr-id': corr }
+        body: { ...safePayload, _corr: corr }
       }),
       new Promise<never>((_, reject) => 
         setTimeout(() => reject(new Error('RPC timeout after 30s')), 30000)

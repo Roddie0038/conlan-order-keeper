@@ -19,4 +19,5 @@ export interface RegionalOrderPayload {
     notes?: string;
   };
   idempotency_key: string;        // uuid v4
+  _corr?: string;                 // correlation ID for tracking
 }

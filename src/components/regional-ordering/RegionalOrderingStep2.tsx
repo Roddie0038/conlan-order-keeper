@@ -66,6 +66,8 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
       // Ensure exact kind
       const destinationKind = kind === 'store' ? 'store' : 'plant';
 
+      const corr = crypto.randomUUID();
+      
       const payload = {
         origin_ot_id: normalizePlantLike(origin),
         destination_ot_id: normalizePlantLike(dest),
@@ -78,6 +80,7 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
         role: (user as any)?.role ?? '',
         timestamp: new Date().toISOString(),
         idempotency_key: idemKey,
+        _corr: corr,
       };
 
       console.log('▶️ handleOrdersPost payload', payload);
