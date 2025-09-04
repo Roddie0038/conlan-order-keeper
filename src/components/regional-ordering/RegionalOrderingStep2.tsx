@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,17 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Add build info for regional flow
+  useEffect(() => {
+    const buildInfo = { 
+      branch: 'main', 
+      sha: 'standard-regional-separation-v1',
+      timestamp: new Date().toISOString(),
+      flow: 'regional'
+    };
+    console.info('[BUILD]', buildInfo);
+  }, []);
   
   // Single line item state (Phase 1)
   const [productNumber, setProductNumber] = useState('');
@@ -41,6 +52,12 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
     }
 
     setIsSubmitting(true);
+    const corr = crypto.randomUUID();
+    const tag = (stage: string, extra: any = {}) =>
+      console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
+
+    tag('CLICK');
+    tag('ONSUBMIT_ENTER', { flow: 'regional' });
 
     try {
       const idemKey = crypto.randomUUID();
@@ -66,9 +83,11 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
       // Ensure exact kind
       const destinationKind = kind === 'store' ? 'store' : 'plant';
 
-      const corr = crypto.randomUUID();
+      tag('BUILD_PAYLOAD_ENTER');
       
+      // Regional ordering payload with proper typing
       const payload = {
+        type: 'regional' as const,
         origin_ot_id: normalizePlantLike(origin),
         destination_ot_id: normalizePlantLike(dest),
         destination_kind: destinationKind,
@@ -83,30 +102,43 @@ export function RegionalOrderingStep2({ origin, dest, kind }: RegionalOrderingSt
         _corr: corr,
       };
 
-      console.log('▶️ handleOrdersPost payload', payload);
+      tag('BUILD_PAYLOAD_EXIT', { 
+        productNumber: payload.product_number,
+        quantity: payload.quantity,
+        _corr: corr 
+      });
 
+      tag('RPC_CALL', { endpoint: 'handleOrdersPost' });
       const { data, error } = await supabase.functions.invoke('handleOrdersPost', { body: payload });
 
-      if (error) throw new Error(error.message || 'Failed to submit order');
+      if (error) {
+        tag('RPC_FAIL', { error: error.message });
+        throw new Error(error.message || 'Failed to submit order');
+      }
+
+      tag('RPC_OK', { data });
 
       if (data?.conflict) {
-        toast({ title: 'Already submitted', description: 'We recognized a retry and kept your original submission.' });
+        toast({ title: 'Already submitted', description: `We recognized a retry and kept your original submission [${corr}]` });
       } else {
-        toast({ title: 'Order Submitted', description: 'Order submitted successfully.' });
+        toast({ title: 'Order Submitted', description: `Order submitted successfully [${corr}]` });
       }
 
       // Navigate back to Step 1 (Phase 1 behavior)
       navigate('/regional-ordering');
       
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      tag('RPC_FAIL', { error: errorMessage });
       console.error('Order submission error:', error);
       toast({
         title: "Submission Failed",
-        description: error instanceof Error ? error.message : "Failed to submit order. Please try again.",
+        description: `${errorMessage} [${corr}]`,
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
+      tag('ONSUBMIT_EXIT');
     }
   };
 

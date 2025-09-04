@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOrderFormSubmitV4, OrderSummary } from "./hooks/useOrderFormSubmitV4";
+import { useStandardOrderSubmit, OrderSummary } from "./hooks/useStandardOrderSubmit";
 import { OrderCountSummary } from "./OrderCountSummary";
 import { NeoButton } from "@/components/ui/NeoButton";
 import { toast } from "@/components/ui/use-toast";
@@ -35,19 +35,20 @@ export function OrderSubmissionHandler({
   const tag = (stage: string, extra: any = {}) =>
     console.info(`[ORDER_SUBMIT][${corr}] ${stage}`, extra);
 
-  // Add build info on component mount + proper correlation logging
+  // Add stable build info on component mount
   useEffect(() => {
     const buildInfo = { 
       branch: 'main', 
-      sha: `v4-submit-fix-${Date.now()}`, // Real build stamp for verification
-      timestamp: new Date().toISOString()
+      sha: 'standard-regional-separation-v1', // Stable build stamp
+      timestamp: new Date().toISOString(),
+      flow: 'standard'
     };
     console.info('[BUILD]', buildInfo);
-    tag('MOUNT', { sha: buildInfo.sha, ts: buildInfo.timestamp });
+    tag('MOUNT', { sha: buildInfo.sha, ts: buildInfo.timestamp, flow: buildInfo.flow });
   }, []);
 
-  // Use new V4 submission hook for proper Supabase integration
-  const { isSubmitting, handleSubmitOrders } = useOrderFormSubmitV4();
+  // Use standard submission hook for classic transfer orders
+  const { isSubmitting, handleSubmitOrders } = useStandardOrderSubmit();
   
   // Handler for successful submission
   const handleSubmissionSuccess = () => {
@@ -92,14 +93,17 @@ export function OrderSubmissionHandler({
   const handleSubmitClick = () => {
     tag('CLICK');
     
-    // For order summary submission, skip form validation since we're submitting existing summaries
-    if (orderSummaries.length > 0 && orderSummaries.some(order => order.selected)) {
-      tag('DIRECT_SUBMIT_PATH', { summaryCount: orderSummaries.length });
+    // Recompute selected orders at click time (no stale captures)
+    const selectedOrders = orderSummaries.filter(order => order.selected);
+    
+    // For order summary submission, use direct path (bypass RHF validation)
+    if (selectedOrders.length > 0) {
+      tag('DIRECT_SUBMIT_PATH', { summaryCount: orderSummaries.length, selectedCount: selectedOrders.length });
       submitOrders();
       return;
     }
     
-    // For new item submission or empty summaries, use form validation
+    // For new item submission when no summaries selected, use form validation
     if (formHandleSubmit) {
       tag('FORM_VALIDATION_PATH');
       const wrappedSubmit = formHandleSubmit(async () => {
@@ -141,12 +145,7 @@ export function OrderSubmissionHandler({
           <NeoButton 
             variant="primary"
             size="lg"
-            onClick={() => {
-              tag('BUTTON_RENDERED');
-              console.info('[ORDER_SUBMIT][proof-of-life] raw click fired', Date.now());
-              tag('CLICK');
-              handleSubmitClick();
-            }}
+            onClick={handleSubmitClick}
             disabled={isSubmitting || selectedCount === 0}
             data-testid="submit-order-btn"
             className="w-full max-w-md"
@@ -154,7 +153,7 @@ export function OrderSubmissionHandler({
             {isSubmitting ? "Submitting..." : `Submit ${selectedCount} Order${selectedCount !== 1 ? 's' : ''}`}
           </NeoButton>
           <div className="text-slate-300 text-xs">
-            BUILD: v4-submit-fix-{Date.now().toString().slice(-6)} | Plant: {destinationPlant || 'Select Plant'}
+            BUILD: standard-regional-separation-v1 | Plant: {destinationPlant || 'Select Plant'}
           </div>
         </div>
       </div>

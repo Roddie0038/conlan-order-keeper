@@ -1,6 +1,6 @@
 /**
- * Phase 5: Regional Transfer Order Submission Hook
- * Connects to Supabase handleOrdersPost edge function for proper backend processing
+ * DEPRECATED: Use useStandardOrderSubmit for standard orders
+ * This hook contains regional logic and should only be used for regional flows
  */
 
 import { useState } from "react";
