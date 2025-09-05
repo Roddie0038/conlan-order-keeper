@@ -28,11 +28,27 @@ const backgroundPresets = [
 export function StyleEditor() {
   const { selectedElement, updateStyle, setSelectedElement, setIsEditing } = useLiveEdit();
 
-  if (!selectedElement) return null;
+  console.log('🎨 StyleEditor: Rendering with selectedElement:', selectedElement);
+
+  if (!selectedElement) {
+    console.log('🎨 StyleEditor: No selected element, hiding editor');
+    return null;
+  }
 
   const handleClose = () => {
+    console.log('🎨 StyleEditor: Closing editor');
     setSelectedElement(null);
     setIsEditing(false);
+  };
+
+  const handleStyleUpdate = (property: string, value: string) => {
+    console.log('🎨 StyleEditor: Updating style:', { selectedElement, property, value });
+    try {
+      updateStyle(selectedElement, property, value);
+      console.log('✅ StyleEditor: Style update successful');
+    } catch (error) {
+      console.error('🚨 StyleEditor: Style update failed:', error);
+    }
   };
 
   return (
@@ -56,7 +72,11 @@ export function StyleEditor() {
                 key={preset.name}
                 className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-400 transition-colors"
                 style={{ backgroundColor: preset.value }}
-                onClick={() => updateStyle(selectedElement, 'background', preset.value)}
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('🎨 Background color clicked:', preset.value);
+              handleStyleUpdate('background', preset.value);
+            }}
                 title={preset.name}
               />
             ))}
@@ -74,7 +94,11 @@ export function StyleEditor() {
                 key={preset.name}
                 className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-400 transition-colors"
                 style={{ backgroundColor: preset.value }}
-                onClick={() => updateStyle(selectedElement, 'color', preset.value)}
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('🎨 Text color clicked:', preset.value);
+              handleStyleUpdate('color', preset.value);
+            }}
                 title={preset.name}
               />
             ))}
@@ -100,7 +124,11 @@ export function StyleEditor() {
                 variant="outline"
                 size="sm"
                 className="text-xs"
-                onClick={() => updateStyle(selectedElement, 'borderRadius', option.value)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('🎨 Border radius clicked:', option.value);
+                  handleStyleUpdate('borderRadius', option.value);
+                }}
               >
                 {option.name}
               </Button>

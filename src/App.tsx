@@ -10,6 +10,8 @@ import { ConditionalSidebar } from './components/ConditionalSidebar';
 import { AppRoutes } from './components/routing/AppRoutes';
 import { LiveEditToggle } from './components/live-edit/LiveEditToggle';
 import { StyleEditor } from './components/live-edit/StyleEditor';
+import { LiveEditErrorBoundary } from './components/live-edit/LiveEditErrorBoundary';
+import { LiveEditBridge } from './components/live-edit/LiveEditBridge';
 import { useRegistrationNotification } from './hooks/useRegistrationNotification';
 
 // Create a client
@@ -22,8 +24,11 @@ function AppContent() {
   return (
     <>
       <AuthHealthMonitor />
-      <LiveEditToggle />
-      <StyleEditor />
+      <LiveEditErrorBoundary>
+        <LiveEditBridge />
+        <LiveEditToggle />
+        <StyleEditor />
+      </LiveEditErrorBoundary>
       <ConditionalSidebar>
         <AppRoutes />
       </ConditionalSidebar>

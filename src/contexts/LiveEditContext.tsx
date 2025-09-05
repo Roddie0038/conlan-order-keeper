@@ -24,13 +24,19 @@ export function LiveEditProvider({ children }: { children: React.ReactNode }) {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
 
   const updateStyle = useCallback((elementId: string, property: string, value: string) => {
-    setEditedStyles(prev => ({
-      ...prev,
-      [elementId]: {
-        ...prev[elementId],
-        [property]: value
-      }
-    }));
+    console.log('🔄 LiveEditContext: updateStyle called:', { elementId, property, value });
+    
+    setEditedStyles(prev => {
+      const newStyles = {
+        ...prev,
+        [elementId]: {
+          ...prev[elementId],
+          [property]: value
+        }
+      };
+      console.log('🔄 LiveEditContext: New styles state:', newStyles);
+      return newStyles;
+    });
   }, []);
 
   return (
