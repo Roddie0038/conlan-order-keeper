@@ -1,7 +1,7 @@
 import { SectionBox } from "@/components/ui/SectionBox";
 import { NeoButton } from "@/components/ui/NeoButton";
 import { NeoSelect, NeoSelectContent, NeoSelectItem, NeoSelectTrigger, NeoSelectValue } from "@/components/ui/NeoSelect";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 
 
@@ -12,15 +12,68 @@ interface TemplateSectionProps {
 
 export function TemplateSection({ getCurrentFormData, onLoadTemplate }: TemplateSectionProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [templates, setTemplates] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Load existing templates from localStorage
+    const storedTemplates = localStorage.getItem('regularTemplates') || '[]';
+    try {
+      setTemplates(JSON.parse(storedTemplates));
+    } catch (e) {
+      console.error("Error parsing templates:", e);
+      setTemplates([]);
+    }
+  }, []);
 
   const handleSaveTemplate = () => {
     const currentData = getCurrentFormData();
     console.log("Saving template with data:", currentData);
     
+    // Prompt for template name
+    const templateName = window.prompt("Enter a name for this template:");
+    if (!templateName) return;
+    
+    // Generate a unique ID for the template
+    const templateId = `template-${Date.now()}`;
+    
+    // Create the template object
+    const templateData = {
+      id: templateId,
+      name: templateName,
+      data: { ...currentData },
+      type: 'regular',
+      createdAt: new Date().toISOString()
+    };
+    
+    // Save to localStorage
+    const updatedTemplates = [...templates, templateData];
+    localStorage.setItem('regularTemplates', JSON.stringify(updatedTemplates));
+    setTemplates(updatedTemplates);
+    
     toast({
       title: "Template Saved",
-      description: "Your current form has been saved as a template.",
+      description: `Template "${templateName}" has been saved for future use.`,
     });
+  };
+
+  const handleLoadTemplate = () => {
+    if (!selectedTemplateId) {
+      toast({
+        title: "No Template Selected",
+        description: "Please select a template first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const template = templates.find(t => t.id === selectedTemplateId);
+    if (template) {
+      onLoadTemplate(template.data);
+      toast({
+        title: "Template Loaded",
+        description: `Template "${template.name}" has been loaded.`,
+      });
+    }
   };
 
   return (
@@ -47,14 +100,31 @@ export function TemplateSection({ getCurrentFormData, onLoadTemplate }: Template
                 <NeoSelectValue placeholder="Select a template" />
               </NeoSelectTrigger>
               <NeoSelectContent>
-                <NeoSelectItem value="template1">Template 1</NeoSelectItem>
-                <NeoSelectItem value="template2">Template 2</NeoSelectItem>
+                {templates.length === 0 ? (
+                  <NeoSelectItem value="no-templates" disabled>
+                    No saved templates
+                  </NeoSelectItem>
+                ) : (
+                  templates.map((template) => (
+                    <NeoSelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </NeoSelectItem>
+                  ))
+                )}
               </NeoSelectContent>
             </NeoSelect>
           </div>
+          
+          <NeoButton 
+            type="button"
+            variant="ghost"
+            onClick={handleLoadTemplate}
+            disabled={!selectedTemplateId}
+            className="px-4"
+          >
+            Load
+          </NeoButton>
         </div>
-        
-        {/* Template functionality will be added later */}
       </div>
     </SectionBox>
   );
