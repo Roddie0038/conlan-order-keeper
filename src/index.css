@@ -12,7 +12,7 @@
     --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
@@ -34,6 +34,20 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    /* Live Edit compatible button properties */
+    --button-bg-color: 220 91% 56%;
+    --button-text-color: 0 0% 100%;
+    --button-border-color: 220 91% 56%;
+    --button-hover-bg-color: 220 91% 48%;
+    --button-border-radius: 9999px;
+    --button-shadow-color: 220 91% 56%;
+
+    /* Header button properties */
+    --header-button-bg-color: 0 0% 100%;
+    --header-button-text-color: 220 91% 56%;
+    --header-button-border-color: 0 0% 100%;
+    --header-button-hover-bg-color: 0 0% 90%;
 
     --sidebar-background: 0 0% 98%;
 
@@ -80,6 +94,14 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Dark mode button overrides */
+    --button-bg-color: 220 91% 48%;
+    --button-hover-bg-color: 220 91% 40%;
+    --header-button-bg-color: 0 0% 15%;
+    --header-button-text-color: 210 40% 98%;
+    --header-button-border-color: 0 0% 25%;
+    --header-button-hover-bg-color: 0 0% 25%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -129,5 +151,35 @@ button {
          placeholder:text-white/80 outline-none
          focus-visible:ring-2 focus-visible:ring-white/40
          shadow-[inset_0_1px_2px_rgba(255,255,255,0.35),inset_0_-2px_6px_rgba(0,0,0,0.15),0_12px_28px_-14px_rgba(0,0,0,0.5)];
+}
+
+/* Live Edit compatible button styles */
+.live-edit-button {
+  background: hsl(var(--button-bg-color));
+  color: hsl(var(--button-text-color));
+  border: 1px solid hsl(var(--button-border-color));
+  border-radius: var(--button-border-radius);
+  box-shadow: 0 10px 30px -10px hsl(var(--button-shadow-color) / 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.live-edit-button:hover {
+  background: hsl(var(--button-hover-bg-color));
+  box-shadow: 0 20px 40px -10px hsl(var(--button-shadow-color) / 0.4);
+  transform: translateY(-2px);
+}
+
+/* Header button styles */
+.live-edit-header-button {
+  background: hsl(var(--header-button-bg-color) / 0.1);
+  color: hsl(var(--header-button-text-color));
+  border: 1px solid hsl(var(--header-button-border-color) / 0.3);
+  border-radius: var(--button-border-radius);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.live-edit-header-button:hover {
+  background: hsl(var(--header-button-hover-bg-color) / 0.2);
 }
 

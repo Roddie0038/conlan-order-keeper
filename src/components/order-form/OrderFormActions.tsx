@@ -16,11 +16,21 @@ export function OrderFormActions({
   return (
     <div className="mt-8 flex flex-col space-y-4">
       <Button 
-        type="button" // Changed from 'submit' to 'button' to avoid form submission
-        className="w-full py-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white 
-                 font-semibold text-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.01] flex items-center justify-center"
+        type="button"
+        className="w-full py-6 live-edit-button font-semibold text-lg flex items-center justify-center"
         disabled={isSubmitting}
-        onClick={onAddClick} // Use the new onAddClick prop
+        onClick={onAddClick}
+        data-editable-background="true"
+        data-editable-color="true"
+        data-editable-border="true"
+        data-editable-border-radius="true"
+        style={{
+          background: 'hsl(var(--button-bg-color))',
+          color: 'hsl(var(--button-text-color))',
+          borderRadius: 'var(--button-border-radius)',
+          border: '1px solid hsl(var(--button-border-color))',
+          boxShadow: '0 10px 30px -10px hsl(var(--button-shadow-color) / 0.3)'
+        }}
       >
         <span className="flex items-center gap-2">
           <Plus className="h-5 w-5" /> Add To Order

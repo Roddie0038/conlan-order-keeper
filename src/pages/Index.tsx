@@ -26,16 +26,36 @@ const Index = () => {
           </div>
           <div className="flex gap-4 mt-2">
             <Button 
-              variant="secondary"
               onClick={() => navigate("/mto-order")}
-              className="rounded-full px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/30 backdrop-blur-sm transition-all"
+              className="live-edit-header-button px-6 py-2"
+              data-editable-background="true"
+              data-editable-color="true"
+              data-editable-border="true"
+              data-editable-border-radius="true"
+              style={{
+                background: 'hsl(var(--header-button-bg-color) / 0.1)',
+                color: 'hsl(var(--header-button-text-color))',
+                border: '1px solid hsl(var(--header-button-border-color) / 0.3)',
+                borderRadius: 'var(--button-border-radius)',
+                backdropFilter: 'blur(8px)'
+              }}
             >
               Place MTO Order
             </Button>
             <Button 
-              variant="secondary"
               onClick={() => navigate("/dashboard")}
-              className="rounded-full px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/30 backdrop-blur-sm transition-all"
+              className="live-edit-header-button px-6 py-2"
+              data-editable-background="true"
+              data-editable-color="true"
+              data-editable-border="true"
+              data-editable-border-radius="true"
+              style={{
+                background: 'hsl(var(--header-button-bg-color) / 0.1)',
+                color: 'hsl(var(--header-button-text-color))',
+                border: '1px solid hsl(var(--header-button-border-color) / 0.3)',
+                borderRadius: 'var(--button-border-radius)',
+                backdropFilter: 'blur(8px)'
+              }}
             >
               Dashboard
             </Button>

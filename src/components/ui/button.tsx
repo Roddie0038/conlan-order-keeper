@@ -40,13 +40,29 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, style, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    
+    // Add Live Edit support through data attributes and inline styles
+    const liveEditProps = props['data-editable-background'] ? {
+      'data-editable-background': props['data-editable-background'],
+      'data-editable-color': props['data-editable-color'],
+      'data-editable-border': props['data-editable-border'],
+      'data-editable-border-radius': props['data-editable-border-radius'],
+      style: {
+        ...style,
+        '--button-bg-color': style?.background ? 'var(--button-bg-color)' : undefined,
+        '--button-text-color': style?.color ? 'var(--button-text-color)' : undefined,
+        '--button-border-color': style?.border ? 'var(--button-border-color)' : undefined,
+      } as React.CSSProperties
+    } : { style };
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
+        {...liveEditProps}
       />
     )
   }
