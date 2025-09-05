@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, RotateCcw, Printer } from "lucide-react";
+import { FileText, RotateCcw, Printer, Loader2 } from "lucide-react";
 import { CrossDockFormData, openPrintDialog } from "@/services/crossDockPdfService";
+import { useToast } from "@/hooks/use-toast";
 
 interface CrossDockFormStatusProps {
   formData: CrossDockFormData | null;
@@ -14,12 +16,27 @@ export function CrossDockFormStatus({
   isOutdated, 
   onRegenerate 
 }: CrossDockFormStatusProps) {
+  const { toast } = useToast();
+  const [isPrinting, setIsPrinting] = useState(false);
+  
   if (!formData) {
     return null;
   }
 
-  const handleViewPrint = () => {
-    openPrintDialog(formData.pdfUrl);
+  const handleViewPrint = async () => {
+    setIsPrinting(true);
+    try {
+      await openPrintDialog(formData.pdfUrl);
+    } catch (error) {
+      console.error('Failed to open print dialog:', error);
+      toast({
+        title: "Failed to Open Form",
+        description: "Could not access the saved form. Try regenerating a new one.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   return (
@@ -35,9 +52,14 @@ export function CrossDockFormStatus({
           variant="outline"
           size="sm"
           onClick={handleViewPrint}
+          disabled={isPrinting}
           className="flex items-center gap-1"
         >
-          <Printer className="h-3 w-3" />
+          {isPrinting ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Printer className="h-3 w-3" />
+          )}
           View/Print
         </Button>
         

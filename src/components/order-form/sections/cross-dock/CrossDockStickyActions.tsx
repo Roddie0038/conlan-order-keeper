@@ -42,11 +42,8 @@ export function CrossDockStickyActions({
         return;
       }
 
-      // Generate PDF
+      // Generate PDF (this now prints immediately from blob)
       const formData = await generateCrossDockPDF(formValues);
-      
-      // Open print dialog immediately
-      openPrintDialog(formData.pdfUrl);
       
       // Auto-add to order
       onAddToOrder();
@@ -55,17 +52,32 @@ export function CrossDockStickyActions({
       onFormGenerated(formData);
       
       toast({
-        title: "Cross-Dock Form Created",
-        description: "Cross-Dock Form created and line added. Don't forget to place the printed form with the tires."
+        title: "Cross-Dock Form Created & Printed",
+        description: "Form printed successfully and line added to order. The form is being saved to cloud storage."
       });
       
     } catch (error) {
       console.error('Failed to generate cross-dock form:', error);
-      toast({
-        title: "Failed to Generate Form",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
-      });
+      
+      // Check if it's a storage/upload error vs generation error
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      
+      if (errorMessage.includes("upload") || errorMessage.includes("storage")) {
+        toast({
+          title: "Form Printed, Cloud Save Failed",
+          description: "Your form was printed successfully, but saving to cloud storage failed. You can regenerate later if needed.",
+          variant: "warning"
+        });
+        
+        // Still add to order since printing worked
+        onAddToOrder();
+      } else {
+        toast({
+          title: "Failed to Generate Form",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsGenerating(false);
     }

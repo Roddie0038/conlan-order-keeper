@@ -204,13 +204,13 @@ export const generateCrossDockPDF = async (formValues: OrderFormValues): Promise
   document.body.appendChild(tempDiv);
 
   try {
-    // Capture HTML as canvas
-    const canvas = await html2canvas(tempDiv, {
-      width: 612, // 8.5 inches at 72 DPI
-      height: 792, // 11 inches at 72 DPI
+    // Capture the inner page element without fixed dimensions
+    const pageElement = tempDiv.firstElementChild as HTMLElement;
+    const canvas = await html2canvas(pageElement, {
       scale: 2,
       useCORS: true,
-      allowTaint: true
+      allowTaint: true,
+      backgroundColor: '#ffffff'
     });
 
     // Create PDF
@@ -226,44 +226,22 @@ export const generateCrossDockPDF = async (formValues: OrderFormValues): Promise
     // Convert to blob
     const pdfBlob = pdf.output('blob');
 
-    // Upload to Supabase storage
-    const fileName = `${formId}.pdf`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('crossdock-pdfs')
-      .upload(fileName, pdfBlob, {
-        contentType: 'application/pdf',
-        upsert: true
-      });
+    // Print immediately from blob (doesn't wait for upload)
+    openPrintDialogFromBlob(pdfBlob);
 
-    if (uploadError) {
-      throw new Error(`Failed to upload PDF: ${uploadError.message}`);
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('crossdock-pdfs')
-      .getPublicUrl(fileName);
-
-    const pdfUrl = urlData.publicUrl;
-
-    // Save form metadata to database
-    const { error: dbError } = await supabase
-      .from('cross_dock_forms')
-      .insert({
-        id: formId,
-        fields: fields as any,
-        pdf_url: pdfUrl,
-        status: 'current'
-      });
-
-    if (dbError) {
-      throw new Error(`Failed to save form metadata: ${dbError.message}`);
-    }
+    // Upload in background and return form data with storage path
+    const storagePath = `forms/${formId}.pdf`;
+    
+    // Start background upload but return immediately
+    uploadAndPersist(pdfBlob, formId, storagePath, fields).catch(error => {
+      console.error('Background upload failed:', error);
+      // Could emit a custom event or use a global error handler here
+    });
 
     return {
       id: formId,
       fields,
-      pdfUrl,
+      pdfUrl: storagePath, // Store path, not public URL
       status: 'current'
     };
 
@@ -273,12 +251,106 @@ export const generateCrossDockPDF = async (formValues: OrderFormValues): Promise
   }
 };
 
-export const openPrintDialog = (pdfUrl: string): void => {
-  const printWindow = window.open(pdfUrl, '_blank');
-  if (printWindow) {
-    printWindow.onload = () => {
-      printWindow.print();
-    };
+// Helper function to print from blob using hidden iframe
+const openPrintDialogFromBlob = (blob: Blob): void => {
+  const url = URL.createObjectURL(blob);
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.src = url;
+  document.body.appendChild(iframe);
+  
+  iframe.onload = () => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      iframe.remove();
+    }, 2000);
+  };
+};
+
+// Background upload and persist function
+const uploadAndPersist = async (
+  pdfBlob: Blob, 
+  formId: string, 
+  storagePath: string, 
+  fields: CrossDockFormFields
+): Promise<void> => {
+  try {
+    // Upload to Supabase storage
+    const { error: uploadError } = await supabase.storage
+      .from('crossdock-pdfs')
+      .upload(storagePath, pdfBlob, {
+        contentType: 'application/pdf',
+        upsert: true
+      });
+
+    if (uploadError) {
+      throw new Error(`Failed to upload PDF: ${uploadError.message}`);
+    }
+
+    // Save form metadata to database
+    const { error: dbError } = await supabase
+      .from('cross_dock_forms')
+      .insert({
+        id: formId,
+        fields: fields as any,
+        pdf_url: storagePath, // Store storage path, not public URL
+        status: 'current'
+      });
+
+    if (dbError) {
+      throw new Error(`Failed to save form metadata: ${dbError.message}`);
+    }
+
+    console.log('Cross-dock form uploaded and persisted successfully:', formId);
+  } catch (error) {
+    console.error('Failed to upload and persist cross-dock form:', error);
+    throw error;
+  }
+};
+
+// Helper function to get signed URL for viewing/printing stored PDFs
+export const getSignedPdfUrl = async (storagePath: string): Promise<string> => {
+  const { data, error } = await supabase.storage
+    .from('crossdock-pdfs')
+    .createSignedUrl(storagePath, 60 * 60); // 1 hour expiry
+  
+  if (error) {
+    throw new Error(`Failed to create signed URL: ${error.message}`);
+  }
+  
+  return data.signedUrl;
+};
+
+export const openPrintDialog = async (pdfUrl: string): Promise<void> => {
+  try {
+    // If it's a storage path, get signed URL first
+    if (!pdfUrl.startsWith('http')) {
+      const signedUrl = await getSignedPdfUrl(pdfUrl);
+      const printWindow = window.open(signedUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    } else {
+      // Direct URL (fallback for old format)
+      const printWindow = window.open(pdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Failed to open print dialog:', error);
+    throw error;
   }
 };
 
