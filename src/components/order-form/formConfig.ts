@@ -18,19 +18,19 @@ export const stores = [
 // export const storeManagerEmails: Record<string, string> = { ... };
 // This has been replaced with dynamic database lookups in the user management system
 
-// Store to color mapping for wheel orders
+// Store to color mapping with specific colors for each store
 export const storeColors: Record<string, string> = {
-  "22": "Yellow",
-  "27": "Yellow", 
-  "28": "Yellow",
-  "29": "Yellow",
-  "30": "Yellow",
-  "32": "Yellow",
-  "33": "Yellow",
-  "35": "Yellow",
-  "36": "Yellow",
-  "39": "Yellow",
-  "Admin": "Yellow"
+  "22": "text-red-500",      // Fort Worth 22 - red
+  "27": "text-yellow-500",   // Grand Prairie 27 - yellow
+  "28": "text-sky-400",      // Houston 028 - light blue
+  "29": "text-gray-500",     // San Antonio 029 - gray
+  "30": "text-purple-500",   // Oklahoma City 030 - purple
+  "32": "text-orange-500",   // Little Rock 032 - orange
+  "33": "text-pink-500",     // Kansas City 033 - pink
+  "35": "text-green-500",    // Laredo 035 - green
+  "36": "text-green-400",    // Tulsa 036 - light green
+  "39": "text-blue-800",     // Austin 039 - dark blue
+  "Admin": "text-blue-400"
 };
 
 // REMOVED: getManagerEmail function - now using dynamic platform_users lookup

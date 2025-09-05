@@ -28,6 +28,8 @@ import { normalizeStoreName } from "@/lib/stores";
 import { OrderingEmailField } from "@/components/common/OrderingEmailField";
 import { NeoField } from "@/components/ui/NeoField";
 import { NeoSelect, NeoSelectContent, NeoSelectItem, NeoSelectTrigger, NeoSelectValue } from "@/components/ui/NeoSelect";
+import { ColoredNeoSelectItem } from "@/components/ui/ColoredNeoSelectItem";
+import { storeColors } from "@/components/order-form/formConfig";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -43,9 +45,15 @@ export function ContactSection({ form }: ContactSectionProps) {
   
   // Function to extract store number from store name
   const extractStoreNumber = (storeName: string): string => {
-    if (storeName === "Admin") return "admin";
+    if (storeName === "Admin") return "Admin";
     const match = storeName.match(/\d+/);
     return match ? match[0] : "";
+  };
+
+  // Function to get store color class
+  const getStoreColorClass = (storeName: string): string => {
+    const storeNumber = extractStoreNumber(storeName);
+    return storeColors[storeNumber] || "text-white";
   };
 
   // Function to fetch manager emails from database
@@ -145,12 +153,14 @@ export function ContactSection({ form }: ContactSectionProps) {
                 </FormControl>
                 <NeoSelectContent>
                   {(isAdmin || user?.hasFullStoreAccess) && (
-                    <NeoSelectItem value="Admin">Admin Only</NeoSelectItem>
+                    <ColoredNeoSelectItem value="Admin" colorClass={storeColors["Admin"]}>
+                      Admin Only
+                    </ColoredNeoSelectItem>
                   )}
                   {stores.map((store) => (
-                    <NeoSelectItem key={store.id} value={store.name}>
+                    <ColoredNeoSelectItem key={store.id} value={store.name} colorClass={getStoreColorClass(store.name)}>
                       {store.name}
-                    </NeoSelectItem>
+                    </ColoredNeoSelectItem>
                   ))}
                 </NeoSelectContent>
               </NeoSelect>
