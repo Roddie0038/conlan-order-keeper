@@ -5,7 +5,7 @@ export const stores = [
   { id: "22", name: "Fort Worth 022" },
   { id: "27", name: "Grand Prairie 027" },
   { id: "28", name: "Houston 028" },
-  { id: "29", name: "San Antonio 029" },
+  { id: "29", name: "San Antonio 29" },
   { id: "30", name: "Oklahoma City 030" },
   { id: "32", name: "Little Rock 032" },
   { id: "33", name: "Kansas City 033" },
@@ -20,16 +20,16 @@ export const stores = [
 
 // Store to color mapping with specific colors for each store
 export const storeColors: Record<string, string> = {
-  "22": "text-red-500",      // Fort Worth 22 - red
-  "27": "text-yellow-500",   // Grand Prairie 27 - yellow
-  "28": "text-sky-400",      // Houston 028 - light blue
-  "29": "text-gray-500",     // San Antonio 029 - gray
-  "30": "text-purple-500",   // Oklahoma City 030 - purple
-  "32": "text-orange-500",   // Little Rock 032 - orange
-  "33": "text-pink-500",     // Kansas City 033 - pink
-  "35": "text-green-500",    // Laredo 035 - green
-  "36": "text-green-400",    // Tulsa 036 - light green
-  "39": "text-blue-800",     // Austin 039 - dark blue
+  "022": "text-red-400",      // Fort Worth 022 - RED
+  "27": "text-yellow-300",    // Grand Prairie 027 - Yellow
+  "028": "text-cyan-300",     // Houston 028 - Light Blue
+  "29": "text-gray-400",      // San Antonio 29 - Gray
+  "030": "text-purple-400",   // Oklahoma City 030 - Purple
+  "032": "text-orange-400",   // Little Rock 032 - Orange
+  "033": "text-pink-400",     // Kansas City 033 - Pink
+  "035": "text-lime-400",     // Laredo 035 - Neon Green
+  "036": "text-green-300",    // Tulsa 036 - Light Green
+  "039": "text-blue-400",     // Austin 039 - Dark Blue
   "Admin": "text-blue-400"
 };
 
@@ -40,9 +40,13 @@ export const storeColors: Record<string, string> = {
 // Export the getStoreColor function for wheel orders
 export const getStoreColor = (store: string): string => {
   if (store === "Admin") return storeColors["Admin"];
-  const match = store.match(/\d+$/);
-  const storeNumber = match ? match[0] : '';
-  return storeColors[storeNumber] || 'Yellow';
+  const match = store.match(/\d+/);
+  if (match) {
+    const storeNumber = match[0];
+    // Handle both padded and unpadded numbers
+    return storeColors[storeNumber.padStart(3, '0')] || storeColors[storeNumber] || 'text-yellow-300';
+  }
+  return 'text-yellow-300';
 };
 
 export const scheduleOptions = [

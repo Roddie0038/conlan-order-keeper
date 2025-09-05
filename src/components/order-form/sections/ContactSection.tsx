@@ -47,7 +47,12 @@ export function ContactSection({ form }: ContactSectionProps) {
   const extractStoreNumber = (storeName: string): string => {
     if (storeName === "Admin") return "Admin";
     const match = storeName.match(/\d+/);
-    return match ? match[0] : "";
+    if (match) {
+      const storeNumber = match[0];
+      // Handle both padded and unpadded numbers
+      return storeColors[storeNumber.padStart(3, '0')] ? storeNumber.padStart(3, '0') : storeNumber;
+    }
+    return "";
   };
 
   // Function to get store color class
