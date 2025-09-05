@@ -1,0 +1,30 @@
+/* Scope variables to the New Order page only */
+[data-live-edit-scope="new-order-form"] {
+  /* Primary action button defaults */
+  --btn-bg: #2563eb;        /* base background */
+  --btn-bg-hover: #1d4ed8;  /* hover background */
+  --btn-fg: #ffffff;        /* text color */
+  --btn-border: transparent;
+  --btn-radius: 9999px;     /* rounded-full */
+
+  /* Header/secondary buttons on this page (HSL triplets for alpha control) */
+  --header-button-bg-color: 210 10% 100%;
+  --header-button-text-color: 210 40% 98%;
+  --header-button-border-color: 210 20% 80%;
+}
+
+/* Live-Edit friendly button pattern */
+.btn-live-edit {
+  background: var(--btn-bg) !important;
+  color: var(--btn-fg) !important;
+  border-color: var(--btn-border) !important;
+  border-radius: var(--btn-radius) !important;
+}
+.btn-live-edit:hover {
+  background: var(--btn-bg-hover) !important;
+}
+
+/* helper outlines during testing */
+[data-editable],
+[data-editable-group] { outline-offset: 2px; }
+.live-edit-hint:hover { outline: 1px dashed rgba(255,255,255,.15); }

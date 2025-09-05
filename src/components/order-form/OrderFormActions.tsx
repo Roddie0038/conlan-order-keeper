@@ -1,11 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
 interface OrderFormActionsProps {
   isSubmitting: boolean;
   selectedPlant: string;
-  onAddClick?: () => void; // New prop to handle the add to order action
+  onAddClick?: () => void;
 }
 
 export function OrderFormActions({ 
@@ -15,26 +14,20 @@ export function OrderFormActions({
 }: OrderFormActionsProps) {
   return (
     <div className="mt-8 flex flex-col space-y-4">
-      <Button 
-        type="button"
-        className="w-full py-6 live-edit-button font-semibold text-lg flex items-center justify-center"
+      <Button
+        liveEditCompatible
+        data-editable="primary-action"
+        data-editable-group="new-order-form"
+        data-live-edit="true"
+        data-live-targets="background,color,border-radius"
+        data-style-bg=""
+        data-style-fg=""
+        data-style-radius=""
+        className="btn-live-edit w-full py-6 text-lg font-semibold shadow-lg live-edit-hint"
         disabled={isSubmitting}
         onClick={onAddClick}
-        data-editable-background="true"
-        data-editable-color="true"
-        data-editable-border="true"
-        data-editable-border-radius="true"
-        style={{
-          background: 'hsl(var(--button-bg-color))',
-          color: 'hsl(var(--button-text-color))',
-          borderRadius: 'var(--button-border-radius)',
-          border: '1px solid hsl(var(--button-border-color))',
-          boxShadow: '0 10px 30px -10px hsl(var(--button-shadow-color) / 0.3)'
-        }}
       >
-        <span className="flex items-center gap-2">
-          <Plus className="h-5 w-5" /> Add To Order
-        </span>
+        {isSubmitting ? "Adding..." : "Add To Order"}
       </Button>
       
       <div className="text-center text-sm text-gray-500 dark:text-gray-400">

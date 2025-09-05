@@ -5,13 +5,16 @@ import { useNavigate } from "react-router-dom";
 import { usePlant } from "@/contexts/PlantContext";
 import { Building } from "lucide-react";
 import { RecentPortalOrders } from "@/components/orders/RecentPortalOrders";
+import { LiveEditBridge } from "@/components/live-edit/LiveEditBridge";
 
 const Index = () => {
   const navigate = useNavigate();
   const { selectedPlant } = usePlant();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div data-live-edit-scope="new-order-form" className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <LiveEditBridge />
+      
       <header className="bg-gradient-to-r from-blue-700 to-blue-900 text-white py-8 mb-8 shadow-md">
         <div className="container flex flex-col items-center gap-6">
           <img 
@@ -26,36 +29,46 @@ const Index = () => {
           </div>
           <div className="flex gap-4 mt-2">
             <Button 
-              onClick={() => navigate("/mto-order")}
-              className="live-edit-header-button px-6 py-2"
-              data-editable-background="true"
-              data-editable-color="true"
-              data-editable-border="true"
-              data-editable-border-radius="true"
+              liveEditCompatible
+              data-editable="header-mto"
+              data-editable-group="new-order-form"
+              data-live-edit="true"
+              data-live-targets="background,color,border-radius,border"
+              data-style-bg=""
+              data-style-fg=""
+              data-style-radius=""
+              data-style-border=""
+              className="px-6 py-2 live-edit-hint"
               style={{
-                background: 'hsl(var(--header-button-bg-color) / 0.1)',
+                background: 'hsl(var(--header-button-bg-color) / 0.10)',
                 color: 'hsl(var(--header-button-text-color))',
-                border: '1px solid hsl(var(--header-button-border-color) / 0.3)',
-                borderRadius: 'var(--button-border-radius)',
+                border: '1px solid hsl(var(--header-button-border-color) / 0.30)',
+                borderRadius: 'var(--btn-radius)',
                 backdropFilter: 'blur(8px)'
               }}
+              onClick={() => navigate("/mto-order")}
             >
               Place MTO Order
             </Button>
             <Button 
-              onClick={() => navigate("/dashboard")}
-              className="live-edit-header-button px-6 py-2"
-              data-editable-background="true"
-              data-editable-color="true"
-              data-editable-border="true"
-              data-editable-border-radius="true"
+              liveEditCompatible
+              data-editable="header-dashboard"
+              data-editable-group="new-order-form"
+              data-live-edit="true"
+              data-live-targets="background,color,border-radius,border"
+              data-style-bg=""
+              data-style-fg=""
+              data-style-radius=""
+              data-style-border=""
+              className="px-6 py-2 live-edit-hint"
               style={{
-                background: 'hsl(var(--header-button-bg-color) / 0.1)',
+                background: 'hsl(var(--header-button-bg-color) / 0.10)',
                 color: 'hsl(var(--header-button-text-color))',
-                border: '1px solid hsl(var(--header-button-border-color) / 0.3)',
-                borderRadius: 'var(--button-border-radius)',
+                border: '1px solid hsl(var(--header-button-border-color) / 0.30)',
+                borderRadius: 'var(--btn-radius)',
                 backdropFilter: 'blur(8px)'
               }}
+              onClick={() => navigate("/dashboard")}
             >
               Dashboard
             </Button>
