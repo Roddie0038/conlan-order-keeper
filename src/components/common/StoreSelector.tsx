@@ -5,6 +5,8 @@ import { STORES, searchStores, normalizeStoreName } from '@/lib/stores';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { storeColors } from '@/components/order-form/formConfig';
+import { getStoreColorHex } from '@/constants/storeColors';
+import { readableText } from '@/utils/color';
 
 type Props = {
   value: string;
@@ -83,6 +85,13 @@ export default function StoreSelector({
     setOpen(true);
   }
 
+  // Get selected value styling
+  const selectedColorHex = value ? getStoreColorHex(value) : undefined;
+  const selectedStyle = selectedColorHex ? {
+    backgroundColor: selectedColorHex,
+    color: readableText(selectedColorHex)
+  } : undefined;
+
   return (
     <div className={`space-y-2 ${className}`}>
       <Label className="text-sm font-medium">{label}</Label>
@@ -100,6 +109,7 @@ export default function StoreSelector({
             }
           }}
           className="w-full"
+          style={value && !q ? selectedStyle : undefined}
         />
 
         {/* Suggestions */}
