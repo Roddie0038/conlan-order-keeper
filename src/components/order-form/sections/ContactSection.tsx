@@ -175,7 +175,7 @@ export function ContactSection({ form }: ContactSectionProps) {
           <FormItem className="flex flex-col">
             <FormLabel className="text-white">
               Date Received*
-              <Lock className="h-3 w-3 ml-1 text-gray-300" />
+              <Lock className="h-3 w-3 ml-1 text-blue-300" />
             </FormLabel>
             <FormControl>
               <NeoField 
