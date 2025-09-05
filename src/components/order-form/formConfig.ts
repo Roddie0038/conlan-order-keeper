@@ -20,17 +20,45 @@ export const stores = [
 
 // Store to color mapping with specific colors for each store
 export const storeColors: Record<string, string> = {
-  "022": "text-red-400",      // Fort Worth 022 - RED
-  "27": "text-yellow-300",    // Grand Prairie 027 - Yellow
-  "028": "text-cyan-300",     // Houston 028 - Light Blue
-  "29": "text-gray-400",      // San Antonio 29 - Gray
-  "030": "text-purple-400",   // Oklahoma City 030 - Purple
-  "032": "text-orange-400",   // Little Rock 032 - Orange
-  "033": "text-pink-400",     // Kansas City 033 - Pink
-  "035": "text-lime-400",     // Laredo 035 - Neon Green
-  "036": "text-green-300",    // Tulsa 036 - Light Green
-  "039": "text-blue-400",     // Austin 039 - Dark Blue
-  "Admin": "text-blue-400"
+  "022": "store-color-022",   // Fort Worth 022 - RED
+  "027": "store-color-027",   // Grand Prairie 027
+  "27": "store-color-027",    // Grand Prairie 027 (unpadded)
+  "028": "store-color-028",   // Houston 028 - Light Blue
+  "029": "store-color-029",   // San Antonio 029
+  "29": "store-color-029",    // San Antonio 029 (unpadded)
+  "030": "store-color-030",   // Oklahoma City 030 - Purple
+  "30": "store-color-030",    // Oklahoma City 030 (unpadded)
+  "032": "store-color-032",   // Little Rock 032 - Orange
+  "32": "store-color-032",    // Little Rock 032 (unpadded)
+  "033": "store-color-033",   // Kansas City 033 - Pink
+  "33": "store-color-033",    // Kansas City 033 (unpadded)
+  "035": "store-color-035",   // Laredo 035 - Neon Green
+  "35": "store-color-035",    // Laredo 035 (unpadded)
+  "036": "store-color-036",   // Tulsa 036 - Light Green
+  "36": "store-color-036",    // Tulsa 036 (unpadded)
+  "039": "store-color-039",   // Austin 039 - Dark Blue
+  "39": "store-color-039",    // Austin 039 (unpadded)
+  "041": "store-color-041",   // Detroit 041
+  "41": "store-color-041",    // Detroit 041 (unpadded)
+  "042": "store-color-042",   // Toledo 042
+  "42": "store-color-042",    // Toledo 042 (unpadded)
+  "043": "store-color-043",   // Indianapolis 043
+  "43": "store-color-043",    // Indianapolis 043 (unpadded)
+  "051": "store-color-051",   // Tampa 051
+  "51": "store-color-051",    // Tampa 051 (unpadded)
+  "052": "store-color-052",   // Orlando 052
+  "52": "store-color-052",    // Orlando 052 (unpadded)
+  "053": "store-color-053",   // Jacksonville 053
+  "53": "store-color-053",    // Jacksonville 053 (unpadded)
+  "097": "store-color-097",   // Grand Prairie 097
+  "97": "store-color-097",    // Grand Prairie 097 (unpadded)
+  "098": "store-color-098",   // Romulus 098
+  "98": "store-color-098",    // Romulus 098 (unpadded)
+  "099": "store-color-099",   // Mulberry 099
+  "99": "store-color-099",    // Mulberry 099 (unpadded)
+  "000": "store-color-000",   // Unassigned 000
+  "0": "store-color-000",     // Unassigned 000 (unpadded)
+  "Admin": "store-color-admin"
 };
 
 // REMOVED: getManagerEmail function - now using dynamic platform_users lookup
@@ -44,9 +72,9 @@ export const getStoreColor = (store: string): string => {
   if (match) {
     const storeNumber = match[0];
     // Handle both padded and unpadded numbers
-    return storeColors[storeNumber.padStart(3, '0')] || storeColors[storeNumber] || 'text-yellow-300';
+    return storeColors[storeNumber.padStart(3, '0')] || storeColors[storeNumber] || 'store-color-000';
   }
-  return 'text-yellow-300';
+  return 'store-color-000';
 };
 
 export const scheduleOptions = [

@@ -183,3 +183,26 @@ button {
   background: hsl(var(--header-button-hover-bg-color) / 0.2);
 }
 
+/* Store Color Mappings */
+.store-color-022 { color: #ff6b6b; } /* Fort Worth 022 - RED */
+.store-color-027 { color: #F8FF5C; } /* Grand Prairie 027 */
+.store-color-028 { color: #22d3ee; } /* Houston 028 - Light Blue */
+.store-color-029 { color: #A6A39D; } /* San Antonio 029 */
+.store-color-030 { color: #a855f7; } /* Oklahoma City 030 - Purple */
+.store-color-032 { color: #fb923c; } /* Little Rock 032 - Orange */
+.store-color-033 { color: #f472b6; } /* Kansas City 033 - Pink */
+.store-color-035 { color: #a3e635; } /* Laredo 035 - Neon Green */
+.store-color-036 { color: #4ade80; } /* Tulsa 036 - Light Green */
+.store-color-039 { color: #60a5fa; } /* Austin 039 - Dark Blue */
+.store-color-041 { color: #34F7CC; } /* Detroit 041 */
+.store-color-042 { color: #E3A41B; } /* Toledo 042 */
+.store-color-043 { color: #9C1F84; } /* Indianapolis 043 */
+.store-color-051 { color: #B3C722; } /* Tampa 051 */
+.store-color-052 { color: #C78822; } /* Orlando 052 */
+.store-color-053 { color: #A4F268; } /* Jacksonville 053 */
+.store-color-097 { color: #1BE37F; } /* Grand Prairie 097 */
+.store-color-098 { color: #E31B6B; } /* Romulus 098 */
+.store-color-099 { color: #2261C7; } /* Mulberry 099 */
+.store-color-000 { color: #D9E319; } /* Unassigned 000 */
+.store-color-admin { color: #60a5fa; } /* Admin */
+
