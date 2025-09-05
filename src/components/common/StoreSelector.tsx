@@ -4,6 +4,7 @@ import { hasFullStoreAccess } from '@/lib/roles';
 import { STORES, searchStores, normalizeStoreName } from '@/lib/stores';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { storeColors } from '@/components/order-form/formConfig';
 
 type Props = {
   value: string;
@@ -25,6 +26,18 @@ export default function StoreSelector({
 }: Props) {
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
+
+  // Function to get store color class
+  const getStoreColorClass = (storeName: string): string => {
+    if (storeName === "Admin") return storeColors["Admin"];
+    const match = storeName.match(/\d+/);
+    if (match) {
+      const storeNumber = match[0];
+      // Handle both padded and unpadded numbers
+      return storeColors[storeNumber.padStart(3, '0')] || storeColors[storeNumber] || "text-white";
+    }
+    return "text-white";
+  };
 
   // Local typing buffer; null => show committed `value`
   const [q, setQ] = React.useState<string | null>(null);
@@ -109,7 +122,7 @@ export default function StoreSelector({
                 className="block w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
                 onClick={() => commit(r.name)}
               >
-                <div className="font-medium">{r.name}</div>
+                <div className={`font-medium ${getStoreColorClass(r.name)}`}>{r.name}</div>
                 <div className="text-muted-foreground text-xs">{r.plant}</div>
               </button>
             ))}
