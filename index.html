@@ -20,6 +20,37 @@
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
       })(window, document, "clarity", "script", "r0g9rwyx8");
     </script>
+    
+    <!-- Suppress legacy origin errors -->
+    <script type="text/javascript">
+      // Suppress postMessage origin errors from legacy Live Edit scripts
+      const originalError = console.error;
+      const originalWarn = console.warn;
+      
+      console.error = function(...args) {
+        const message = args[0];
+        if (typeof message === 'string' && (
+          message.includes('postMessage') && message.includes('origin') ||
+          message.includes('gptengineer.app') ||
+          message.includes('localhost:3000')
+        )) {
+          return; // Suppress these specific errors
+        }
+        originalError.apply(console, args);
+      };
+      
+      console.warn = function(...args) {
+        const message = args[0];
+        if (typeof message === 'string' && (
+          message.includes('postMessage') && message.includes('origin') ||
+          message.includes('gptengineer.app') ||
+          message.includes('localhost:3000')
+        )) {
+          return; // Suppress these specific warnings
+        }
+        originalWarn.apply(console, args);
+      };
+    </script>
   </head>
 
   <body>
