@@ -319,6 +319,7 @@ export function OrderForm() {
         onSubmit={handleSubmit(onSubmit)}
         getCurrentFormData={getCurrentFormData}
         onLoadTemplate={handleLoadTemplate}
+        onAddToOrder={handleAddToOrder}
       />
 
       {/* Email Recipients Preview */}
@@ -356,13 +357,16 @@ export function OrderForm() {
           formHandleSubmit={form.handleSubmit}
         />
       
-      <OrderFormActions 
-        isSubmitting={isSubmitting}
-        selectedPlant={selectedPlant}
-        onAddClick={handleAddToOrder}
-      />
+      {/* Only show regular actions if not in cross-dock mode */}
+      {!(form.watch("crossDock") === "Yes") && (
+        <OrderFormActions 
+          isSubmitting={isSubmitting}
+          selectedPlant={selectedPlant}
+          onAddClick={handleAddToOrder}
+        />
+      )}
       
-      {/* Bottom padding to account for sticky submit bar */}
+      {/* Bottom padding to account for sticky bars */}
       <div className="pb-24" />
     </OrderFormWrapper>
   );

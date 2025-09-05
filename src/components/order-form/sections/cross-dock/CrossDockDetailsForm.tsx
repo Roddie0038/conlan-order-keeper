@@ -1,14 +1,14 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { OrderFormValues } from "../../order-form-schema";
-import { Truck, Printer } from "lucide-react";
+import { Truck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { NeoField } from "@/components/ui/NeoField";
 import { NeoSelect, NeoSelectContent, NeoSelectItem, NeoSelectTrigger, NeoSelectValue } from "@/components/ui/NeoSelect";
-import { NeoButton } from "@/components/ui/NeoButton";
+
 import { NeoDatePicker } from "@/components/ui/NeoDatePicker";
 import { PLANT_STORE_MAP } from "@/utils/plantMapping";
 
@@ -176,15 +176,6 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
               </FormItem>
             )}
           />
-          <div className="ml-auto">
-            <NeoButton 
-              variant="ghost" 
-              onClick={() => console.log("Print cross dock form")}
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              Print Only (Test)
-            </NeoButton>
-          </div>
         </div>
       </div>
     </div>

@@ -436,6 +436,39 @@ export type Database = {
         }
         Relationships: []
       }
+      cross_dock_forms: {
+        Row: {
+          created_at: string | null
+          fields: Json
+          id: string
+          line_id: string | null
+          order_id: number | null
+          pdf_url: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          fields: Json
+          id: string
+          line_id?: string | null
+          order_id?: number | null
+          pdf_url: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          fields?: Json
+          id?: string
+          line_id?: string | null
+          order_id?: number | null
+          pdf_url?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       draft_telemetry_log: {
         Row: {
           created_at: string | null
@@ -2008,6 +2041,7 @@ export type Database = {
           order_id: string | null
           order_type: string | null
           recipient_email: string | null
+          request_id: number | null
           response: string | null
           status: string | null
           store_number: string | null
@@ -2021,6 +2055,7 @@ export type Database = {
           order_id?: string | null
           order_type?: string | null
           recipient_email?: string | null
+          request_id?: number | null
           response?: string | null
           status?: string | null
           store_number?: string | null
@@ -2034,6 +2069,7 @@ export type Database = {
           order_id?: string | null
           order_type?: string | null
           recipient_email?: string | null
+          request_id?: number | null
           response?: string | null
           status?: string | null
           store_number?: string | null
@@ -2184,13 +2220,16 @@ export type Database = {
           cross_dock_description: string | null
           cross_dock_destination: string | null
           cross_dock_eta_date: string | null
+          cross_dock_form_id: string | null
           cross_dock_form_link: string | null
+          cross_dock_form_url: string | null
           cross_dock_notes: string | null
           cross_dock_origin: string | null
           cross_dock_part_number: string | null
           cross_dock_qty: number | null
           cross_dock_received_notified_at: string | null
           cross_dock_receiver_number: string | null
+          cross_dock_snapshot: Json | null
           cross_dock_status: string
           cross_dock_type: string | null
           cross_plant_order: boolean | null
@@ -2260,13 +2299,16 @@ export type Database = {
           cross_dock_description?: string | null
           cross_dock_destination?: string | null
           cross_dock_eta_date?: string | null
+          cross_dock_form_id?: string | null
           cross_dock_form_link?: string | null
+          cross_dock_form_url?: string | null
           cross_dock_notes?: string | null
           cross_dock_origin?: string | null
           cross_dock_part_number?: string | null
           cross_dock_qty?: number | null
           cross_dock_received_notified_at?: string | null
           cross_dock_receiver_number?: string | null
+          cross_dock_snapshot?: Json | null
           cross_dock_status?: string
           cross_dock_type?: string | null
           cross_plant_order?: boolean | null
@@ -2336,13 +2378,16 @@ export type Database = {
           cross_dock_description?: string | null
           cross_dock_destination?: string | null
           cross_dock_eta_date?: string | null
+          cross_dock_form_id?: string | null
           cross_dock_form_link?: string | null
+          cross_dock_form_url?: string | null
           cross_dock_notes?: string | null
           cross_dock_origin?: string | null
           cross_dock_part_number?: string | null
           cross_dock_qty?: number | null
           cross_dock_received_notified_at?: string | null
           cross_dock_receiver_number?: string | null
+          cross_dock_snapshot?: Json | null
           cross_dock_status?: string
           cross_dock_type?: string | null
           cross_plant_order?: boolean | null
@@ -3452,6 +3497,42 @@ export type Database = {
         }
         Relationships: []
       }
+      stg_recipients: {
+        Row: {
+          email_types: string | null
+          full_name: string | null
+          is_active: string | null
+          plant: string | null
+          recipient_email: string | null
+          recipient_role: string | null
+          status_txt: string | null
+          store_name: string | null
+          store_number: string | null
+        }
+        Insert: {
+          email_types?: string | null
+          full_name?: string | null
+          is_active?: string | null
+          plant?: string | null
+          recipient_email?: string | null
+          recipient_role?: string | null
+          status_txt?: string | null
+          store_name?: string | null
+          store_number?: string | null
+        }
+        Update: {
+          email_types?: string | null
+          full_name?: string | null
+          is_active?: string | null
+          plant?: string | null
+          recipient_email?: string | null
+          recipient_role?: string | null
+          status_txt?: string | null
+          store_name?: string | null
+          store_number?: string | null
+        }
+        Relationships: []
+      }
       store_display: {
         Row: {
           color_hex: string
@@ -4390,6 +4471,7 @@ export type Database = {
           emailmessage: string | null
           handholes: number | null
           id: string
+          invoice_number: string | null
           manager_notes: string | null
           name: string | null
           notes: string | null
@@ -4432,6 +4514,7 @@ export type Database = {
           emailmessage?: string | null
           handholes?: number | null
           id?: string
+          invoice_number?: string | null
           manager_notes?: string | null
           name?: string | null
           notes?: string | null
@@ -4474,6 +4557,7 @@ export type Database = {
           emailmessage?: string | null
           handholes?: number | null
           id?: string
+          invoice_number?: string | null
           manager_notes?: string | null
           name?: string | null
           notes?: string | null
@@ -5925,6 +6009,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      safe_http_collect: {
+        Args: { p_poll_ms?: number; p_request_id: number; p_wait_ms?: number }
+        Returns: Json
+      }
+      safe_http_post: {
+        Args: { body: string; headers: Json; timeout_ms?: number; url: string }
+        Returns: Json
+      }
+      safe_http_post_and_collect: {
+        Args: {
+          body: string
+          headers: Json
+          timeout_ms?: number
+          url: string
+          wait_ms?: number
+        }
+        Returns: Json
+      }
       save_label_template: {
         Args: {
           p_elements: Json
@@ -6010,6 +6112,8 @@ export type Database = {
         | "service_manager"
         | "operations_manager"
         | "region_manager"
+        | "super_admin"
+        | "warehouse_coordinator"
       regional_message_status: "draft" | "sending" | "sent" | "failed"
       trigger_category:
         | "inventory"
@@ -6213,6 +6317,8 @@ export const Constants = {
         "service_manager",
         "operations_manager",
         "region_manager",
+        "super_admin",
+        "warehouse_coordinator",
       ],
       regional_message_status: ["draft", "sending", "sent", "failed"],
       trigger_category: [

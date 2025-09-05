@@ -23,6 +23,7 @@ interface OrderFormContentProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   getCurrentFormData: () => any;
   onLoadTemplate: (templateData: any) => void;
+  onAddToOrder: () => void;
 }
 
 export function OrderFormContent({ 
@@ -30,7 +31,8 @@ export function OrderFormContent({
   showCrossDockDestination,
   onSubmit,
   getCurrentFormData,
-  onLoadTemplate 
+  onLoadTemplate,
+  onAddToOrder 
 }: OrderFormContentProps) {
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
@@ -125,7 +127,8 @@ export function OrderFormContent({
           <SectionBox title="Cross Dock Options" tone="fuchsia">
             <CrossDockSection 
               form={form} 
-              showCrossDockDestination={showCrossDockDestination} 
+              showCrossDockDestination={showCrossDockDestination}
+              onAddToOrder={onAddToOrder}
             />
           </SectionBox>
         )}
