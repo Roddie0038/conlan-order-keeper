@@ -197,21 +197,53 @@ export const generateCrossDockPDF = async (formValues: OrderFormValues): Promise
   
   // Create a temporary container for rendering
   const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = htmlContent;
   tempDiv.style.position = 'absolute';
   tempDiv.style.top = '-9999px';
   tempDiv.style.left = '-9999px';
+  tempDiv.style.pointerEvents = 'none';
+  tempDiv.style.opacity = '0';
   document.body.appendChild(tempDiv);
 
+  // Inject the HTML
+  tempDiv.innerHTML = htmlContent;
+
+  // Ensure any <style> tags inside the template apply during rendering
+  const templateStyles = Array.from(tempDiv.querySelectorAll('style'));
+  const injectedStyles: HTMLStyleElement[] = [];
+  for (const styleEl of templateStyles) {
+    const s = document.createElement('style');
+    s.textContent = styleEl.textContent || '';
+    document.head.appendChild(s);
+    injectedStyles.push(s);
+  }
+
   try {
-    // Capture the inner page element without fixed dimensions
-    const pageElement = tempDiv.firstElementChild as HTMLElement;
+    // Find the main page container and force explicit dimensions for html2canvas
+    const pageElement = tempDiv.querySelector('.page') as HTMLElement | null;
+    if (!pageElement) {
+      throw new Error('Template did not contain a .page element');
+    }
+
+    // Force predictable dimensions (Letter @ 96DPI ≈ 816x1056)
+    pageElement.style.width = '816px';
+    pageElement.style.minHeight = '1056px';
+    pageElement.style.backgroundColor = '#ffffff';
+    pageElement.style.boxSizing = 'border-box';
+
     const canvas = await html2canvas(pageElement, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      scrollX: 0,
+      scrollY: 0,
+      width: 816,
+      height: Math.max(1056, pageElement.scrollHeight)
     });
+
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      throw new Error('Rendered canvas has zero size');
+    }
 
     // Create PDF
     const pdf = new jsPDF({
@@ -221,6 +253,9 @@ export const generateCrossDockPDF = async (formValues: OrderFormValues): Promise
     });
 
     const imgData = canvas.toDataURL('image/png');
+    if (!imgData || !imgData.startsWith('data:image/png')) {
+      throw new Error('Failed to produce PNG data from canvas');
+    }
     pdf.addImage(imgData, 'PNG', 0, 0, 612, 792);
 
     // Convert to blob
@@ -247,7 +282,9 @@ export const generateCrossDockPDF = async (formValues: OrderFormValues): Promise
 
   } finally {
     // Clean up
-    document.body.removeChild(tempDiv);
+    try { document.body.removeChild(tempDiv); } catch {}
+    // Remove any injected styles we added
+    try { injectedStyles.forEach(s => s.remove()); } catch {}
   }
 };
 
