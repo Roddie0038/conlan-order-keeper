@@ -291,24 +291,60 @@ export const generateCrossDockPDF = async (formValues: OrderFormValues): Promise
 // Helper function to print from blob using hidden iframe
 const openPrintDialogFromBlob = (blob: Blob): void => {
   const url = URL.createObjectURL(blob);
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = '0';
-  iframe.src = url;
-  document.body.appendChild(iframe);
   
-  iframe.onload = () => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-      iframe.remove();
-    }, 2000);
-  };
+  // Try opening in new window first (better user experience)
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Cross-Dock Form</title>
+          <style>
+            body { margin: 0; padding: 0; }
+            embed { width: 100vw; height: 100vh; }
+          </style>
+        </head>
+        <body>
+          <embed src="${url}" type="application/pdf" width="100%" height="100%">
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    
+    // Focus and print when loaded
+    printWindow.onload = () => {
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    };
+    
+    // Clean up URL after window is closed (user controlled)
+    printWindow.onbeforeunload = () => {
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+  } else {
+    // Fallback to iframe method if popup blocked
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+    
+    iframe.onload = () => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      // Give user more time to print - 10 seconds instead of 2
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        iframe.remove();
+      }, 10000);
+    };
+  }
 };
 
 // Background upload and persist function
