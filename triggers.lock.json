@@ -1,0 +1,9 @@
+{
+  "final_triggers": [
+    "trigger_order_message_notification",
+    "trigger_regional_message_notification"
+  ],
+  "policy": {
+    "require_review_for_changes": true
+  }
+}

@@ -1,0 +1,37 @@
+name: Trigger Lock
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+jobs:
+  check-triggers:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect changes to triggers.lock.json
+        id: detect
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          set -e
+          CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E '^triggers.lock.json$' || true)
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+          if [ -n "$CHANGED" ]; then
+            echo "triggers.lock.json changed"
+            echo "Labels: $LABELS"
+            if [[ ",$LABELS," != *",approved-trigger-change,"* ]]; then
+              echo "Missing required label 'approved-trigger-change' for trigger changes."
+              exit 1
+            fi
+          else
+            echo "No trigger lock changes."
+          fi
+      - name: Pass
+        run: echo "Check complete"

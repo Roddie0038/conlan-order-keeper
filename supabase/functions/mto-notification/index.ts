@@ -1,168 +1,44 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { sendEmail, createEmailTemplate, logEmailNotification } from "../_shared/mailer.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
-// Email notification for MTO orders - migrated to use Resend
-serve(async (req) => {
-  console.log("🚀 MTO NOTIFICATION - Edge function called");
-  console.log("🚀 MTO NOTIFICATION - Request method:", req.method);
-  
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+type MtoEvent = {
+  order_id: number | string;
+  event: "created" | "updated" | "status_changed" | "approved" | "completed";
+  store_number?: string;
+  plant_id?: string;
+  region_id?: string;
+  metadata?: Record<string, unknown>;
+  dry_run?: boolean;
+};
 
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+const CONTROLLER = Deno.env.get("NOTIFICATION_CONTROLLER_URL");
+const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const MAP: Record<string,string> = {
+  "022":"Fort Worth 022","027":"Grand Prairie 027","028":"Houston 028","029":"San Antonio 029",
+  "030":"Oklahoma City 030","032":"Little Rock 032","033":"Kansas City 033","036":"Tulsa 036",
+  "039":"Austin 039","041":"Detroit 041","042":"Toledo 042","097":"Grand Prairie 097",
+  "098":"Romulus 098","099":"Mulberry 099",
+};
+const norm = (s?:string)=> s ? (MAP[s.padStart(3,"0")] ?? s) : undefined;
 
+serve(async (req)=>{
+  if (req.method!=="POST") return new Response('{"error":"Method not allowed"}',{status:405});
   try {
-    const requestBody = await req.json();
-    console.log("📧 MTO NOTIFICATION - Request body:", JSON.stringify(requestBody, null, 2));
-    
-    const { mtoData, orderId, recipients } = requestBody;
-    
-    console.log("📧 MTO NOTIFICATION - Processing MTO order:", orderId);
-    console.log("📧 MTO NOTIFICATION - Recipients:", recipients);
-    console.log("📧 MTO NOTIFICATION - MTO data:", mtoData);
-
-    if (!recipients || recipients.length === 0) {
-      console.log("⚠️ MTO NOTIFICATION - No email recipients provided for MTO order:", orderId);
-      
-      // Log the attempt even if no recipients
-      await logEmailNotification({
-        orderId: orderId || 'unknown',
-        orderType: 'MTO',
-        recipients: [],
-        status: 'failed',
-        notificationType: 'mto_order_submitted',
-        errorMessage: 'No recipients provided'
-      });
-      
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: 'No recipients provided',
-        orderId: orderId
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Create standardized email using the new template system
-    const emailSubject = `MTO Order - ${mtoData.store} - ${mtoData.product_number || mtoData.productNumber}`;
-    
-    const orderDetails = {
-      store: mtoData.store,
-      plant: mtoData.plant,
-      productNumber: mtoData.product_number || mtoData.productNumber,
-      tireSize: mtoData.tire_size || mtoData.tireSize,
-      tread: mtoData.tread || mtoData.tireTreadNeeded,
-      casingGrade: mtoData.casing_grade || mtoData.casingGrade,
-      quantity: mtoData.quantity,
-      notes: mtoData.notes || 'None',
-      haveCasings: mtoData.have_casings ? 'Yes' : 'No'
+    const p = (await req.json()) as MtoEvent;
+    if (!CONTROLLER) return new Response('{"error":"NOTIFICATION_CONTROLLER_URL missing"}',{status:500});
+    const body = {
+      type: "mto_notification",
+      event: p.event, order_id: p.order_id,
+      store_number: p.store_number, store_name_norm: norm(p.store_number),
+      plant_id: p.plant_id, region_id: p.region_id, metadata: p.metadata ?? {},
+      options: { dry_run: !!p.dry_run, enforce_scopes: true, source: "mto-notification" }
     };
-
-    const emailBody = createEmailTemplate({
-      orderType: 'MTO',
-      orderDetails: orderDetails,
-      submitterInfo: {
-        name: mtoData.name,
-        email: mtoData.email
-      },
-      orderId: orderId,
-      isCrossDock: false // MTO orders are not cross-dock
+    const r = await fetch(CONTROLLER, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization: SERVICE_ROLE?`Bearer ${SERVICE_ROLE}`:"" },
+      body: JSON.stringify(body)
     });
-
-    console.log("📧 MTO NOTIFICATION - Sending email via centralized mailer to:", recipients);
-    console.log("📧 MTO NOTIFICATION - Email subject:", emailSubject);
-    
-    // Send email via centralized mailer (Resend)
-    const emailResult = await sendEmail({
-      to: recipients,
-      subject: emailSubject,
-      html: emailBody
-    });
-
-    if (emailResult.success) {
-      console.log("✅ MTO NOTIFICATION - Email sent successfully via Resend:", emailResult.data);
-      
-      // Log successful email
-      await logEmailNotification({
-        orderId: orderId,
-        orderType: 'MTO',
-        recipients: emailResult.sentTo || recipients,
-        status: 'sent',
-        notificationType: 'mto_order_submitted',
-        emailProvider: 'resend'
-      });
-      
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: 'MTO notification sent successfully via Resend',
-        recipients: (emailResult.sentTo || recipients).length,
-        orderId: orderId,
-        orderType: 'MTO',
-        store: mtoData.store,
-        emailId: emailResult.data?.id
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    } else {
-      console.error("❌ MTO NOTIFICATION - Email sending failed:", emailResult.error);
-      
-      // Log failed email
-      await logEmailNotification({
-        orderId: orderId,
-        orderType: 'MTO',
-        recipients: recipients,
-        status: 'failed',
-        notificationType: 'mto_order_submitted',
-        emailProvider: 'resend',
-        errorMessage: emailResult.error
-      });
-      
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: `Email sending failed: ${emailResult.error}`,
-        orderId: orderId
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-  } catch (error) {
-    console.error("❌ MTO NOTIFICATION - Error:", error);
-    
-    // Log error
-    try {
-      await logEmailNotification({
-        orderId: 'unknown',
-        orderType: 'MTO',
-        recipients: [],
-        status: 'failed',
-        notificationType: 'mto_order_submitted',
-        emailProvider: 'resend',
-        errorMessage: error.message
-      });
-    } catch (logError) {
-      console.error("❌ Failed to log error:", logError);
-    }
-    
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message,
-      details: error.stack
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+    const text = await r.text();
+    return r.ok ? new Response(text,{status:200})
+                : new Response(JSON.stringify({error:"controller_failed",status:r.status,body:text}),{status:502});
+  } catch(e){ return new Response(JSON.stringify({error:"unhandled_exception",message:String(e)}),{status:500}); }
 });
