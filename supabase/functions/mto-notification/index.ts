@@ -30,7 +30,7 @@ serve(async (req)=>{
       event: p.event, order_id: p.order_id,
       store_number: p.store_number, store_name_norm: norm(p.store_number),
       plant_id: p.plant_id, region_id: p.region_id, metadata: p.metadata ?? {},
-      options: { dry_run: !!p.dry_run, enforce_scopes: true, source: "mto-notification" }
+      options: { dry_run: !!p.dry_run, enforce_scopes: true, admin_override: false, source: "mto-notification" }
     };
     const r = await fetch(CONTROLLER, {
       method:"POST",
