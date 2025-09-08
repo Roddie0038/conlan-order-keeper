@@ -4,7 +4,8 @@ import { defineConfig, devices } from '@playwright/test';
 const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:8080';
 
 export default defineConfig({
-  testDir: 'tests/e2e',
+  testDir: 'tests/e2e',                 // only look here
+  testMatch: /.*\.spec\.ts/,            // only *.spec.ts
   globalSetup: require.resolve('./playwright.global-setup.ts'),
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
