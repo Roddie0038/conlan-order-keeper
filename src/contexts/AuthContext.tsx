@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { getAdminEmails } from '@/config/emails';
 
 interface StoreManager {
   id: string;
@@ -119,7 +120,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Helper function to determine admin status
   const isUserAdmin = (email: string, role?: string): boolean => {
     // Check for specific admin emails
-    const { getAdminEmails } = require('@/config/emails');
     const adminEmails = getAdminEmails();
     
     if (adminEmails.includes(email.toLowerCase())) {
@@ -147,7 +147,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Helper function to check if user has full store/plant access
   const hasFullStoreAccess = (email: string, role?: string): boolean => {
-    const { getAdminEmails } = require('@/config/emails');
     const adminEmails = getAdminEmails();
     return adminEmails.includes(email?.toLowerCase()) || 
            role?.toLowerCase() === 'operations_manager';

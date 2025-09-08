@@ -4,6 +4,7 @@
  */
 
 import { formatDateForSheets } from "@/utils/dateTime";
+import { IS_E2E } from '@/config/e2e';
 
 /**
  * Formats a date string to YYYY-MM-DD format
@@ -93,10 +94,9 @@ export const prepareWebhookData = (data: any) => {
  */
 export const submitToWebhook = async (url: string, data: any) => {
   // Guard for E2E mode - stub external webhook calls
-  const { IS_E2E } = await import('@/config/e2e');
   if (IS_E2E) {
     console.warn('[E2E] Stubbed webhook call to:', url);
-    return { ok: true, stubbed: true };
+    return true;
   }
   
   try {

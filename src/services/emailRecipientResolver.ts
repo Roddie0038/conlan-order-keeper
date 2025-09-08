@@ -11,6 +11,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeStoreFormatSync, normalizePlantNameSync } from "@/utils/supabaseNormalization";
 import type { OrderFormData, MTOFormData, WheelFormData } from "@/types/orders";
+import { IS_E2E } from '@/config/e2e';
 
 export interface EmailRecipient {
   email: string;
@@ -226,7 +227,6 @@ async function checkOTPlatformUsers(
   log: string[]
 ): Promise<EmailRecipient[]> {
   // Guard for E2E mode - skip Tier-3 DB lookups to avoid permission errors
-  const { IS_E2E } = await import('@/config/e2e');
   if (IS_E2E) {
     console.warn('[E2E] Skipping Tier-3 DB lookups');
     log.push('Tier 3 skipped: E2E mode detected');

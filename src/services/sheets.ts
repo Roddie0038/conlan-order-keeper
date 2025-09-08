@@ -9,16 +9,16 @@ import type { MTOFormData } from '@/types/orders';
 import type { OrderFormData } from '@/types/orders';
 import { mapOrderToGoogleSheets } from '@/utils/mapOrderToGoogleSheets';
 import { mapMTOToGoogleSheets } from '@/utils/mapMTOToGoogleSheets';
+import { IS_E2E } from '@/config/e2e';
 
 export type { OrderType };
 export type { OrderFormData };
 
 export const submitToGoogleSheets = async (data: OrderFormData | MTOFormData, user?: any) => {
   // Guard for E2E mode - stub external Google Sheets calls
-  const { IS_E2E } = await import('@/config/e2e');
   if (IS_E2E) {
     console.warn('[E2E] Stubbed Google Sheets call');
-    return { status: 'success' };
+    return { status: 'success' } as const;
   }
   
   console.log("🔍 SHEETS - ENTRY POINT - submitToGoogleSheets called");

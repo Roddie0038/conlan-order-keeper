@@ -17,9 +17,10 @@ const ELEVATED_ROLES = new Set([
   'warehouse_manager'
 ]);
 
+import { getAdminEmails } from '@/config/emails';
+
 // Use centralized admin email config
 const getAdminEmail = () => {
-  const { getAdminEmails } = require('@/config/emails');
   return getAdminEmails()[0] || 'admin@conlantire.com';
 };
 
@@ -27,7 +28,6 @@ export function hasFullStoreAccess(user?: UserLike | null): boolean {
   if (!user) return false;
   const email = (user.email || '').trim().toLowerCase();
   const role = (user.role || '').trim();
-  const { getAdminEmails } = require('@/config/emails');
   const adminEmails = getAdminEmails();
   return adminEmails.includes(email) || ELEVATED_ROLES.has(role) || isElevatedRole(role);
 }
