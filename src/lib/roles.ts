@@ -17,11 +17,11 @@ const ELEVATED_ROLES = new Set([
   'warehouse_manager'
 ]);
 
-import { getAdminEmails } from '@/config/emails';
+import { getAdminEmails, DEFAULT_MANAGER_EMAIL } from '@/config/emails';
 
 // Use centralized admin email config
 const getAdminEmail = () => {
-  return getAdminEmails()[0] || 'admin@conlantire.com';
+  return getAdminEmails()[0] || DEFAULT_MANAGER_EMAIL;
 };
 
 export function hasFullStoreAccess(user?: UserLike | null): boolean {

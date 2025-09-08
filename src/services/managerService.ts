@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminEmails } from '@/config/emails';
 
 export interface Manager {
   id: string;
@@ -56,7 +57,6 @@ export const getComplaintNotificationRecipients = async (storeNumber: string, st
     const managers = await getManagersByPlantCode(plantCode);
     
     // Include admin emails as fallback
-    const { getAdminEmails } = await import('@/config/emails');
     const emails = getAdminEmails();
     
     // Add manager emails based on their roles
@@ -76,7 +76,6 @@ export const getComplaintNotificationRecipients = async (storeNumber: string, st
   } catch (error) {
     console.error('❌ Error getting complaint notification recipients:', error);
     // Return fallback admin emails if query fails
-    const { getAdminEmails } = await import('@/config/emails');
     return getAdminEmails();
   }
 };
@@ -99,7 +98,6 @@ export const getWarrantyNotificationRecipients = async (storeNumber: string, sto
     }
 
     // Include admin emails as fallback
-    const { getAdminEmails } = await import('@/config/emails');
     const emails = getAdminEmails();
     
     // Add manager emails prioritizing retread and plant managers for warranties
@@ -119,7 +117,6 @@ export const getWarrantyNotificationRecipients = async (storeNumber: string, sto
   } catch (error) {
     console.error('❌ Error getting warranty notification recipients:', error);
     // Return fallback admin emails if query fails
-    const { getAdminEmails } = await import('@/config/emails');
     return getAdminEmails();
   }
 };

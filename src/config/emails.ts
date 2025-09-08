@@ -5,13 +5,7 @@ export const ADMIN_EMAILS = (import.meta?.env?.VITE_ADMIN_EMAILS ?? '')
   .map(s => s.trim())
   .filter(Boolean);
 
-// Fallback admin emails if none provided via env
-export const FALLBACK_ADMIN_EMAILS = [
-  'conlan97@conlantire.com',
-  'admin@conlantire.com'
-];
-
-// Get admin emails with fallback
+// Get admin emails (environment-driven only)
 export const getAdminEmails = (): string[] => {
-  return ADMIN_EMAILS.length > 0 ? ADMIN_EMAILS : FALLBACK_ADMIN_EMAILS;
+  return ADMIN_EMAILS;
 };

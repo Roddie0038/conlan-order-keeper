@@ -1,11 +1,11 @@
 // src/server/access/elevated.ts
-import { getAdminEmails } from '@/config/emails';
+import { getAdminEmails, DEFAULT_MANAGER_EMAIL } from '@/config/emails';
 
 export type UserLike = { email?: string | null; role?: string | null };
 
 // Use centralized admin email config
 const getAdminEmail = () => {
-  return getAdminEmails()[0] || 'admin@conlantire.com';
+  return getAdminEmails()[0] || DEFAULT_MANAGER_EMAIL;
 };
 const ELEVATED = new Set(['Admin', 'Super Admin', 'Operations Manager']);
 
