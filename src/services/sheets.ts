@@ -96,14 +96,19 @@ export const submitToGoogleSheets = async (data: OrderFormData | MTOFormData, us
     
     console.log("🔍 SHEETS - All webhook results:", results);
     
-    // Check if at least one webhook succeeded
-    if (results.some(result => result === true)) {
-      console.log("✅ SHEETS - At least one webhook succeeded");
-      return { status: 'success' };
-    } else {
-      console.log("❌ SHEETS - All webhooks failed");
-      return { status: 'error' };
-    }
+// Check if at least one webhook succeeded
+const anySuccess = results.some((result) => {
+  if (result === true) return true;
+  if (typeof result === 'object' && result && 'ok' in result) return (result as any).ok === true;
+  return false;
+});
+if (anySuccess) {
+  console.log("✅ SHEETS - At least one webhook succeeded");
+  return { status: 'success' };
+} else {
+  console.log("❌ SHEETS - All webhooks failed");
+  return { status: 'error' };
+}
 
   } catch (error) {
     console.error("❌ SHEETS - Error submitting to webhooks:", error);

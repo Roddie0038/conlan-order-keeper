@@ -6,6 +6,13 @@
 import { formatDateForSheets } from "@/utils/dateTime";
 import { IS_E2E } from '@/config/e2e';
 
+export type WebhookResult = {
+  ok: boolean;
+  stubbed?: boolean;
+  url?: string;
+  error?: string;
+};
+
 /**
  * Formats a date string to YYYY-MM-DD format
  */
@@ -92,17 +99,17 @@ export const prepareWebhookData = (data: any) => {
 /**
  * Generic webhook submission function 
  */
-export const submitToWebhook = async (url: string, data: any) => {
+export const submitToWebhook = async (url: string, data: any): Promise<WebhookResult> => {
   // Guard for E2E mode - stub external webhook calls
   if (IS_E2E) {
     console.warn('[E2E] Stubbed webhook call to:', url);
-    return true;
+    return { ok: true, stubbed: true, url } as const;
   }
   
   try {
     if (!url || url.trim() === "") {
       console.error("❌ WEBHOOK - Empty webhook URL provided");
-      return false;
+      return { ok: false, error: 'Empty URL' };
     }
     
     // Format the data before sending
@@ -120,7 +127,7 @@ export const submitToWebhook = async (url: string, data: any) => {
     const urlWithNoCacheParam = `${url}${url.includes('?') ? '&' : '?'}nocache=${Date.now()}&cachebuster=${cacheBuster}`;
     console.log("🔍 WEBHOOK - Using URL with cache-busting:", urlWithNoCacheParam);
 
-    const response = await fetch(urlWithNoCacheParam, {
+    await fetch(urlWithNoCacheParam, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -134,9 +141,9 @@ export const submitToWebhook = async (url: string, data: any) => {
 
     // With no-cors, we won't get a meaningful status, but the request will go through
     console.log(`🔍 WEBHOOK - Successfully triggered webhook: ${url}`);
-    return true;
-  } catch (error) {
+    return { ok: true, url: urlWithNoCacheParam };
+  } catch (error: any) {
     console.error(`❌ WEBHOOK - Error triggering webhook ${url}:`, error);
-    return false;
+    return { ok: false, error: (error?.message || String(error)), url };
   }
 };
