@@ -30,6 +30,7 @@ import { NeoField } from "@/components/ui/NeoField";
 import { NeoSelect, NeoSelectContent, NeoSelectItem, NeoSelectTrigger, NeoSelectValue } from "@/components/ui/NeoSelect";
 import { ColoredNeoSelectItem } from "@/components/ui/ColoredNeoSelectItem";
 import { storeColors } from "@/components/order-form/formConfig";
+import { DEFAULT_MANAGER_EMAIL } from '@/config/emails';
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -64,7 +65,7 @@ export function ContactSection({ form }: ContactSectionProps) {
   // Function to fetch manager emails from database
   const fetchManagerEmails = async (storeName: string) => {
     if (!storeName || storeName === "Admin") {
-      setManagerEmails("admin@conlantire.com");
+      setManagerEmails(DEFAULT_MANAGER_EMAIL);
       return;
     }
 
@@ -75,8 +76,8 @@ export function ContactSection({ form }: ContactSectionProps) {
       form.setValue("managersEmail", dynamicEmail);
     } catch (error) {
       console.error("Error fetching manager emails:", error);
-      setManagerEmails("manager@conlantire.com");
-      form.setValue("managersEmail", "manager@conlantire.com");
+      setManagerEmails(DEFAULT_MANAGER_EMAIL);
+      form.setValue("managersEmail", DEFAULT_MANAGER_EMAIL);
     } finally {
       setIsLoadingEmails(false);
     }
