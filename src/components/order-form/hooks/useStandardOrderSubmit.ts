@@ -9,8 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { normalizeOrderStoreFields } from "@/utils/storeNormalization";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { logger } from '@/utils/logger';
-import { supabase } from "@/integrations/supabase/client";
-import type { StandardOrderPayload } from "@/types/orderPayloads";
+import { submitOrder } from "@/services/orderSubmit";
 
 export interface OrderSummary {
   id: string;
@@ -76,35 +75,35 @@ export function useStandardOrderSubmit() {
           // Normalize store fields for submission
           const normalizedOrder = normalizeOrderStoreFields(order, true);
           
-          // Build standard payload (no regional fields)
-          const payload: StandardOrderPayload = {
-            type: 'standard',
-            order_type: 'transfer',
+          // Convert OrderSummary to formValues for Phase B submitOrder
+          const formValues = {
             store: normalizedOrder.store,
-            destination_plant: normalizedOrder.destinationPlant || '',
-            product_number: normalizedOrder.productNumber,
+            productNumber: normalizedOrder.productNumber,
+            description: normalizedOrder.description || normalizedOrder.productNumber,
             quantity: normalizedOrder.quantity,
-            description: normalizedOrder.description,
             notes: normalizedOrder.notes,
-            your_name: normalizedOrder.yourName,
-            managers_email: normalizedOrder.managersEmail,
-            schedule_arrival: normalizedOrder.scheduleArrival,
-            cross_dock: normalizedOrder.crossDock,
-            cross_dock_destination: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.crossDockDestination : null,
-            cross_dock_receiver_number: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.receiverNo : null,
-            cross_dock_eta_date: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.etaDate : null,
-            timestamp: normalizedOrder.timestamp || new Date().toISOString(),
-            _corr: corr
+            yourName: normalizedOrder.yourName,
+            managersEmail: normalizedOrder.managersEmail,
+            scheduleArrival: normalizedOrder.scheduleArrival,
+            crossDock: normalizedOrder.crossDock,
+            crossDockDestination: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.crossDockDestination : null,
+            receiverNo: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.receiverNo : null,
+            etaDate: normalizedOrder.crossDock === 'Yes' ? normalizedOrder.etaDate : null,
+            order_type: 'standard',
+            status: 'pending'
           };
+
+          // Get plant for the normalized store
+          const selectedPlant = normalizedOrder.destinationPlant || getPlantForStore(normalizedOrder.store);
 
           tag('BUILD_PAYLOAD_EXIT', {
             orderId: order.id,
-            destinationPlant: payload.destination_plant,
-            store: payload.store,
+            destinationPlant: selectedPlant,
+            store: formValues.store,
             _corr: corr
           });
 
-          if (!payload.product_number || !payload.quantity) {
+          if (!formValues.productNumber || !formValues.quantity) {
             tag('VALIDATION_FAIL', { orderId: order.id, reason: 'missing_required_fields' });
             toast({
               title: "Validation Error",
@@ -114,33 +113,34 @@ export function useStandardOrderSubmit() {
             continue;
           }
 
-          logger.info('Submitting standard order to handleOrdersPost', {
+          logger.info('Submitting standard order via Phase B submitOrder', {
             service: 'useStandardOrderSubmit',
             orderId: order.id,
-            destinationPlant: payload.destination_plant,
+            destinationPlant: selectedPlant,
+            store: formValues.store,
             corr
           });
 
-          tag('RPC_CALL', { orderId: order.id, endpoint: 'handleOrdersPost' });
+          tag('SUBMIT_CALL', { orderId: order.id, endpoint: 'submitOrder' });
 
-          // Submit to handleOrdersPost with 30s timeout
+          // Submit via Phase B submitOrder with 30s timeout  
           const result = await Promise.race([
-            supabase.functions.invoke("handleOrdersPost", { 
-              body: payload // _corr already included in payload
+            submitOrder({
+              formValues,
+              user: user ? {
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.email,
+                assignedPlant: undefined // Will be resolved from store mapping
+              } : undefined,
+              selectedStore: formValues.store,
+              selectedPlant
             }),
             new Promise((_, reject) => 
               setTimeout(() => reject(new Error('Submission timeout after 30s')), 30000)
             )
           ]);
 
-          const { data, error } = result as any;
-
-          if (error) {
-            tag('RPC_FAIL', { orderId: order.id, error: error.message });
-            throw new Error(error.message || 'Submission failed');
-          }
-
-          tag('RPC_OK', { orderId: order.id, result: data });
+          tag('SUBMIT_OK', { orderId: order.id, result });
           processedOrders.push(order);
 
         } catch (error) {
