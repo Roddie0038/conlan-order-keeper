@@ -14,5 +14,14 @@ export function LiveEditToggle() {
     }
     setIsEditing(!isEditing);
   };
-  return;
+  return (
+    <Button
+      onClick={toggleEditing}
+      variant={isEditing ? "destructive" : "outline"}
+      size="sm"
+      className="fixed top-4 right-4 z-50"
+    >
+      {isEditing ? <X className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
+    </Button>
+  );
 }
