@@ -131,7 +131,7 @@ function AddRecipientForm({ onSuccess, editingRecipient, onCancel }: AddRecipien
           type="email"
           value={formData.recipient_email}
           onChange={(e) => setFormData(prev => ({ ...prev, recipient_email: e.target.value }))}
-          placeholder="manager@store.com"
+          placeholder="manager@example.com"
           required
         />
       </div>

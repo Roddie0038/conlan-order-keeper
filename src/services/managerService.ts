@@ -55,8 +55,9 @@ export const getComplaintNotificationRecipients = async (storeNumber: string, st
     const plantCode = getPlantCodeFromStore(storeNumber);
     const managers = await getManagersByPlantCode(plantCode);
     
-    // Always include Brett Perry as fallback
-    const emails = ['bperry@conlantire.com'];
+    // Include admin emails as fallback
+    const { getAdminEmails } = await import('@/config/emails');
+    const emails = getAdminEmails();
     
     // Add manager emails based on their roles
     managers.forEach(manager => {
@@ -74,8 +75,9 @@ export const getComplaintNotificationRecipients = async (storeNumber: string, st
     return emails;
   } catch (error) {
     console.error('❌ Error getting complaint notification recipients:', error);
-    // Return fallback email if query fails
-    return ['bperry@conlantire.com'];
+    // Return fallback admin emails if query fails
+    const { getAdminEmails } = await import('@/config/emails');
+    return getAdminEmails();
   }
 };
 
@@ -96,8 +98,9 @@ export const getWarrantyNotificationRecipients = async (storeNumber: string, sto
       throw error;
     }
 
-    // Always include Brett Perry as fallback
-    const emails = ['bperry@conlantire.com'];
+    // Include admin emails as fallback
+    const { getAdminEmails } = await import('@/config/emails');
+    const emails = getAdminEmails();
     
     // Add manager emails prioritizing retread and plant managers for warranties
     data?.forEach(manager => {
@@ -115,8 +118,9 @@ export const getWarrantyNotificationRecipients = async (storeNumber: string, sto
     return emails;
   } catch (error) {
     console.error('❌ Error getting warranty notification recipients:', error);
-    // Return fallback email if query fails
-    return ['bperry@conlantire.com'];
+    // Return fallback admin emails if query fails
+    const { getAdminEmails } = await import('@/config/emails');
+    return getAdminEmails();
   }
 };
 

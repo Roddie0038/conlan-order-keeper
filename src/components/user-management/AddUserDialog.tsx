@@ -96,7 +96,7 @@ export function AddUserDialog({ open, onOpenChange, selectedPlatform, onUserAdde
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 required
-                placeholder="user@example.com"
+                placeholder="Enter email address"
                 className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
               />
             </div>

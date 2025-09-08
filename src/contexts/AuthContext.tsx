@@ -119,11 +119,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Helper function to determine admin status
   const isUserAdmin = (email: string, role?: string): boolean => {
     // Check for specific admin emails
-    const adminEmails = [
-      'conlan97@conlantire.com',
-      'bperry@conlantire.com',
-      'admin@conlantire.com'
-    ];
+    const { getAdminEmails } = require('@/config/emails');
+    const adminEmails = getAdminEmails();
     
     if (adminEmails.includes(email.toLowerCase())) {
       return true;
@@ -148,9 +145,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return false;
   };
 
-  // Helper function to check if user has full store/plant access (Brad Perry)
+  // Helper function to check if user has full store/plant access
   const hasFullStoreAccess = (email: string, role?: string): boolean => {
-    return email?.toLowerCase() === 'bperry@conlantire.com' || 
+    const { getAdminEmails } = require('@/config/emails');
+    const adminEmails = getAdminEmails();
+    return adminEmails.includes(email?.toLowerCase()) || 
            role?.toLowerCase() === 'operations_manager';
   };
 

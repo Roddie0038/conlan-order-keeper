@@ -1,7 +1,13 @@
 /**
  * Test utilities for email resolution system
  * Used to verify Phase 3 implementation
+ * WARNING: This file is for testing only - do not import in runtime
  */
+
+// Guard against runtime imports
+if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test' && !process.env.VITE_DEV_MODE) {
+  throw new Error('testEmailResolution is test-only');
+}
 
 import { resolveEmailRecipients, type EmailType, type OrderDataInput } from "@/services/emailRecipientResolver";
 

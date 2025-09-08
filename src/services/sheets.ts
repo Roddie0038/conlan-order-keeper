@@ -14,6 +14,13 @@ export type { OrderType };
 export type { OrderFormData };
 
 export const submitToGoogleSheets = async (data: OrderFormData | MTOFormData, user?: any) => {
+  // Guard for E2E mode - stub external Google Sheets calls
+  const { IS_E2E } = await import('@/config/e2e');
+  if (IS_E2E) {
+    console.warn('[E2E] Stubbed Google Sheets call');
+    return { status: 'success' };
+  }
+  
   console.log("🔍 SHEETS - ENTRY POINT - submitToGoogleSheets called");
   console.log("🔍 SHEETS - Order data:", JSON.stringify(data, null, 2));
   console.log("🔍 SHEETS - Order type:", data.type);

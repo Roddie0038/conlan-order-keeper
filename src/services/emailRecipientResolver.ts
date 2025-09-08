@@ -225,6 +225,13 @@ async function checkOTPlatformUsers(
   emailType: EmailType,
   log: string[]
 ): Promise<EmailRecipient[]> {
+  // Guard for E2E mode - skip Tier-3 DB lookups to avoid permission errors
+  const { IS_E2E } = await import('@/config/e2e');
+  if (IS_E2E) {
+    console.warn('[E2E] Skipping Tier-3 DB lookups');
+    log.push('Tier 3 skipped: E2E mode detected');
+    return [];
+  }
   
   log.push(`Tier 3: Querying ot_platform_users for store=${storeNumber}, plant=${plant}`);
   
