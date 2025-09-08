@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { getGeneralRoleOptions } from '@/constants/roles';
+import { ALLOWED_DOMAIN, getAdminEmails } from '@/config/emails';
 import type { PlatformType, UserRole } from '@/hooks/useUserManagement';
 
 interface AddUserDialogProps {
@@ -40,7 +41,7 @@ export function AddUserDialog({ open, onOpenChange, selectedPlatform, onUserAdde
         .insert([{
           ...formData,
           status: 'active' as any,
-          created_by: 'roderickdemarais@aol.com'
+          created_by: getAdminEmails()[0] || `admin@${ALLOWED_DOMAIN}`
         }]);
 
       if (error) throw error;
@@ -96,7 +97,7 @@ export function AddUserDialog({ open, onOpenChange, selectedPlatform, onUserAdde
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 required
-                placeholder="Enter email address"
+                placeholder={`user@${ALLOWED_DOMAIN}`}
                 className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20"
               />
             </div>

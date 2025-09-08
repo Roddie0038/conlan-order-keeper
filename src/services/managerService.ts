@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { getAdminEmails } from '@/config/emails';
+import { getAdminEmails, DEFAULT_MANAGER_EMAIL } from '@/config/emails';
 
 export interface Manager {
   id: string;
@@ -119,6 +119,27 @@ export const getWarrantyNotificationRecipients = async (storeNumber: string, sto
     // Return fallback admin emails if query fails
     return getAdminEmails();
   }
+};
+
+// Get first manager email for a store (legacy compatibility)
+export const getFirstManagerEmail = async (storeNumber: string): Promise<string> => {
+  try {
+    const recipients = await getComplaintNotificationRecipients(storeNumber);
+    return recipients[0] || DEFAULT_MANAGER_EMAIL || '';
+  } catch (error) {
+    console.error('❌ Error getting first manager email:', error);
+    return DEFAULT_MANAGER_EMAIL || '';
+  }
+};
+
+// Get all manager emails for a store (legacy compatibility)
+export const getManagerEmails = async (storeNumber: string): Promise<string[]> => {
+  return getComplaintNotificationRecipients(storeNumber);
+};
+
+// Get escalation emails (admin emails as fallback)
+export const getEscalationEmails = (): string[] => {
+  return getAdminEmails();
 };
 
 // Keep the legacy function for backward compatibility

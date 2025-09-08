@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Edit, Plus, Mail, Shield, Eye, Activity, Users, Settings } from 'lucide-react';
 import { EmailRoutingHealth } from './EmailRoutingHealth';
+import { ALLOWED_DOMAIN, getAdminEmails } from '@/config/emails';
 import {
   getOrderingEmailRecipients,
   createOrderingEmailRecipient,
@@ -36,7 +37,7 @@ function AddRecipientForm({ onSuccess, editingRecipient, onCancel }: AddRecipien
     role: 'store_manager',
     email_type: 'order_confirmation',
     is_active: true,
-    created_by: 'roderickdemarais@aol.com'
+    created_by: getAdminEmails()[0] || `admin@${ALLOWED_DOMAIN}`
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -50,7 +51,7 @@ function AddRecipientForm({ onSuccess, editingRecipient, onCancel }: AddRecipien
         role: editingRecipient.role,
         email_type: editingRecipient.email_type,
         is_active: editingRecipient.is_active,
-        created_by: editingRecipient.created_by || 'roderickdemarais@aol.com'
+        created_by: editingRecipient.created_by || getAdminEmails()[0] || `admin@${ALLOWED_DOMAIN}`
       });
     }
   }, [editingRecipient]);
@@ -86,7 +87,7 @@ function AddRecipientForm({ onSuccess, editingRecipient, onCancel }: AddRecipien
           role: 'store_manager',
           email_type: 'order_confirmation',
           is_active: true,
-          created_by: 'roderickdemarais@aol.com'
+          created_by: getAdminEmails()[0] || `admin@${ALLOWED_DOMAIN}`
         });
       }
     } catch (error) {
@@ -131,7 +132,7 @@ function AddRecipientForm({ onSuccess, editingRecipient, onCancel }: AddRecipien
           type="email"
           value={formData.recipient_email}
           onChange={(e) => setFormData(prev => ({ ...prev, recipient_email: e.target.value }))}
-          placeholder="manager@example.com"
+          placeholder={`manager@${ALLOWED_DOMAIN}`}
           required
         />
       </div>

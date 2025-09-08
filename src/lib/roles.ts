@@ -1,5 +1,6 @@
 // src/lib/roles.ts
 import { CANONICAL_ROLES, getRoleDisplayLabel, isElevatedRole } from '@/constants/roles';
+import { getAdminEmails, DEFAULT_MANAGER_EMAIL } from '@/config/emails';
 
 export type UserLike = {
   email?: string | null;
@@ -17,12 +18,16 @@ const ELEVATED_ROLES = new Set([
   'warehouse_manager'
 ]);
 
-import { getAdminEmails, DEFAULT_MANAGER_EMAIL } from '@/config/emails';
+// Check if email is in admin list
+export function isAdminEmail(email: string): boolean {
+  const adminEmails = getAdminEmails();
+  return adminEmails.includes(email.trim().toLowerCase());
+}
 
-// Use centralized admin email config
-const getAdminEmail = () => {
-  return getAdminEmails()[0] || DEFAULT_MANAGER_EMAIL;
-};
+// Get fallback admin email
+export function getFallbackAdminEmail(): string {
+  return getAdminEmails()[0] || DEFAULT_MANAGER_EMAIL || '';
+}
 
 export function hasFullStoreAccess(user?: UserLike | null): boolean {
   if (!user) return false;
