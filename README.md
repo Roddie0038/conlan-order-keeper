@@ -67,3 +67,21 @@ Simply open [Lovable](https://lovable.dev/projects/f4cc51b5-742d-42c6-b0c7-c1cb1
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
+## E2E Tests (Playwright)
+
+### Install (one-time)
+pnpm dlx playwright install --with-deps
+
+### Env
+E2E_BASE_URL=http://localhost:8080
+E2E_TEST_EMAIL=your.user@conlantire.com
+E2E_TEST_PASSWORD=your-password
+E2E_TEST_STORE="Grand Prairie 027"
+E2E_TEST_DESC="E2E order submit sanity"
+E2E_TEST_QTY=2
+
+### Run
+pnpm test:e2e
+# UI mode
+pnpm test:e2e:ui
