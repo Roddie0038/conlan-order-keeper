@@ -296,13 +296,6 @@ export function OrderForm() {
         </div>
       )}
       
-        <OrderSubmissionHandler 
-          orderSummaries={orderSummaries}
-          setOrderSummaries={setOrderSummaries}
-          destinationPlant={form.watch("destinationPlant") || ""}
-          recipientCount={recipientCount}
-          onAddToOrder={handleAddToOrder}
-        />
       
       {/* Only show regular actions if not in cross-dock mode */}
       {!(form.watch("crossDock") === "Yes") && (

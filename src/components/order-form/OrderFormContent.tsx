@@ -133,6 +133,13 @@ export function OrderFormContent({
           </SectionBox>
         )}
         
+        {/* Manager Notification */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+          <p className="text-amber-800 text-sm font-medium">
+            One order at a time – this page is currently in progress.
+          </p>
+        </div>
+
         {/* Submit button */}
         <div className="flex gap-4">
           <button 
