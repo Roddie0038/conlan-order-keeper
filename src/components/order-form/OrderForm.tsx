@@ -301,6 +301,7 @@ export function OrderForm() {
           setOrderSummaries={setOrderSummaries}
           destinationPlant={form.watch("destinationPlant") || ""}
           recipientCount={recipientCount}
+          onAddToOrder={handleAddToOrder}
         />
       
       {/* Only show regular actions if not in cross-dock mode */}

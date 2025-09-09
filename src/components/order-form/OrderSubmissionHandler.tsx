@@ -13,6 +13,7 @@ interface OrderSubmissionHandlerProps {
   markSubmitting?: () => void;
   clearSubmitting?: () => void;
   formHandleSubmit?: (callback: () => Promise<void>) => (e?: React.BaseSyntheticEvent) => Promise<void>;
+  onAddToOrder?: () => void;
 }
 
 export function OrderSubmissionHandler({ 
@@ -22,7 +23,8 @@ export function OrderSubmissionHandler({
   recipientCount = 1,
   markSubmitting,
   clearSubmitting,
-  formHandleSubmit
+  formHandleSubmit,
+  onAddToOrder
 }: OrderSubmissionHandlerProps) {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin || false;
@@ -141,17 +143,29 @@ export function OrderSubmissionHandler({
           />
         </div>
         
-        <div className="flex flex-col items-center gap-1">
-          <NeoButton 
-            variant="primary"
-            size="lg"
-            onClick={handleSubmitClick}
-            disabled={isSubmitting || selectedCount === 0}
-            data-testid="submit-order-btn"
-            className="w-full max-w-md"
-          >
-            {isSubmitting ? "Submitting..." : `Submit ${selectedCount} Order${selectedCount !== 1 ? 's' : ''}`}
-          </NeoButton>
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex gap-2">
+            {onAddToOrder && (
+              <NeoButton 
+                variant="ghost"
+                size="lg"
+                onClick={onAddToOrder}
+                disabled={isSubmitting}
+                data-testid="add-to-order-btn"
+              >
+                Add To Order
+              </NeoButton>
+            )}
+            <NeoButton 
+              variant="primary"
+              size="lg"
+              onClick={handleSubmitClick}
+              disabled={isSubmitting || selectedCount === 0}
+              data-testid="submit-order-btn"
+            >
+              {isSubmitting ? "Submitting..." : `Submit ${selectedCount} Order${selectedCount !== 1 ? 's' : ''}`}
+            </NeoButton>
+          </div>
           <div className="text-slate-300 text-xs">
             BUILD: standard-regional-separation-v1 | Plant: {destinationPlant || 'Select Plant'}
           </div>
