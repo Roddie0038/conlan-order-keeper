@@ -134,7 +134,7 @@ export function OrderFormContent({
         )}
         
         {/* Manager Notification */}
-        <div className="bg-amber-80 border border-amber-200 rounded-lg p-4 mb-4">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
           <p className="text-amber-800 text-sm font-medium">
             One order at a time – this page is currently in progress.
           </p>
@@ -144,14 +144,14 @@ export function OrderFormContent({
         <div className="flex gap-4">
           <button 
             type="submit" 
-            className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2 rounded-md font-medium transition-colors"
+            className="border-2 border-red-500 text-red-600 hover:bg-red-50 px-6 py-2 rounded-md font-medium transition-colors"
           >
             Submit Order
           </button>
           <button 
             type="button" 
             onClick={onAddToOrder}
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-2 rounded-md font-medium transition-colors"
+            className="border-2 border-green-500 text-green-600 hover:bg-green-50 px-6 py-2 rounded-md font-medium transition-colors"
           >
             Add to Order Summary
           </button>
