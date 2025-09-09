@@ -20,6 +20,8 @@ import OrderIDService from "@/services/OrderIDService";
 import { EmailRecipientsPreview } from "@/components/shared/EmailRecipientsPreview";
 import { hasFullStoreAccess } from "@/lib/roles";
 import { useOrderFormState } from "./state/OrderFormStateProvider";
+import { FormStateAgent } from "@/diagnostics/FormStateAgent";
+import { DIAG_ENABLED } from "@/diagnostics/config";
 
 export function OrderForm() {
   const { user } = useAuth();
@@ -260,6 +262,7 @@ export function OrderForm() {
 
   return (
     <OrderFormWrapper>
+      {DIAG_ENABLED && <FormStateAgent form={form} formId="new-order-form" />}
       <OrderFormHeader />
       
       <OrderFormContent 

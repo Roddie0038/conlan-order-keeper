@@ -13,6 +13,7 @@ import { StyleEditor } from './components/live-edit/StyleEditor';
 import { LiveEditErrorBoundary } from './components/live-edit/LiveEditErrorBoundary';
 import { LiveEditBridge } from './components/live-edit/LiveEditBridge';
 import { useRegistrationNotification } from './hooks/useRegistrationNotification';
+import { DiagnosticsRoot } from './diagnostics/DiagnosticsRoot';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ function AppContent() {
   
   return (
     <>
+      <DiagnosticsRoot />
       <AuthHealthMonitor />
       <LiveEditErrorBoundary>
         <LiveEditBridge />
