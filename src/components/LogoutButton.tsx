@@ -11,12 +11,12 @@ export function LogoutButton() {
   const handleLogout = async () => {
     try {
       await logout();
-      // Force navigation to login with page reload to clear all state
-      window.location.href = '/login';
+      // Use React Router navigation instead of hard reload
+      navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
       // Force navigation even if logout fails
-      window.location.href = '/login';
+      navigate('/login');
     }
   };
 

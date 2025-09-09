@@ -23,6 +23,7 @@ export function useOrderFormSubmit() {
     selectedOrders: OrderSummary[],
     onSuccess?: () => void
   ) => {
+    console.log('[SUBMIT] form start', { selectedOrders });
     if (selectedOrders.length === 0) {
       toast({
         title: "No Orders Selected",

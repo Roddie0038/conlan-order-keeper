@@ -243,8 +243,8 @@ export class NotificationHardeningService {
     // Temporary implementation - use NotificationController instead
     logger.info('Using temporary notification service', { orderData, emailType, orderId });
     
-    // Call the NotificationController directly
-    const { sendTransferOrderConfirmation } = await import('@/services/NotificationController');
+    // Call the NotificationController directly (use static import)
+    const result = await sendTransferOrderConfirmation(orderData, orderId, additionalPayload);
     
     try {
       const result = await sendTransferOrderConfirmation(

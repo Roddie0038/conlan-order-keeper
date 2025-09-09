@@ -15,6 +15,8 @@ export type { OrderType };
 export type { OrderFormData };
 
 export const submitToGoogleSheets = async (data: OrderFormData | MTOFormData, user?: any) => {
+  console.log('[SHEETS] submitToGoogleSheets called', { isE2E: IS_E2E });
+  
   // Guard for E2E mode - stub external Google Sheets calls
   if (IS_E2E) {
     console.warn('[E2E] Stubbed Google Sheets call');

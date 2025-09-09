@@ -21,6 +21,7 @@ import { resolveEmailRecipients, type EmailType } from "@/services/emailRecipien
  * @returns The processed order with additional metadata
  */
 export const processOrder = async (order: OrderSummary, selectedPlant: string) => {
+  console.log('[SUBMIT] processOrder called');
   console.log("🔍 SUBMIT - Processing order:", order.id);
   console.log("🔍 SUBMIT - Original order data:", order);
   

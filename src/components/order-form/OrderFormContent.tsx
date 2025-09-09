@@ -21,18 +21,18 @@ interface OrderFormContentProps {
   form: UseFormReturn<OrderFormValues>;
   showCrossDockDestination: boolean;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onAddToOrder: () => void;
   getCurrentFormData: () => any;
   onLoadTemplate: (templateData: any) => void;
-  onAddToOrder: () => void;
 }
 
 export function OrderFormContent({ 
   form, 
   showCrossDockDestination,
   onSubmit,
+  onAddToOrder,
   getCurrentFormData,
-  onLoadTemplate,
-  onAddToOrder 
+  onLoadTemplate
 }: OrderFormContentProps) {
   const { user } = useAuth();
   const elevated = hasFullStoreAccess(user);
@@ -132,6 +132,23 @@ export function OrderFormContent({
             />
           </SectionBox>
         )}
+        
+        {/* Submit button */}
+        <div className="flex gap-4">
+          <button 
+            type="submit" 
+            className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2 rounded-md font-medium transition-colors"
+          >
+            Submit Order
+          </button>
+          <button 
+            type="button" 
+            onClick={onAddToOrder}
+            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-2 rounded-md font-medium transition-colors"
+          >
+            Add to Order Summary
+          </button>
+        </div>
       </form>
     </Form>
 
