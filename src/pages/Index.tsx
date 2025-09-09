@@ -1,5 +1,5 @@
 
-import { OrderForm } from "@/components/order-form/OrderForm";
+import { OrderFormPage } from "@/components/order-form/OrderFormPage";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { usePlant } from "@/contexts/PlantContext";
@@ -78,7 +78,7 @@ const Index = () => {
       
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <RecentPortalOrders />
-        <OrderForm />
+        <OrderFormPage />
       </main>
       
       <footer className="mt-16 py-6 text-center text-gray-600 dark:text-gray-400 bg-white/50 dark:bg-black/20 backdrop-blur-sm border-t border-gray-200 dark:border-gray-800">
