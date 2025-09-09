@@ -22,6 +22,7 @@ import { hasFullStoreAccess } from "@/lib/roles";
 import { useOrderFormState } from "./state/OrderFormStateProvider";
 import { FormStateAgent } from "@/diagnostics/FormStateAgent";
 import { DIAG_ENABLED } from "@/diagnostics/config";
+import { useFormSession } from "@/hooks/useFormSession";
 
 export function OrderForm() {
   const { user } = useAuth();
@@ -68,7 +69,11 @@ export function OrderForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues,
+    shouldUnregister: false, // keep fields when hidden/unmounted
   });
+
+  // Session persistence
+  useFormSession(form, 'new-order-form:snapshot');
 
   // Update in-memory state when form changes
   useEffect(() => {
@@ -78,13 +83,16 @@ export function OrderForm() {
     return () => subscription.unsubscribe();
   }, [form, setInMemoryValues]);
 
-  // Update store when user changes
+  // Update store when user changes - only if no saved draft
   useEffect(() => {
     if (user?.store && !user?.isAdmin && !user?.hasFullStoreAccess) {
-      const currentStore = form.getValues("store");
-      const currentManagersEmail = form.getValues("managersEmail");
-      if (!currentStore) form.setValue("store", user.store);
-      if (!currentManagersEmail) form.setValue("managersEmail", "");
+      const hasDraft = !!sessionStorage.getItem('new-order-form:snapshot');
+      if (!hasDraft) {
+        const currentStore = form.getValues("store");
+        const currentManagersEmail = form.getValues("managersEmail");
+        if (!currentStore) form.setValue("store", user.store);
+        if (!currentManagersEmail) form.setValue("managersEmail", "");
+      }
     }
   }, [user, form]);
 
@@ -156,9 +164,10 @@ export function OrderForm() {
     
     // Submit the order directly using the real submission pipeline
     await handleSubmitOrders([newOrder], () => {
-      // Clear form after successful submission
+      // Clear form and session after successful submission
       reset(defaultValues);
       setInMemoryValues({});
+      sessionStorage.removeItem('new-order-form:snapshot');
       
       toast({
         title: "Order Submitted Successfully",
