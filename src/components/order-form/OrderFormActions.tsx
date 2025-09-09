@@ -27,7 +27,7 @@ export function OrderFormActions({
         disabled={isSubmitting}
         onClick={onAddClick}
       >
-        {isSubmitting ? "Adding..." : "Add To Order"}
+        {isSubmitting ? "Adding..." : " Order"}
       </Button>
       
       <div className="text-center text-sm text-gray-500 dark:text-gray-400">
