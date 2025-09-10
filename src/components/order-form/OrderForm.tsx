@@ -4,7 +4,7 @@ import { usePlant } from "@/contexts/PlantContext";
 import { OrderFormWrapper } from "./OrderFormWrapper";
 import { OrderFormHeader } from "./OrderFormHeader";
 import { OrderFormContent } from "./OrderFormContent";
-import { OrderFormActions } from "./OrderFormActions";
+
 import { useOrderFormSubmit } from "./hooks/useOrderFormSubmit";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -284,6 +284,28 @@ export function OrderForm() {
         onLoadTemplate={handleLoadTemplate}
       />
 
+      {/* Action row: Green add / Red submit */}
+      <div className="mt-6 grid gap-3">
+        <button
+          type="button"
+          onClick={handleAddToOrder}
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          className="w-full h-11 rounded-lg font-semibold bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors"
+        >
+          Add to Order Summary
+        </button>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          className="w-full h-11 rounded-lg font-semibold bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+        >
+          {isSubmitting ? "Submitting..." : "Submit Order"}
+        </button>
+      </div>
+
       {/* Email Recipients Preview */}
       {form.watch("store") && (form.watch("destinationPlant") || selectedPlant) && (
         <div className="mt-6">
@@ -309,15 +331,6 @@ export function OrderForm() {
         </div>
       )}
       
-      
-      {/* Only show regular actions if not in cross-dock mode */}
-      {!(form.watch("crossDock") === "Yes") && (
-        <OrderFormActions 
-          isSubmitting={isSubmitting}
-          selectedPlant={selectedPlant}
-          onAddClick={handleAddToOrder}
-        />
-      )}
       
       {/* Bottom padding to account for sticky bars */}
       <div className="pb-24" />

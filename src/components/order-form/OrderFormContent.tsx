@@ -140,22 +140,6 @@ export function OrderFormContent({
           </p>
         </div>
 
-        {/* Submit button */}
-        <div className="flex gap-4">
-          <button 
-            type="submit" 
-            className="border-2 border-red-500 text-red-600 hover:bg-red-50 px-6 py-2 rounded-md font-medium transition-colors"
-          >
-            Submit Order
-          </button>
-          <button 
-            type="button" 
-            onClick={onAddToOrder}
-            className="border-2 border-green-500 text-green-600 hover:bg-green-50 px-6 py-2 rounded-md font-medium transition-colors"
-          >
-            Add to Order Summary
-          </button>
-        </div>
       </form>
     </Form>
 
