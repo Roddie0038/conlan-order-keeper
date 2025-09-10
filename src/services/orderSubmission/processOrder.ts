@@ -268,7 +268,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
           try { detail = JSON.stringify(await res.clone().json()); } catch {}
         }
       }
-      console.error('[SECURE-ORDER] 4xx/5xx detail:', detail || e?.message);
+      console.error('[SECURE-ORDER] 4xx/5xx detail:', `Secure order processing failed: ${detail || e?.message}`);
       throw e;
     }
     
