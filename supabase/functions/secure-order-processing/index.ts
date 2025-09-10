@@ -1,20 +1,46 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const cors = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "content-type, authorization",
+  "access-control-allow-methods": "POST,OPTIONS",
 };
 
+const json = (obj: unknown, status = 200) =>
+  new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json", ...cors } });
+
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+
+  let body: any;
+  try { 
+    body = await req.json(); 
+  } catch { 
+    return json({ error: "Invalid JSON body" }, 400); 
+  }
+
+  const { action, tableName, orderData } = body || {};
+  const missing: string[] = [];
+  if (!action) missing.push("action");
+  if (!tableName) missing.push("tableName");
+  if (!orderData) missing.push("orderData");
+  if (missing.length) return json({ error: "Missing required fields", missing }, 400);
+
+  // soft format checks (use canonical fields if present, fall back to display fields)
+  const s = orderData.store_number ?? orderData.store;
+  const p = orderData.plant_code ?? orderData.plant;
+  if (s && !/^\d{3}$/.test(String(s).match(/\d+/)?.[0] ?? "")) {
+    return json({ error: "store_number must be 3 digits", got: s }, 400);
+  }
+  if (p && !/^\d{3}$/.test(String(p).match(/\d+/)?.[0] ?? "")) {
+    return json({ error: "plant must be 3 digits", got: p }, 400);
+  }
+  if (orderData.order_type && orderData.order_type !== String(orderData.order_type).toLowerCase()) {
+    return json({ error: "order_type must be lowercase", got: orderData.order_type }, 400);
   }
 
   try {
-    const { orderData, tableName, action } = await req.json();
-
     // Create Supabase client with service role key for secure operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -33,40 +59,17 @@ serve(async (req) => {
 
       if (error) {
         console.error('❌ SECURE ORDER PROCESSING - Database error:', error);
-        return new Response(
-          JSON.stringify({ error: error.message }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+        return json({ error: error.message }, 400);
       }
 
       console.log('✅ SECURE ORDER PROCESSING - Order created successfully');
-      return new Response(
-        JSON.stringify({ data, success: true }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      return json({ data, success: true });
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Invalid action' }),
-      { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return json({ error: 'Invalid action' }, 400);
 
   } catch (error) {
     console.error('❌ SECURE ORDER PROCESSING - Unexpected error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return json({ error: 'Internal server error' }, 500);
   }
 });

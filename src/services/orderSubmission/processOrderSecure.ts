@@ -20,15 +20,17 @@ export async function processOrderSecure(orderData: any, tableName: string) {
     });
 
     if (error) {
-      console.error("❌ SECURE SUBMIT - Edge function error:", error);
-      throw new Error(`Secure order processing failed: ${error.message}`);
+      const detail = await error?.context?.response?.text?.().catch(()=> '');
+      console.error("❌ SECURE SUBMIT - Edge function error:", error.message, detail);
+      throw new Error(`Secure order processing failed: ${detail || error.message}`);
     }
 
     console.log("✅ SECURE SUBMIT - Order processed successfully via edge function");
     return { data, error: null };
-  } catch (error) {
-    console.error("❌ SECURE SUBMIT - Error in secure order processing:", error);
-    throw error;
+  } catch (e: any) {
+    const detail = await e?.context?.response?.text?.().catch(()=> '');
+    console.error("❌ SECURE SUBMIT - Error in secure order processing:", detail || e?.message);
+    throw e;
   }
 }
 

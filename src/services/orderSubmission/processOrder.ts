@@ -13,6 +13,15 @@ import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNum
 import { storeSanitizeForSupabase, logStoreFormatTransformation } from "@/utils/storeSanitization";
 import { resolveEmailRecipients, type EmailType } from "@/services/emailRecipientResolver";
 
+// helpers
+const toStoreNumber = (display?: string) =>
+  display?.match(/\b(\d{3})\b/)?.[1] ?? null;         // "Grand Prairie 027" -> "027"
+
+const toPlantCode = (input?: string) => {
+  const d = input?.match(/\b(\d{2,3})\b/)?.[1];
+  return d ? d.padStart(3, '0') : null;               // "Grand Prairie 97" -> "097"
+};
+
 /**
  * Process an individual order - handle Google Sheets submission and Supabase storage
  * 
@@ -196,23 +205,43 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     // SECURITY FIX: Use edge function for secure order processing
     console.log("🔒 SUBMIT - Using secure edge function for order processing");
     
+    // build normalized orderData (do NOT overwrite display fields)
+    const orderId      = order.id;                        // your ORD-... id
+    const store_number = toStoreNumber(displayStore);     // "027"
+    const plant_code   = toPlantCode(finalPlant ?? order.plant); // "097"
+
+    const normalizedOrder = {
+      ...supabaseOrder,                                   // keep existing shape
+      // keep display fields as-is:
+      // store: "Grand Prairie 027", plant: "Grand Prairie 097" (if that's what you store)
+      order_type: String(supabaseOrder.order_type || '').toLowerCase() || 'transfer',
+      quantity: Number(supabaseOrder.quantity ?? 0),
+      // add canonical codes (do NOT replace display fields)
+      store_number,                                       // "027"
+      plant_code,                                         // "097"
+      idempotency_key: orderId,
+    };
+
+    console.log('[SECURE-ORDER] request (envelope):', {
+      action: 'create_order',
+      tableName,
+      orderData: normalizedOrder
+    });
+    
     let insertedData: any;
     
     try {
       const { data, error } = await supabase.functions.invoke('secure-order-processing', {
-        body: {
-          orderData: supabaseOrder,
-          tableName,
-          action: 'create_order'
-        }
+        body: { action: 'create_order', tableName, orderData: normalizedOrder }
       });
 
       if (error) {
-        console.error("❌ SUBMIT - Edge function error:", error);
-        throw new Error(`Secure order processing failed: ${error.message}`);
+        const detail = await error?.context?.response?.text?.().catch(()=> '');
+        console.error('[SECURE-ORDER] invoke error:', error.message, detail);
+        throw new Error(`Secure order processing failed: ${detail || error.message}`);
       }
 
-      console.log("✅ SUBMIT - Order processed securely via edge function");
+      console.log('[SECURE-ORDER] result:', data);
       insertedData = data.data;
 
       if (!insertedData) {
@@ -222,9 +251,10 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
 
       console.log("✅ SUBMIT - Successfully saved to Supabase:", insertedData);
       console.log("✅ SUBMIT - Verified store field in saved data:", insertedData.store);
-    } catch (insertError) {
-      console.error("❌ SUBMIT - Service role insert error:", insertError);
-      throw new Error(`Service role insert failed: ${insertError.message || 'Unknown error'}`);
+    } catch (e:any) {
+      const detail = await e?.context?.response?.text?.().catch(()=> '');
+      console.error('[SECURE-ORDER] 4xx/5xx detail:', detail || e?.message);
+      throw e;
     }
     
     // PHASE 7: Send email notifications
