@@ -50,10 +50,33 @@ serve(async (req) => {
     console.log(`🔒 SECURE ORDER PROCESSING - Processing ${action} for table ${tableName}`);
 
     if (action === 'create_order') {
-      // Securely insert order using service role permissions
+      // Keep UI/compat fields on the client, but only insert columns that actually exist in DB.
+      const {
+        store_number,       // canonical helper (likely not a column)
+        plant_code,         // canonical helper (likely not a column)
+        idempotency_key,    // helper for dedupe/logging
+        source,             // helper
+        ...dbRow            // <- this is what we'll actually insert
+      } = orderData || {};
+
+      // If you do want to keep canonical codes and you have a JSONB column (e.g., metadata), tuck them there
+      if ('metadata' in dbRow && typeof dbRow.metadata === 'object' && dbRow.metadata !== null) {
+        dbRow.metadata = { ...dbRow.metadata, store_number, plant_code, idempotency_key, source };
+      }
+
+      // Optional: coerce types to what the table expects
+      if ('quantity' in dbRow) dbRow.quantity = Number(dbRow.quantity);
+      if ('timestamp' in dbRow && typeof dbRow.timestamp === 'string') {
+        // leave as string if your column is text; timestamptz string is fine too
+      }
+
+      // If your table actually has these columns, map them explicitly (no-op if absent)
+      if (store_number != null && (dbRow as any).store_number === undefined) (dbRow as any).store_number = store_number;
+      if (plant_code   != null && (dbRow as any).plant_code   === undefined) (dbRow as any).plant_code   = plant_code;
+
       const { data, error } = await supabase
         .from(tableName)
-        .insert(orderData)
+        .insert(dbRow)
         .select()
         .single();
 
