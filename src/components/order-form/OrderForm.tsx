@@ -263,6 +263,7 @@ export function OrderForm() {
     form.reset(defaultValues);
     setInMemoryValues({});
     setOrderSummaries([]);
+    sessionStorage.removeItem('new-order-form:snapshot');
   };
 
   const getCurrentFormData = () => {
