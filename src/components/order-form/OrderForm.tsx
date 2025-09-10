@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { OrderFormWrapper } from "./OrderFormWrapper";
@@ -28,6 +28,7 @@ export function OrderForm() {
   const { user } = useAuth();
   const { selectedPlant } = usePlant();
   const elevated = hasFullStoreAccess(user);
+  const formId = `${useId()}-order-form`;
   const { values: inMemoryValues, setValues: setInMemoryValues } = useOrderFormState();
   const { isSubmitting, handleSubmitOrders } = useOrderFormSubmit();
 
@@ -276,7 +277,8 @@ export function OrderForm() {
       <OrderFormHeader />
       
       <OrderFormContent 
-        form={form} 
+        formId={formId}
+        form={form}
         showCrossDockDestination={showCrossDockDestination}
         onSubmit={handleSubmit(handleDirectSubmit)}
         onAddToOrder={handleAddToOrder}
@@ -298,6 +300,7 @@ export function OrderForm() {
 
         <button
           type="submit"
+          form={formId}
           disabled={isSubmitting}
           aria-busy={isSubmitting}
           className="w-full h-11 rounded-lg font-semibold bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"

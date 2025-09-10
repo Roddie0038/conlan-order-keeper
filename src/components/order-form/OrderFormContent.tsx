@@ -18,6 +18,7 @@ import React from "react";
 import { SectionBox } from "@/components/ui/SectionBox";
 
 interface OrderFormContentProps {
+  formId: string;
   form: UseFormReturn<OrderFormValues>;
   showCrossDockDestination: boolean;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -27,6 +28,7 @@ interface OrderFormContentProps {
 }
 
 export function OrderFormContent({ 
+  formId,
   form, 
   showCrossDockDestination,
   onSubmit,
@@ -58,7 +60,7 @@ export function OrderFormContent({
   return (
     <>
       <Form {...form}>
-        <form onSubmit={handleFormSubmit} className="space-y-8 pb-28">
+        <form id={formId} onSubmit={handleFormSubmit} className="space-y-8 pb-28">
         {/* Template Section */}
         <TemplateSection 
           getCurrentFormData={getCurrentFormData}
