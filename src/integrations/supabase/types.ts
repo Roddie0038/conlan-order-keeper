@@ -2242,6 +2242,7 @@ export type Database = {
           destination_region_id: string | null
           email: string | null
           email_message: string | null
+          full_name: string | null
           id: number
           idempotency_key: string | null
           in_transit_at: string | null
@@ -2321,6 +2322,7 @@ export type Database = {
           destination_region_id?: string | null
           email?: string | null
           email_message?: string | null
+          full_name?: string | null
           id?: number
           idempotency_key?: string | null
           in_transit_at?: string | null
@@ -2400,6 +2402,7 @@ export type Database = {
           destination_region_id?: string | null
           email?: string | null
           email_message?: string | null
+          full_name?: string | null
           id?: number
           idempotency_key?: string | null
           in_transit_at?: string | null
@@ -5330,6 +5333,13 @@ export type Database = {
         }
         Relationships: []
       }
+      v_enums: {
+        Row: {
+          enum_type: string | null
+          enumlabel: unknown | null
+        }
+        Relationships: []
+      }
       v_oos_effective_recipients: {
         Row: {
           active: boolean | null
@@ -5667,6 +5677,39 @@ export type Database = {
       extract_store_from_role: {
         Args: { role_input: string }
         Returns: string
+      }
+      fn_ser_upsert_merge: {
+        Args: {
+          p_email_type: Database["public"]["Enums"]["email_type_enum"]
+          p_is_active?: boolean
+          p_plant: string
+          p_recipient_email: string
+          p_recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          p_store_name: string
+          p_store_number: string
+        }
+        Returns: {
+          active: boolean | null
+          created_at: string | null
+          created_by: string | null
+          email_type: Database["public"]["Enums"]["email_type_enum"]
+          email_type_filter:
+            | Database["public"]["Enums"]["email_type_enum"][]
+            | null
+          id: string
+          is_active: boolean | null
+          plant: string | null
+          platform_source: string | null
+          recipient_email: string
+          recipient_email_norm: string | null
+          recipient_name: string | null
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          store_name: string
+          store_number: string
+          updated_at: string | null
+          updated_by: string | null
+          variant: string | null
+        }
       }
       format_ts_in_tz: {
         Args: { p_ts: string; p_tz: string }
@@ -6014,8 +6057,16 @@ export type Database = {
         Returns: Json
       }
       safe_http_post: {
-        Args: { body: string; headers: Json; timeout_ms?: number; url: string }
-        Returns: Json
+        Args: {
+          body?: string
+          headers?: Json
+          timeout_ms?: number
+          url: string
+        }
+        Returns: {
+          response: string
+          status: number
+        }[]
       }
       safe_http_post_and_collect: {
         Args: {
