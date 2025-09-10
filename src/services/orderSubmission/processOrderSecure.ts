@@ -20,7 +20,14 @@ export async function processOrderSecure(orderData: any, tableName: string) {
     });
 
     if (error) {
-      const detail = await error?.context?.response?.text?.().catch(()=> '');
+      let detail = '';
+      const res = error?.context?.response;
+      if (res) {
+        try { detail = await res.clone().text(); } catch {}
+        if (!detail) {
+          try { detail = JSON.stringify(await res.clone().json()); } catch {}
+        }
+      }
       console.error("❌ SECURE SUBMIT - Edge function error:", error.message, detail);
       throw new Error(`Secure order processing failed: ${detail || error.message}`);
     }
@@ -28,7 +35,14 @@ export async function processOrderSecure(orderData: any, tableName: string) {
     console.log("✅ SECURE SUBMIT - Order processed successfully via edge function");
     return { data, error: null };
   } catch (e: any) {
-    const detail = await e?.context?.response?.text?.().catch(()=> '');
+    let detail = '';
+    const res = e?.context?.response;
+    if (res) {
+      try { detail = await res.clone().text(); } catch {}
+      if (!detail) {
+        try { detail = JSON.stringify(await res.clone().json()); } catch {}
+      }
+    }
     console.error("❌ SECURE SUBMIT - Error in secure order processing:", detail || e?.message);
     throw e;
   }

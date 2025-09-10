@@ -27,17 +27,18 @@ serve(async (req) => {
   if (!orderData) missing.push("orderData");
   if (missing.length) return json({ error: "Missing required fields", missing }, 400);
 
-  // soft format checks (use canonical fields if present, fall back to display fields)
-  const s = orderData.store_number ?? orderData.store;
-  const p = orderData.plant_code ?? orderData.plant;
-  if (s && !/^\d{3}$/.test(String(s).match(/\d+/)?.[0] ?? "")) {
-    return json({ error: "store_number must be 3 digits", got: s }, 400);
-  }
-  if (p && !/^\d{3}$/.test(String(p).match(/\d+/)?.[0] ?? "")) {
-    return json({ error: "plant must be 3 digits", got: p }, 400);
-  }
+  // accept display, derive codes (belt-and-suspenders)
+  const sIn = orderData.store_number ?? orderData.store;
+  const pIn = orderData.plant_code   ?? orderData.plant;
+
+  const s3 = (String(sIn).match(/\d+/)?.[0] ?? '').padStart(3,'0');  // "027"
+  const p3 = (String(pIn).match(/\d+/)?.[0] ?? '').padStart(3,'0');  // "097"
+
+  if (!/^\d{3}$/.test(s3)) return json({ error: 'store_number must be 3 digits', got: sIn }, 400);
+  if (!/^\d{3}$/.test(p3)) return json({ error: 'plant must be 3 digits',       got: pIn }, 400);
+
   if (orderData.order_type && orderData.order_type !== String(orderData.order_type).toLowerCase()) {
-    return json({ error: "order_type must be lowercase", got: orderData.order_type }, 400);
+    return json({ error: 'order_type must be lowercase', got: orderData.order_type }, 400);
   }
 
   try {
@@ -50,36 +51,20 @@ serve(async (req) => {
     console.log(`🔒 SECURE ORDER PROCESSING - Processing ${action} for table ${tableName}`);
 
     if (action === 'create_order') {
-      // Keep UI/compat fields on the client, but only insert columns that actually exist in DB.
-      const {
-        store_number,       // canonical helper (likely not a column)
-        plant_code,         // canonical helper (likely not a column)
-        idempotency_key,    // helper for dedupe/logging
-        source,             // helper
-        ...dbRow            // <- this is what we'll actually insert
-      } = orderData || {};
+      // strip non-DB fields before insert
+      const { store_number, plant_code, idempotency_key, source, ...dbRow } = orderData;
 
-      // If you do want to keep canonical codes and you have a JSONB column (e.g., metadata), tuck them there
-      if ('metadata' in dbRow && typeof dbRow.metadata === 'object' && dbRow.metadata !== null) {
-        dbRow.metadata = { ...dbRow.metadata, store_number, plant_code, idempotency_key, source };
+      // persist display fields as-is (store/plant), but you can save codes in metadata if present
+      if ('metadata' in dbRow && dbRow.metadata && typeof dbRow.metadata === 'object') {
+        dbRow.metadata = { ...dbRow.metadata, store_number: s3, plant_code: p3, idempotency_key, source };
       }
 
-      // Optional: coerce types to what the table expects
+      // IMPORTANT: if your table has dedicated code columns, map them explicitly
+      // dbRow.store_number = s3; dbRow.plant_code = p3;
+
       if ('quantity' in dbRow) dbRow.quantity = Number(dbRow.quantity);
-      if ('timestamp' in dbRow && typeof dbRow.timestamp === 'string') {
-        // leave as string if your column is text; timestamptz string is fine too
-      }
 
-      // If your table actually has these columns, map them explicitly (no-op if absent)
-      if (store_number != null && (dbRow as any).store_number === undefined) (dbRow as any).store_number = store_number;
-      if (plant_code   != null && (dbRow as any).plant_code   === undefined) (dbRow as any).plant_code   = plant_code;
-
-      const { data, error } = await supabase
-        .from(tableName)
-        .insert(dbRow)
-        .select()
-        .single();
-
+      const { data, error } = await supabase.from(tableName).insert(dbRow).select().single();
       if (error) {
         console.error('❌ SECURE ORDER PROCESSING - Database error:', error);
         return json({ error: error.message }, 400);

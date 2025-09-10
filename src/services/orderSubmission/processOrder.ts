@@ -220,6 +220,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       store_number,                                       // "027"
       plant_code,                                         // "097"
       idempotency_key: orderId,
+      source: 'ordering_platform',
     };
 
     console.log('[SECURE-ORDER] request (envelope):', {
@@ -236,7 +237,14 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       });
 
       if (error) {
-        const detail = await error?.context?.response?.text?.().catch(()=> '');
+        let detail = '';
+        const res = error?.context?.response;
+        if (res) {
+          try { detail = await res.clone().text(); } catch {}
+          if (!detail) {
+            try { detail = JSON.stringify(await res.clone().json()); } catch {}
+          }
+        }
         console.error('[SECURE-ORDER] invoke error:', error.message, detail);
         throw new Error(`Secure order processing failed: ${detail || error.message}`);
       }
@@ -252,7 +260,14 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       console.log("✅ SUBMIT - Successfully saved to Supabase:", insertedData);
       console.log("✅ SUBMIT - Verified store field in saved data:", insertedData.store);
     } catch (e:any) {
-      const detail = await e?.context?.response?.text?.().catch(()=> '');
+      let detail = '';
+      const res = e?.context?.response;
+      if (res) {
+        try { detail = await res.clone().text(); } catch {}
+        if (!detail) {
+          try { detail = JSON.stringify(await res.clone().json()); } catch {}
+        }
+      }
       console.error('[SECURE-ORDER] 4xx/5xx detail:', detail || e?.message);
       throw e;
     }
