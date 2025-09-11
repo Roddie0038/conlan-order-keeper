@@ -6294,12 +6294,10 @@ export type Database = {
         Returns: Json
       }
       safe_http_post: {
-        Args: {
-          body?: string
-          headers?: Json
-          timeout_ms?: number
-          url: string
-        }
+        Args:
+          | { body?: string; headers?: Json; timeout_ms?: number; url: string }
+          | { headers: string; payload: Json; url: string }
+          | { headers?: Json; payload: Json; url: string }
         Returns: Json
       }
       safe_http_post_and_collect: {
