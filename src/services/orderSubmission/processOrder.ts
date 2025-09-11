@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 import { storeSanitizeForSupabase, logStoreFormatTransformation } from "@/utils/storeSanitization";
 import { resolveEmailRecipients, type EmailType } from "@/services/emailRecipientResolver";
-
+import { processOrderSecure } from "@/services/orderSubmission/processOrderSecure";
 // helpers
 const toStoreNumber = (display?: string) =>
   display?.match(/\b(\d{3})\b/)?.[1] ?? null;         // "Grand Prairie 027" -> "027"
@@ -232,25 +232,15 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     let insertedData: any;
     
     try {
-      const { data, error } = await supabase.functions.invoke('secure-order-processing', {
-        body: { action: 'create_order', tableName, orderData: normalizedOrder }
-      });
+      const { data, error } = await processOrderSecure(normalizedOrder, tableName);
 
       if (error) {
-        let detail = '';
-        const res = error?.context?.response;
-        if (res) {
-          try { detail = await res.clone().text(); } catch {}
-          if (!detail) {
-            try { detail = JSON.stringify(await res.clone().json()); } catch {}
-          }
-        }
-        console.error('[SECURE-ORDER] invoke error:', error.message, detail);
-        throw new Error(`Secure order processing failed: ${detail || error.message}`);
+        console.error('[SECURE-ORDER] secure handler error:', error);
+        throw new Error(`Secure order processing failed: ${error?.message ?? 'unknown'}`);
       }
 
       console.log('[SECURE-ORDER] result:', data);
-      insertedData = data.data;
+      insertedData = data;
 
       if (!insertedData) {
         console.error("❌ SUBMIT - No data returned from secure processing");
@@ -260,15 +250,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
       console.log("✅ SUBMIT - Successfully saved to Supabase:", insertedData);
       console.log("✅ SUBMIT - Verified store field in saved data:", insertedData.store);
     } catch (e:any) {
-      let detail = '';
-      const res = e?.context?.response;
-      if (res) {
-        try { detail = await res.clone().text(); } catch {}
-        if (!detail) {
-          try { detail = JSON.stringify(await res.clone().json()); } catch {}
-        }
-      }
-      console.error('[SECURE-ORDER] 4xx/5xx detail:', `Secure order processing failed: ${detail || e?.message}`);
+      console.error('[SECURE-ORDER] 4xx/5xx detail:', e?.message || e);
       throw e;
     }
     
