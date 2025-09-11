@@ -33,8 +33,9 @@ serve(async (req) => {
   if (!/^\d{3}$/.test(s3)) return json({ error: "store_number must be 3 digits", got: sIn }, 400);
   if (!/^\d{3}$/.test(p3)) return json({ error: "plant_code must be 3 digits", got: pIn }, 400);
 
-  if (orderData.order_type && orderData.order_type !== String(orderData.order_type).toLowerCase()) {
-    return json({ error: "order_type must be lowercase", got: orderData.order_type }, 400);
+  // Auto-normalize order_type to lowercase
+  if (orderData.order_type) {
+    orderData.order_type = String(orderData.order_type).toLowerCase();
   }
 
   try {
