@@ -10,40 +10,45 @@ export async function processOrderSecure(orderData: any, tableName: string) {
   console.log("🔒 SECURE SUBMIT - Processing order via edge function");
   
   try {
-    // Use edge function for secure order processing
-    const { data, error } = await supabase.functions.invoke('secure-order-processing', {
-      body: {
-        orderData,
-        tableName,
-        action: 'create_order'
-      }
+    const envelope = {
+      action: 'create_order',
+      tableName,
+      orderData
+    };
+
+    console.log('[SECURE-ORDER] request (envelope):', envelope);
+
+    // Use raw fetch to capture full response details
+    const SUPABASE_URL = "https://cdbixtaqjppvdkyfbhkz.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10";
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/secure-order-processing`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? ''}`,
+        'Accept-Profile': 'public',
+        'Content-Profile': 'public',
+      },
+      body: JSON.stringify(envelope),
     });
 
-    if (error) {
-      let detail = '';
-      const res = error?.context?.response;
-      if (res) {
-        try { detail = await res.clone().text(); } catch {}
-        if (!detail) {
-          try { detail = JSON.stringify(await res.clone().json()); } catch {}
-        }
-      }
-      console.error("❌ SECURE SUBMIT - Edge function error:", error.message, detail);
-      throw new Error(`Secure order processing failed: ${detail || error.message}`);
+    const text = await res.text(); // ← capture body in all cases
+    let body: any = null;
+    try { body = JSON.parse(text); } catch { body = { raw: text }; }
+
+    console.log('[SECURE-ORDER] http', res.status, res.statusText);
+    console.log('[SECURE-ORDER] response body →', body);
+
+    if (!res.ok) {
+      throw new Error(`secure-order failed ${res.status}: ${body?.error ?? body?.raw ?? 'unknown'}`);
     }
 
     console.log("✅ SECURE SUBMIT - Order processed successfully via edge function");
-    return { data, error: null };
+    return { data: body.data, error: null };
   } catch (e: any) {
-    let detail = '';
-    const res = e?.context?.response;
-    if (res) {
-      try { detail = await res.clone().text(); } catch {}
-      if (!detail) {
-        try { detail = JSON.stringify(await res.clone().json()); } catch {}
-      }
-    }
-    console.error("❌ SECURE SUBMIT - Error in secure order processing:", detail || e?.message);
+    console.error("❌ SECURE SUBMIT - Error in secure order processing:", e?.message);
     throw e;
   }
 }
