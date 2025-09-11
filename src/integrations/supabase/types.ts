@@ -2251,6 +2251,7 @@ export type Database = {
           manager_notes: string | null
           manual_override_allowed: boolean | null
           manual_override_reason: string | null
+          metadata: Json
           name: string | null
           notes: string | null
           order_completion_link: string | null
@@ -2265,6 +2266,7 @@ export type Database = {
           out_of_stock_items: Json | null
           out_of_stock_notes: string | null
           plant: string | null
+          plant_code: string | null
           product_number: string | null
           pull_sheet_link: string | null
           quantity: number | null
@@ -2278,10 +2280,12 @@ export type Database = {
           schedule_arrival: string | null
           send_email_trigger: boolean | null
           send_invoice: boolean | null
+          source: string | null
           status: string | null
           status_updated_at: string | null
           store: string | null
           store_manager_message: string | null
+          store_number: string | null
           store_response_date: string | null
           store_response_status: string | null
           timestamp: string
@@ -2331,6 +2335,7 @@ export type Database = {
           manager_notes?: string | null
           manual_override_allowed?: boolean | null
           manual_override_reason?: string | null
+          metadata?: Json
           name?: string | null
           notes?: string | null
           order_completion_link?: string | null
@@ -2345,6 +2350,7 @@ export type Database = {
           out_of_stock_items?: Json | null
           out_of_stock_notes?: string | null
           plant?: string | null
+          plant_code?: string | null
           product_number?: string | null
           pull_sheet_link?: string | null
           quantity?: number | null
@@ -2358,10 +2364,12 @@ export type Database = {
           schedule_arrival?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
+          source?: string | null
           status?: string | null
           status_updated_at?: string | null
           store?: string | null
           store_manager_message?: string | null
+          store_number?: string | null
           store_response_date?: string | null
           store_response_status?: string | null
           timestamp: string
@@ -2411,6 +2419,7 @@ export type Database = {
           manager_notes?: string | null
           manual_override_allowed?: boolean | null
           manual_override_reason?: string | null
+          metadata?: Json
           name?: string | null
           notes?: string | null
           order_completion_link?: string | null
@@ -2425,6 +2434,7 @@ export type Database = {
           out_of_stock_items?: Json | null
           out_of_stock_notes?: string | null
           plant?: string | null
+          plant_code?: string | null
           product_number?: string | null
           pull_sheet_link?: string | null
           quantity?: number | null
@@ -2438,10 +2448,12 @@ export type Database = {
           schedule_arrival?: string | null
           send_email_trigger?: boolean | null
           send_invoice?: boolean | null
+          source?: string | null
           status?: string | null
           status_updated_at?: string | null
           store?: string | null
           store_manager_message?: string | null
+          store_number?: string | null
           store_response_date?: string | null
           store_response_status?: string | null
           timestamp?: string
@@ -4927,6 +4939,204 @@ export type Database = {
         }
         Relationships: []
       }
+      orders_public_api: {
+        Row: {
+          archived: boolean | null
+          carrier: string | null
+          completed: boolean | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          cross_dock: boolean | null
+          cross_dock_description: string | null
+          cross_dock_destination: string | null
+          cross_dock_eta_date: string | null
+          cross_dock_form_id: string | null
+          cross_dock_form_link: string | null
+          cross_dock_form_url: string | null
+          cross_dock_notes: string | null
+          cross_dock_origin: string | null
+          cross_dock_part_number: string | null
+          cross_dock_qty: number | null
+          cross_dock_received_notified_at: string | null
+          cross_dock_receiver_number: string | null
+          cross_dock_snapshot: Json | null
+          cross_dock_status: string | null
+          cross_dock_type: string | null
+          description: string | null
+          destination_manager_email: string | null
+          destination_plant: string | null
+          email: string | null
+          full_name: string | null
+          id: number | null
+          idempotency_key: string | null
+          in_transit_at: string | null
+          invoice_number: string | null
+          legacy_timestamp: string | null
+          manager_notes: string | null
+          manual_override_allowed: boolean | null
+          manual_override_reason: string | null
+          metadata: Json | null
+          name: string | null
+          notes: string | null
+          order_completion_link: string | null
+          order_type: string | null
+          plant: string | null
+          plant_code: string | null
+          product_number: string | null
+          pull_sheet_link: string | null
+          quantity: number | null
+          ready_to_ship_at: string | null
+          received_at: string | null
+          received_at_warehouse: string | null
+          reopened_at: string | null
+          reopened_reason: string | null
+          response_deadline: string | null
+          schedule_arrival: string | null
+          source: string | null
+          status: string | null
+          status_updated_at: string | null
+          store: string | null
+          store_manager_message: string | null
+          store_number: string | null
+          store_response_date: string | null
+          store_response_status: string | null
+          tire_pull_status: string | null
+          transfer_route: string | null
+          warehouse_received: boolean | null
+        }
+        Insert: {
+          archived?: boolean | null
+          carrier?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          cross_dock?: boolean | null
+          cross_dock_description?: string | null
+          cross_dock_destination?: string | null
+          cross_dock_eta_date?: string | null
+          cross_dock_form_id?: string | null
+          cross_dock_form_link?: string | null
+          cross_dock_form_url?: string | null
+          cross_dock_notes?: string | null
+          cross_dock_origin?: string | null
+          cross_dock_part_number?: string | null
+          cross_dock_qty?: number | null
+          cross_dock_received_notified_at?: string | null
+          cross_dock_receiver_number?: string | null
+          cross_dock_snapshot?: Json | null
+          cross_dock_status?: string | null
+          cross_dock_type?: string | null
+          description?: string | null
+          destination_manager_email?: string | null
+          destination_plant?: string | null
+          email?: string | null
+          full_name?: never
+          id?: number | null
+          idempotency_key?: string | null
+          in_transit_at?: string | null
+          invoice_number?: string | null
+          legacy_timestamp?: string | null
+          manager_notes?: string | null
+          manual_override_allowed?: boolean | null
+          manual_override_reason?: string | null
+          metadata?: Json | null
+          name?: string | null
+          notes?: string | null
+          order_completion_link?: string | null
+          order_type?: string | null
+          plant?: string | null
+          plant_code?: string | null
+          product_number?: string | null
+          pull_sheet_link?: string | null
+          quantity?: number | null
+          ready_to_ship_at?: string | null
+          received_at?: string | null
+          received_at_warehouse?: string | null
+          reopened_at?: string | null
+          reopened_reason?: string | null
+          response_deadline?: string | null
+          schedule_arrival?: string | null
+          source?: string | null
+          status?: string | null
+          status_updated_at?: string | null
+          store?: string | null
+          store_manager_message?: string | null
+          store_number?: string | null
+          store_response_date?: string | null
+          store_response_status?: string | null
+          tire_pull_status?: string | null
+          transfer_route?: string | null
+          warehouse_received?: boolean | null
+        }
+        Update: {
+          archived?: boolean | null
+          carrier?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          cross_dock?: boolean | null
+          cross_dock_description?: string | null
+          cross_dock_destination?: string | null
+          cross_dock_eta_date?: string | null
+          cross_dock_form_id?: string | null
+          cross_dock_form_link?: string | null
+          cross_dock_form_url?: string | null
+          cross_dock_notes?: string | null
+          cross_dock_origin?: string | null
+          cross_dock_part_number?: string | null
+          cross_dock_qty?: number | null
+          cross_dock_received_notified_at?: string | null
+          cross_dock_receiver_number?: string | null
+          cross_dock_snapshot?: Json | null
+          cross_dock_status?: string | null
+          cross_dock_type?: string | null
+          description?: string | null
+          destination_manager_email?: string | null
+          destination_plant?: string | null
+          email?: string | null
+          full_name?: never
+          id?: number | null
+          idempotency_key?: string | null
+          in_transit_at?: string | null
+          invoice_number?: string | null
+          legacy_timestamp?: string | null
+          manager_notes?: string | null
+          manual_override_allowed?: boolean | null
+          manual_override_reason?: string | null
+          metadata?: Json | null
+          name?: string | null
+          notes?: string | null
+          order_completion_link?: string | null
+          order_type?: string | null
+          plant?: string | null
+          plant_code?: string | null
+          product_number?: string | null
+          pull_sheet_link?: string | null
+          quantity?: number | null
+          ready_to_ship_at?: string | null
+          received_at?: string | null
+          received_at_warehouse?: string | null
+          reopened_at?: string | null
+          reopened_reason?: string | null
+          response_deadline?: string | null
+          schedule_arrival?: string | null
+          source?: string | null
+          status?: string | null
+          status_updated_at?: string | null
+          store?: string | null
+          store_manager_message?: string | null
+          store_number?: string | null
+          store_response_date?: string | null
+          store_response_status?: string | null
+          tire_pull_status?: string | null
+          transfer_route?: string | null
+          warehouse_received?: boolean | null
+        }
+        Relationships: []
+      }
       ot_password_resets: {
         Row: {
           created_at: string | null
@@ -6063,10 +6273,7 @@ export type Database = {
           timeout_ms?: number
           url: string
         }
-        Returns: {
-          response: string
-          status: number
-        }[]
+        Returns: Json
       }
       safe_http_post_and_collect: {
         Args: {
