@@ -4964,8 +4964,11 @@ export type Database = {
           cross_dock_status: string | null
           cross_dock_type: string | null
           description: string | null
+          destination_kind: string | null
           destination_manager_email: string | null
+          destination_ot_id: string | null
           destination_plant: string | null
+          destination_region_id: string | null
           email: string | null
           full_name: string | null
           id: number | null
@@ -4981,8 +4984,13 @@ export type Database = {
           notes: string | null
           order_completion_link: string | null
           order_type: string | null
+          ordering_plant: string | null
+          ordering_store: string | null
+          origin_ot_id: string | null
+          origin_region_id: string | null
           plant: string | null
           plant_code: string | null
+          priority: string | null
           product_number: string | null
           pull_sheet_link: string | null
           quantity: number | null
@@ -4992,6 +5000,7 @@ export type Database = {
           reopened_at: string | null
           reopened_reason: string | null
           response_deadline: string | null
+          role: string | null
           schedule_arrival: string | null
           source: string | null
           status: string | null
@@ -5029,8 +5038,11 @@ export type Database = {
           cross_dock_status?: string | null
           cross_dock_type?: string | null
           description?: string | null
+          destination_kind?: string | null
           destination_manager_email?: string | null
+          destination_ot_id?: string | null
           destination_plant?: string | null
+          destination_region_id?: string | null
           email?: string | null
           full_name?: never
           id?: number | null
@@ -5041,13 +5053,18 @@ export type Database = {
           manager_notes?: string | null
           manual_override_allowed?: boolean | null
           manual_override_reason?: string | null
-          metadata?: Json | null
+          metadata?: never
           name?: string | null
           notes?: string | null
           order_completion_link?: string | null
           order_type?: string | null
+          ordering_plant?: string | null
+          ordering_store?: string | null
+          origin_ot_id?: string | null
+          origin_region_id?: string | null
           plant?: string | null
           plant_code?: string | null
+          priority?: never
           product_number?: string | null
           pull_sheet_link?: string | null
           quantity?: number | null
@@ -5057,8 +5074,9 @@ export type Database = {
           reopened_at?: string | null
           reopened_reason?: string | null
           response_deadline?: string | null
+          role?: string | null
           schedule_arrival?: string | null
-          source?: string | null
+          source?: never
           status?: string | null
           status_updated_at?: string | null
           store?: string | null
@@ -5094,8 +5112,11 @@ export type Database = {
           cross_dock_status?: string | null
           cross_dock_type?: string | null
           description?: string | null
+          destination_kind?: string | null
           destination_manager_email?: string | null
+          destination_ot_id?: string | null
           destination_plant?: string | null
+          destination_region_id?: string | null
           email?: string | null
           full_name?: never
           id?: number | null
@@ -5106,13 +5127,18 @@ export type Database = {
           manager_notes?: string | null
           manual_override_allowed?: boolean | null
           manual_override_reason?: string | null
-          metadata?: Json | null
+          metadata?: never
           name?: string | null
           notes?: string | null
           order_completion_link?: string | null
           order_type?: string | null
+          ordering_plant?: string | null
+          ordering_store?: string | null
+          origin_ot_id?: string | null
+          origin_region_id?: string | null
           plant?: string | null
           plant_code?: string | null
+          priority?: never
           product_number?: string | null
           pull_sheet_link?: string | null
           quantity?: number | null
@@ -5122,8 +5148,9 @@ export type Database = {
           reopened_at?: string | null
           reopened_reason?: string | null
           response_deadline?: string | null
+          role?: string | null
           schedule_arrival?: string | null
-          source?: string | null
+          source?: never
           status?: string | null
           status_updated_at?: string | null
           store?: string | null

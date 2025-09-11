@@ -46,23 +46,46 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      db: { schema: 'public' },
+      global: { headers: { 'Content-Profile': 'public', 'Accept-Profile': 'public' } }
+    });
 
     console.log(`🔒 SECURE ORDER PROCESSING - Processing ${action} for table ${tableName}`);
 
     if (action === 'create_order') {
-      // strip non-DB fields before insert
-      const { store_number, plant_code, idempotency_key, source, ...dbRow } = orderData;
+      // Map canonical fields directly to columns (don't strip them)
+      const dbRow = {
+        ...orderData,
+        // Map canonical codes to columns
+        store_number: s3,
+        plant_code: p3,
+        source: orderData.source ?? 'web',
+        idempotency_key: orderData.idempotency_key ?? orderData.id,
+        full_name: orderData.full_name ?? orderData.name ?? null,
+        
+        // Normalize order_type to lowercase
+        order_type: String(orderData.order_type || '').toLowerCase(),
+        
+        // Coerce quantity to number
+        quantity: Number(orderData.quantity),
+        
+        // Ensure metadata is always an object
+        metadata: typeof orderData.metadata === 'object' && orderData.metadata !== null 
+          ? orderData.metadata 
+          : {}
+      };
 
-      // persist display fields as-is (store/plant), but you can save codes in metadata if present
-      if ('metadata' in dbRow && dbRow.metadata && typeof dbRow.metadata === 'object') {
-        dbRow.metadata = { ...dbRow.metadata, store_number: s3, plant_code: p3, idempotency_key, source };
-      }
-
-      // IMPORTANT: if your table has dedicated code columns, map them explicitly
-      // dbRow.store_number = s3; dbRow.plant_code = p3;
-
-      if ('quantity' in dbRow) dbRow.quantity = Number(dbRow.quantity);
+      console.log(`🔒 SECURE ORDER PROCESSING - Final mapped data:`, {
+        store: dbRow.store,
+        plant: dbRow.plant,
+        store_number: dbRow.store_number,
+        plant_code: dbRow.plant_code,
+        source: dbRow.source,
+        idempotency_key: dbRow.idempotency_key,
+        full_name: dbRow.full_name,
+        order_type: dbRow.order_type
+      });
 
       const { data, error } = await supabase.from(tableName).insert(dbRow).select().single();
       if (error) {
