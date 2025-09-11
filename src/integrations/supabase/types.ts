@@ -6296,6 +6296,7 @@ export type Database = {
       safe_http_post: {
         Args:
           | { body: Json; headers: Json; timeout_ms?: number; url: string }
+          | { body: Json; headers: Json; url: string }
           | { body: string; headers: Json; timeout_ms: number; url: string }
           | { body?: string; headers?: Json; url: string }
         Returns: Json
