@@ -71,6 +71,36 @@ serve(async (req) => {
       }
 
       console.log("✅ Order created", data?.id ?? "(no id)");
+
+      // Handle notifications via RPC wrapper (don't fail order creation if HTTP issues)
+      if (data?.id) {
+        try {
+          const notificationUrl = 'https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/notification-controller';
+          const headers = { 'Content-Type': 'application/json' };
+          const payload = {
+            orderRecord: data,
+            tableName,
+            action: 'order_created',
+            triggerSource: 'secure_order_processing'
+          };
+
+          const { data: httpResp, error: httpError } = await supabase.rpc('rpc_safe_http_post', {
+            url: notificationUrl,
+            headers,
+            body: JSON.stringify(payload),
+            timeout_ms: 5000,
+          });
+
+          if (httpError) {
+            console.error('🟡 Notification failed (order still created)', httpError);
+          } else {
+            console.log('📧 Notification sent', httpResp);
+          }
+        } catch (notifError) {
+          console.error('🟡 Notification error (order still created)', notifError);
+        }
+      }
+
       return json({ success: true, data }, 200);
     }
 
