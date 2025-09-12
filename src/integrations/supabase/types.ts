@@ -2372,7 +2372,7 @@ export type Database = {
           store_number?: string | null
           store_response_date?: string | null
           store_response_status?: string | null
-          timestamp?: string
+          timestamp: string
           tire_pull_status?: string | null
           transfer_route?: string | null
           warehouse_received?: boolean | null
@@ -6235,17 +6235,6 @@ export type Database = {
         Args: { input_store: string }
         Returns: string
       }
-      notify_controller_http: {
-        Args: {
-          p_idempotency_key?: string
-          p_order_type: string
-          p_payload?: Json
-          p_plant?: string
-          p_source?: string
-          p_store_number: string
-        }
-        Returns: undefined
-      }
       preview_recipients: {
         Args: { p_email_type: string; p_store_number: string }
         Returns: {
@@ -6308,7 +6297,7 @@ export type Database = {
         Args:
           | { body: Json; headers: Json; timeout_ms?: number; url: string }
           | { body: Json; headers: Json; url: string }
-          | { body: string; headers: Json; timeout_ms?: number; url: string }
+          | { body: string; headers: Json; timeout_ms: number; url: string }
           | { body?: string; headers?: Json; url: string }
         Returns: Json
       }
