@@ -180,6 +180,18 @@ export type Database = {
         }
         Relationships: []
       }
+      app_email_types: {
+        Row: {
+          code: string
+        }
+        Insert: {
+          code: string
+        }
+        Update: {
+          code?: string
+        }
+        Relationships: []
+      }
       app_internal_secret: {
         Row: {
           created_at: string | null
@@ -242,6 +254,18 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      app_roles: {
+        Row: {
+          code: string
+        }
+        Insert: {
+          code: string
+        }
+        Update: {
+          code?: string
         }
         Relationships: []
       }
@@ -1543,6 +1567,7 @@ export type Database = {
           created_at: string | null
           cross_dock_order: boolean | null
           email_provider: string | null
+          error: string | null
           error_message: string | null
           id: string
           metadata: Json | null
@@ -1552,6 +1577,7 @@ export type Database = {
           order_type: string | null
           plant: string | null
           platform: string | null
+          processed_at: string | null
           recipient_email: string
           recipient_role: string | null
           sent_at: string | null
@@ -1563,6 +1589,7 @@ export type Database = {
           created_at?: string | null
           cross_dock_order?: boolean | null
           email_provider?: string | null
+          error?: string | null
           error_message?: string | null
           id?: string
           metadata?: Json | null
@@ -1572,6 +1599,7 @@ export type Database = {
           order_type?: string | null
           plant?: string | null
           platform?: string | null
+          processed_at?: string | null
           recipient_email: string
           recipient_role?: string | null
           sent_at?: string | null
@@ -1583,6 +1611,7 @@ export type Database = {
           created_at?: string | null
           cross_dock_order?: boolean | null
           email_provider?: string | null
+          error?: string | null
           error_message?: string | null
           id?: string
           metadata?: Json | null
@@ -1592,6 +1621,7 @@ export type Database = {
           order_type?: string | null
           plant?: string | null
           platform?: string | null
+          processed_at?: string | null
           recipient_email?: string
           recipient_role?: string | null
           sent_at?: string | null
@@ -2372,7 +2402,7 @@ export type Database = {
           store_number?: string | null
           store_response_date?: string | null
           store_response_status?: string | null
-          timestamp: string
+          timestamp?: string
           tire_pull_status?: string | null
           transfer_route?: string | null
           warehouse_received?: boolean | null
@@ -6092,6 +6122,10 @@ export type Database = {
           zone_alert_status: string
         }[]
       }
+      has_net_http_offenders: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       has_plant_access: {
         Args: { target_plant: string }
         Returns: boolean
@@ -6099,6 +6133,19 @@ export type Database = {
       has_store_access: {
         Args: { target_store: string }
         Returns: boolean
+      }
+      http_enqueue: {
+        Args: {
+          p_body: string
+          p_headers: Json
+          p_timeout_ms?: number
+          p_url: string
+        }
+        Returns: number
+      }
+      http_fetch: {
+        Args: { p_request_id: number }
+        Returns: Json
       }
       http_post_sync: {
         Args: {
@@ -6161,6 +6208,14 @@ export type Database = {
       is_system_admin_by_email: {
         Args: { user_email: string }
         Returns: boolean
+      }
+      list_net_http_offenders: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          function_name: string
+          schema: string
+          source: string
+        }[]
       }
       log_admin_access_attempt: {
         Args: { action_type: string; success?: boolean; table_name: string }
@@ -6235,6 +6290,17 @@ export type Database = {
         Args: { input_store: string }
         Returns: string
       }
+      notify_controller_http: {
+        Args: {
+          p_idempotency_key?: string
+          p_order_type: string
+          p_payload?: Json
+          p_plant?: string
+          p_source?: string
+          p_store_number: string
+        }
+        Returns: undefined
+      }
       preview_recipients: {
         Args: { p_email_type: string; p_store_number: string }
         Returns: {
@@ -6279,6 +6345,12 @@ export type Database = {
           store_name: string
         }[]
       }
+      rpc_safe_http_post: {
+        Args:
+          | { body: Json; headers: Json; timeout_ms?: number; url: string }
+          | { body: string; headers: Json; timeout_ms?: number; url: string }
+        Returns: Json
+      }
       rpc_send_transfer_notification: {
         Args: {
           email: string
@@ -6295,10 +6367,18 @@ export type Database = {
       }
       safe_http_post: {
         Args:
-          | { body: Json; headers: Json; timeout_ms?: number; url: string }
-          | { body: Json; headers: Json; url: string }
-          | { body: string; headers: Json; timeout_ms: number; url: string }
-          | { body?: string; headers?: Json; url: string }
+          | {
+              p_body: Json
+              p_headers: Json
+              p_timeout_ms?: number
+              p_url: string
+            }
+          | {
+              p_body: string
+              p_headers: Json
+              p_timeout_ms?: number
+              p_url: string
+            }
         Returns: Json
       }
       safe_http_post_and_collect: {
