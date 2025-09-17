@@ -91,7 +91,7 @@ export function useOrderFormSubmitV4() {
             source_plant: plant.match(/\d+/)?.[0] as any, // Extract plant code
             fulfilled_by_plant: plant,
             destination_store_id: null,
-            destination_plant: normalizedOrder.crossDock === 'Yes' ? (normalizedOrder.destinationPlant || plant) : plant,
+            destination_plant: plant,
             transport: {
               carrier: null,
               requested_pickup_at: normalizedOrder.scheduleArrival,
@@ -119,7 +119,7 @@ export function useOrderFormSubmitV4() {
           tag('BUILD_PAYLOAD_EXIT', {
             hasPayload: !!payload,
             keys: payload ? Object.keys(payload).slice(0, 5) : [], // Limit keys for readability
-            destinationPlant: normalizedOrder.crossDock === 'Yes' ? (normalizedOrder.destinationPlant || plant) : plant,
+            destinationPlant: payload.destination_plant,
             store: payload.store,
             orderId: order.id
           });
@@ -137,7 +137,7 @@ export function useOrderFormSubmitV4() {
           logger.info('Submitting order to handleOrdersPost', {
             service: 'useOrderFormSubmitV4',
             orderId: order.id,
-            destinationPlant: normalizedOrder.crossDock === 'Yes' ? (normalizedOrder.destinationPlant || plant) : plant,
+            destinationPlant: payload.destination_plant,
             corr
           });
 

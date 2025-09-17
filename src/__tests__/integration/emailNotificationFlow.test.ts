@@ -233,7 +233,7 @@ describe('Email Notification Integration Tests', () => {
             plant: 'Grand Prairie 097'
           }
         ],
-        source: 'sql_function' as const,
+        source: 'store_email_recipients' as const,
         orderId: 'TEST-001',
         plant: 'Grand Prairie 097',
         store: 'Fort Worth 022',
@@ -312,7 +312,7 @@ describe('Email Notification Integration Tests', () => {
             plant: 'Grand Prairie 097'
           }
         ],
-        source: 'sql_function' as const,
+        source: 'store_email_recipients' as const,
         orderId: 'TEST-003',
         plant: 'Grand Prairie 097',
         store: 'Fort Worth 022',

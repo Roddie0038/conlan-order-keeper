@@ -58,31 +58,9 @@ export class EmailRecipientManagementService {
     });
 
     try {
-      // Get default recipients using SQL function (aligned with OT Platform)
-      const storeNumber = this.extractStoreNumber(orderData.store);
-      // Map emailType to the SQL function's expected format  
-      const sqlEmailType = emailType === 'customer_complaints' ? 'customer_complaints' : emailType;
-      
-      const { data: sqlRecipients, error: sqlError } = await supabase.rpc(
-        'resolve_email_recipients', 
-        { 
-          p_store: storeNumber, 
-          p_type: sqlEmailType 
-        }
-      );
-
-      if (sqlError) {
-        console.error("❌ RECIPIENT MGMT - SQL function error:", sqlError);
-        throw sqlError;
-      }
-
-      const defaultRecipients = (sqlRecipients || []).map((r: any) => ({
-        email: r.recipient_email || r.email,
-        name: r.recipient_name || r.store_name || r.full_name,
-        role: r.recipient_role || r.role,
-        store: r.store_name || orderData.store,
-        plant: orderData.plant || 'Unknown'
-      }));
+      // Get default recipients from resolver
+      const defaultResult = await resolveEmailRecipients(orderData, emailType, orderId);
+      const defaultRecipients = defaultResult.recipients;
 
       // Load overrides from database using SQL query
       const overrides = await this.queryOverrides(orderData.store, emailType, templateId, orderId);
@@ -361,10 +339,6 @@ export class EmailRecipientManagementService {
   /**
    * Private helper methods for database operations
    */
-  private extractStoreNumber(store: string): string {
-    const match = store.match(/(\d+)/);
-    return match ? match[1] : '';
-  }
   private async queryOverrides(
     storeNumber: string,
     emailType: EmailType,
