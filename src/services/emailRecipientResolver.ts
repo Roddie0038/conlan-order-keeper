@@ -1,11 +1,12 @@
 /**
- * Phase 3: Unified Email Recipient Resolution System
- * Mirrors OT Platform's three-tier fallback logic for email routing
+ * Unified Email Recipient Resolution System
+ * ALIGNED WITH SUPABASE SQL resolve_email_recipients FUNCTION
  * 
- * Three-tier fallback system:
- * 1. Order fields (email, destination_manager_email)
- * 2. store_email_recipients table
- * 3. ot_platform_users table
+ * This service now primarily calls the SQL function that enforces:
+ * 1. store_email_recipients table (PRIMARY SOURCE)
+ * 2. ot_platform_users table (FALLBACK)
+ * 
+ * Local resolution is only used for order-specific fields.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +24,7 @@ export interface EmailRecipient {
 
 export interface EmailResolutionResult {
   recipients: EmailRecipient[];
-  source: 'order_fields' | 'store_email_recipients' | 'ot_platform_users' | 'fallback_legacy';
+  source: 'order_fields' | 'sql_function' | 'fallback_legacy';
   fallbackReason?: string;
   orderId?: string;
   plant?: string;
@@ -32,7 +33,7 @@ export interface EmailResolutionResult {
   resolutionLog: string[];
 }
 
-export type EmailType = 'transfer' | 'cross_dock' | 'mto' | 'wheel' | 'warranty' | 'complaint' | 'completion' | 'out_of_stock' | 'message';
+export type EmailType = 'transfer' | 'cross_dock' | 'mto' | 'wheel' | 'warranty' | 'customer_complaints' | 'completion' | 'out_of_stock' | 'message';
 
 // Flexible order data interface that accommodates all order types
 export interface OrderDataInput {
@@ -45,7 +46,7 @@ export interface OrderDataInput {
 }
 
 /**
- * Resolve email recipients using OT Platform's three-tier fallback system
+ * Resolve email recipients using SQL function as primary source
  */
 export async function resolveEmailRecipients(
   orderData: OrderDataInput,
@@ -67,11 +68,6 @@ export async function resolveEmailRecipients(
   
   resolutionLog.push(`Starting resolution: store=${normalizedStore}, plant=${normalizedPlant}, type=${emailType}`);
 
-  // Store 22 (Fort Worth 022) special handling
-  if (storeNumber === '22' || storeNumber === '022') {
-    resolutionLog.push('Store 22 (Fort Worth 022) detected - applying special handling');
-  }
-
   const baseResult: Omit<EmailResolutionResult, 'recipients' | 'source'> = {
     orderId,
     plant: normalizedPlant,
@@ -81,9 +77,10 @@ export async function resolveEmailRecipients(
   };
 
   try {
-    // Tier 1: Check order fields for specific recipient emails
+    // Check order fields for specific recipient emails first
     const orderFieldRecipients = await checkOrderFields(orderData, resolutionLog);
     if (orderFieldRecipients.length > 0) {
+      resolutionLog.push(`Found ${orderFieldRecipients.length} recipients in order fields`);
       return {
         ...baseResult,
         recipients: orderFieldRecipients,
@@ -91,28 +88,44 @@ export async function resolveEmailRecipients(
       };
     }
 
-    // Tier 2: Check store_email_recipients table
-    const storeRecipients = await checkStoreEmailRecipients(storeNumber, normalizedPlant, emailType, resolutionLog);
-    if (storeRecipients.length > 0) {
-      return {
-        ...baseResult,
-        recipients: storeRecipients,
-        source: 'store_email_recipients'
-      };
+    // Use SQL function for primary resolution (store_email_recipients -> ot_platform_users)
+    resolutionLog.push('Calling SQL resolve_email_recipients function');
+    
+    // Map emailType to the SQL function's expected format
+    const sqlEmailType = emailType === 'customer_complaints' ? 'customer_complaints' : emailType;
+    
+    const { data: sqlRecipients, error } = await supabase.rpc(
+      'resolve_email_recipients', 
+      { 
+        p_store: storeNumber, 
+        p_type: sqlEmailType 
+      }
+    );
+
+    if (error) {
+      resolutionLog.push(`SQL function error: ${error.message}`);
+      throw error;
     }
 
-    // Tier 3: Check ot_platform_users table
-    const platformRecipients = await checkOTPlatformUsers(storeNumber, normalizedPlant, emailType, resolutionLog);
-    if (platformRecipients.length > 0) {
+    if (sqlRecipients && sqlRecipients.length > 0) {
+      const recipients = sqlRecipients.map((r: any) => ({
+        email: r.recipient_email || r.email,
+        name: r.recipient_name || r.store_name || r.full_name,
+        role: r.recipient_role || r.role,
+        store: r.store_name || normalizedStore,
+        plant: normalizedPlant
+      }));
+
+      resolutionLog.push(`SQL function returned ${recipients.length} recipients`);
       return {
         ...baseResult,
-        recipients: platformRecipients,
-        source: 'ot_platform_users'
+        recipients,
+        source: 'sql_function'
       };
     }
 
     // No recipients found
-    resolutionLog.push('No recipients found in any tier');
+    resolutionLog.push('No recipients found in SQL function');
     return {
       ...baseResult,
       recipients: [],
@@ -169,160 +182,8 @@ async function checkOrderFields(orderData: OrderDataInput, log: string[]): Promi
   return recipients;
 }
 
-/**
- * Tier 2: Check store_email_recipients table
- */
-async function checkStoreEmailRecipients(
-  storeNumber: string, 
-  plant: string, 
-  emailType: EmailType,
-  log: string[]
-): Promise<EmailRecipient[]> {
-  
-  log.push(`Tier 2: Querying store_email_recipients for store=${storeNumber}, plant=${plant}`);
-  
-  // Generate store variants for lookup
-  const storeVariants = generateStoreVariants(storeNumber);
-  log.push(`Store variants: ${storeVariants.join(', ')}`);
-
-  try {
-    const { data: storeRecipients, error } = await supabase
-      .from('store_email_recipients')
-      .select('*')
-      .in('store_number', storeVariants)
-      .eq('is_active', true)
-      .not('recipient_email', 'is', null);
-
-    if (error) {
-      log.push(`Tier 2 error: ${error.message}`);
-      throw error;
-    }
-
-    const filteredRecipients = (storeRecipients || [])
-      .filter(recipient => shouldIncludeRecipientForEmailType(recipient, emailType, log))
-      .map(r => ({
-        email: r.recipient_email,
-        name: r.recipient_name || r.store_name,
-        role: r.recipient_role,
-        store: r.store_name,
-        plant: plant // Use the plant parameter passed to the function
-      }));
-
-    log.push(`Tier 2 result: ${filteredRecipients.length} filtered recipients found`);
-    return filteredRecipients;
-
-  } catch (error) {
-    log.push(`Tier 2 failed: ${error.message}`);
-    return [];
-  }
-}
-
-/**
- * Tier 3: Check ot_platform_users table
- */
-async function checkOTPlatformUsers(
-  storeNumber: string, 
-  plant: string, 
-  emailType: EmailType,
-  log: string[]
-): Promise<EmailRecipient[]> {
-  // Guard for E2E mode - skip Tier-3 DB lookups to avoid permission errors
-  if (IS_E2E) {
-    console.warn('[E2E] Skipping Tier-3 DB lookups');
-    log.push('Tier 3 skipped: E2E mode detected');
-    return [];
-  }
-  
-  log.push(`Tier 3: Querying ot_platform_users for store=${storeNumber}, plant=${plant}`);
-  
-  const storeVariants = generateStoreVariants(storeNumber);
-  log.push(`Store variants: ${storeVariants.join(', ')}`);
-  console.log(`🔍 TIER 3 DEBUGGING - Store variants for ${storeNumber}:`, storeVariants);
-
-  try {
-    // Split into two targeted queries to get exactly what we need:
-    // 1. Store-specific managers (store_manager, service_manager)
-    // 2. Warehouse management team (warehouse_manager, warehouse_coordinator, etc.)
-    
-    // Query 1: Store-specific managers
-    console.log(`🔍 TIER 3 DEBUGGING - Querying store managers with variants:`, storeVariants);
-    const { data: storeManagers, error: storeError } = await supabase
-      .from('ot_platform_users')
-      .select('email, full_name, role, store, plant')
-      .in('store', storeVariants)
-      .in('role', ['store_manager', 'service_manager'])
-      .eq('status', 'active')
-      .not('email', 'is', null);
-
-    console.log(`🔍 TIER 3 DEBUGGING - Store managers query result:`, {
-      error: storeError,
-      count: storeManagers?.length || 0,
-      managers: storeManagers?.map(m => ({ email: m.email, role: m.role, store: m.store }))
-    });
-
-    if (storeError) {
-      log.push(`Tier 3 store managers error: ${storeError.message}`);
-    }
-
-    // Query 2: Warehouse management team (specific plant only - no global expansion)
-    console.log(`🔍 TIER 3 DEBUGGING - Querying warehouse managers for plant: ${plant}`);
-    const { data: warehouseManagers, error: warehouseError } = await supabase
-      .from('ot_platform_users')
-      .select('email, full_name, role, store, plant')
-      .eq('plant', plant)
-      .in('role', ['warehouse_manager', 'warehouse_coordinator', 'retread_manager', 'plant_manager', 'operations_manager', 'super_admin'])
-      .eq('status', 'active')
-      .not('email', 'is', null);
-
-    console.log(`🔍 TIER 3 DEBUGGING - Warehouse managers query result:`, {
-      error: warehouseError,
-      count: warehouseManagers?.length || 0,
-      managers: warehouseManagers?.map(m => ({ email: m.email, role: m.role, plant: m.plant }))
-    });
-
-    if (warehouseError) {
-      log.push(`Tier 3 warehouse managers error: ${warehouseError.message}`);
-    }
-
-    // Combine results and remove duplicates
-    const allUsers = [...(storeManagers || []), ...(warehouseManagers || [])];
-    const uniqueUsers = allUsers.filter((user, index, self) => 
-      index === self.findIndex(u => u.email === user.email)
-    );
-
-    console.log(`🔍 TIER 3 DEBUGGING - Combined users before filtering:`, 
-      uniqueUsers.map(u => ({ email: u.email, role: u.role, store: u.store, plant: u.plant }))
-    );
-
-    log.push(`Tier 3 found: ${storeManagers?.length || 0} store managers, ${warehouseManagers?.length || 0} warehouse managers`);
-
-    const filteredRecipients = uniqueUsers
-      .filter(user => {
-        const included = shouldIncludeUserForEmailType(user.role, emailType, log);
-        console.log(`🔍 TIER 3 DEBUGGING - Filtering ${user.email} (${user.role}): ${included ? 'INCLUDED' : 'EXCLUDED'}`);
-        return included;
-      })
-      .map(u => ({
-        email: u.email,
-        name: u.full_name,
-        role: u.role,
-        store: u.store,
-        plant: u.plant
-      }));
-
-    console.log(`🔍 TIER 3 DEBUGGING - Final filtered recipients:`, 
-      filteredRecipients.map(r => ({ email: r.email, role: r.role }))
-    );
-
-    log.push(`Tier 3 result: ${filteredRecipients.length} filtered recipients found`);
-    return filteredRecipients;
-
-  } catch (error) {
-    console.error(`❌ TIER 3 DEBUGGING - Error:`, error);
-    log.push(`Tier 3 failed: ${error.message}`);
-    return [];
-  }
-}
+// These functions are kept for backward compatibility and order field checks only
+// The main resolution now uses the SQL function
 
 /**
  * Determine if a store_email_recipients record should be included for this email type

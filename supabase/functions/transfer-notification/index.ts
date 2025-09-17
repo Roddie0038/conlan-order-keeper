@@ -25,129 +25,99 @@ serve(async (req) => {
     const requestBody = await req.json();
     console.log("📧 TRANSFER NOTIFICATION - Request body:", JSON.stringify(requestBody, null, 2));
     
-    const { transferData, orderId, recipients } = requestBody;
+    const { transferData, orderId, store_number } = requestBody;
     
     console.log("📧 TRANSFER NOTIFICATION - Processing order:", orderId);
-    console.log("📧 TRANSFER NOTIFICATION - Recipients:", recipients);
+    console.log("📧 TRANSFER NOTIFICATION - Store:", store_number);
     console.log("📧 TRANSFER NOTIFICATION - Transfer data:", transferData);
 
-    if (!recipients || recipients.length === 0) {
-      console.log("⚠️ TRANSFER NOTIFICATION - No email recipients provided for order:", orderId);
+    // Use notification-controller to resolve recipients via SQL function
+    if (!store_number) {
+      console.log("⚠️ TRANSFER NOTIFICATION - No store_number provided for order:", orderId);
       
-      // Log the attempt even if no recipients
+      // Log the attempt even if no store
       await logEmailNotification({
         orderId: orderId || 'unknown',
         orderType: transferData.orderType || 'TRANSFER',
         recipients: [],
         status: 'failed',
         notificationType: 'transfer_order_submitted',
-        errorMessage: 'No recipients provided'
+        errorMessage: 'No store_number provided'
       });
       
       return new Response(JSON.stringify({ 
-        success: true, 
-        message: 'No recipients provided',
+        success: false, 
+        message: 'No store_number provided',
         orderId: orderId
       }), {
-        status: 200,
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Determine if this is a cross-dock order
-    const isCrossDock = transferData.crossDock === 'Yes' || transferData.cross_dock_type === 'Yes';
-    const crossDockDetails = isCrossDock ? {
-      destination: transferData.crossDockDestination || transferData.cross_dock_destination,
-      receiverNumber: transferData.receiverNo || transferData.cross_dock_receiver_number,
-      etaDate: transferData.etaDate || transferData.cross_dock_eta_date
-    } : undefined;
-
-    // Create standardized email using the new template system
-    const emailSubject = `${isCrossDock ? 'Cross-Dock ' : ''}Order Confirmation - ${transferData.store} - ${transferData.productNumber || transferData.product_number}`;
+    // Call notification-controller to resolve recipients and send emails
+    const controllerUrl = Deno.env.get('SUPABASE_URL') + '/functions/v1/notification-controller';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    const orderDetails = {
-      store: transferData.store,
+    const notificationPayload = {
+      order_type: 'transfer',
+      store_number: store_number,
       plant: transferData.plant,
-      productNumber: transferData.productNumber || transferData.product_number,
-      description: transferData.description,
-      quantity: transferData.quantity,
-      scheduleArrival: transferData.scheduleArrival || transferData.schedule_arrival,
-      notes: transferData.notes || 'None'
+      payload: {
+        order_id: orderId,
+        store_name: transferData.store,
+        submitted_by_name: transferData.name,
+        submitted_by_email: transferData.email,
+        product_number: transferData.productNumber || transferData.product_number,
+        quantity: transferData.quantity,
+        description: transferData.description,
+        notes: transferData.notes || 'None',
+        timestamp: new Date().toISOString()
+      },
+      idempotency_key: `transfer-${orderId}-${Date.now()}`,
+      source: 'transfer-notification'
     };
 
-    const emailBody = createEmailTemplate({
-      orderType: transferData.orderType || 'Transfer',
-      orderDetails: orderDetails,
-      submitterInfo: {
-        name: transferData.name,
-        email: transferData.email
+    console.log("📧 TRANSFER NOTIFICATION - Calling notification-controller:", notificationPayload);
+
+    const controllerResponse = await fetch(controllerUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceRoleKey}`
       },
-      orderId: orderId,
-      isCrossDock: isCrossDock,
-      crossDockDetails: crossDockDetails
+      body: JSON.stringify(notificationPayload)
     });
 
-    console.log("📧 TRANSFER NOTIFICATION - Sending email via centralized mailer to:", recipients);
-    console.log("📧 TRANSFER NOTIFICATION - Email subject:", emailSubject);
-    
-    // Send email via centralized mailer (Resend)
-    const emailResult = await sendEmail({
-      to: recipients,
-      subject: emailSubject,
-      html: emailBody
-    });
+    const controllerResult = await controllerResponse.json();
 
-    if (emailResult.success) {
-      console.log("✅ TRANSFER NOTIFICATION - Email sent successfully via Resend:", emailResult.data);
-      
-      // Log successful email
-      await logEmailNotification({
-        orderId: orderId,
-        orderType: transferData.orderType || 'TRANSFER',
-        recipients: emailResult.sentTo || recipients,
-        status: 'sent',
-        notificationType: isCrossDock ? 'cross_dock_order_submitted' : 'transfer_order_submitted',
-        isCrossDock: isCrossDock,
-        emailProvider: 'resend'
-      });
+    if (controllerResponse.ok) {
+      console.log("✅ TRANSFER NOTIFICATION - Controller succeeded:", controllerResult);
       
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'Order confirmation email sent successfully via Resend',
-        recipients: (emailResult.sentTo || recipients).length,
+        message: 'Transfer notification processed successfully',
         orderId: orderId,
-        orderType: transferData.orderType || 'TRANSFER',
-        store: transferData.store,
-        emailId: emailResult.data?.id,
-        isCrossDock: isCrossDock
+        recipients_found: controllerResult.recipients_found || 0,
+        results: controllerResult.results
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else {
-      console.error("❌ TRANSFER NOTIFICATION - Email sending failed:", emailResult.error);
-      
-      // Log failed email
-      await logEmailNotification({
-        orderId: orderId,
-        orderType: transferData.orderType || 'TRANSFER',
-        recipients: recipients,
-        status: 'failed',
-        notificationType: isCrossDock ? 'cross_dock_order_submitted' : 'transfer_order_submitted',
-        isCrossDock: isCrossDock,
-        emailProvider: 'resend',
-        errorMessage: emailResult.error
-      });
+      console.error("❌ TRANSFER NOTIFICATION - Controller failed:", controllerResult);
       
       return new Response(JSON.stringify({ 
         success: false, 
-        error: `Email sending failed: ${emailResult.error}`,
+        error: `Notification controller failed: ${controllerResult.error}`,
         orderId: orderId
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // The notification-controller handles all email sending now
 
   } catch (error) {
     console.error("❌ TRANSFER NOTIFICATION - Error:", error);

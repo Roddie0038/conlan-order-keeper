@@ -10,35 +10,100 @@ type MtoEvent = {
   dry_run?: boolean;
 };
 
-const CONTROLLER = Deno.env.get("NOTIFICATION_CONTROLLER_URL");
-const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-const MAP: Record<string,string> = {
-  "022":"Fort Worth 022","027":"Grand Prairie 027","028":"Houston 028","029":"San Antonio 029",
-  "030":"Oklahoma City 030","032":"Little Rock 032","033":"Kansas City 033","036":"Tulsa 036",
-  "039":"Austin 039","041":"Detroit 041","042":"Toledo 042","097":"Grand Prairie 097",
-  "098":"Romulus 098","099":"Mulberry 099",
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-const norm = (s?:string)=> s ? (MAP[s.padStart(3,"0")] ?? s) : undefined;
 
-serve(async (req)=>{
-  if (req.method!=="POST") return new Response('{"error":"Method not allowed"}',{status:405});
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return new Response('{"error":"Method not allowed"}', { status: 405, headers: corsHeaders });
+  }
+
   try {
-    const p = (await req.json()) as MtoEvent;
-    if (!CONTROLLER) return new Response('{"error":"NOTIFICATION_CONTROLLER_URL missing"}',{status:500});
-    const body = {
-      type: "mto_notification",
-      event: p.event, order_id: p.order_id,
-      store_number: p.store_number, store_name_norm: norm(p.store_number),
-      plant_id: p.plant_id, region_id: p.region_id, metadata: p.metadata ?? {},
-      options: { dry_run: !!p.dry_run, enforce_scopes: true, admin_override: false, source: "mto-notification" }
+    const mtoEvent = (await req.json()) as MtoEvent;
+    
+    console.log("📧 MTO NOTIFICATION - Processing event:", mtoEvent);
+    
+    if (!mtoEvent.store_number) {
+      return new Response('{"error":"store_number is required"}', { 
+        status: 400, 
+        headers: corsHeaders 
+      });
+    }
+
+    // Call notification-controller to resolve recipients and send emails
+    const controllerUrl = Deno.env.get('SUPABASE_URL') + '/functions/v1/notification-controller';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    const notificationPayload = {
+      order_type: 'mto',
+      store_number: mtoEvent.store_number,
+      plant: mtoEvent.plant_id,
+      payload: {
+        order_id: mtoEvent.order_id,
+        event: mtoEvent.event,
+        store_name: mtoEvent.store_number,
+        timestamp: new Date().toISOString(),
+        metadata: mtoEvent.metadata || {}
+      },
+      idempotency_key: `mto-${mtoEvent.order_id}-${mtoEvent.event}-${Date.now()}`,
+      source: 'mto-notification'
     };
-    const r = await fetch(CONTROLLER, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json", Authorization: SERVICE_ROLE?`Bearer ${SERVICE_ROLE}`:"" },
-      body: JSON.stringify(body)
+
+    console.log("📧 MTO NOTIFICATION - Calling notification-controller:", notificationPayload);
+
+    const controllerResponse = await fetch(controllerUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceRoleKey}`
+      },
+      body: JSON.stringify(notificationPayload)
     });
-    const text = await r.text();
-    return r.ok ? new Response(text,{status:200})
-                : new Response(JSON.stringify({error:"controller_failed",status:r.status,body:text}),{status:502});
-  } catch(e){ return new Response(JSON.stringify({error:"unhandled_exception",message:String(e)}),{status:500}); }
+
+    const controllerResult = await controllerResponse.json();
+
+    if (controllerResponse.ok) {
+      console.log("✅ MTO NOTIFICATION - Controller succeeded:", controllerResult);
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'MTO notification processed successfully',
+        order_id: mtoEvent.order_id,
+        event: mtoEvent.event,
+        recipients_found: controllerResult.recipients_found || 0,
+        results: controllerResult.results
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } else {
+      console.error("❌ MTO NOTIFICATION - Controller failed:", controllerResult);
+      
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: `Notification controller failed: ${controllerResult.error}`,
+        order_id: mtoEvent.order_id
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+  } catch (e) {
+    console.error("❌ MTO NOTIFICATION - Error:", e);
+    return new Response(JSON.stringify({
+      error: "unhandled_exception",
+      message: String(e)
+    }), { 
+      status: 500, 
+      headers: corsHeaders 
+    });
+  }
 });
