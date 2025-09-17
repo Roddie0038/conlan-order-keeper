@@ -6,7 +6,7 @@
 import { logger } from '@/utils/logger';
 import { saveOrderToSupabase } from '@/services/orderService';
 import { submitToGoogleSheets } from '@/services/sheets';
-import { sendTransferOrderConfirmation } from '@/services/NotificationController';
+import { notifyTransfer } from '@/services/notifyTransfer';
 import { extractStoreNumber, normalizeStoreFormat } from '@/utils/normalization/StoreNormalizationUtils';
 import { getPlantForStore } from '@/utils/plantMapping';
 import { generateUUID } from '@/utils/uuid/UUIDUtils';
@@ -150,6 +150,12 @@ export class OrderFormService {
     const plant = getPlantForStore(order.store);
     const orderType = this.determineOrderType(order);
 
+    // Fix the Romulus leak: if crossDock === "No", clear cross-dock fields
+    let crossDockDestination = order.crossDockDestination || "";
+    if (order.crossDock === "No") {
+      crossDockDestination = "";
+    }
+
     const orderRecord: OrderFormData = {
       name: order.yourName,
       store: order.store,
@@ -159,7 +165,7 @@ export class OrderFormService {
       scheduleArrival: order.scheduleArrival,
       notes: order.notes,
       crossDock: order.crossDock || "No",
-      crossDockDestination: order.crossDockDestination || "",
+      crossDockDestination,
       email: user?.email || "",
       plant: plant,
       timestamp: order.timestamp,
@@ -218,44 +224,28 @@ export class OrderFormService {
         // Submit to Google Sheets
         await submitToGoogleSheets(orderRecord, user);
 
-        // Send confirmation email
+        // Send notification with minimal payload
         if (storeNumber && savedOrderResult?.data?.id) {
           try {
-            const emailResult = await sendTransferOrderConfirmation(
-              {
-                store: order.store,
-                plant: orderRecord.plant,
-                email: orderRecord.email,
-                name: orderRecord.name
-              },
-              savedOrderResult.data.id.toString(),
-              {
-                quantity: orderRecord.quantity,
-                product_number: orderRecord.productNumber,
-                description: orderRecord.description
-              }
+            await notifyTransfer(
+              savedOrderResult.data.id,
+              order.store,
+              orderRecord.plant
             );
             
-            if (emailResult.success) {
-              logger.info('Store confirmation email sent successfully', {
-                service: 'OrderFormService',
-                orderId: order.id,
-                storeNumber
-              });
-            } else {
-              logger.warn('Store confirmation email failed', {
-                service: 'OrderFormService',
-                orderId: order.id,
-                error: emailResult.message
-              });
-            }
+            logger.info('Transfer notification sent successfully', {
+              service: 'OrderFormService',
+              orderId: order.id,
+              storeNumber,
+              plant: orderRecord.plant
+            });
           } catch (emailError) {
-            logger.error('Error sending store confirmation email', {
+            logger.error('Error sending transfer notification', {
               service: 'OrderFormService',
               orderId: order.id,
               error: emailError instanceof Error ? emailError.message : 'Unknown error'
             });
-            // Don't block order submission for email failures
+            // Don't block order submission for notification failures
           }
         }
       }

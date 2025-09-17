@@ -25,30 +25,21 @@ serve(async (req) => {
     const requestBody = await req.json();
     console.log("📧 TRANSFER NOTIFICATION - Request body:", JSON.stringify(requestBody, null, 2));
     
-    const { transferData, orderId, store_number } = requestBody;
+    const { order_id, store_number, plant_id, event = "created", metadata = {} } = requestBody;
     
-    console.log("📧 TRANSFER NOTIFICATION - Processing order:", orderId);
+    console.log("📧 TRANSFER NOTIFICATION - Processing order:", order_id);
     console.log("📧 TRANSFER NOTIFICATION - Store:", store_number);
-    console.log("📧 TRANSFER NOTIFICATION - Transfer data:", transferData);
+    console.log("📧 TRANSFER NOTIFICATION - Plant:", plant_id);
+    console.log("📧 TRANSFER NOTIFICATION - Event:", event);
 
-    // Use notification-controller to resolve recipients via SQL function
+    // Validate required fields
     if (!store_number) {
-      console.log("⚠️ TRANSFER NOTIFICATION - No store_number provided for order:", orderId);
-      
-      // Log the attempt even if no store
-      await logEmailNotification({
-        orderId: orderId || 'unknown',
-        orderType: transferData.orderType || 'TRANSFER',
-        recipients: [],
-        status: 'failed',
-        notificationType: 'transfer_order_submitted',
-        errorMessage: 'No store_number provided'
-      });
+      console.log("⚠️ TRANSFER NOTIFICATION - No store_number provided for order:", order_id);
       
       return new Response(JSON.stringify({ 
         success: false, 
         message: 'No store_number provided',
-        orderId: orderId
+        order_id: order_id
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -62,19 +53,14 @@ serve(async (req) => {
     const notificationPayload = {
       order_type: 'transfer',
       store_number: store_number,
-      plant: transferData.plant,
+      plant: plant_id,
       payload: {
-        order_id: orderId,
-        store_name: transferData.store,
-        submitted_by_name: transferData.name,
-        submitted_by_email: transferData.email,
-        product_number: transferData.productNumber || transferData.product_number,
-        quantity: transferData.quantity,
-        description: transferData.description,
-        notes: transferData.notes || 'None',
-        timestamp: new Date().toISOString()
+        order_id: order_id,
+        event: event,
+        timestamp: new Date().toISOString(),
+        metadata: metadata
       },
-      idempotency_key: `transfer-${orderId}-${Date.now()}`,
+      idempotency_key: `transfer-${order_id}-${Date.now()}`,
       source: 'transfer-notification'
     };
 
@@ -97,7 +83,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'Transfer notification processed successfully',
-        orderId: orderId,
+        order_id: order_id,
         recipients_found: controllerResult.recipients_found || 0,
         results: controllerResult.results
       }), {
@@ -110,7 +96,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         success: false, 
         error: `Notification controller failed: ${controllerResult.error}`,
-        orderId: orderId
+        order_id: order_id
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -122,20 +108,8 @@ serve(async (req) => {
   } catch (error) {
     console.error("❌ TRANSFER NOTIFICATION - Error:", error);
     
-    // Log error
-    try {
-      await logEmailNotification({
-        orderId: 'unknown',
-        orderType: 'TRANSFER',
-        recipients: [],
-        status: 'failed',
-        notificationType: 'transfer_order_submitted',
-        emailProvider: 'resend',
-        errorMessage: error.message
-      });
-    } catch (logError) {
-      console.error("❌ Failed to log error:", logError);
-    }
+    // Log error (simplified)
+    console.error("❌ TRANSFER NOTIFICATION - Error details:", error.stack);
     
     return new Response(JSON.stringify({ 
       success: false, 
