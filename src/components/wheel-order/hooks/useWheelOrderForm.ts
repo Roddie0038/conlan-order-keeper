@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useStatefulFormAutosave } from "@/hooks/useFormAutosave";
 import { WheelFormData } from "../types";
-import { useWheelFormSubmission } from "./useWheelFormSubmission";
+import { useWheelFormSubmission } from "./useWheelFormSubmissionV2";
 import { getFirstManagerEmail } from "@/utils/emailUtils";
 import { normalizeStoreForSubmission } from "@/utils/storeNormalization";
 import { stores, getStoreColor } from "@/components/order-form/formConfig";
@@ -206,7 +206,14 @@ export function useWheelOrderForm() {
     }
   }, [errors.storeName, user?.store]);
 
-  const { isSubmitting, handleSubmit } = useWheelFormSubmission(formData, managerEmail, errors, setErrors);
+  const hookData = useWheelFormSubmission(formData, managerEmail, errors, setErrors);
+  const {
+    isSubmitting,
+    handleSubmit,
+    submissionResult,
+    diagnosticData,
+    isDiagnosticEnabled
+  } = hookData;
 
   return {
     formData,
@@ -225,6 +232,10 @@ export function useWheelOrderForm() {
     clearPersistedData,
     saveNow,
     ready,
-    didRestore
+    didRestore,
+    // Enhanced submission result and diagnostic data
+    submissionResult,
+    diagnosticData,
+    isDiagnosticEnabled
   };
 }

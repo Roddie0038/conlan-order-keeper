@@ -28,6 +28,22 @@ serve(async (req) => {
     const wheelOrderData = await req.json();
     console.log("🚀 EDGE FUNCTION - Received wheel order data:", JSON.stringify(wheelOrderData, null, 2));
 
+    // R2: Set server timestamp for authoritative time
+    const serverTimestamp = new Date().toISOString();
+    const enhancedOrderData = {
+      ...wheelOrderData,
+      timestamp: serverTimestamp,
+      submitted_at: serverTimestamp,
+      // Ensure status is set for OT compatibility
+      status: wheelOrderData.status || 'open'
+    };
+
+    console.log("🚀 EDGE FUNCTION - Enhanced with server timestamp:", {
+      originalTimestamp: wheelOrderData.timestamp,
+      serverTimestamp,
+      orderId: enhancedOrderData.id || 'not-set'
+    });
+
     // Forward the request to Google Apps Script webhook
     console.log("🚀 EDGE FUNCTION - Forwarding to Google Sheets webhook:", WHEEL_ORDERS_WEBHOOK_URL);
     
@@ -36,7 +52,7 @@ serve(async (req) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(wheelOrderData),
+      body: JSON.stringify(enhancedOrderData),
     });
 
     console.log("✅ EDGE FUNCTION - Google Sheets response status:", response.status);
@@ -61,8 +77,8 @@ serve(async (req) => {
                 'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
               },
               body: JSON.stringify({
-                wheelData: wheelOrderData,
-                orderId: crypto.randomUUID(), // Generate a UUID for tracking
+                wheelData: enhancedOrderData,
+                orderId: enhancedOrderData.id || crypto.randomUUID(),
                 recipients: [] // Will be populated by the contact system in wheel-notification
               })
             }

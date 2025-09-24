@@ -6,12 +6,16 @@ import { FormFooter } from "./components/FormFooter";
 import { useWheelOrderForm } from "./hooks/useWheelOrderForm";
 import { OrderTemplate } from "../order-templates/OrderTemplate";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
 import { WheelEmailPreview } from "./components/EmailPreview";
+import { SuccessBanner } from "./components/SuccessBanner";
+import { PayloadViewer } from "./components/PayloadViewer";
 import { useState, useEffect } from "react";
 import { hasFullStoreAccess } from "@/lib/roles";
 import StoreSelector from "@/components/common/StoreSelector";
@@ -43,10 +47,15 @@ export function WheelOrderForm() {
     isRestoring,
     clearPersistedData,
     ready,
-    didRestore
+    didRestore,
+    // Enhanced submission result
+    submissionResult,
+    diagnosticData,
+    isDiagnosticEnabled
   } = useWheelOrderForm();
 
   const [recipientCount, setRecipientCount] = useState(0);
+  const [showPayloadViewer, setShowPayloadViewer] = useState(false);
   const { selectedPlant } = usePlant();
 
   // Auto-save now handled by the hook
@@ -128,6 +137,51 @@ export function WheelOrderForm() {
       {!user?.isAdmin && (
         <FormRestorationBanner isRestoring={isRestoring} lastSaved={lastSaved} />
       )}
+
+      {/* R2: Success Banner with Server Timestamp */}
+      {submissionResult?.success && submissionResult.serverTimestamp && submissionResult.orderId && (
+        <SuccessBanner
+          submittedAt={submissionResult.serverTimestamp}
+          orderId={submissionResult.orderId}
+          onViewPayload={() => setShowPayloadViewer(true)}
+          showPayloadButton={isDiagnosticEnabled}
+        />
+      )}
+
+      {/* R1: Diagnostic Mode Payload Viewer */}
+      {isDiagnosticEnabled && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium text-amber-800">Diagnostic Mode Active</h3>
+              <p className="text-sm text-amber-700">
+                VITE_WHEEL_DIAG is enabled. Submission details will be captured.
+              </p>
+            </div>
+            {diagnosticData.steps.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPayloadViewer(true)}
+              >
+                <FileText className="w-4 h-4 mr-1" />
+                View Payload
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Payload Viewer Modal */}
+      <PayloadViewer
+        isOpen={showPayloadViewer}
+        onClose={() => setShowPayloadViewer(false)}
+        preInsertPayload={diagnosticData.preInsertPayload}
+        insertResponse={diagnosticData.insertResponse}
+        steps={diagnosticData.steps}
+        serverTimestamp={diagnosticData.serverTimestamp}
+        orderId={diagnosticData.orderId}
+      />
       
       <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 flex items-center">
