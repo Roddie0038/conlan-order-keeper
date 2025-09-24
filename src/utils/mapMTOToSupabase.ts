@@ -16,23 +16,16 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     allFormData: JSON.stringify(form, null, 2)
   });
 
-  // FIRST: Scrub the input form data to remove any problematic fields
+  // SINGLE SCRUB: Remove problematic fields and normalize critical ones
   const cleanForm = scrubMTOFormData(form);
-
-  // Normalize casing_grade and tire_size to guarantee strings
-  const cg = Array.isArray(cleanForm.casingGrade)
-    ? cleanForm.casingGrade.map(g => g?.includes('Casing') ? g : `${g} Casing`).join(', ')
-    : (cleanForm.casingGrade || '');
-
-  const ts = cleanForm.tireSize || cleanForm.customTireSize || '';
 
   const mapped = {
     timestamp: new Date().toISOString(),
     name: cleanForm.name,
     store: normalizeStoreForSubmission(cleanForm.store),
     product_number: cleanForm.productNumber || cleanForm.product_number,
-    casing_grade: cg,
-    tire_size: ts,
+    casing_grade: cleanForm.casing_grade, // Already normalized in scrubber
+    tire_size: cleanForm.tire_size, // Already normalized in scrubber
     tread: cleanForm.tread || cleanForm.tireTreadNeeded,
     quantity: Number(cleanForm.quantity),
     notes: cleanForm.notes || '',
@@ -42,7 +35,7 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     type: 'MTO',
     status: 'open',
     status_updated_at: new Date().toISOString(),
-    description: cleanForm.description || `MTO - ${cleanForm.tireTreadNeeded || cleanForm.tread} - ${cleanForm.tireSize || cleanForm.customTireSize}`,
+    description: cleanForm.description || `MTO - ${cleanForm.tread || cleanForm.tireTreadNeeded} - ${cleanForm.tire_size}`,
     // Cross-plant ordering fields (Phase 2)
     ordering_store: cleanForm.ordering_store || null,
     ordering_plant: cleanForm.ordering_plant || null,
@@ -50,14 +43,21 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     // NOTE: Explicitly NOT including 'id' or 'order_id' - let Supabase auto-generate the UUID
   };
 
-  console.log("🔍 MTO MAPPING - Output mapped data:", {
+  // Add temporary logging before insert
+  console.log('[MTO FINAL BEFORE INSERT]', {
+    casing_grade: mapped.casing_grade,
+    tire_size: mapped.tire_size,
+    keys: Object.keys(mapped)
+  });
+
+  console.log("🔍 MTO MAPPING - Final mapped data:", {
     hasProductNumber: !!mapped.product_number,
     productNumber: mapped.product_number,
     hasStore: !!mapped.store,
     store: mapped.store,
-    mappedKeys: Object.keys(mapped),
-    hasOrderId: 'order_id' in mapped,
-    hasId: 'id' in mapped
+    casing_grade: mapped.casing_grade,
+    tire_size: mapped.tire_size,
+    mappedKeys: Object.keys(mapped)
   });
 
   // Defensive validation
@@ -69,14 +69,5 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     });
   }
 
-  // FINAL SCRUB: Apply the scrubber to the mapped data as well
-  const finalCleanMapped = scrubMTOFormData(mapped);
-
-  console.log("🔍 MTO MAPPING - Final clean data:", {
-    keys: Object.keys(finalCleanMapped),
-    hasAnyIdFields: Object.keys(finalCleanMapped).some(key => key.toLowerCase().includes('id')),
-    finalData: finalCleanMapped
-  });
-
-  return finalCleanMapped;
+  return mapped;
 }

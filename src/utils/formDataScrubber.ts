@@ -3,6 +3,8 @@
  * that might cause database conflicts
  */
 
+import { MTO_ALLOWED_FIELDS } from './allowedFields';
+
 const PROBLEMATIC_FIELDS = [
   'order_id', 'orderId', 'ORDER_ID', 'id', 'ID', '_id', 'uuid', 'UUID',
   'orderNumber', 'order_number', 'ORDER_NUMBER', 'order-id', 'Order_Id'
@@ -63,39 +65,48 @@ export function scrubFormData(data: any): any {
  * Specifically for MTO form data scrubbing before Supabase submission
  */
 export function scrubMTOFormData(formData: any): any {
-  console.log("🧹 MTO SCRUBBER - Starting comprehensive MTO form data scrub");
+  console.log("🧹 MTO SCRUBBER - Starting MTO form data scrub");
   
-  // Apply general scrubbing first
-  let clean = scrubFormData(formData);
-  
-  // Additional MTO-specific checks
-  if ('casing_grade' in clean && Array.isArray(clean.casing_grade) && clean.casing_grade.length === 0) {
-    // Convert empty array to undefined to avoid validation issues
-    clean.casing_grade = undefined;
-  }
-  
-  if ('tire_size' in clean && !clean.tire_size) {
-    clean.tire_size = undefined;
+  if (!formData || typeof formData !== 'object') {
+    return formData;
   }
 
-  // Final safety check - ensure no ID fields whatsoever
-  const finalCheck = Object.keys(clean).filter(key => 
-    key.toLowerCase().includes('id') ||
-    key.toLowerCase().includes('order')
-  );
+  // Preserve and normalize critical fields first
+  const cg = Array.isArray(formData.casingGrade)
+    ? formData.casingGrade.map(g => g?.includes('Casing') ? g : `${g} Casing`).join(', ')
+    : (formData.casingGrade ?? formData.casing_grade ?? '');
 
-  if (finalCheck.length > 0) {
-    console.warn("🚨 MTO SCRUBBER - ID-related fields found after scrubbing:", finalCheck);
-    // Only allow specific safe fields that contain 'id' but aren't problematic
-    const allowedFields = ['productNumber', 'product_number']; // These are safe
-    finalCheck.forEach(key => {
-      if (!allowedFields.some(allowed => key.toLowerCase().includes(allowed.toLowerCase()))) {
-        console.log(`🧹 MTO SCRUBBER - Removing suspicious field: ${key}`);
-        delete clean[key];
+  const ts = formData.tireSize ?? formData.customTireSize ?? formData.tire_size ?? '';
+
+  console.log("🧹 MTO SCRUBBER - Extracted critical fields:", {
+    casing_grade: cg,
+    tire_size: ts,
+    original_casingGrade: formData.casingGrade,
+    original_tireSize: formData.tireSize,
+    original_customTireSize: formData.customTireSize
+  });
+
+  // Remove only problematic ID fields, keep everything else
+  const scrubbed = { ...formData };
+  
+  PROBLEMATIC_FIELDS.forEach(field => {
+    Object.keys(scrubbed).forEach(key => {
+      if (key.toLowerCase() === field.toLowerCase()) {
+        console.log(`🧹 MTO SCRUBBER - Removing field: ${key} (value: ${scrubbed[key]})`);
+        delete scrubbed[key];
       }
     });
-  }
+  });
 
-  console.log("🧹 MTO SCRUBBER - Final clean data:", clean);
-  return clean;
+  // Ensure critical fields are preserved in snake_case
+  scrubbed.casing_grade = cg;
+  scrubbed.tire_size = ts;
+
+  console.log("🧹 MTO SCRUBBER - Final clean data:", {
+    keys: Object.keys(scrubbed),
+    casing_grade: scrubbed.casing_grade,
+    tire_size: scrubbed.tire_size
+  });
+
+  return scrubbed;
 }
