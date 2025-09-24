@@ -238,11 +238,15 @@ const handler = async (req: Request): Promise<Response> => {
           tread: payload.tread
         };
 
-        // Temporary debug logging for MTO fields
+        // Temporary debug logging for MTO fields - expanded
         if (order_type === 'mto') {
           console.log('[MTO INSERT]', {
             casing_grade: cg || payload.casing_grade,
             tire_size: ts || payload.tire_size,
+            store: payload.store_name || store_number,
+            plant: plant || store_number,
+            status: payload.status || 'open',
+            has_required_fields: !!(cg || payload.casing_grade) && !!(ts || payload.tire_size)
           });
         }
 

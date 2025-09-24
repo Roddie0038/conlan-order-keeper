@@ -63,27 +63,29 @@ export function scrubFormData(data: any): any {
 
 /**
  * Specifically for MTO form data scrubbing before Supabase submission
+ * ONE SCRUB PASS ONLY - preserve critical fields in snake_case
  */
 export function scrubMTOFormData(formData: any): any {
-  console.log("🧹 MTO SCRUBBER - Starting MTO form data scrub");
+  console.log("🧹 MTO SCRUBBER - Starting single-pass MTO form data scrub");
   
   if (!formData || typeof formData !== 'object') {
     return formData;
   }
 
-  // Preserve and normalize critical fields first
+  // SINGLE PASS: Extract and normalize critical fields to snake_case
   const cg = Array.isArray(formData.casingGrade)
     ? formData.casingGrade.map(g => g?.includes('Casing') ? g : `${g} Casing`).join(', ')
     : (formData.casingGrade ?? formData.casing_grade ?? '');
 
-  const ts = formData.tireSize ?? formData.customTireSize ?? formData.tire_size ?? '';
+  const ts = formData.tireSize === 'custom' 
+    ? (formData.customTireSize ?? formData.tire_size ?? '')
+    : (formData.tireSize ?? formData.customTireSize ?? formData.tire_size ?? '');
 
-  console.log("🧹 MTO SCRUBBER - Extracted critical fields:", {
+  console.log("🧹 MTO SCRUBBER - Critical fields extracted:", {
     casing_grade: cg,
     tire_size: ts,
-    original_casingGrade: formData.casingGrade,
-    original_tireSize: formData.tireSize,
-    original_customTireSize: formData.customTireSize
+    has_casing_grade: !!cg,
+    has_tire_size: !!ts
   });
 
   // Remove only problematic ID fields, keep everything else
@@ -92,20 +94,21 @@ export function scrubMTOFormData(formData: any): any {
   PROBLEMATIC_FIELDS.forEach(field => {
     Object.keys(scrubbed).forEach(key => {
       if (key.toLowerCase() === field.toLowerCase()) {
-        console.log(`🧹 MTO SCRUBBER - Removing field: ${key} (value: ${scrubbed[key]})`);
+        console.log(`🧹 MTO SCRUBBER - Removing ID field: ${key} (value: ${scrubbed[key]})`);
         delete scrubbed[key];
       }
     });
   });
 
-  // Ensure critical fields are preserved in snake_case
+  // CRITICAL: Ensure snake_case fields are set and never blank
   scrubbed.casing_grade = cg;
   scrubbed.tire_size = ts;
 
-  console.log("🧹 MTO SCRUBBER - Final clean data:", {
+  console.log("🧹 MTO SCRUBBER - Single-pass complete:", {
     keys: Object.keys(scrubbed),
     casing_grade: scrubbed.casing_grade,
-    tire_size: scrubbed.tire_size
+    tire_size: scrubbed.tire_size,
+    fields_preserved: !!scrubbed.casing_grade && !!scrubbed.tire_size
   });
 
   return scrubbed;

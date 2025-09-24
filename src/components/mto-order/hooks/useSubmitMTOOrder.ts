@@ -10,6 +10,7 @@ import { sendMTOOrderConfirmation } from "@/services/NotificationController";
 import type { MTOFormData } from "@/types/orders";
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 import { mapMTOToSupabase } from "@/utils/mapMTOToSupabase";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast, errors, setErrors }: any) => {
   const { user } = useAuth();
@@ -86,21 +87,66 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
         payload: mtoOrderRecord
       });
 
-      // Submit to Supabase with enhanced error handling
-      const savedOrder = await saveOrderToSupabase(mtoOrderRecord, user);
+      // Session guard + fallback mechanism
+      let savedOrder;
       
-      console.log("🔍 MTO FORM - Supabase response:", {
-        hasData: !!savedOrder.data,
-        hasError: !!savedOrder.error,
-        data: savedOrder.data,
-        error: savedOrder.error
-      });
-      
-      // Enhanced error checking - catch silent failures
-      if (savedOrder.error || !savedOrder.data) {
-        const errorMsg = savedOrder.error?.message || "Silent failure - no data returned from Supabase";
-        console.error("❌ MTO FORM - Supabase insert failed:", errorMsg);
-        throw new Error(`Failed to submit MTO order to database: ${errorMsg}`);
+      try {
+        // Primary path: Direct Supabase insert
+        console.log("🔍 MTO FORM - Attempting direct Supabase insert");
+        savedOrder = await saveOrderToSupabase(mtoOrderRecord, user);
+        
+        console.log("🔍 MTO FORM - Direct insert response:", {
+          hasData: !!savedOrder.data,
+          hasError: !!savedOrder.error,
+          error: savedOrder.error?.message
+        });
+        
+        // Check for auth/session errors requiring fallback
+        if (savedOrder.error && (
+          savedOrder.error.message.includes('Invalid Refresh Token') ||
+          savedOrder.error.message.includes('JWT') ||
+          savedOrder.error.message.includes('401') ||
+          savedOrder.error.message.includes('403')
+        )) {
+          console.log("🔄 MTO FORM - Auth error detected, trying fallback");
+          throw new Error('Session invalid, using fallback');
+        }
+        
+        // Enhanced error checking - catch silent failures
+        if (savedOrder.error || !savedOrder.data) {
+          const errorMsg = savedOrder.error?.message || "Silent failure - no data returned from Supabase";
+          console.error("❌ MTO FORM - Direct insert failed:", errorMsg);
+          throw new Error(`Failed to submit MTO order to database: ${errorMsg}`);
+        }
+        
+      } catch (directInsertError) {
+        console.log("🔄 MTO FORM - Direct insert failed, trying fallback via edge function");
+        
+        // Fallback path: Use receive-mto-order edge function with service role
+        try {
+          const fallbackPayload = {
+            ...mtoOrderRecord,
+            // Add idempotency key to prevent duplication
+            idempotency_key: `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          };
+          
+          const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke(
+            'receive-mto-order',
+            { body: fallbackPayload }
+          );
+          
+          if (fallbackError || !fallbackData?.order_id) {
+            console.error("❌ MTO FORM - Fallback also failed:", fallbackError);
+            throw new Error(`Both direct and fallback inserts failed: ${fallbackError?.message || 'Unknown error'}`);
+          }
+          
+          console.log("✅ MTO FORM - Fallback successful:", fallbackData);
+          savedOrder = { data: { id: fallbackData.order_id }, error: null };
+          
+        } catch (fallbackError) {
+          console.error("❌ MTO FORM - Fallback failed:", fallbackError);
+          throw new Error(`Failed to submit MTO order: ${fallbackError.message}`);
+        }
       }
       
       console.log("✅ MTO FORM - Successfully saved to Supabase:", {

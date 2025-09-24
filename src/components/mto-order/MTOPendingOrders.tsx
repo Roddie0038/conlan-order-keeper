@@ -1,42 +1,36 @@
 
-import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { ExportButton } from "@/components/ExportButton";
 import { Calendar, Package, Ruler, Hash, Clock, Trash } from "lucide-react";
+import { useFetchMTOOrders } from "@/hooks/useFetchMTOOrders";
 
 interface MTOOrder {
   id: string;
   timestamp: string;
   store: string;
   name: string;
-  productNumber: string;
-  casingGrade: string;
-  tireSize: string;
-  tireTreadNeeded: string;
-  quantity: string;
-  scheduleArrival: string;
+  product_number: string; // Updated to match Supabase schema
+  casing_grade: string;   // Updated to match Supabase schema
+  tire_size: string;      // Updated to match Supabase schema
+  tread: string;          // Updated to match Supabase schema
+  quantity: number;       // Updated to match Supabase schema
   notes: string;
+  plant: string;
+  status: string;
 }
 
 export const MTOPendingOrders = () => {
-  const [orders, setOrders] = useState<MTOOrder[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
-
-  useEffect(() => {
-    const loadOrders = () => {
-      const savedOrders = localStorage.getItem('mtoOrders');
-      if (savedOrders) {
-        setOrders(JSON.parse(savedOrders));
-      }
-    };
-    loadOrders();
-    window.addEventListener('storage', loadOrders);
-    return () => window.removeEventListener('storage', loadOrders);
-  }, []);
+  
+  // Use Supabase hook instead of localStorage
+  const { orders: mtoOrders, loading, error, refreshOrders } = useFetchMTOOrders();
+  
+  // Filter only open orders for this component
+  const orders = mtoOrders.filter(order => order.status === 'open');
 
   const handleDelete = (orderId: string) => {
     if (!user?.isAdmin) {
@@ -47,12 +41,13 @@ export const MTOPendingOrders = () => {
       });
       return;
     }
-    const updatedOrders = orders.filter(order => order.id !== orderId);
-    localStorage.setItem('mtoOrders', JSON.stringify(updatedOrders));
-    setOrders(updatedOrders);
+    
+    // TODO: Implement Supabase delete when needed
+    // For now, just show message that this would delete from database
     toast({
-      title: "Order Deleted",
-      description: "The order has been successfully deleted."
+      title: "Delete Functionality",
+      description: "Delete functionality requires database implementation. Order will remain visible.",
+      variant: "destructive"
     });
   };
 
@@ -109,7 +104,7 @@ export const MTOPendingOrders = () => {
                 <TableHead className="font-semibold text-slate-700 text-center py-3">
                   <span className="flex items-center justify-center gap-1.5">
                     <Clock className="h-4 w-4 text-cyan-600" />
-                    <span>Arrival</span>
+                    <span>Plant (Status)</span>
                   </span>
                 </TableHead>
                 {user?.isAdmin && (
@@ -120,13 +115,31 @@ export const MTOPendingOrders = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.length === 0 ? (
+              {loading ? (
                 <TableRow>
                   <TableCell 
                     colSpan={user?.isAdmin ? 7 : 6} 
                     className="text-center py-8 text-slate-500 italic"
                   >
-                    No pending orders found
+                    Loading MTO orders...
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell 
+                    colSpan={user?.isAdmin ? 7 : 6} 
+                    className="text-center py-8 text-red-500 italic"
+                  >
+                    Error loading orders: {error.message}
+                  </TableCell>
+                </TableRow>
+              ) : orders.length === 0 ? (
+                <TableRow>
+                  <TableCell 
+                    colSpan={user?.isAdmin ? 7 : 6} 
+                    className="text-center py-8 text-slate-500 italic"
+                  >
+                    No open MTO orders found for your plant
                   </TableCell>
                 </TableRow>
               ) : (
@@ -137,12 +150,16 @@ export const MTOPendingOrders = () => {
                       index % 2 === 0 ? 'bg-slate-50' : 'bg-white'
                     }`}
                   >
-                    <TableCell className="text-center text-slate-700">{order.timestamp}</TableCell>
+                    <TableCell className="text-center text-slate-700">
+                      {new Date(order.timestamp).toLocaleDateString()}
+                    </TableCell>
                     <TableCell className="text-center text-slate-700">{order.store}</TableCell>
-                    <TableCell className="text-center text-slate-700">{order.productNumber}</TableCell>
-                    <TableCell className="text-center text-slate-700">{order.tireSize}</TableCell>
+                    <TableCell className="text-center text-slate-700">{order.product_number}</TableCell>
+                    <TableCell className="text-center text-slate-700">{order.tire_size}</TableCell>
                     <TableCell className="text-center text-slate-700">{order.quantity}</TableCell>
-                    <TableCell className="text-center text-slate-700">{order.scheduleArrival}</TableCell>
+                    <TableCell className="text-center text-slate-700">
+                      {order.plant} ({order.status})
+                    </TableCell>
                     {user?.isAdmin && (
                       <TableCell className="text-center">
                         <Button 
@@ -156,7 +173,7 @@ export const MTOPendingOrders = () => {
                         </Button>
                       </TableCell>
                     )}
-                  </TableRow>
+                  </TableRow>  
                 ))
               )}
             </TableBody>

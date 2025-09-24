@@ -77,10 +77,28 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("🔐 OT-NOTIFY - Forwarding to OT controller:", otControllerUrl);
 
+    // Normalize payload structure for notification-controller
+    const normalizedPayload = {
+      order_type: requestData.email_type, // Map email_type to order_type
+      store_number: requestData.store_number,
+      plant: requestData.plant_code,
+      payload: {
+        ...requestData.payload,
+        // Ensure MTO fields are present in snake_case
+        casing_grade: requestData.payload?.casing_grade || requestData.payload?.casingGrade,
+        tire_size: requestData.payload?.tire_size || requestData.payload?.tireSize,
+        store: requestData.payload?.store,
+        plant: requestData.plant_code || requestData.payload?.plant,
+        status: requestData.payload?.status || 'open'
+      },
+      idempotency_key: requestData.idempotency_key,
+      source: 'ot-notify-proxy'
+    };
+
     const otResponse = await fetch(otControllerUrl, {
       method: "POST",
       headers: forwardHeaders,
-      body: JSON.stringify(requestData),
+      body: JSON.stringify(normalizedPayload),
     });
 
     const otResponseData = await otResponse.json();

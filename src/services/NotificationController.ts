@@ -272,7 +272,7 @@ class NotificationController {
   }
 
   /**
-   * Log notification attempt to database
+   * Log notification attempt to database - MTO SKIP CLIENT LOGGING
    */
   private async logNotificationAttempt(
     orderId: string,
@@ -282,6 +282,12 @@ class NotificationController {
     orderData: OrderDataInput,
     errorMessage?: string
   ): Promise<void> {
+    
+    // SKIP CLIENT-SIDE LOGGING FOR MTO - Let edge functions handle all logging
+    if (emailType === 'mto') {
+      console.log("🚫 NOTIFICATION CONTROLLER - Skipping client-side logging for MTO (edge function handles it)");
+      return;
+    }
     
     try {
       for (const recipient of recipients) {
