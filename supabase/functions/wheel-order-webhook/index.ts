@@ -1,7 +1,11 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 // Google Apps Script webhook URL for wheel orders
 const WHEEL_ORDERS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyHgFTW0pDGhZOHwUjW5zeqWebs6pXH53Ud8FFC-87bMxCNEf406j0Eu8dQvo_zAhJUEQ/exec";
@@ -67,22 +71,27 @@ serve(async (req) => {
         try {
           console.log("📧 WHEEL WEBHOOK - Triggering email notifications for store:", storeNumber);
           
-          // Call the wheel notification function
-          const emailResponse = await fetch(
-            `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/wheel-notification`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
-              },
-              body: JSON.stringify({
-                wheelData: enhancedOrderData,
-                orderId: enhancedOrderData.id || crypto.randomUUID(),
-                recipients: [] // Will be populated by the contact system in wheel-notification
-              })
-            }
-          );
+          // Call the wheel notification function with timeout
+          const emailResponse = await Promise.race([
+            fetch(
+              `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/wheel-notification`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
+                },
+                body: JSON.stringify({
+                  wheelData: enhancedOrderData,
+                  orderId: enhancedOrderData.id || crypto.randomUUID(),
+                  recipients: [] // Will be populated by the contact system in wheel-notification
+                })
+              }
+            ),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Email notification timeout')), 5000)
+            )
+          ] as Promise<Response>[]);
           
           if (emailResponse.ok) {
             console.log("✅ WHEEL WEBHOOK - Email notification sent successfully");
