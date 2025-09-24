@@ -9,7 +9,7 @@ import {
   NeoSelectTrigger,
   NeoSelectValue,
 } from "@/components/ui/NeoSelect";
-import { Label } from "@/components/ui/label"; // kept for consistency; used for the field label
+import { Label } from "@/components/ui/label";
 
 export const PLANT_OPTIONS = [
   { value: "Grand Prairie 097", label: "Grand Prairie 097" },
@@ -32,51 +32,59 @@ export function MandatoryPlantSelector({
   error,
   disabled = false,
 }: MandatoryPlantSelectorProps) {
+  // High-contrast trigger that works on LIGHT backgrounds (white card) and still looks good in dark
   const triggerBase =
-    "w-full h-11 rounded-xl border transition shadow-sm " +
-    // backgrounds / text made explicit for dark or image backgrounds
-    "bg-slate-900/90 text-slate-100 " +
-    // borders & hover
-    "border-slate-500/60 hover:bg-slate-900 " +
-    // placeholder & value text
-    "[&>*]:text-slate-100 placeholder:text-slate-300 " +
-    // focus ring
-    "focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 " +
-    // disabled
-    "disabled:opacity-70 disabled:cursor-not-allowed";
+    [
+      "w-full h-11 rounded-xl border shadow-sm transition",
+      // Light default: crisp text on white, with clear border
+      "bg-white text-slate-900 border-slate-300",
+      "placeholder:text-slate-600",
+      "hover:border-slate-400",
+      // Focus ring for accessibility / visibility
+      "focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500",
+      // Dark mode fallback if your page flips themes
+      "dark:bg-slate-900 dark:text-slate-100 dark:border-slate-600",
+      "dark:hover:border-slate-500 dark:placeholder:text-slate-300",
+      "dark:focus:ring-cyan-400 dark:focus:border-cyan-400",
+      // Disabled state
+      "disabled:opacity-70 disabled:cursor-not-allowed",
+    ].join(" ");
 
   const triggerError = error
-    ? " border-red-500 focus:ring-red-400 focus:border-red-500"
+    ? " border-red-500 focus:ring-red-500 focus:border-red-500 dark:border-red-500 dark:focus:ring-red-400"
     : "";
+
+  const helperId = "destination-plant-helper";
+  const errorId = "destination-plant-error";
 
   return (
     <section className="space-y-4">
-      {/* Section header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-slate-100">
+      {/* Section title */}
+      <div className="flex items-center gap-2">
+        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
           Destination Plant
         </h3>
       </div>
 
-      {/* High-visibility warning */}
-      <div className="flex items-start gap-3 p-4 rounded-xl border bg-amber-900/40 border-amber-500/50">
-        <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-300 flex-shrink-0" />
-        <p className="text-sm leading-5 text-amber-100">
-          <span className="font-semibold">Required:</span> Select the plant this
-          order should be routed to. If you’re unsure, contact your warehouse
-          manager.
+      {/* High-visibility warning bar */}
+      <div className="flex items-start gap-3 p-4 rounded-xl border bg-amber-100 border-amber-300 text-amber-900 shadow-sm
+                      dark:bg-amber-900/40 dark:border-amber-500/50 dark:text-amber-100">
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-300" />
+        <p className="text-sm leading-5">
+          <span className="font-semibold">Required:</span> Select the plant this order
+          should be routed to. If you’re unsure, contact your warehouse manager.
         </p>
       </div>
 
       {/* Field label */}
       <Label
         htmlFor="destination-plant"
-        className="text-sm font-medium text-slate-200"
+        className="text-sm font-medium text-slate-800 dark:text-slate-200"
       >
         Select destination plant
       </Label>
 
-      {/* Select control with strong contrast */}
+      {/* Select control */}
       <NeoSelect
         value={value}
         onValueChange={onChange}
@@ -85,36 +93,40 @@ export function MandatoryPlantSelector({
         <NeoSelectTrigger
           id="destination-plant"
           aria-invalid={!!error}
+          aria-describedby={error ? errorId : helperId}
           className={triggerBase + triggerError}
         >
+          {/* Ensure placeholder and value are always visible */}
           <NeoSelectValue
             placeholder="Choose a plant…"
-            // ensure placeholder has contrast
-            className="text-slate-300"
+            className="text-slate-900 placeholder:text-slate-600 dark:text-slate-100 dark:placeholder:text-slate-300"
           />
         </NeoSelectTrigger>
 
         <NeoSelectContent
-          className="rounded-xl border border-slate-600/60 bg-slate-900/95 backdrop-blur-md
-                     text-slate-100 shadow-lg"
+          className="rounded-xl border bg-white text-slate-900 border-slate-200 shadow-lg
+                     dark:bg-slate-900 dark:text-slate-100 dark:border-slate-600"
         >
-          {PLANT_OPTIONS.map((plant) => (
+          {PLANT_OPTIONS.map(({ value, label }) => (
             <NeoSelectItem
-              key={plant.value}
-              value={plant.value}
-              className="data-[highlighted]:bg-slate-800 data-[highlighted]:text-slate-100"
+              key={value}
+              value={value}
+              className="data-[highlighted]:bg-slate-100 data-[highlighted]:text-slate-900
+                         dark:data-[highlighted]:bg-slate-800 dark:data-[highlighted]:text-slate-100"
             >
-              {plant.label}
+              {label}
             </NeoSelectItem>
           ))}
         </NeoSelectContent>
       </NeoSelect>
 
-      {/* Helper / error text */}
+      {/* Helper / error text with strong contrast */}
       {error ? (
-        <p className="text-sm font-medium text-red-400">{error}</p>
+        <p id={errorId} className="text-sm font-medium text-red-600 dark:text-red-400">
+          {error}
+        </p>
       ) : (
-        <p className="text-xs text-slate-300">
+        <p id={helperId} className="text-xs text-slate-600 dark:text-slate-300">
           This selection controls routing and notifications.
         </p>
       )}
