@@ -209,6 +209,14 @@ const handler = async (req: Request): Promise<Response> => {
           tread: payload.tread
         };
 
+        // Temporary debug logging for MTO fields
+        if (order_type === 'mto') {
+          console.log('[MTO INSERT]', {
+            casing_grade: payload.casing_grade,
+            tire_size: payload.tire_size,
+          });
+        }
+
         console.log(`Sending notification to ${recipient.recipient_email} (${recipient.recipient_role})`);
 
         // Call the ordering-confirmation-email function

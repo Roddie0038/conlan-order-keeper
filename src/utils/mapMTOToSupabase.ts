@@ -25,11 +25,10 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     store: normalizeStoreForSubmission(cleanForm.store),
     product_number: cleanForm.productNumber || cleanForm.product_number,
     // Ensure casing_grade is formatted consistently (e.g., "A Casing", "B Casing", "C Casing")
-    casing_grade: Array.isArray(cleanForm.casingGrade) ? 
-      cleanForm.casingGrade.map(grade => grade.includes('Casing') ? grade : `${grade} Casing`).join(', ') :
-      (cleanForm.casingGrade && !cleanForm.casingGrade.includes('Casing') ? 
-        `${cleanForm.casingGrade} Casing` : cleanForm.casingGrade),
-    tire_size: cleanForm.tireSize || cleanForm.customTireSize,
+    casing_grade: Array.isArray(cleanForm.casingGrade)
+      ? cleanForm.casingGrade.map(g => g.includes('Casing') ? g : `${g} Casing`).join(', ')
+      : cleanForm.casingGrade || '',
+    tire_size: cleanForm.tireSize || cleanForm.customTireSize || '',
     tread: cleanForm.tread || cleanForm.tireTreadNeeded,
     quantity: Number(cleanForm.quantity),
     notes: cleanForm.notes || '',
