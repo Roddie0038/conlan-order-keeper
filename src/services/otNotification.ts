@@ -117,6 +117,11 @@ class OTNotificationService {
       dry_run: options.dry_run || false,
       payload: {
         order_id: orderId,
+        // Ensure MTO-specific fields are included
+        casing_grade: orderData.casing_grade || orderData.casingGrade,
+        tire_size: orderData.tire_size || orderData.tireSize,
+        tread: orderData.tread || orderData.tireTreadNeeded,
+        product_number: orderData.product_number || orderData.productNumber,
         ...orderData
       }
     };

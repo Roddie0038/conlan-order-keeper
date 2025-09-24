@@ -31,6 +31,10 @@ interface NotificationRequest {
     description?: string;
     notes?: string;
     timestamp?: string;
+    // MTO-specific fields
+    casing_grade?: string;
+    tire_size?: string;
+    tread?: string;
     [key: string]: any;
   };
   idempotency_key?: string;
@@ -198,7 +202,11 @@ const handler = async (req: Request): Promise<Response> => {
           quantity: payload.quantity,
           description: payload.description,
           notes: payload.notes,
-          timestamp: payload.timestamp || new Date().toISOString()
+          timestamp: payload.timestamp || new Date().toISOString(),
+          // MTO-specific fields
+          casing_grade: payload.casing_grade,
+          tire_size: payload.tire_size,
+          tread: payload.tread
         };
 
         console.log(`Sending notification to ${recipient.recipient_email} (${recipient.recipient_role})`);

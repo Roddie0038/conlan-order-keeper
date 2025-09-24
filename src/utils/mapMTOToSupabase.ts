@@ -24,8 +24,12 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     name: cleanForm.name,
     store: normalizeStoreForSubmission(cleanForm.store),
     product_number: cleanForm.productNumber || cleanForm.product_number,
-    casing_grade: cleanForm.casingGrade,
-    tire_size: cleanForm.tireSize,
+    // Ensure casing_grade is formatted consistently (e.g., "A Casing", "B Casing", "C Casing")
+    casing_grade: Array.isArray(cleanForm.casingGrade) ? 
+      cleanForm.casingGrade.map(grade => grade.includes('Casing') ? grade : `${grade} Casing`).join(', ') :
+      (cleanForm.casingGrade && !cleanForm.casingGrade.includes('Casing') ? 
+        `${cleanForm.casingGrade} Casing` : cleanForm.casingGrade),
+    tire_size: cleanForm.tireSize || cleanForm.customTireSize,
     tread: cleanForm.tread || cleanForm.tireTreadNeeded,
     quantity: Number(cleanForm.quantity),
     notes: cleanForm.notes || '',
@@ -35,7 +39,7 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     type: 'MTO',
     status: 'open',
     status_updated_at: new Date().toISOString(),
-    description: cleanForm.description || `MTO - ${cleanForm.tireTreadNeeded || cleanForm.tread} - ${cleanForm.tireSize}`,
+    description: cleanForm.description || `MTO - ${cleanForm.tireTreadNeeded || cleanForm.tread} - ${cleanForm.tireSize || cleanForm.customTireSize}`,
     // Cross-plant ordering fields (Phase 2)
     ordering_store: cleanForm.ordering_store || null,
     ordering_plant: cleanForm.ordering_plant || null,
