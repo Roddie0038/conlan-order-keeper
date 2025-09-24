@@ -74,7 +74,7 @@ export function scrubMTOFormData(formData: any): any {
 
   // SINGLE PASS: Extract and normalize critical fields to snake_case
   const cg = Array.isArray(formData.casingGrade)
-    ? formData.casingGrade.map(g => g?.includes('Casing') ? g : `${g} Casing`).join(', ')
+    ? formData.casingGrade.map(g => /casing$/i.test(g ?? '') ? g : `${g} Casing`).join(', ')
     : (formData.casingGrade ?? formData.casing_grade ?? '');
 
   const ts = formData.tireSize === 'custom' 

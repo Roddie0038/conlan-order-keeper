@@ -74,6 +74,25 @@ export const MTOFormFields = ({
         />
       )}
 
+      {/* Assigned Store field - appears when Store is "Unassigned" */}
+      {(formData.store === "Unassigned" || (elevated && !formData.store)) && (
+        <div className="space-y-2">
+          <StoreSelector
+            label="Assigned Store (Required)"
+            value={formData.assignedStore || ''}
+            onChange={(value) => {
+              const normalized = normalizeStoreName(value) || '';
+              onChange("assignedStore", normalized);
+            }}
+            filterPlant={null}
+            placeholder="Select assigned store..."
+          />
+          <p className="text-sm text-amber-600">
+            When ordering as "Unassigned", you must specify which store this order is for.
+          </p>
+        </div>
+      )}
+
       <FormField 
         label="Timestamp" 
         value={formData.timestamp} 

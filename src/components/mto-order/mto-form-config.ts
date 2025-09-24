@@ -14,6 +14,7 @@ export interface MTOFormData {
   notes: string;
   managerEmail: string;
   destinationPlant: string;
+  assignedStore?: string; // For when store is "Unassigned"
   // Cross-plant ordering fields (Phase 2)
   ordering_store?: string;
   ordering_plant?: string;
@@ -26,9 +27,9 @@ export const stores = [
 ];
 
 export const casingGrades = [
-  { name: "Casing A", value: "casingA" },
-  { name: "Casing B", value: "casingB" },
-  { name: "Casing C", value: "casingC" },
+  { name: "A Casing", value: "A" },
+  { name: "B Casing", value: "B" },
+  { name: "C Casing", value: "C" },
 ];
 
 export const tireSizes = [

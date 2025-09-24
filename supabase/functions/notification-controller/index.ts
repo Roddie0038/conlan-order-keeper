@@ -90,11 +90,18 @@ const handler = async (req: Request): Promise<Response> => {
       body?.orderRecord?.tireSize ??
       body?.payload?.tireSize ?? '';
 
-    console.log('[MTO PAYLOAD]', {
+    console.log('[MTO INSERT]', {
       at: 'notification-controller',
       order_id: body?.order_id ?? body?.orderRecord?.order_id ?? body?.payload?.order_id ?? null,
       casing_grade: cg,
       tire_size: ts,
+      store: body?.payload?.store || body?.store,
+      store_number: body?.payload?.store_number || body?.store_number,
+      plant: body?.payload?.plant || body?.plant,
+      ordering_plant: body?.payload?.ordering_plant,
+      destination_plant: body?.payload?.destination_plant,
+      status: body?.payload?.status || body?.status,
+      order_type: body?.order_type,
       keys: Object.keys(body || {})
     });
 

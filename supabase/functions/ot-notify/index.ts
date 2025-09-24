@@ -27,13 +27,27 @@ const handler = async (req: Request): Promise<Response> => {
     // Parse request body
     const requestData: OTNotifyRequest = await req.json();
     
-    // Validate required fields
-    if (!requestData.email_type || !requestData.idempotency_key) {
-      throw new Error("email_type and idempotency_key are required");
+    // Validate required fields with specific error messages
+    const missingFields: string[] = [];
+    
+    if (!requestData.email_type) missingFields.push("email_type");
+    if (!requestData.idempotency_key) missingFields.push("idempotency_key");
+    if (!requestData.store_number && !requestData.plant_code) {
+      missingFields.push("store_number or plant_code");
     }
 
-    if (!requestData.store_number && !requestData.plant_code) {
-      throw new Error("Either store_number or plant_code must be provided");
+    if (missingFields.length > 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: `Missing required fields: ${missingFields.join(', ')}`,
+          source: "ot-notify-proxy"
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     // Ensure proper padding for store numbers and plant codes
@@ -84,12 +98,22 @@ const handler = async (req: Request): Promise<Response> => {
       plant: requestData.plant_code,
       payload: {
         ...requestData.payload,
-        // Ensure MTO fields are present in snake_case
+        // Ensure MTO fields are present in snake_case with proper formatting
+        store: requestData.payload?.store || `Grand Prairie 0${requestData.store_number}`,
+        store_number: requestData.store_number,
+        plant: requestData.plant_code || requestData.payload?.plant || 'Grand Prairie 097',
+        ordering_plant: requestData.payload?.ordering_plant || requestData.plant_code || 'Grand Prairie 097',
+        destination_plant: requestData.payload?.destination_plant || requestData.plant_code || 'Grand Prairie 097',
         casing_grade: requestData.payload?.casing_grade || requestData.payload?.casingGrade,
         tire_size: requestData.payload?.tire_size || requestData.payload?.tireSize,
-        store: requestData.payload?.store,
-        plant: requestData.plant_code || requestData.payload?.plant,
-        status: requestData.payload?.status || 'open'
+        tread: requestData.payload?.tread || requestData.payload?.tireTreadNeeded,
+        quantity: requestData.payload?.quantity,
+        notes: requestData.payload?.notes || '',
+        submitted_by_name: requestData.payload?.submitted_by_name || requestData.payload?.name,
+        submitted_by_email: requestData.payload?.submitted_by_email || requestData.payload?.email,
+        status: requestData.payload?.status || 'open',
+        order_type: 'mto',
+        type: 'MTO'
       },
       idempotency_key: requestData.idempotency_key,
       source: 'ot-notify-proxy'

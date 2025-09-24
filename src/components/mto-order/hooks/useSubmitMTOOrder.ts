@@ -22,6 +22,9 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast,
     const newErrors: Record<string, string> = {};
     
     if (!formData.store) newErrors.store = "Store is required";
+    if (formData.store === "Unassigned" && !formData.assignedStore) {
+      newErrors.assignedStore = "Assigned Store is required when ordering as Unassigned";
+    }
     if (!formData.name) newErrors.name = "Name is required";
     if (!formData.productNumber || formData.productNumber.trim() === '') newErrors.productNumber = "Product number is required";
     if (!formData.tireSize) newErrors.tireSize = "Tire size is required";
