@@ -19,16 +19,20 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
   // FIRST: Scrub the input form data to remove any problematic fields
   const cleanForm = scrubMTOFormData(form);
 
+  // Normalize casing_grade and tire_size to guarantee strings
+  const cg = Array.isArray(cleanForm.casingGrade)
+    ? cleanForm.casingGrade.map(g => g?.includes('Casing') ? g : `${g} Casing`).join(', ')
+    : (cleanForm.casingGrade || '');
+
+  const ts = cleanForm.tireSize || cleanForm.customTireSize || '';
+
   const mapped = {
     timestamp: new Date().toISOString(),
     name: cleanForm.name,
     store: normalizeStoreForSubmission(cleanForm.store),
     product_number: cleanForm.productNumber || cleanForm.product_number,
-    // Ensure casing_grade is formatted consistently (e.g., "A Casing", "B Casing", "C Casing")
-    casing_grade: Array.isArray(cleanForm.casingGrade)
-      ? cleanForm.casingGrade.map(g => g.includes('Casing') ? g : `${g} Casing`).join(', ')
-      : cleanForm.casingGrade || '',
-    tire_size: cleanForm.tireSize || cleanForm.customTireSize || '',
+    casing_grade: cg,
+    tire_size: ts,
     tread: cleanForm.tread || cleanForm.tireTreadNeeded,
     quantity: Number(cleanForm.quantity),
     notes: cleanForm.notes || '',

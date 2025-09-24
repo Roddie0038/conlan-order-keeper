@@ -23,7 +23,28 @@ const norm = (s?:string)=> s ? (MAP[s.padStart(3,"0")] ?? s) : undefined;
 serve(async (req)=>{
   if (req.method!=="POST") return new Response('{"error":"Method not allowed"}',{status:405});
   try {
-    const p = (await req.json()) as MtoEvent;
+    const body = await req.json().catch(() => ({}));
+    
+    const cg = body?.casing_grade ??
+      body?.orderRecord?.casing_grade ??
+      body?.casingGrade ??
+      body?.orderRecord?.casingGrade ?? '';
+
+    const ts = body?.tire_size ??
+      body?.orderRecord?.tire_size ??
+      body?.tireSize ??
+      body?.orderRecord?.tireSize ?? '';
+
+    console.log('[MTO PAYLOAD]', {
+      at: 'mto-notification',
+      order_id: body?.order_id ?? body?.orderRecord?.order_id ?? null,
+      casing_grade: cg,
+      tire_size: ts,
+      keys: Object.keys(body || {})
+    });
+
+    const normalized = { ...body, casing_grade: cg, tire_size: ts };
+    const p = normalized as MtoEvent;
     if (!CONTROLLER) return new Response('{"error":"NOTIFICATION_CONTROLLER_URL missing"}',{status:500});
     const body = {
       type: "mto_notification",

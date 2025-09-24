@@ -23,8 +23,28 @@ serve(async (req) => {
   }
 
   try {
-    const payload = await req.json();
-    console.log('🔍 RECEIVE MTO - Incoming payload:', payload);
+    const body = await req.json().catch(() => ({}));
+
+    const cg = body?.casing_grade ??
+      body?.orderRecord?.casing_grade ??
+      body?.casingGrade ??
+      body?.orderRecord?.casingGrade ?? '';
+
+    const ts = body?.tire_size ??
+      body?.orderRecord?.tire_size ??
+      body?.tireSize ??
+      body?.orderRecord?.tireSize ?? '';
+
+    console.log('[MTO PAYLOAD]', {
+      at: 'receive-mto-order',
+      order_id: body?.order_id ?? body?.orderRecord?.order_id ?? null,
+      casing_grade: cg,
+      tire_size: ts,
+      keys: Object.keys(body || {})
+    });
+
+    const normalized = { ...body, casing_grade: cg, tire_size: ts };
+    console.log('🔍 RECEIVE MTO - Incoming payload:', normalized);
 
     // Create Supabase client with service role key for secure operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -54,21 +74,21 @@ serve(async (req) => {
 
     // Transform the payload to match Supabase schema
     const mtoOrderData = {
-      timestamp: payload.timestamp || new Date().toISOString(),
-      name: payload.contact || '',
-      store: normalizeStore(payload.store || ''),
-      product_number: payload.description || '',
-      tire_size: payload.tire_type || '',
-      quantity: parseInt(payload.quantity?.toString()) || 0,
-      email: payload.email || '',
+      timestamp: normalized.timestamp || new Date().toISOString(),
+      name: normalized.contact || normalized.name || '',
+      store: normalizeStore(normalized.store || ''),
+      product_number: normalized.description || normalized.product_number || '',
+      tire_size: ts || normalized.tire_type || '',
+      quantity: parseInt(normalized.quantity?.toString()) || 0,
+      email: normalized.email || '',
       plant: 'Grand Prairie 097', // Default plant
       order_type: 'MTO',
       type: 'MTO',
       status: 'open',
       status_updated_at: new Date().toISOString(),
-      tread: payload.description || '',
-      casing_grade: 'Grade 1', // Default casing grade
-      description: `MTO - ${payload.description || ''} - ${payload.tire_type || ''}`
+      tread: normalized.description || normalized.tread || '',
+      casing_grade: cg || 'Grade 1',
+      description: `MTO - ${normalized.description || ''} - ${ts || normalized.tire_type || ''}`
     };
 
     console.log('🔍 RECEIVE MTO - Mapped order data:', mtoOrderData);

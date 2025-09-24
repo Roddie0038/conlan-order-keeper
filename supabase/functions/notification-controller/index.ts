@@ -74,7 +74,36 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { order_type, store_number, plant, payload, idempotency_key, source }: NotificationRequest = await req.json();
+    const body = await req.json().catch(() => ({}));
+
+    const cg = body?.casing_grade ??
+      body?.orderRecord?.casing_grade ??
+      body?.payload?.casing_grade ??
+      body?.casingGrade ??
+      body?.orderRecord?.casingGrade ??
+      body?.payload?.casingGrade ?? '';
+
+    const ts = body?.tire_size ??
+      body?.orderRecord?.tire_size ??
+      body?.payload?.tire_size ??
+      body?.tireSize ??
+      body?.orderRecord?.tireSize ??
+      body?.payload?.tireSize ?? '';
+
+    console.log('[MTO PAYLOAD]', {
+      at: 'notification-controller',
+      order_id: body?.order_id ?? body?.orderRecord?.order_id ?? body?.payload?.order_id ?? null,
+      casing_grade: cg,
+      tire_size: ts,
+      keys: Object.keys(body || {})
+    });
+
+    const normalized = { ...body, casing_grade: cg, tire_size: ts };
+    if (normalized.payload) {
+      normalized.payload = { ...normalized.payload, casing_grade: cg, tire_size: ts };
+    }
+
+    const { order_type, store_number, plant, payload, idempotency_key, source }: NotificationRequest = normalized;
 
     console.log('Notification controller invoked:', { 
       order_type, 
@@ -203,17 +232,17 @@ const handler = async (req: Request): Promise<Response> => {
           description: payload.description,
           notes: payload.notes,
           timestamp: payload.timestamp || new Date().toISOString(),
-          // MTO-specific fields
-          casing_grade: payload.casing_grade,
-          tire_size: payload.tire_size,
+          // MTO-specific fields - use normalized values
+          casing_grade: cg || payload.casing_grade,
+          tire_size: ts || payload.tire_size,
           tread: payload.tread
         };
 
         // Temporary debug logging for MTO fields
         if (order_type === 'mto') {
           console.log('[MTO INSERT]', {
-            casing_grade: payload.casing_grade,
-            tire_size: payload.tire_size,
+            casing_grade: cg || payload.casing_grade,
+            tire_size: ts || payload.tire_size,
           });
         }
 
