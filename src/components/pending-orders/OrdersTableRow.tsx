@@ -22,7 +22,16 @@ export function OrdersTableRow({ order, onClick }: OrdersTableRowProps) {
       onClick={onClick} 
       className={onClick ? "cursor-pointer hover:bg-slate-700/50" : ""}
     >
-      <TableCell>{order.timestamp}</TableCell>
+      <TableCell>
+        {order.timestamp ? new Date(order.timestamp).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric', 
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        }) : 'N/A'}
+      </TableCell>
       <TableCell>{order.name || 'N/A'}</TableCell>
       <TableCell>{order.store || 'N/A'}</TableCell>
       <TableCell>{order.product_number || 'N/A'}</TableCell>

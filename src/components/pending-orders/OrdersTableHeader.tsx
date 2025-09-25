@@ -36,7 +36,7 @@ export function OrdersTableHeader({
           className="cursor-pointer"
           onClick={() => handleSort("timestamp")}
         >
-          Timestamp {getSortIndicator("timestamp")}
+          Submitted {getSortIndicator("timestamp")}
         </TableHead>
         <TableHead
           className="cursor-pointer"

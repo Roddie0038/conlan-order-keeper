@@ -122,7 +122,14 @@ export function OrderDetailView({ order, onClose, isAdmin = false, onStatusChang
                   <p><span className="font-semibold">Store:</span> {order.store}</p>
                   <p><span className="font-semibold">Contact:</span> {order.name || 'N/A'}</p>
                   <p><span className="font-semibold">Email:</span> {order.email || 'N/A'}</p>
-                  <p><span className="font-semibold">Date:</span> {new Date(order.timestamp).toLocaleString()}</p>
+                  <p><span className="font-semibold">Submitted:</span> {new Date(order.timestamp).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    timeZoneName: 'short'
+                  })}</p>
                 </div>
               </div>
               
@@ -169,9 +176,12 @@ export function OrderDetailView({ order, onClose, isAdmin = false, onStatusChang
               <div>
                 <h3 className="font-medium text-gray-700">Wheel Details</h3>
                 <div className="mt-2 space-y-1 text-sm">
-                  <p><span className="font-semibold">Wheel Size:</span> {order.wheel_size || 'N/A'}</p>
-                  <p><span className="font-semibold">Wheel Type:</span> {order.wheel_type || 'N/A'}</p>
-                  <p><span className="font-semibold">Color:</span> {order.desired_color || 'N/A'}</p>
+                  <p><span className="font-semibold">Wheel Size:</span> {order.wheelsize || order.wheel_size || 'N/A'}</p>
+                  <p><span className="font-semibold">Wheel Type:</span> {order.wheeltype || order.wheel_type || 'N/A'}</p>
+                  <p><span className="font-semibold">Material:</span> {order.wheelmaterial || order.wheel_material || 'N/A'}</p>
+                  <p><span className="font-semibold">Color:</span> {order.desiredcolor || order.desired_color || 'N/A'}</p>
+                  <p><span className="font-semibold">Store Color:</span> {order.store_color || 'N/A'}</p>
+                  <p><span className="font-semibold">Hand Holes:</span> {order.handholes || order.hand_holes || 'N/A'}</p>
                 </div>
               </div>
             )}

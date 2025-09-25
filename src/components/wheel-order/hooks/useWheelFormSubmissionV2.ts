@@ -239,32 +239,35 @@ export function useWheelFormSubmission(
         addStep("Submitting to Google Sheets (non-blocking)");
       }
 
-      // Create legacy format for backward compatibility
-      const legacyOrderData: OrderFormData = {
-        name: formData.yourName,
+      // Create OT payload with server timestamp
+      const otPayload = {
+        id: insertedOrder.id,
         store: formData.storeName,
+        plant: formData.destinationPlant,
+        quantity: parseInt(formData.qtyWheels) || 0,
+        wheelmaterial: formData.wheelMaterial || "",
+        wheeltype: formData.wheelType || "",
+        wheelsize: formData.wheelSize || "",
+        desiredcolor: formData.wheelColor || "",
+        store_color: insertedOrder.store_color || "",
+        status: "open",
+        ordertype: "WHEEL_POWDER_COATING",
+        timestamp: insertedOrder.timestamp,
+        submitted_at: insertedOrder.timestamp, // duplicate for OT compatibility
+        
+        // Legacy fields for backward compatibility
+        name: formData.yourName,
         productNumber: "WHEEL-COATING",
         description: insertedOrder.description || `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
-        quantity: parseInt(formData.qtyWheels) || 0,
         scheduleArrival: formData.scheduleArrival,
         notes: insertedOrder.notes || "",
         email: managerEmail,
-        timestamp: insertedOrder.timestamp,
-        type: "WHEEL_POWDER_COATING" as const,
-        plant: formData.destinationPlant,
-        status: "open",
-        crossDock: "No" as const,
-        crossDockType: "No" as const,
-        
-        // Wheel specification fields for legacy compatibility
+        type: "WHEEL_POWDER_COATING",
+        crossDock: "No",
+        crossDockType: "No",
         customerName: formData.customerName || "",
-        wheelMaterial: formData.wheelMaterial || "",
-        wheelType: formData.wheelType || "",
         handHoles: parseInt(formData.handHoles || "0"),
-        wheelSize: formData.wheelSize || "",
-        wheelColor: formData.wheelColor || "",
         qtyWheels: formData.qtyWheels || "",
-        
         yourName: formData.yourName,
         dateReceived: formData.dateReceived,
         managersEmail: managerEmail,
@@ -279,7 +282,7 @@ export function useWheelFormSubmission(
             'Content-Type': 'application/json',
             'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
           },
-          body: JSON.stringify(legacyOrderData)
+          body: JSON.stringify(otPayload)
         }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Google Sheets timeout')), 3000)
