@@ -114,7 +114,7 @@ export default function StoreSelector({
 
         {/* Suggestions */}
         {open && results.length > 0 && (
-          <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-background shadow-lg">
+          <div className="absolute z-[1000] mt-1 max-h-56 w-full overflow-auto rounded-md border bg-background shadow-lg">
             {/* Optional "use typed value" if user entered something not yet normalized */}
             {q && (
               <button
