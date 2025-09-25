@@ -56,6 +56,44 @@ export function useWheelFormSubmission(
     isEnabled: isDiagnosticEnabled
   } = useWheelDiagnostic();
 
+  // Helper function to resolve store color for pallet painting
+  const resolveStoreColor = (formData: WheelFormData): string => {
+    // Map store names to colors for pallet painting
+    const storeColorMap: Record<string, string> = {
+      'Fort Worth 022': 'Red',
+      'Grand Prairie 027': 'Yellow', 
+      'Houston 028': 'Cyan',
+      'San Antonio 029': 'Gray',
+      'Oklahoma City 030': 'Purple',
+      'Little Rock 032': 'Orange',
+      'Kansas City 033': 'Pink',
+      'Laredo 035': 'Lime',
+      'Tulsa 036': 'Green',
+      'Austin 039': 'Blue',
+      'Detroit 041': 'Mint',
+      'Toledo 042': 'Gold',
+      'Indianapolis 043': 'Magenta',
+      'Tampa 051': 'Olive',
+      'Orlando 052': 'Brown',
+      'Jacksonville 053': 'Light Green',
+      'Grand Prairie 097': 'Green',
+      'Romulus 098': 'Hot Pink',
+      'Mulberry 099': 'Navy'
+    };
+
+    // Try to match store name directly
+    if (formData.storeName && storeColorMap[formData.storeName]) {
+      return storeColorMap[formData.storeName];
+    }
+
+    // Fallback to storeColors if available (may be hex value)
+    if (formData.storeColors) {
+      return String(formData.storeColors);
+    }
+
+    return '';
+  };
+
   // Create optimized wheel order payload for Supabase
   const createWheelOrderPayload = (formData: WheelFormData, managerEmail: string) => {
     return {
@@ -76,6 +114,9 @@ export function useWheelFormSubmission(
       email: managerEmail,
       schedulearrival: formData.scheduleArrival,
       
+      // Store color for pallet painting
+      store_color: resolveStoreColor(formData),
+      
       // Metadata
       status: 'open',
       ordertype: 'WHEEL_POWDER_COATING',
@@ -85,10 +126,7 @@ export function useWheelFormSubmission(
       
       // Additional details
       notes: `Customer: ${formData.customerName || 'N/A'}`,
-      description: `${formData.wheelType} ${formData.wheelMaterial} wheel coating in ${formData.wheelColor}`,
-      
-      // Store colors for reference
-      ...(formData.storeColors && { storeColors: formData.storeColors })
+      description: `${formData.wheelType} ${formData.wheelMaterial} wheel coating in ${formData.wheelColor}`
     };
   };
 

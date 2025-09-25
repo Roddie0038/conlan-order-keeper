@@ -607,6 +607,63 @@ export type Database = {
         }
         Relationships: []
       }
+      email_outbox: {
+        Row: {
+          attempts: number
+          created_at: string
+          html: string | null
+          id: number
+          kind: string
+          last_error: string | null
+          order_id: string
+          order_type: string
+          payload: Json | null
+          processed_at: string | null
+          processing_started_at: string | null
+          status: string
+          subject: string | null
+          template: string
+          to_email: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          html?: string | null
+          id?: number
+          kind?: string
+          last_error?: string | null
+          order_id: string
+          order_type: string
+          payload?: Json | null
+          processed_at?: string | null
+          processing_started_at?: string | null
+          status?: string
+          subject?: string | null
+          template: string
+          to_email?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          html?: string | null
+          id?: number
+          kind?: string
+          last_error?: string | null
+          order_id?: string
+          order_type?: string
+          payload?: Json | null
+          processed_at?: string | null
+          processing_started_at?: string | null
+          status?: string
+          subject?: string | null
+          template?: string
+          to_email?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_template_versions_quarantine_20250826: {
         Row: {
           created_at: string | null
@@ -1263,6 +1320,83 @@ export type Database = {
         }
         Relationships: []
       }
+      mto_email_outbox: {
+        Row: {
+          attempts: number | null
+          created_at: string
+          id: string
+          last_error: string | null
+          order_id: string
+          order_type: string
+          payload: Json
+          processed_at: string | null
+          template: string
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          order_id: string
+          order_type?: string
+          payload: Json
+          processed_at?: string | null
+          template: string
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          order_id?: string
+          order_type?: string
+          payload?: Json
+          processed_at?: string | null
+          template?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mto_email_outbox_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "mto_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mto_order_progress_log: {
+        Row: {
+          actor_email: string | null
+          created_at: string
+          field: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          order_id: string
+          reason: string | null
+        }
+        Insert: {
+          actor_email?: string | null
+          created_at?: string
+          field: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          order_id: string
+          reason?: string | null
+        }
+        Update: {
+          actor_email?: string | null
+          created_at?: string
+          field?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          order_id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       mto_orders: {
         Row: {
           carrier: string | null
@@ -1319,6 +1453,8 @@ export type Database = {
           updated_by: string | null
           warehouse_notified_at: string | null
           written_up_qty: number
+          written_up_reason: string | null
+          written_up_updated_at: string | null
         }
         Insert: {
           carrier?: string | null
@@ -1375,6 +1511,8 @@ export type Database = {
           updated_by?: string | null
           warehouse_notified_at?: string | null
           written_up_qty?: number
+          written_up_reason?: string | null
+          written_up_updated_at?: string | null
         }
         Update: {
           carrier?: string | null
@@ -1431,6 +1569,8 @@ export type Database = {
           updated_by?: string | null
           warehouse_notified_at?: string | null
           written_up_qty?: number
+          written_up_reason?: string | null
+          written_up_updated_at?: string | null
         }
         Relationships: []
       }
@@ -2284,6 +2424,9 @@ export type Database = {
           metadata: Json
           name: string | null
           notes: string | null
+          oos_cleared_at: string | null
+          oos_cleared_by: string | null
+          oos_confirmed_at: string | null
           order_completion_link: string | null
           order_timestamp: string | null
           order_type: string | null
@@ -2295,6 +2438,7 @@ export type Database = {
           out_of_stock_eta: string | null
           out_of_stock_items: Json | null
           out_of_stock_notes: string | null
+          out_of_stock_reason: string | null
           plant: string | null
           plant_code: string | null
           product_number: string | null
@@ -2368,6 +2512,9 @@ export type Database = {
           metadata?: Json
           name?: string | null
           notes?: string | null
+          oos_cleared_at?: string | null
+          oos_cleared_by?: string | null
+          oos_confirmed_at?: string | null
           order_completion_link?: string | null
           order_timestamp?: string | null
           order_type?: string | null
@@ -2379,6 +2526,7 @@ export type Database = {
           out_of_stock_eta?: string | null
           out_of_stock_items?: Json | null
           out_of_stock_notes?: string | null
+          out_of_stock_reason?: string | null
           plant?: string | null
           plant_code?: string | null
           product_number?: string | null
@@ -2452,6 +2600,9 @@ export type Database = {
           metadata?: Json
           name?: string | null
           notes?: string | null
+          oos_cleared_at?: string | null
+          oos_cleared_by?: string | null
+          oos_confirmed_at?: string | null
           order_completion_link?: string | null
           order_timestamp?: string | null
           order_type?: string | null
@@ -2463,6 +2614,7 @@ export type Database = {
           out_of_stock_eta?: string | null
           out_of_stock_items?: Json | null
           out_of_stock_notes?: string | null
+          out_of_stock_reason?: string | null
           plant?: string | null
           plant_code?: string | null
           product_number?: string | null
@@ -4531,6 +4683,7 @@ export type Database = {
           status: string | null
           statusupdatedat: string | null
           store: string | null
+          store_color: string | null
           timestamp: string | null
           tire_pull_status: string | null
           transfer_route: string | null
@@ -4574,6 +4727,7 @@ export type Database = {
           status?: string | null
           statusupdatedat?: string | null
           store?: string | null
+          store_color?: string | null
           timestamp?: string | null
           tire_pull_status?: string | null
           transfer_route?: string | null
@@ -4617,6 +4771,7 @@ export type Database = {
           status?: string | null
           statusupdatedat?: string | null
           store?: string | null
+          store_color?: string | null
           timestamp?: string | null
           tire_pull_status?: string | null
           transfer_route?: string | null
@@ -5906,6 +6061,10 @@ export type Database = {
         Args: { p_invoice: string }
         Returns: undefined
       }
+      bump_attempts: {
+        Args: { p_err: string; p_id: number }
+        Returns: undefined
+      }
       call_notification_controller: {
         Args: { payload: Json }
         Returns: {
@@ -5924,10 +6083,40 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      claim_email_jobs: {
+        Args: { p_limit: number }
+        Returns: {
+          attempts: number
+          created_at: string
+          html: string | null
+          id: number
+          kind: string
+          last_error: string | null
+          order_id: string
+          order_type: string
+          payload: Json | null
+          processed_at: string | null
+          processing_started_at: string | null
+          status: string
+          subject: string | null
+          template: string
+          to_email: string | null
+          updated_at: string
+        }[]
+      }
       clear_temporary_password_requirement: {
         Args: {
           p_platform: Database["public"]["Enums"]["platform_type"]
           p_user_id: string
+        }
+        Returns: boolean
+      }
+      complete_mto_order: {
+        Args: {
+          p_idem_key?: string
+          p_invoice: string
+          p_message?: string
+          p_order_id: string
         }
         Returns: boolean
       }
@@ -6324,14 +6513,14 @@ export type Database = {
         }[]
       }
       resolve_email_recipients: {
-        Args: {
-          p_store: string
-          p_type: Database["public"]["Enums"]["email_type_enum"]
-        }
+        Args:
+          | {
+              p_store: string
+              p_type: Database["public"]["Enums"]["email_type_enum"]
+            }
+          | { p_store: string; p_type: string }
         Returns: {
-          recipient_email: string
-          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
-          store_name: string
+          email: string
         }[]
       }
       resolve_email_recipients_any: {
@@ -6342,6 +6531,14 @@ export type Database = {
         Returns: {
           recipient_email: string
           recipient_role: string
+          store_name: string
+        }[]
+      }
+      resolve_email_recipients_rpc: {
+        Args: { p_store: string; p_type: string }
+        Returns: {
+          email: string
+          role: string
           store_name: string
         }[]
       }

@@ -110,6 +110,44 @@ export class WheelOrderService {
   static prepareWheelOrder(formData: WheelFormData): any {
     const orderId = generateUUID();
     
+    // Helper function to resolve store color for pallet painting
+    const resolveStoreColor = (formData: WheelFormData): string => {
+      // Map store names to colors for pallet painting
+      const storeColorMap: Record<string, string> = {
+        'Fort Worth 022': 'Red',
+        'Grand Prairie 027': 'Yellow', 
+        'Houston 028': 'Cyan',
+        'San Antonio 029': 'Gray',
+        'Oklahoma City 030': 'Purple',
+        'Little Rock 032': 'Orange',
+        'Kansas City 033': 'Pink',
+        'Laredo 035': 'Lime',
+        'Tulsa 036': 'Green',
+        'Austin 039': 'Blue',
+        'Detroit 041': 'Mint',
+        'Toledo 042': 'Gold',
+        'Indianapolis 043': 'Magenta',
+        'Tampa 051': 'Olive',
+        'Orlando 052': 'Brown',
+        'Jacksonville 053': 'Light Green',
+        'Grand Prairie 097': 'Green',
+        'Romulus 098': 'Hot Pink',
+        'Mulberry 099': 'Navy'
+      };
+
+      // Try to match store name directly
+      if (formData.storeName && storeColorMap[formData.storeName]) {
+        return storeColorMap[formData.storeName];
+      }
+
+      // Fallback to storeColors if available
+      if (formData.storeColors) {
+        return String(formData.storeColors);
+      }
+
+      return '';
+    };
+    
     const preparedOrder = {
       id: orderId,
       your_name: formData.yourName,
@@ -125,7 +163,7 @@ export class WheelOrderService {
       wheel_color: formData.wheelColor,
       schedule_arrival: formData.scheduleArrival,
       user_store: formData.userStore,
-      store_colors: formData.storeColors,
+      store_color: resolveStoreColor(formData),
       destination_plant: formData.destinationPlant,
       timestamp: formatTimestamp(new Date()),
       order_type: 'WHEEL_POWDER_COATING'

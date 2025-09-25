@@ -35,6 +35,7 @@ type WheelNotificationPayload = {
   submitted_at?: string;   // server timestamp coming from insert/edge
   notes?: string;
   description?: string;
+  store_color?: string;    // Store color for pallet painting
 };
 
 function ok(body: unknown, origin: string | null) {
@@ -106,6 +107,7 @@ serve(async (req) => {
       handHoles: Number(payload.handholes ?? 0),
       color: payload.desiredcolor,
     },
+    storeColor: payload.store_color, // Forward store color for pallet painting
     submittedAt: payload.submitted_at ?? new Date().toISOString(),
     status: payload.status ?? "open",
     description: payload.description ?? "",
