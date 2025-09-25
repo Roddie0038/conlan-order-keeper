@@ -130,6 +130,14 @@ export function useWheelFormSubmission(
     };
   };
 
+  // Whitelist allowed keys for insert
+  const ALLOWED_KEYS = [
+    'name','store','plant','quantity',
+    'desiredcolor','wheelsize','wheelmaterial','wheeltype','handholes',
+    'email','schedulearrival','status','ordertype','notes','description',
+    'store_color'
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -180,23 +188,34 @@ export function useWheelFormSubmission(
       // Create the optimized payload
       const wheelOrderPayload = createWheelOrderPayload(formData, managerEmail);
       
+      // Filter payload using allowed keys whitelist
+      const insertPayload = Object.fromEntries(
+        Object.entries(wheelOrderPayload).filter(([k]) => ALLOWED_KEYS.includes(k))
+      );
+      
       if (isDiagnosticEnabled) {
-        setPreInsertPayload(wheelOrderPayload);
-        updateLastStep('success', wheelOrderPayload);
+        setPreInsertPayload(insertPayload);
+        updateLastStep('success', insertPayload);
         addStep("Submitting to Supabase wheel_orders table");
       }
       
-      console.log("🔍 ENHANCED WHEEL FORM - Submitting optimized payload:", wheelOrderPayload);
+      console.log("🔍 ENHANCED WHEEL FORM - Submitting whitelisted payload:", insertPayload);
       
       // R3: Single source of truth - Supabase insert first
       const { data: insertedOrder, error: supabaseError } = await supabase
         .from('wheel_orders')
-        .insert(wheelOrderPayload)
+        .insert(insertPayload)
         .select()
         .single();
 
       if (supabaseError) {
-        throw supabaseError;
+        console.error('❌ Wheel order insert failed:', supabaseError);
+        toast({
+          title: 'Order failed',
+          description: supabaseError.message || 'Insert error',
+          variant: 'destructive'
+        });
+        return;
       }
 
       if (isDiagnosticEnabled) {
@@ -207,10 +226,11 @@ export function useWheelFormSubmission(
 
       console.log("✅ ENHANCED WHEEL FORM - Successfully saved to Supabase:", insertedOrder);
 
-      // Set submission result for success banner
+      // Success banner uses **server** time if present
+      const submittedAt = insertedOrder.timestamp || new Date().toISOString();
       setSubmissionResult({
         success: true,
-        serverTimestamp: insertedOrder.timestamp,
+        serverTimestamp: submittedAt,
         orderId: insertedOrder.id
       });
       
@@ -283,8 +303,8 @@ export function useWheelFormSubmission(
       
       // R2: Show success immediately based on Supabase success only
       toast({
-        title: "🔧 Wheel order submitted successfully! 🔧",
-        description: `Your wheel powder coating order has been submitted to ${formData.destinationPlant}!`,
+        title: "Order submitted",
+        description: `Ref ${insertedOrder.id}`,
       });
 
       if (isDiagnosticEnabled) {

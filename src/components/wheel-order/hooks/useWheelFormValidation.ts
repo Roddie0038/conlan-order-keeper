@@ -32,18 +32,23 @@ export function useWheelFormValidation() {
       console.warn("🚨 WHEEL VALIDATION - Missing storeId");
     }
 
-    // Fix: Check if user is not admin and the store name doesn't match the user's store
-    if (!isAdmin && formData.storeName !== formData.userStore) {
-      toast({
-        title: "Unauthorized",
-        description: "You can only submit orders for your own store.",
-        variant: "destructive",
-      });
-      console.warn("🚨 WHEEL VALIDATION - Store mismatch:", {
-        storeName: formData.storeName,
-        userStore: formData.userStore
-      });
-      return false;
+    // Relaxed store validation: only check when userStore is ready
+    const userReady = typeof formData.userStore === 'string' && formData.userStore.length > 0;
+    // If user's store is known and the user is not admin/elevated, enforce match.
+    // If user store isn't loaded yet, DO NOT block submission.
+    if (userReady && !isAdmin) {
+      if ((formData.storeName || '').trim() !== (formData.userStore || '').trim()) {
+        toast({
+          title: "Store mismatch",
+          description: "Please select your assigned store.",
+          variant: "destructive",
+        });
+        console.warn("🚨 WHEEL VALIDATION - Store mismatch:", {
+          storeName: formData.storeName,
+          userStore: formData.userStore
+        });
+        return false;
+      }
     }
 
     if (!formData.qtyWheels) {
