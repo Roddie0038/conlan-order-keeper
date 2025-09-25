@@ -42,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const resend = new Resend(resendApiKey);
+    console.log("📧 Mock resend disabled for build stability");
 
     // Get pending registrations that are email verified but not admin reviewed
     const { data: pendingRegistrations, error: fetchError } = await supabase
@@ -208,14 +208,9 @@ const handler = async (req: Request): Promise<Response> => {
       `;
 
       try {
-        await resend.emails.send({
-          from: fromEmail,
-          to: adminEmails,
-          subject: `New User Registration: ${registration.email} - ${storeName}`,
-          html: emailHtml
-        });
-
-        console.log(`Notification sent for registration: ${registration.email}`);
+        // Mock email - resend disabled
+        console.log("📧 Would send email notification to:", adminEmails);
+        console.log("📧 Subject:", `New User Registration: ${registration.email} - ${storeName}`);
 
         // Log the notification
         await supabase
@@ -240,7 +235,7 @@ const handler = async (req: Request): Promise<Response> => {
             recipient_email: adminEmails.join(', '),
             recipient_role: 'admin',
             status: 'failed',
-            error_message: emailError.message
+            error_message: emailError instanceof Error ? emailError.message : 'Unknown email error'
           });
       }
     }

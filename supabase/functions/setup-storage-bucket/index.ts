@@ -73,7 +73,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        error: error.message || "An error occurred while setting up the storage bucket",
+        error: error instanceof Error ? error.message : "An error occurred while setting up the storage bucket",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

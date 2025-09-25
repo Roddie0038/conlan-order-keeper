@@ -23,30 +23,30 @@ const norm = (s?:string)=> s ? (MAP[s.padStart(3,"0")] ?? s) : undefined;
 serve(async (req)=>{
   if (req.method!=="POST") return new Response('{"error":"Method not allowed"}',{status:405});
   try {
-    const body = await req.json().catch(() => ({}));
+    const requestBody = await req.json().catch(() => ({}));
     
-    const cg = body?.casing_grade ??
-      body?.orderRecord?.casing_grade ??
-      body?.casingGrade ??
-      body?.orderRecord?.casingGrade ?? '';
+    const cg = requestBody?.casing_grade ??
+      requestBody?.orderRecord?.casing_grade ??
+      requestBody?.casingGrade ??
+      requestBody?.orderRecord?.casingGrade ?? '';
 
-    const ts = body?.tire_size ??
-      body?.orderRecord?.tire_size ??
-      body?.tireSize ??
-      body?.orderRecord?.tireSize ?? '';
+    const ts = requestBody?.tire_size ??
+      requestBody?.orderRecord?.tire_size ??
+      requestBody?.tireSize ??
+      requestBody?.orderRecord?.tireSize ?? '';
 
     console.log('[MTO PAYLOAD]', {
       at: 'mto-notification',
-      order_id: body?.order_id ?? body?.orderRecord?.order_id ?? null,
+      order_id: requestBody?.order_id ?? requestBody?.orderRecord?.order_id ?? null,
       casing_grade: cg,
       tire_size: ts,
-      keys: Object.keys(body || {})
+      keys: Object.keys(requestBody || {})
     });
 
-    const normalized = { ...body, casing_grade: cg, tire_size: ts };
+    const normalized = { ...requestBody, casing_grade: cg, tire_size: ts };
     const p = normalized as MtoEvent;
     if (!CONTROLLER) return new Response('{"error":"NOTIFICATION_CONTROLLER_URL missing"}',{status:500});
-    const body = {
+    const requestPayload = {
       type: "mto_notification",
       event: p.event, order_id: p.order_id,
       store_number: p.store_number, store_name_norm: norm(p.store_number),
@@ -56,7 +56,7 @@ serve(async (req)=>{
     const r = await fetch(CONTROLLER, {
       method:"POST",
       headers:{ "Content-Type":"application/json", Authorization: SERVICE_ROLE?`Bearer ${SERVICE_ROLE}`:"" },
-      body: JSON.stringify(body)
+      body: JSON.stringify(requestPayload)
     });
     const text = await r.text();
     return r.ok ? new Response(text,{status:200})

@@ -158,7 +158,7 @@ serve(async (req) => {
         platform: 'external_webhook',
         metadata: {
           trigger_source: 'external_webhook',
-          original_payload: payload
+          original_payload: mtoOrderData
         }
       });
     } catch (logError) {

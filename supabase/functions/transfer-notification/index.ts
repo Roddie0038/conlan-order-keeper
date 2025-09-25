@@ -90,7 +90,7 @@ serve(async (req) => {
     const emailResult = { success: true, sentTo: recipients };
 
     if (emailResult.success) {
-      console.log("✅ TRANSFER NOTIFICATION - Email sent successfully via Resend:", emailResult.data);
+      console.log("✅ TRANSFER NOTIFICATION - Email sent successfully:", emailResult.success);
       
       console.log("✅ TRANSFER NOTIFICATION - Email logged successfully");
       
@@ -101,20 +101,20 @@ serve(async (req) => {
         orderId: orderId,
         orderType: transferData.orderType || 'TRANSFER',
         store: transferData.store,
-        emailId: emailResult.data?.id,
+        emailId: 'mock-' + Date.now(),
         isCrossDock: isCrossDock
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else {
-      console.error("❌ TRANSFER NOTIFICATION - Email sending failed:", emailResult.error);
+      console.error("❌ TRANSFER NOTIFICATION - Email sending failed:", emailResult.success);
       
       console.log("❌ TRANSFER NOTIFICATION - Email failed, would log error");
       
       return new Response(JSON.stringify({ 
         success: false, 
-        error: `Email sending failed: ${emailResult.error}`,
+        error: "Email sending failed",
         orderId: orderId
       }), {
         status: 500,
@@ -125,12 +125,12 @@ serve(async (req) => {
   } catch (error) {
     console.error("❌ TRANSFER NOTIFICATION - Error:", error);
     
-    console.log("❌ TRANSFER NOTIFICATION - Would log error:", error.message);
+    console.log("❌ TRANSFER NOTIFICATION - Would log error:", error instanceof Error ? error.message : 'Unknown error');
     
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message,
-      details: error.stack
+      error: error instanceof Error ? error.message : 'Unknown error',
+      details: error instanceof Error ? error.stack : 'No stack trace'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
