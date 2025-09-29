@@ -1441,6 +1441,9 @@ export type Database = {
           status_updated_at: string | null
           store: string | null
           store_notified_at: string | null
+          store_number: string | null
+          submitted_by_email: string | null
+          submitted_by_name: string | null
           timestamp: string | null
           tire_pull_status: string | null
           tire_size: string | null
@@ -1499,6 +1502,9 @@ export type Database = {
           status_updated_at?: string | null
           store?: string | null
           store_notified_at?: string | null
+          store_number?: string | null
+          submitted_by_email?: string | null
+          submitted_by_name?: string | null
           timestamp?: string | null
           tire_pull_status?: string | null
           tire_size?: string | null
@@ -1557,6 +1563,9 @@ export type Database = {
           status_updated_at?: string | null
           store?: string | null
           store_notified_at?: string | null
+          store_number?: string | null
+          submitted_by_email?: string | null
+          submitted_by_name?: string | null
           timestamp?: string | null
           tire_pull_status?: string | null
           tire_size?: string | null
@@ -1573,6 +1582,50 @@ export type Database = {
           written_up_updated_at?: string | null
         }
         Relationships: []
+      }
+      mto_work_orders: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          mto_order_id: string
+          notes: string | null
+          quantity_written_up: number
+          updated_at: string | null
+          work_order_number: string
+          write_up_date: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          mto_order_id: string
+          notes?: string | null
+          quantity_written_up: number
+          updated_at?: string | null
+          work_order_number: string
+          write_up_date?: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          mto_order_id?: string
+          notes?: string | null
+          quantity_written_up?: number
+          updated_at?: string | null
+          work_order_number?: string
+          write_up_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mto_work_orders_mto_order_id_fkey"
+            columns: ["mto_order_id"]
+            isOneToOne: false
+            referencedRelation: "mto_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mto_writeup_audit: {
         Row: {
@@ -3637,6 +3690,78 @@ export type Database = {
           user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      shipments: {
+        Row: {
+          carrier_driver: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string
+          destination: string
+          dock_number: number | null
+          exception: boolean | null
+          exception_reason: string | null
+          id: string
+          inbound_at: string | null
+          last_free_day: string | null
+          load_id: string
+          notes: string | null
+          origin: Database["public"]["Enums"]["shipment_origin"]
+          plant_code: string
+          quantity: number
+          quantity_unit: Database["public"]["Enums"]["quantity_unit"]
+          shipment_type: Database["public"]["Enums"]["shipment_type"]
+          status: Database["public"]["Enums"]["shipment_status"]
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          carrier_driver?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          destination: string
+          dock_number?: number | null
+          exception?: boolean | null
+          exception_reason?: string | null
+          id?: string
+          inbound_at?: string | null
+          last_free_day?: string | null
+          load_id?: string
+          notes?: string | null
+          origin: Database["public"]["Enums"]["shipment_origin"]
+          plant_code: string
+          quantity: number
+          quantity_unit: Database["public"]["Enums"]["quantity_unit"]
+          shipment_type: Database["public"]["Enums"]["shipment_type"]
+          status?: Database["public"]["Enums"]["shipment_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          carrier_driver?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          destination?: string
+          dock_number?: number | null
+          exception?: boolean | null
+          exception_reason?: string | null
+          id?: string
+          inbound_at?: string | null
+          last_free_day?: string | null
+          load_id?: string
+          notes?: string | null
+          origin?: Database["public"]["Enums"]["shipment_origin"]
+          plant_code?: string
+          quantity?: number
+          quantity_unit?: Database["public"]["Enums"]["quantity_unit"]
+          shipment_type?: Database["public"]["Enums"]["shipment_type"]
+          status?: Database["public"]["Enums"]["shipment_status"]
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -6171,6 +6296,10 @@ export type Database = {
         Args: { p_ts: string; p_tz: string }
         Returns: string
       }
+      generate_load_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_temporary_password: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -6463,6 +6592,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      normalize_plant_from_text: {
+        Args: { txt: string }
+        Returns: string
+      }
       normalize_plant_name: {
         Args: { input_plant: string }
         Returns: string
@@ -6513,14 +6646,14 @@ export type Database = {
         }[]
       }
       resolve_email_recipients: {
-        Args:
-          | {
-              p_store: string
-              p_type: Database["public"]["Enums"]["email_type_enum"]
-            }
-          | { p_store: string; p_type: string }
+        Args: {
+          p_store: string
+          p_type: Database["public"]["Enums"]["email_type_enum"]
+        }
         Returns: {
-          email: string
+          recipient_email: string
+          recipient_role: Database["public"]["Enums"]["recipient_role_enum"]
+          store_name: string
         }[]
       }
       resolve_email_recipients_any: {
@@ -6661,6 +6794,7 @@ export type Database = {
         | "denied"
         | "expired"
       platform_type: "ordering_platform" | "ot_platform"
+      quantity_unit: "tires" | "wheels" | "pallets" | "containers"
       recipient_role_enum:
         | "store_manager"
         | "coordinator"
@@ -6676,6 +6810,19 @@ export type Database = {
         | "super_admin"
         | "warehouse_coordinator"
       regional_message_status: "draft" | "sending" | "sent" | "failed"
+      shipment_origin:
+        | "Grand Prairie 097"
+        | "Romulus 098"
+        | "Mulberry 099"
+        | "Vendor"
+      shipment_status:
+        | "Scheduled"
+        | "In Transit"
+        | "At Dock / Awaiting Unload"
+        | "Exception"
+        | "Delivered / Received"
+        | "Cancelled"
+      shipment_type: "Inbound" | "Outbound"
       trigger_category:
         | "inventory"
         | "production"
@@ -6866,6 +7013,7 @@ export const Constants = {
         "expired",
       ],
       platform_type: ["ordering_platform", "ot_platform"],
+      quantity_unit: ["tires", "wheels", "pallets", "containers"],
       recipient_role_enum: [
         "store_manager",
         "coordinator",
@@ -6882,6 +7030,21 @@ export const Constants = {
         "warehouse_coordinator",
       ],
       regional_message_status: ["draft", "sending", "sent", "failed"],
+      shipment_origin: [
+        "Grand Prairie 097",
+        "Romulus 098",
+        "Mulberry 099",
+        "Vendor",
+      ],
+      shipment_status: [
+        "Scheduled",
+        "In Transit",
+        "At Dock / Awaiting Unload",
+        "Exception",
+        "Delivered / Received",
+        "Cancelled",
+      ],
+      shipment_type: ["Inbound", "Outbound"],
       trigger_category: [
         "inventory",
         "production",
