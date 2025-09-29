@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getPlantForStore } from '@/utils/plantMapping';
+import { WEBHOOK_URLS } from '@/services/webhook/config';
 
 export type Plant = 'Grand Prairie 097' | 'Romulus 098' | 'Mulberry 099';
 
@@ -21,19 +22,19 @@ const PlantContext = createContext<PlantContextType | undefined>(undefined);
 export const PLANT_WEBHOOKS = {
   "Grand Prairie 097": {
     wheelOrders: "https://hooks.zapier.com/hooks/catch/21741437/2c1zjty/",
-    mtoOrders: "", // ❌ REMOVED: No longer using Zapier for MTO orders
+    mtoOrders: WEBHOOK_URLS.MTO_ORDERS, // ✅ Routed to OT Platform via Supabase Edge Function
     transferRequests: "https://hooks.zapier.com/hooks/catch/21441385/2fo5hcr/",
     adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
   },
   "Mulberry 099": {
     wheelOrders: "",
-    mtoOrders: "", // ❌ REMOVED: No longer using Zapier for MTO orders
+    mtoOrders: WEBHOOK_URLS.MTO_ORDERS, // ✅ Routed to OT Platform via Supabase Edge Function
     transferRequests: "",
     adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
   },
   "Romulus 098": {
     wheelOrders: "",
-    mtoOrders: "", // ❌ REMOVED: No longer using Zapier for MTO orders
+    mtoOrders: WEBHOOK_URLS.MTO_ORDERS, // ✅ Routed to OT Platform via Supabase Edge Function
     transferRequests: "",
     adminOrders: "https://hooks.zapier.com/hooks/catch/21741437/2wk9kll/"
   }
