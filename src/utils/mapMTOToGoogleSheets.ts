@@ -2,10 +2,15 @@
 import { normalizeStoreForSubmission } from './storeNormalization';
 
 export function mapMTOToGoogleSheets(form: any, user: any, selectedPlant?: string): any {
+  // Extract 3-digit store number
+  const storeNumber = form.store?.match(/\d{3}$/)?.[0] || 
+                      form.store?.match(/\d{2,3}/)?.[0]?.padStart(3, '0') || '';
+  
   return {
     timestamp: new Date().toISOString(),
     name: form.name,
     store: normalizeStoreForSubmission(form.store),
+    store_number: storeNumber,
     productNumber: form.productNumber,
     casingGrade: form.casingGrade,
     tireSize: form.tireSize,

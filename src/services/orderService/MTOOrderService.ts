@@ -99,9 +99,14 @@ export class MTOOrderService {
   static prepareMTOOrder(formData: MTOFormData): any {
     const orderId = generateUUID();
     
+    // Extract 3-digit store number from store name
+    const storeNumber = formData.store?.match(/\d{3}$/)?.[0] || 
+                        formData.store?.match(/\d{2,3}/)?.[0]?.padStart(3, '0') || '';
+    
     const preparedOrder = {
       id: orderId,
       store: formData.store,
+      store_number: storeNumber,
       name: formData.name,
       timestamp: formatTimestamp(new Date()),
       product_number: formData.productNumber,
@@ -122,6 +127,7 @@ export class MTOOrderService {
       service: 'MTOOrderService',
       orderId,
       store: formData.store,
+      storeNumber,
       destinationPlant: formData.destinationPlant,
       quantity: preparedOrder.quantity
     });

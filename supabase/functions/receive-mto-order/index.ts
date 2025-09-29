@@ -77,6 +77,8 @@ serve(async (req) => {
       timestamp: normalized.timestamp || new Date().toISOString(),
       name: normalized.contact || normalized.name || '',
       store: normalizeStore(normalized.store || ''),
+      store_number: (normalized.store || '').match(/\d{3}$/)?.[0] || 
+                    (normalized.store || '').match(/\d{2,3}/)?.[0]?.padStart(3, '0') || '',
       product_number: normalized.description || normalized.product_number || '',
       tire_size: ts || normalized.tire_type || '',
       quantity: parseInt(normalized.quantity?.toString()) || 0,
