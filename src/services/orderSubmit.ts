@@ -13,6 +13,7 @@ const OrderInsertSchema = z.object({
   email: z.string().email().optional(),
   name: z.string().optional(),
   description: z.string().optional(),
+  product_number: z.string().optional(),
   quantity: z.number().int().positive().optional(),
   order_type: z.string().optional(),
   status: z.string().optional(),
@@ -59,6 +60,7 @@ export async function submitOrder({ formValues, user, selectedStore, selectedPla
       email: formValues?.email ?? user?.email ?? undefined,
       name: formValues?.name ?? user?.full_name ?? undefined,
       description: formValues?.description ?? undefined,
+      product_number: formValues?.product_number ?? undefined,
       quantity: formValues?.quantity ? Number(formValues.quantity) : undefined,
       order_type: formValues?.order_type ?? "standard",
       status: formValues?.status ?? "pending",
@@ -94,6 +96,29 @@ export async function submitOrder({ formValues, user, selectedStore, selectedPla
     }
 
     dlog("insert ok", data);
+
+    // Immediately trigger the confirmation sender
+    try {
+      await supabase.functions.invoke('notification-controller', {
+        body: {
+          kind: 'order_confirmation',
+          source: 'app',
+          payload: {
+            order_id: data.id,
+            store: data.store, // '027' or 'Grand Prairie 027' both ok
+            submitted_by_name: valid.data.name || user?.full_name || '',
+            product_number: valid.data.product_number || '',
+            description: valid.data.description || '',
+            quantity: valid.data.quantity || 0,
+            submitted_at: new Date().toISOString()
+          }
+        }
+      });
+    } catch (notificationError) {
+      // Don't fail the order if notification fails
+      derr("notification failed", notificationError);
+    }
+
     return data;
   } catch (err: any) {
     derr("submitOrder exception", err);

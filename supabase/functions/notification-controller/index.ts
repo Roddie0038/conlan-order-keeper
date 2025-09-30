@@ -76,6 +76,122 @@ const handler = async (req: Request): Promise<Response> => {
 
     const body = await req.json().catch(() => ({}));
 
+    // Handle order_confirmation immediately with new RPC
+    if (body.kind === 'order_confirmation') {
+      const { payload } = body;
+
+      // 1) resolve recipients (OT → legacy fallback)
+      const { data: recs, error: rErr } = await supabase
+        .rpc('resolve_order_confirmation_recipients', { p_store: payload.store });
+      if (rErr) {
+        console.error('Error resolving order confirmation recipients:', rErr);
+        throw rErr;
+      }
+
+      // 2) dedupe by email (roles may duplicate the same address)
+      const toList = [...new Set((recs ?? []).map((r: any) => r.recipient_email))];
+      if (toList.length === 0) {
+        console.log(`No recipients found for order confirmation store ${payload.store}`);
+        return new Response(
+          JSON.stringify({ 
+            message: 'No recipients configured for order confirmation',
+            store: payload.store
+          }),
+          { 
+            status: 204, 
+            headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          }
+        );
+      }
+
+      // 3) build subject/body
+      const subject = `Order Received – ${payload.store} (Order #${payload.order_id})`;
+      const html = `
+        <p>Order #${payload.order_id} has been submitted.</p>
+        <ul>
+          <li><b>Store</b>: ${payload.store}</li>
+          <li><b>Submitted by</b>: ${payload.submitted_by_name}</li>
+          <li><b>Product #</b>: ${payload.product_number}</li>
+          <li><b>Description</b>: ${payload.description}</li>
+          <li><b>Quantity</b>: ${payload.quantity}</li>
+          <li><b>Submitted at</b>: ${payload.submitted_at}</li>
+        </ul>
+      `;
+
+      // 4) send via the ordering-confirmation-email function and log to ordering_email_logs
+      const results = [];
+      for (const email of toList) {
+        try {
+          const emailPayload = {
+            order_type: 'confirmation',
+            order_id: payload.order_id,
+            store_number: payload.store,
+            store_name: payload.store,
+            recipient_email: email,
+            recipient_role: 'store_manager',
+            submitted_by_name: payload.submitted_by_name,
+            product_number: payload.product_number,
+            description: payload.description,
+            quantity: payload.quantity,
+            timestamp: payload.submitted_at,
+            subject,
+            html
+          };
+
+          const { error: emailError } = await supabase.functions.invoke(
+            'ordering-confirmation-email',
+            {
+              body: emailPayload,
+              headers: {
+                'Authorization': `Bearer ${supabaseServiceKey}`
+              }
+            }
+          );
+
+          if (emailError) {
+            console.error(`Failed to send order confirmation to ${email}:`, emailError);
+            results.push({ recipient: email, status: 'failed', error: emailError.message });
+          } else {
+            console.log(`Order confirmation sent successfully to ${email}`);
+            results.push({ recipient: email, status: 'sent' });
+          }
+        } catch (error) {
+          console.error(`Error sending order confirmation to ${email}:`, error);
+          results.push({ 
+            recipient: email, 
+            status: 'failed', 
+            error: error instanceof Error ? error.message : 'Unknown error' 
+          });
+        }
+      }
+
+      // Log to ordering_email_logs
+      try {
+        await supabase.from('ordering_email_logs').insert({
+          order_type: 'confirmation',
+          email_type: 'order_confirmation',
+          order_id: payload.order_id,
+          store_number: payload.store,
+          status: 'sent',
+          created_at: new Date().toISOString()
+        });
+      } catch (logError) {
+        console.error('Failed to log order confirmation:', logError);
+      }
+
+      return new Response(
+        JSON.stringify({
+          message: 'Order confirmation processed',
+          recipients_found: toList.length,
+          results
+        }),
+        { 
+          status: 200, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
+    }
+
     const cg = body?.casing_grade ??
       body?.orderRecord?.casing_grade ??
       body?.payload?.casing_grade ??
