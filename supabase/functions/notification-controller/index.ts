@@ -131,54 +131,42 @@ const handler = async (req: Request): Promise<Response> => {
       const results: any[] = [];
       for (const email of toList) {
         const role = byEmail.get(email) ?? 'store_manager';
-        try {
-          const emailPayload = {
-            order_type: 'confirmation',
-            order_id: payload.order_id,
-            store_number: storeKey, // normalized key (027)
-            store_name: payload.store, // full label
-            recipient_email: email,
-            recipient_role: role,
-            submitted_by_name: payload.submitted_by_name,
-            product_number: payload.product_number,
-            description: payload.description,
-            quantity: payload.quantity,
-            timestamp: payload.submitted_at,
-            subject,
-            html,
-          };
-
-          const { error: emailError } = await supabase.functions.invoke(
-            'ordering-confirmation-email',
-            { body: emailPayload, headers: { Authorization: `Bearer ${supabaseServiceKey}` } }
-          );
-
-          if (emailError) {
-            console.error(`Failed to send order confirmation to ${email}:`, emailError);
-            results.push({ recipient: email, role, status: 'failed', error: emailError.message });
-          } else {
-            console.log(`Order confirmation sent successfully to ${email}`);
-            results.push({ recipient: email, role, status: 'sent' });
-          }
-        } catch (error: any) {
-          console.error(`Error sending order confirmation to ${email}:`, error);
-          results.push({ recipient: email, role, status: 'failed', error: error?.message ?? 'Unknown error' });
-        }
-      }
-
-      // Log to ordering_email_logs
-      try {
-        await supabase.from('ordering_email_logs').insert({
+        const emailPayload = {
           order_type: 'confirmation',
-          email_type: 'order_confirmation',
           order_id: payload.order_id,
-          store_number: payload.store,
-          status: 'sent',
-          created_at: new Date().toISOString()
-        });
-      } catch (logError) {
-        console.error('Failed to log order confirmation:', logError);
+          store_number: storeKey, // normalized key (027)
+          store_name: payload.store, // full label
+          recipient_email: email,
+          recipient_role: role,
+          submitted_by_name: payload.submitted_by_name,
+          product_number: payload.product_number,
+          description: payload.description,
+          quantity: payload.quantity,
+          timestamp: payload.submitted_at,
+          subject,
+          html,
+        };
+
+        const { error: emailError } = await supabase.functions.invoke(
+          'ordering-confirmation-email',
+          { body: emailPayload, headers: { Authorization: `Bearer ${supabaseServiceKey}` } }
+        );
+
+        results.push(emailError
+          ? { recipient: email, role, status: 'failed', error: emailError.message }
+          : { recipient: email, role, status: 'sent' }
+        );
       }
+
+      // Single log line (no summary variant)
+      await supabase.from('ordering_email_logs').insert({
+        order_type: 'confirmation',
+        email_type: 'order_confirmation',
+        order_id: payload.order_id,
+        store_number: storeKey,
+        status: results.every(r => r.status === 'sent') ? 'sent' : 'partial',
+        created_at: new Date().toISOString()
+      });
 
       return new Response(
         JSON.stringify({
