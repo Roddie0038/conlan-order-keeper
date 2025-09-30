@@ -42,7 +42,7 @@ export function mapMTOToSupabase(form: any, user: any, selectedPlant?: string): 
     submitted_by_name: cleanForm.name,
     submitted_by_email: cleanForm.email || cleanForm.managerEmail,
     plant: derivedPlant,
-    order_type: 'mto',
+    order_type: 'MTO',
     type: 'MTO',
     status: 'open',
     status_updated_at: new Date().toISOString(),
