@@ -1362,6 +1362,13 @@ export type Database = {
             referencedRelation: "mto_orders"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mto_email_outbox_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "ot_dashboard_mto_orders"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mto_order_progress_log: {
@@ -1625,6 +1632,13 @@ export type Database = {
             referencedRelation: "mto_orders"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mto_work_orders_mto_order_id_fkey"
+            columns: ["mto_order_id"]
+            isOneToOne: false
+            referencedRelation: "ot_dashboard_mto_orders"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mto_writeup_audit: {
@@ -1664,6 +1678,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "mto_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mto_writeup_audit_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "ot_dashboard_mto_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -5471,6 +5492,195 @@ export type Database = {
           tire_pull_status?: string | null
           transfer_route?: string | null
           warehouse_received?: boolean | null
+        }
+        Relationships: []
+      }
+      ot_dashboard_mto_orders: {
+        Row: {
+          carrier: string | null
+          casing_grade: string | null
+          casings_eta: string | null
+          casings_in_stock: boolean | null
+          completed: boolean | null
+          completed_at: string | null
+          cross_dock_form_link: string | null
+          deleted_at: string | null
+          description: string | null
+          destination_manager_email: string | null
+          destination_plant: string | null
+          email: string | null
+          email_message: string | null
+          have_casings: boolean | null
+          id: string | null
+          idempotency_key: string | null
+          in_transit_at: string | null
+          inventory_last_updated: string | null
+          invoice_number: string | null
+          last_shipment_date: string | null
+          manager_notes: string | null
+          name: string | null
+          notes: string | null
+          order_completion_link: string | null
+          order_type: string | null
+          ordering_plant: string | null
+          ordering_store: string | null
+          pending_quantity: number | null
+          plant: string | null
+          product_number: string | null
+          projected_delivery: string | null
+          quantity: number | null
+          ready_to_ship_at: string | null
+          received_at: string | null
+          retread_notified_at: string | null
+          send_email_trigger: boolean | null
+          send_invoice: boolean | null
+          shipped_quantity: number | null
+          status: string | null
+          status_updated_at: string | null
+          store: string | null
+          store_notified_at: string | null
+          store_number: string | null
+          submitted_by_email: string | null
+          submitted_by_name: string | null
+          timestamp: string | null
+          tire_pull_status: string | null
+          tire_size: string | null
+          transfer_route: string | null
+          tread: string | null
+          tread_eta: string | null
+          tread_in_inventory: boolean | null
+          tread_in_stock: boolean | null
+          type: string | null
+          ui_status: string | null
+          updated_by: string | null
+          warehouse_notified_at: string | null
+          written_up_qty: number | null
+          written_up_reason: string | null
+          written_up_updated_at: string | null
+        }
+        Insert: {
+          carrier?: string | null
+          casing_grade?: string | null
+          casings_eta?: string | null
+          casings_in_stock?: boolean | null
+          completed?: boolean | null
+          completed_at?: string | null
+          cross_dock_form_link?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          destination_manager_email?: string | null
+          destination_plant?: string | null
+          email?: string | null
+          email_message?: string | null
+          have_casings?: boolean | null
+          id?: string | null
+          idempotency_key?: string | null
+          in_transit_at?: string | null
+          inventory_last_updated?: string | null
+          invoice_number?: string | null
+          last_shipment_date?: string | null
+          manager_notes?: string | null
+          name?: string | null
+          notes?: string | null
+          order_completion_link?: string | null
+          order_type?: string | null
+          ordering_plant?: string | null
+          ordering_store?: string | null
+          pending_quantity?: number | null
+          plant?: string | null
+          product_number?: string | null
+          projected_delivery?: string | null
+          quantity?: number | null
+          ready_to_ship_at?: string | null
+          received_at?: string | null
+          retread_notified_at?: string | null
+          send_email_trigger?: boolean | null
+          send_invoice?: boolean | null
+          shipped_quantity?: number | null
+          status?: string | null
+          status_updated_at?: string | null
+          store?: string | null
+          store_notified_at?: string | null
+          store_number?: string | null
+          submitted_by_email?: string | null
+          submitted_by_name?: string | null
+          timestamp?: string | null
+          tire_pull_status?: string | null
+          tire_size?: string | null
+          transfer_route?: string | null
+          tread?: string | null
+          tread_eta?: string | null
+          tread_in_inventory?: boolean | null
+          tread_in_stock?: boolean | null
+          type?: string | null
+          ui_status?: never
+          updated_by?: string | null
+          warehouse_notified_at?: string | null
+          written_up_qty?: number | null
+          written_up_reason?: string | null
+          written_up_updated_at?: string | null
+        }
+        Update: {
+          carrier?: string | null
+          casing_grade?: string | null
+          casings_eta?: string | null
+          casings_in_stock?: boolean | null
+          completed?: boolean | null
+          completed_at?: string | null
+          cross_dock_form_link?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          destination_manager_email?: string | null
+          destination_plant?: string | null
+          email?: string | null
+          email_message?: string | null
+          have_casings?: boolean | null
+          id?: string | null
+          idempotency_key?: string | null
+          in_transit_at?: string | null
+          inventory_last_updated?: string | null
+          invoice_number?: string | null
+          last_shipment_date?: string | null
+          manager_notes?: string | null
+          name?: string | null
+          notes?: string | null
+          order_completion_link?: string | null
+          order_type?: string | null
+          ordering_plant?: string | null
+          ordering_store?: string | null
+          pending_quantity?: number | null
+          plant?: string | null
+          product_number?: string | null
+          projected_delivery?: string | null
+          quantity?: number | null
+          ready_to_ship_at?: string | null
+          received_at?: string | null
+          retread_notified_at?: string | null
+          send_email_trigger?: boolean | null
+          send_invoice?: boolean | null
+          shipped_quantity?: number | null
+          status?: string | null
+          status_updated_at?: string | null
+          store?: string | null
+          store_notified_at?: string | null
+          store_number?: string | null
+          submitted_by_email?: string | null
+          submitted_by_name?: string | null
+          timestamp?: string | null
+          tire_pull_status?: string | null
+          tire_size?: string | null
+          transfer_route?: string | null
+          tread?: string | null
+          tread_eta?: string | null
+          tread_in_inventory?: boolean | null
+          tread_in_stock?: boolean | null
+          type?: string | null
+          ui_status?: never
+          updated_by?: string | null
+          warehouse_notified_at?: string | null
+          written_up_qty?: number | null
+          written_up_reason?: string | null
+          written_up_updated_at?: string | null
         }
         Relationships: []
       }
