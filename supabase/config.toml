@@ -1,14 +1,1 @@
-
-project_id = "cdbixtaqjppvdkyfbhkz"
-
-[functions.wheel-order-webhook]
-verify_jwt = false
-
-[functions.warranty-notification]
-verify_jwt = false
-
-[functions.transfer-notification]
-verify_jwt = false
-
-[functions.ordering-confirmation-email]
-verify_jwt = false
+project_id = "cyzywykgdravxfnhskzq"
