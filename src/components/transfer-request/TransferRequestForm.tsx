@@ -1,21 +1,16 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
-import { OrderFormWrapper } from "./OrderFormWrapper";
-import { OrderFormHeader } from "./OrderFormHeader";
-import { OrderFormContent } from "./OrderFormContent";
-import { OrderFormActions } from "./OrderFormActions";
-import { useOrderFormSubmit } from "./hooks/useOrderFormSubmit";
+import { OrderFormWrapper } from "../order-form/OrderFormWrapper";
+import { OrderFormContent } from "../order-form/OrderFormContent";
+import { OrderFormActions } from "../order-form/OrderFormActions";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { formSchema } from "./order-form-schema";
-import { OrderSummaryTable } from "./OrderSummaryTable";
-import { OrderSubmissionHandler } from "./OrderSubmissionHandler";
+import { formSchema } from "../order-form/order-form-schema";
+import { OrderSummaryTable } from "../order-form/OrderSummaryTable";
+import { TransferSubmissionHandler } from "./TransferSubmissionHandler";
 import { toast } from "@/hooks/use-toast";
-// REMOVED: import { getManagerEmail } from "./formConfig";
-// Now using dynamic email routing through ordering-confirmation-email edge function
 import { getCurrentDateTime } from "@/utils/dateTime";
 import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 import { OrderTemplate } from "../order-templates/OrderTemplate";
@@ -23,30 +18,50 @@ import { Card } from "@/components/ui/card";
 import { useOrderFormPersistence } from "@/hooks/useOrderFormPersistence";
 import { ClearFormButton } from "@/components/ui/clear-form-button";
 import { FormRestorationBanner } from "@/components/ui/form-restoration-banner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
-export function OrderForm() {
+export interface TransferOrderSummary {
+  id: string;
+  selected: boolean;
+  store: string;
+  yourName?: string;
+  name?: string;
+  timestamp?: string;
+  productNumber?: string;
+  description?: string;
+  quantity?: string | number;
+  scheduleArrival?: string;
+  notes?: string;
+  crossDock?: "Yes" | "No";
+  crossDockDestination?: string;
+  receiverNo?: string;
+  etaDate?: string;
+  dateReceived?: string;
+  [key: string]: any;
+}
+
+export function TransferRequestForm() {
   const { user } = useAuth();
   const { selectedPlant } = usePlant();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderSummaries, setOrderSummaries] = useState<any[]>([]);
-
-  // REMOVED: Hardcoded manager email lookup - now handled dynamically in edge function
+  const [orderSummaries, setOrderSummaries] = useState<TransferOrderSummary[]>([]);
 
   const defaultValues = {
     yourName: "",
     store: user?.store || "",
-    dateReceived: getCurrentDateTime(), // Use string format instead of Date
+    dateReceived: getCurrentDateTime(),
     productNumber: "",
     description: "",
     quantity: "",
     scheduleArrival: "",
     notes: "",
-    crossDock: "No" as "Yes" | "No", // Fixed enum value to match Zod schema
+    crossDock: "No" as "Yes" | "No",
     crossDockDestination: "",
     receiverNo: "",
     etaDate: "",
     crossDockConfirmation: false,
-    managersEmail: "", // Now handled dynamically in edge function
+    managersEmail: "", // Email routing handled dynamically
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,27 +71,26 @@ export function OrderForm() {
 
   // Form persistence (only for non-admin users)
   const { lastSaved, isRestoring, clearPersistedData } = useOrderFormPersistence(form, {
-    storageKey: 'ordering-platform-order-form',
-    excludeFields: ['managersEmail'], // Exclude auto-generated fields
-    enabled: !user?.isAdmin, // Only enable for non-admin users
-    debounceMs: 2000, // Save every 2 seconds after user stops typing
+    storageKey: 'transfer-request-form',
+    excludeFields: ['managersEmail'],
+    enabled: !user?.isAdmin,
+    debounceMs: 2000,
   });
 
-  // Update store when user changes - email routing now handled dynamically
+  // Update store when user changes
   useEffect(() => {
     if (user?.store && !user?.isAdmin) {
       form.setValue("store", user.store);
-      form.setValue("managersEmail", ""); // Email routing handled in edge function
+      form.setValue("managersEmail", "");
     }
   }, [user, form]);
 
   const { handleSubmit, formState, reset } = form;
-  // Updated to use feature flag and to check for "Yes" instead of "yes"
   const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "Yes";
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     // Add current form values to the order summaries
-    const newOrder = {
+    const newOrder: TransferOrderSummary = {
       ...values,
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
@@ -89,7 +103,7 @@ export function OrderForm() {
     // Show toast notification
     toast({
       title: "Item Added",
-      description: "The item has been added to your order. You can add more items or submit the order.",
+      description: "The item has been added to your transfer request. You can add more items or submit the request.",
     });
     
     // Reset form for next item, but preserve store and manager email for non-admin users
@@ -132,7 +146,7 @@ export function OrderForm() {
     // Ensure store is still set for non-admin users
     if (user && user.store && !user?.isAdmin) {
       form.setValue("store", user.store);
-      form.setValue("managersEmail", ""); // Email routing handled in edge function
+      form.setValue("managersEmail", "");
     }
     
     toast({
@@ -155,7 +169,15 @@ export function OrderForm() {
 
   return (
     <OrderFormWrapper>
-      <OrderFormHeader />
+      <div className="mb-6">
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Transfer Request:</strong> Simple store → plant transfers only. 
+            Orders will be sent to the selected plant: <strong>{selectedPlant}</strong>
+          </AlertDescription>
+        </Alert>
+      </div>
       
       {/* Form persistence feedback - only show for non-admin users */}
       {!user?.isAdmin && (
@@ -166,8 +188,8 @@ export function OrderForm() {
       
       {/* Order Templates Section */}
       <Card className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden mb-6">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 flex items-center">
-          <h2 className="text-2xl font-semibold text-white">Regional Order Templates</h2>
+        <div className="bg-gradient-to-r from-green-600 to-green-800 p-6 flex items-center">
+          <h2 className="text-2xl font-semibold text-white">Transfer Request Templates</h2>
         </div>
         
         <div className="p-6 border-b border-gray-100">
@@ -202,14 +224,14 @@ export function OrderForm() {
       {orderSummaries.length > 0 && (
         <div className="mt-8">
           <OrderSummaryTable 
-            orderSummaries={orderSummaries} 
+            orderSummaries={orderSummaries as any} 
             onToggleSelection={handleToggleSelection} 
           />
         </div>
       )}
       
       {/* Submit selected orders */}
-      <OrderSubmissionHandler 
+      <TransferSubmissionHandler 
         orderSummaries={orderSummaries}
         setOrderSummaries={setOrderSummaries}
       />
@@ -217,7 +239,7 @@ export function OrderForm() {
       <OrderFormActions 
         isSubmitting={isSubmitting}
         selectedPlant={selectedPlant}
-        onAddClick={handleAddToOrder} // Connect button click to form submission
+        onAddClick={handleAddToOrder}
       />
     </OrderFormWrapper>
   );

@@ -4,7 +4,8 @@ import { AuthGuard } from '@/components/auth/AuthGuard';
 import { HomeRedirect } from '@/components/routing/HomeRedirect';
 
 // Page imports
-import Index from '@/pages/Index';
+import RegionalOrders from '@/pages/RegionalOrders';
+import TransferRequest from '@/pages/TransferRequest';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
 import SignUpSuccess from '@/pages/SignUpSuccess';
@@ -38,13 +39,13 @@ export function AppRoutes() {
       
       <Route path="/new-order" element={
         <AuthGuard>
-          <Index />
+          <RegionalOrders />
         </AuthGuard>
       } />
       
       <Route path="/transfer-request" element={
         <AuthGuard>
-          <Index />
+          <TransferRequest />
         </AuthGuard>
       } />
       
