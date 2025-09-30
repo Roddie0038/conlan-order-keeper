@@ -88,8 +88,14 @@ const handler = async (req: Request): Promise<Response> => {
         throw rErr;
       }
 
-      // 2) dedupe by email (roles may duplicate the same address)
-      const toList = [...new Set((recs ?? []).map((r: any) => r.recipient_email))];
+      // 2) build a unique list AND preserve each email's role
+      const byEmail = new Map<string, string>();
+      for (const r of recs ?? []) {
+        const e = (r.recipient_email || '').toLowerCase();
+        if (e && !byEmail.has(e)) byEmail.set(e, r.recipient_role || 'store_manager');
+      }
+      const toList = [...byEmail.keys()];
+      
       if (toList.length === 0) {
         console.log(`No recipients found for order confirmation store ${payload.store}`);
         return new Response(
@@ -118,50 +124,45 @@ const handler = async (req: Request): Promise<Response> => {
         </ul>
       `;
 
+      // Normalize the store key once
+      const storeKey = (payload.store ?? '').slice(-3); // '027'
+
       // 4) send via the ordering-confirmation-email function and log to ordering_email_logs
-      const results = [];
+      const results: any[] = [];
       for (const email of toList) {
+        const role = byEmail.get(email) ?? 'store_manager';
         try {
           const emailPayload = {
             order_type: 'confirmation',
             order_id: payload.order_id,
-            store_number: payload.store,
-            store_name: payload.store,
+            store_number: storeKey, // normalized key (027)
+            store_name: payload.store, // full label
             recipient_email: email,
-            recipient_role: 'store_manager',
+            recipient_role: role,
             submitted_by_name: payload.submitted_by_name,
             product_number: payload.product_number,
             description: payload.description,
             quantity: payload.quantity,
             timestamp: payload.submitted_at,
             subject,
-            html
+            html,
           };
 
           const { error: emailError } = await supabase.functions.invoke(
             'ordering-confirmation-email',
-            {
-              body: emailPayload,
-              headers: {
-                'Authorization': `Bearer ${supabaseServiceKey}`
-              }
-            }
+            { body: emailPayload, headers: { Authorization: `Bearer ${supabaseServiceKey}` } }
           );
 
           if (emailError) {
             console.error(`Failed to send order confirmation to ${email}:`, emailError);
-            results.push({ recipient: email, status: 'failed', error: emailError.message });
+            results.push({ recipient: email, role, status: 'failed', error: emailError.message });
           } else {
             console.log(`Order confirmation sent successfully to ${email}`);
-            results.push({ recipient: email, status: 'sent' });
+            results.push({ recipient: email, role, status: 'sent' });
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error sending order confirmation to ${email}:`, error);
-          results.push({ 
-            recipient: email, 
-            status: 'failed', 
-            error: error instanceof Error ? error.message : 'Unknown error' 
-          });
+          results.push({ recipient: email, role, status: 'failed', error: error?.message ?? 'Unknown error' });
         }
       }
 
