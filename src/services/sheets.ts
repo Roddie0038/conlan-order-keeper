@@ -10,6 +10,7 @@ import type { OrderFormData } from '@/types/orders';
 import { mapOrderToGoogleSheets } from '@/utils/mapOrderToGoogleSheets';
 import { mapMTOToGoogleSheets } from '@/utils/mapMTOToGoogleSheets';
 import { IS_E2E } from '@/config/e2e';
+import { FEATURE_FLAGS } from '@/config/features';
 
 export type { OrderType };
 export type { OrderFormData };
@@ -42,15 +43,34 @@ export const submitToGoogleSheets = async (data: OrderFormData | MTOFormData, us
     console.log("🔍 SHEETS - data.qtyWheels value:", 'qtyWheels' in data ? data.qtyWheels : 'NOT_PRESENT');
     
     if (data.type === 'MTO') {
-      console.log("🔍 SHEETS - ROUTING: MTO Order - Using MTO webhook");
+      console.log("🔍 SHEETS - ROUTING: MTO Order - Using Edge Function (Sheets disabled via feature flag)");
+      console.log("🚩 FEATURE FLAGS - USE_SHEETS:", FEATURE_FLAGS.USE_SHEETS, "MTO_EDGE_ENABLED:", FEATURE_FLAGS.MTO_EDGE_ENABLED);
       
-      // Map data to Google Sheets format for MTO
-      const sheetsPayload = mapMTOToGoogleSheets(data, user);
-      console.log("🔍 SHEETS - MTO mapped payload:", JSON.stringify(sheetsPayload, null, 2));
+      // Map data to MTO format for Edge Function
+      const edgePayload = mapMTOToGoogleSheets(data, user);
       
-      // ✅ KEEP: Continue submitting to Google Sheets
-      const mtoOrdersResult = await submitToMTOOrdersWebhook(sheetsPayload);
-      results.push(mtoOrdersResult);
+      if (FEATURE_FLAGS.DEBUG_ORDER_SUBMISSION) {
+        console.log("🔍 SHEETS - MTO mapped payload for edge function:", JSON.stringify(edgePayload, null, 2));
+      }
+      
+      // ✅ Route to Edge Function only (Google Sheets disabled via feature flag)
+      if (FEATURE_FLAGS.MTO_EDGE_ENABLED) {
+        const mtoOrdersResult = await submitToMTOOrdersWebhook(edgePayload);
+        results.push(mtoOrdersResult);
+        
+        if (FEATURE_FLAGS.ENABLE_TELEMETRY) {
+          console.log("📊 TELEMETRY - MTO submission completed:", {
+            timestamp: new Date().toISOString(),
+            order_type: 'MTO',
+            edge_function_used: true,
+            sheets_used: false,
+            success: !!mtoOrdersResult
+          });
+        }
+      } else {
+        console.warn("⚠️ MTO_EDGE_ENABLED is disabled - skipping submission");
+        results.push(false);
+      }
     } 
     else if (data.type === 'WHEEL_POWDER_COATING' || ('qtyWheels' in data && data.qtyWheels)) {
       console.log("🚀 SHEETS - ROUTING: WHEEL ORDER DETECTED - Using WHEEL webhook");

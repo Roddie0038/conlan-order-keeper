@@ -16,14 +16,16 @@ export function useFetchMTOOrders() {
     setError(null);
     
     try {
-      let query = supabase.from("mto_orders").select("*");
+      let query = supabase.from("mto_orders").select("*")
+        .eq('order_type', 'MTO')
+        .in('status', ['open','ready_to_ship','in_transit','received','completed','cancelled']);
       
       // If not admin, filter by store
       if (user && !user.isAdmin && user.store) {
         query = query.eq("store", user.store);
       }
       
-      const { data, error } = await query.order("timestamp", { ascending: false });
+      const { data, error } = await query.order("created_at", { ascending: false }).limit(200);
 
       if (error) {
         throw error;

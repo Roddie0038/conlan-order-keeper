@@ -29,8 +29,8 @@ export const MTOPendingOrders = () => {
   // Use Supabase hook instead of localStorage
   const { orders: mtoOrders, loading, error, refreshOrders } = useFetchMTOOrders();
   
-  // Filter only open orders for this component
-  const orders = mtoOrders.filter(order => order.status === 'open');
+  // Show open orders for this component (which map to "pending" in UI)
+  const orders = mtoOrders.filter(order => order.status === 'open' || order.status === 'pending');
 
   const handleDelete = (orderId: string) => {
     if (!user?.isAdmin) {

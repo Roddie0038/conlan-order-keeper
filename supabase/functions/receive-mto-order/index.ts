@@ -72,33 +72,84 @@ serve(async (req) => {
       return storeMapping[store] || store;
     };
 
-    // Transform the payload to match Supabase schema
+    // Enhanced validation with detailed logging
+    const validateRequiredFields = (data: any): string[] => {
+      const errors: string[] = [];
+      
+      if (!data.product_number || data.product_number.toString().trim() === '') {
+        errors.push('product_number is required');
+      }
+      if (!data.casing_grade || data.casing_grade.toString().trim() === '') {
+        errors.push('casing_grade is required');
+      }
+      if (!data.tire_size || data.tire_size.toString().trim() === '') {
+        errors.push('tire_size is required');
+      }
+      
+      const quantity = parseInt(data.quantity?.toString()) || 0;
+      if (quantity <= 0) {
+        errors.push('quantity must be greater than 0');
+      }
+      
+      return errors;
+    };
+
+    // Validate required fields first
+    const validationErrors = validateRequiredFields(normalized);
+    if (validationErrors.length > 0) {
+      console.error('❌ RECEIVE MTO - Validation failed:', validationErrors);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Validation failed', 
+          details: validationErrors,
+          received_data: normalized
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Transform the payload to match Supabase schema with enhanced validation
+    const rawStore = normalized.store || '';
+    const normalizedStoreName = normalizeStore(rawStore);
+    const storeNumber = rawStore.match(/\d{3}$/)?.[0] || 
+                       rawStore.match(/\d{2,3}/)?.[0]?.padStart(3, '0') || '027';
+
     const mtoOrderData = {
       timestamp: normalized.timestamp || new Date().toISOString(),
       name: normalized.contact || normalized.name || '',
-      store: normalizeStore(normalized.store || ''),
-      store_number: (normalized.store || '').match(/\d{3}$/)?.[0] || 
-                    (normalized.store || '').match(/\d{2,3}/)?.[0]?.padStart(3, '0') || '',
-      product_number: normalized.description || normalized.product_number || '',
-      tire_size: ts || normalized.tire_type || '',
+      store: normalizedStoreName,
+      store_number: storeNumber,
+      product_number: normalized.product_number || normalized.description || '',
+      tire_size: ts,
       quantity: parseInt(normalized.quantity?.toString()) || 0,
       email: normalized.email || '',
-      plant: 'Grand Prairie 097', // Default plant
-      order_type: 'MTO',
+      plant: normalized.plant || 'Grand Prairie 097', // Use provided plant or default
+      order_type: 'MTO', // Uppercase as enforced by trigger
       type: 'MTO',
-      status: 'open',
+      status: 'open', // Will be normalized by trigger
       status_updated_at: new Date().toISOString(),
-      tread: normalized.description || normalized.tread || '',
-      casing_grade: cg || 'Grade 1',
-      description: `MTO - ${normalized.description || ''} - ${ts || normalized.tire_type || ''}`
+      tread: normalized.tread || normalized.description || '',
+      casing_grade: cg,
+      description: normalized.description || `MTO - ${normalized.tread || ''} - ${ts}`,
+      // Add new fields for better tracking
+      submitted_by_name: normalized.name || normalized.contact || '',
+      submitted_by_email: normalized.email || '',
+      // Add idempotency support
+      idempotency_key: normalized.idempotency_key || `mto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
 
     console.log('🔍 RECEIVE MTO - Mapped order data:', mtoOrderData);
 
-    // Insert into Supabase mto_orders table
+    // Insert into Supabase mto_orders table with upsert for idempotency
     const { data: insertedOrder, error: insertError } = await supabase
       .from('mto_orders')
-      .insert(mtoOrderData)
+      .upsert(mtoOrderData, { 
+        onConflict: 'idempotency_key',
+        ignoreDuplicates: false 
+      })
       .select()
       .single();
 
@@ -171,9 +222,14 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         order_id: insertedOrder.id,
+        idempotency_key: insertedOrder.idempotency_key,
+        order_type: insertedOrder.order_type,
+        status: insertedOrder.status,
+        store_number: insertedOrder.store_number,
         message: 'MTO order received and processed successfully' 
       }),
       { 
+        status: 201,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
