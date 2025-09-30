@@ -152,7 +152,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions) {
     
   } catch (error) {
     console.error("❌ MAILER - Error sending email:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: (error as Error).message };
   }
 }
 
@@ -200,6 +200,6 @@ export async function logEmailNotification(options: LogEmailOptions) {
     return { success: true, logged: successful };
   } catch (error) {
     console.error("❌ EMAIL LOGGING - Error logging email notification:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: (error as Error).message };
   }
 }

@@ -165,7 +165,7 @@ serve(async (req) => {
       store_number: storeNumber,
       recipients_count: recipients.length,
       recipient_emails: recipients.map(r => ({ email: r.recipient_email, role: r.role })),
-      source: platformUsers?.length > 0 ? 'platform_users' : 'ordering_email_recipients'
+      source: (platformUsers?.length ?? 0) > 0 ? 'platform_users' : 'ordering_email_recipients'
     });
 
     // Generate email content
@@ -236,7 +236,7 @@ serve(async (req) => {
         emailResults.push({
           recipient: recipient.recipient_email,
           success: true,
-          messageId: emailResponse.id
+          messageId: (emailResponse as any).id
         });
 
       } catch (emailError) {
@@ -250,13 +250,13 @@ serve(async (req) => {
           order_type: orderData.order_type,
           order_id: orderData.order_id,
           status: 'failed',
-          error_details: emailError.message
+          error_details: (emailError as Error).message
         });
 
         emailResults.push({
           recipient: recipient.recipient_email,
           success: false,
-          error: emailError.message
+          error: (emailError as Error).message
         });
       }
     }
@@ -284,7 +284,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: (error as Error).message
       }),
       {
         status: 500,

@@ -239,7 +239,7 @@ const handler = async (req: Request): Promise<Response> => {
             recipient_email: adminEmails.join(', '),
             recipient_role: 'admin',
             status: 'failed',
-            error_message: emailError.message
+            error_message: (emailError as Error).message
           });
       }
     }

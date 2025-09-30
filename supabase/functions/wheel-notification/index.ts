@@ -135,8 +135,6 @@ serve(async (req) => {
         status: 'failed',
         notificationType: 'wheel_order_submitted',
         errorMessage: 'No recipients found in database',
-        store: storeNumber,
-        plant: wheelData.plant || 'unknown'
       });
       
       return new Response(JSON.stringify({ 
@@ -199,8 +197,6 @@ serve(async (req) => {
         status: 'sent',
         notificationType: 'wheel_order_submitted',
         emailProvider: 'resend',
-        store: storeNumber,
-        plant: wheelData.plant || 'unknown'
       });
       
       return new Response(JSON.stringify({ 
@@ -210,7 +206,7 @@ serve(async (req) => {
         orderId: orderId,
         orderType: 'WHEEL_POWDER_COATING',
         store: storeNumber,
-        emailId: emailResult.data?.id,
+        emailId: (emailResult.data as any)?.id,
         source: 'database_query'
       }), {
         status: 200,
@@ -228,8 +224,7 @@ serve(async (req) => {
         notificationType: 'wheel_order_submitted',
         emailProvider: 'resend',
         errorMessage: emailResult.error,
-        store: storeNumber,
-        plant: wheelData.plant || 'unknown'
+        
       });
       
       return new Response(JSON.stringify({ 
@@ -255,7 +250,7 @@ serve(async (req) => {
         status: 'failed',
         notificationType: 'wheel_order_submitted',
         emailProvider: 'resend',
-        errorMessage: error.message
+        errorMessage: (error as Error).message
       });
     } catch (logError) {
       console.error("❌ Failed to log error:", logError);
@@ -263,8 +258,8 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message,
-      details: error.stack
+      error: (error as Error).message,
+      details: (error as Error).stack
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

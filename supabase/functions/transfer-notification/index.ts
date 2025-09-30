@@ -118,7 +118,7 @@ serve(async (req) => {
         orderId: orderId,
         orderType: transferData.orderType || 'TRANSFER',
         store: transferData.store,
-        emailId: emailResult.data?.id,
+        emailId: (emailResult.data as any)?.id,
         isCrossDock: isCrossDock
       }), {
         status: 200,
@@ -161,7 +161,7 @@ serve(async (req) => {
         status: 'failed',
         notificationType: 'transfer_order_submitted',
         emailProvider: 'resend',
-        errorMessage: error.message
+        errorMessage: (error as Error).message
       });
     } catch (logError) {
       console.error("❌ Failed to log error:", logError);
@@ -169,8 +169,8 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message,
-      details: error.stack
+      error: (error as Error).message,
+      details: (error as Error).stack
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
