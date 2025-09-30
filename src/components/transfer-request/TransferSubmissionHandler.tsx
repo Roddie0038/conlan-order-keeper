@@ -52,7 +52,10 @@ export function TransferSubmissionHandler({
       // Only clear orders after ALL are processed
       if (result.successes > 0) {
         // Remove only the successfully processed orders
-        setOrderSummaries(prev => prev.filter(order => !order.selected));
+        const successIds = new Set(
+          result.results.filter(r => r.status === 'success').map(r => r.orderId)
+        );
+        setOrderSummaries(prev => prev.filter(order => !successIds.has(order.id)));
         
         toast({
           title: "🚚 Transfer requests submitted! 🚚",

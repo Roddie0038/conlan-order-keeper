@@ -127,34 +127,9 @@ export async function simpleTransferSubmission(
         }
         
         if (emailRecipients.length > 0) {
-          try {
-            console.log(`[SUBMIT] Transfer ${orderNum}: Calling transfer-notification edge function for store:`, storeNumber);
-            const emailResponse = await fetch
-              (`https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/transfer-notification`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
-                },
-                body: JSON.stringify({
-                  transferData: googleSheetsPayload,
-                  orderId: data?.id || 'unknown',
-                  recipients: emailRecipients
-                })
-              }
-            );
-            
-            if (emailResponse.ok) {
-              const emailResult = await emailResponse.json();
-              console.log(`[SUBMIT] Transfer ${orderNum}: Email notification sent successfully:`, emailResult);
-            } else {
-              const emailError = await emailResponse.text();
-              console.error(`[SUBMIT] Transfer ${orderNum}: Email notification failed:`, emailError);
-            }
-          } catch (emailError) {
-            console.error(`[SUBMIT] Transfer ${orderNum}: Error sending transfer email:`, emailError);
-          }
+          // TODO: Re-enable email notifications via proper server-side endpoint
+          console.log(`[SUBMIT] Transfer ${orderNum}: Email notifications temporarily disabled for QA testing`);
+          console.log(`[SUBMIT] Transfer ${orderNum}: Would notify recipients:`, emailRecipients);
         }
       }
       
