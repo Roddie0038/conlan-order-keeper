@@ -86,6 +86,10 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         throw new Error(`Failed to submit MTO order: ${error.message}`);
       }
       
+      if (!data) {
+        throw new Error('No data returned from MTO order insert');
+      }
+      
       console.log("✅ MTO FORM - Saved to Supabase successfully:", data);
       
       // Store savedOrder reference for email notifications

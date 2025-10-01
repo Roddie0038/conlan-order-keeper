@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       orders: {
@@ -64,6 +64,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       mto_orders: {
         Row: {
@@ -135,6 +136,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       wheel_orders: {
         Row: {
@@ -176,6 +178,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       warranty_orders: {
         Row: {
@@ -214,6 +217,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       platform_users: {
         Row: {
@@ -252,6 +256,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       complaints: {
         Row: {
@@ -296,6 +301,7 @@ export interface Database {
           updated_at?: string
           resolved_at?: string | null
         }
+        Relationships: []
       }
       approved_treads: {
         Row: {
@@ -328,6 +334,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       user_activity_logs: {
         Row: {
@@ -360,6 +367,7 @@ export interface Database {
           metadata?: Json | null
           timestamp?: string
         }
+        Relationships: []
       }
       managers: {
         Row: {
@@ -395,6 +403,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       user_preferences: {
         Row: {
@@ -421,6 +430,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       plant_switch_logs: {
         Row: {
@@ -444,6 +454,7 @@ export interface Database {
           to_plant?: string
           switched_at?: string
         }
+        Relationships: []
       }
       order_messages: {
         Row: {
@@ -482,6 +493,7 @@ export interface Database {
           email_sent?: boolean
           attachments?: Json | null
         }
+        Relationships: []
       }
       message_attachments: {
         Row: {
@@ -511,6 +523,7 @@ export interface Database {
           file_type?: string | null
           uploaded_at?: string
         }
+        Relationships: []
       }
       message_read_status: {
         Row: {
@@ -531,6 +544,7 @@ export interface Database {
           user_email?: string
           read_at?: string
         }
+        Relationships: []
       }
       message_templates: {
         Row: {
@@ -563,6 +577,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       ordering_email_logs: {
         Row: {
@@ -598,6 +613,7 @@ export interface Database {
           error_message?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       store_email_recipients: {
         Row: {
@@ -630,6 +646,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       pending_registrations: {
         Row: {
@@ -662,6 +679,7 @@ export interface Database {
           status?: string
           created_at?: string
         }
+        Relationships: []
       }
     }
     Views: {
