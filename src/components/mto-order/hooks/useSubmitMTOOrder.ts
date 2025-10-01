@@ -11,7 +11,7 @@ import { getPlantForStore } from "@/utils/plantMapping";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
 import { supabase } from "@/integrations/supabase/client";
-import type { MTOOrderData } from "@/types/supabase-extensions";
+import type { Database } from "@/types/database";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
   const { user } = useAuth();
@@ -56,27 +56,29 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       }
 
       // Create order data for new schema - only include fields DB expects
-      const mtoOrderData = {
+      type MtoInsert = Database['public']['Tables']['mto_orders']['Insert'];
+      
+      const mtoOrderData: MtoInsert = {
         store: formData.store,
         plant: plant,
         submitted_by_email: managerEmail,
         submitted_by_name: formData.name,
         quantity: parseInt(formData.quantity) || 1,
-        // Optional fields
-        product_number: formData.productNumber || undefined,
-        tire_size: tireSize || undefined,
-        casing_grade: formData.casingGrade.length > 0 ? formData.casingGrade.join(", ") : undefined,
-        tread: formData.tireTreadNeeded || undefined,
-        notes: formData.notes || undefined
+        // Optional fields - only include if present
+        ...(formData.productNumber && { product_number: formData.productNumber }),
+        ...(tireSize && { tire_size: tireSize }),
+        ...(formData.casingGrade.length > 0 && { casing_grade: formData.casingGrade.join(", ") }),
+        ...(formData.tireTreadNeeded && { tread: formData.tireTreadNeeded }),
+        ...(formData.notes && { notes: formData.notes })
       };
 
       console.log("🔍 MTO FORM - Submission data:", mtoOrderData);
 
-      // Submit to Supabase directly
+      // Submit to Supabase directly with typed response
       const { data, error } = await supabase
         .from('mto_orders')
         .insert(mtoOrderData)
-        .select()
+        .select('id, order_number, product_number, quantity, store, plant, created_at')
         .single();
       
       if (error) {
