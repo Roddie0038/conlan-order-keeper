@@ -1,5 +1,5 @@
 
-import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "./database";
 
 // Standardized Supabase insert result type
 export type SupabaseInsertResult<T> = {

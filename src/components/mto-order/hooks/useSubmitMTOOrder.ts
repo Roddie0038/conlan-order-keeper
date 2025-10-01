@@ -56,7 +56,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       }
 
       // Create order data for new schema - only include fields DB expects
-      const mtoOrderData: any = {
+      const mtoOrderData = {
         store: formData.store,
         plant: plant,
         submitted_by_email: managerEmail,
@@ -72,9 +72,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
 
       console.log("🔍 MTO FORM - Submission data:", mtoOrderData);
 
-      // Submit to Supabase directly - no need for mapMTOToSupabase wrapper
-      // The payload is already in the correct format for the new schema
-      // @ts-ignore - Types will be generated after schema migration
+      // Submit to Supabase directly
       const { data, error } = await supabase
         .from('mto_orders')
         .insert(mtoOrderData)
@@ -100,7 +98,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
           store_number: storeNumber,
           store_name: formData.store,
           order_type: 'MTO',
-          order_id: savedOrder.data?.id?.toString() || 'Unknown',
+          order_id: data?.id?.toString() || 'Unknown',
           timestamp: timestamp,
           name: formData.name,
           email: managerEmail,
@@ -112,14 +110,15 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
         
         if (confirmationResult.success) {
-          console.log(`✅ MTO FORM - Order confirmation email sent for order ${savedOrder.data?.id}`);
+          console.log(`✅ MTO FORM - Order confirmation email sent for order ${data?.id}`);
         }
       } catch (emailError) {
         console.error("❌ MTO FORM - Error sending order confirmation email:", emailError);
       }
 
       // Submit to Google Sheets (uses mapMTOToGoogleSheets internally for camelCase)
-      const result = await submitToGoogleSheets(mtoOrderData, user);
+      // Cast to any since submitToGoogleSheets expects old camelCase format
+      const result = await submitToGoogleSheets(mtoOrderData as any, user);
       console.log("🔍 MTO FORM - Google Sheets result:", result);
 
       // Send workflow notification emails using centralized database routing
@@ -146,7 +145,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
                 },
                 body: JSON.stringify({
                   mtoData: mtoOrderData,
-                  orderId: savedOrder.data?.id || 'unknown',
+                  orderId: data?.id || 'unknown',
                   recipients: emailRecipients
                 })
               }
