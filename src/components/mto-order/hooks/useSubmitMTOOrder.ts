@@ -10,6 +10,7 @@ import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
 import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
+import { supabase } from "@/integrations/supabase/client";
 import type { MTOOrderData } from "@/types/supabase-extensions";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
@@ -20,13 +21,11 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validation
-    if (!formData.store || !formData.name || !formData.productNumber || 
-        !formData.tireSize || !formData.tireTreadNeeded || !formData.quantity || 
-        formData.casingGrade.length === 0) {
+    // Validation: Only validate truly required fields for new schema
+    if (!formData.store || !formData.name) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields.",
+        description: "Store and Name are required fields.",
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -44,38 +43,53 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       
       console.log("🔍 MTO FORM - Manager email:", managerEmail);
       console.log("🔍 MTO FORM - Plant:", plant);
+      
+      // Validate email format for submitted_by_email
+      if (!managerEmail || !managerEmail.includes('@')) {
+        toast({
+          title: "Validation Error", 
+          description: "A valid email is required.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
-      // Create order data in camelCase (internal format)
-      const mtoOrderData: MTOOrderData = {
-        name: formData.name,
+      // Create order data for new schema - only include fields DB expects
+      const mtoOrderData: any = {
         store: formData.store,
-        productNumber: formData.productNumber,
-        casingGrade: formData.casingGrade.join(", "),
-        tireSize: tireSize,
-        tread: formData.tireTreadNeeded,
-        tireTreadNeeded: formData.tireTreadNeeded,
-        quantity: parseInt(formData.quantity) || 0,
-        notes: formData.notes || "",
-        email: managerEmail,
-        managerEmail: managerEmail,
         plant: plant,
-        timestamp: timestamp,
-        type: "MTO",
-        orderType: "MTO",
-        status: "open", 
-        description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`,
+        submitted_by_email: managerEmail,
+        submitted_by_name: formData.name,
+        quantity: parseInt(formData.quantity) || 1,
+        // Optional fields
+        product_number: formData.productNumber || undefined,
+        tire_size: tireSize || undefined,
+        casing_grade: formData.casingGrade.length > 0 ? formData.casingGrade.join(", ") : undefined,
+        tread: formData.tireTreadNeeded || undefined,
+        notes: formData.notes || undefined
       };
 
       console.log("🔍 MTO FORM - Submission data:", mtoOrderData);
 
-      // Submit to Supabase (uses mapMTOToSupabase internally for snake_case)
-      const savedOrder = await saveOrderToSupabase(mtoOrderData, user);
+      // Submit to Supabase directly - no need for mapMTOToSupabase wrapper
+      // The payload is already in the correct format for the new schema
+      // @ts-ignore - Types will be generated after schema migration
+      const { data, error } = await supabase
+        .from('mto_orders')
+        .insert(mtoOrderData)
+        .select()
+        .single();
       
-      if (savedOrder.error) {
-        throw new Error("Failed to submit MTO order to database");
+      if (error) {
+        console.error("❌ MTO FORM - Supabase error:", error);
+        throw new Error(`Failed to submit MTO order: ${error.message}`);
       }
       
-      console.log("🔍 MTO FORM - Saved to Supabase successfully:", savedOrder.data);
+      console.log("✅ MTO FORM - Saved to Supabase successfully:", data);
+      
+      // Store savedOrder reference for email notifications
+      const savedOrder = { data, error: null };
 
       // Send order confirmation email
       try {
