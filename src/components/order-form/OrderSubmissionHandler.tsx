@@ -1,16 +1,15 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePlant } from "@/contexts/PlantContext";
-import { useOrderSubmission, OrderSummary } from "@/hooks/useOrderSubmission";
-import { unifiedOrderSubmission } from "@/services/orderSubmission/unifiedOrderSubmission";
 import { OrderCountSummary } from "./OrderCountSummary";
 import { OrderSubmitButton } from "./OrderSubmitButton";
 import { useToast } from "@/hooks/use-toast";
+import { submitOtOrder, type OtOrderPayload } from "@/lib/ingestOtOrder";
+import { getPlantForStore } from "@/utils/plantMapping";
 
 interface OrderSubmissionHandlerProps {
-  orderSummaries: OrderSummary[];
-  setOrderSummaries: React.Dispatch<React.SetStateAction<OrderSummary[]>>;
+  orderSummaries: any[];
+  setOrderSummaries: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 export function OrderSubmissionHandler({ 
@@ -18,16 +17,14 @@ export function OrderSubmissionHandler({
   setOrderSummaries 
 }: OrderSubmissionHandlerProps) {
   const { user } = useAuth();
-  const { selectedPlant, PLANT_WEBHOOKS } = usePlant();
   const { toast } = useToast();
   const isAdmin = user?.isAdmin || false;
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [testMode] = useState(true); // Always enable notifications
 
-  const selectedOrders = orderSummaries.filter(order => order.selected);
+  const selectedOrders = orderSummaries.filter(order => order.selected === true);
 
-  // Submit orders handler using unified submission
+  // Submit orders handler - NEW FLOW: Direct to ingest-ot-order edge function only
   const submitOrders = async () => {
     if (selectedOrders.length === 0) {
       toast({
@@ -39,41 +36,61 @@ export function OrderSubmissionHandler({
     }
     
     setIsSubmitting(true);
-    console.log("[SUBMIT] Regional Orders - Starting submission");
-    console.log(`[SUBMIT] Regional Orders - Processing ${selectedOrders.length} orders with complex routing`);
+    console.log("[SUBMIT] Starting new OT order submission flow (NO webhooks)");
+    console.log(`[SUBMIT] Processing ${selectedOrders.length} orders`);
     
     try {
-      // Use unified submission utility with all regional logic intact
-      const result = await unifiedOrderSubmission(
-        selectedOrders,
-        selectedPlant,
-        PLANT_WEBHOOKS,
-        isAdmin
-      );
+      let successCount = 0;
+      let failCount = 0;
+      const successIds: string[] = [];
+
+      // Process each order via ingest-ot-order edge function
+      for (const order of selectedOrders) {
+        const plant = getPlantForStore(order.store);
+        
+        const payload: OtOrderPayload = {
+          order_number: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          product_number: order.productNumber, // Pass exactly as typed
+          quantity: parseInt(order.quantity?.toString() || "0") || 0,
+          store: order.store,
+          plant: plant,
+          submitted_by_email: user?.email || "",
+          submitted_by_name: order.yourName || user?.name || "",
+        };
+
+        console.log("[SUBMIT] Sending to ingest-ot-order:", payload);
+        const result = await submitOtOrder(payload);
+
+        if (result.ok === true) {
+          successCount++;
+          successIds.push(order.id);
+          console.log("✅ Order submitted:", result.id);
+        } else {
+          failCount++;
+          console.error("❌ Order failed:", result.status, result.message);
+        }
+      }
       
-      // Only clear orders after ALL are processed
-      if (result.successes > 0) {
-        // Remove only the successfully processed orders
-        const successIds = new Set(
-          result.results.filter(r => r.status === 'success').map(r => r.orderId)
-        );
-        setOrderSummaries(prev => prev.filter(order => !successIds.has(order.id)));
+      // Remove only successfully submitted orders
+      if (successCount > 0) {
+        const successIdsSet = new Set(successIds);
+        setOrderSummaries(prev => prev.filter(order => !successIdsSet.has(order.id)));
         
         toast({
-          title: "🚚 Regional orders submitted! 🚚",
-          description: `${result.successes} order(s) submitted successfully${result.failures > 0 ? `, ${result.failures} failed` : ''}.`
+          title: "Orders submitted",
+          description: `${successCount} order(s) submitted successfully${failCount > 0 ? `, ${failCount} failed` : ''}.`
         });
       }
       
-      if (result.failures > 0 && result.successes === 0) {
+      if (failCount > 0 && successCount === 0) {
         toast({
           title: "Submission failed",
-          description: `${result.failures} order(s) failed to submit. Please try again.`,
+          description: `${failCount} order(s) failed to submit. Please try again.`,
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.error("[SUBMIT] Regional Orders - Error submitting orders:", error);
+      console.error("[SUBMIT] Error submitting orders:", error);
       toast({
         title: "Error submitting orders",
         description: "There was an error submitting the orders. Please try again.",
@@ -97,12 +114,10 @@ export function OrderSubmissionHandler({
         />
         
         <div className="flex items-center gap-4">
-          {/* Notifications are always enabled - AdminTestModeToggle removed */}
-          
           <OrderSubmitButton 
             isSubmitting={isSubmitting}
             selectedOrders={selectedOrders}
-            testMode={testMode}
+            testMode={true}
             isAdmin={isAdmin}
             onSubmit={submitOrders}
           />

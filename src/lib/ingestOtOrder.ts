@@ -51,7 +51,10 @@ export async function submitOtOrder(
           "Authorization": `Bearer ${ANON}`,
           "x-internal-secret": INTERNAL_SECRET,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...payload,
+          product_number: payload.product_number, // Pass exactly as typed, no modification
+        }),
       });
 
       if (res.ok) {
