@@ -125,7 +125,7 @@ export function ComplaintForm() {
           submitted_by_name: user.name,
           submitted_by_email: user.email,
           date_submitted: new Date().toISOString()
-        })
+        } as any)
         .select()
         .single();
 

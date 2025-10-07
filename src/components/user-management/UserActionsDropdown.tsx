@@ -31,7 +31,7 @@ export function UserActionsDropdown({ user, onEdit, onUserUpdated }: UserActions
           updated_by: 'roderickdemarais@aol.com',
           updated_at: new Date().toISOString()
         })
-        .eq('id', user.id);
+        .eq('id', Number(user.id));
 
       if (error) throw error;
 
@@ -59,7 +59,7 @@ export function UserActionsDropdown({ user, onEdit, onUserUpdated }: UserActions
       const { error } = await supabase
         .from('platform_users')
         .delete()
-        .eq('id', user.id);
+        .eq('id', Number(user.id));
 
       if (error) throw error;
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { mapOrderRow } from "@/lib/mappers";
 
 export interface MTOOrderRecord {
   id: string;
@@ -46,7 +47,7 @@ export function useFetchMTOOrders() {
         throw error;
       }
       
-      setOrders(data as MTOOrderRecord[] || []);
+      setOrders((data || []).map(mapOrderRow) as any);
     } catch (err) {
       console.error("Error fetching MTO orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));

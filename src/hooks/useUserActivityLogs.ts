@@ -2,17 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { waitForSessionReadiness, withRetry, logError } from '@/utils/sessionUtils';
+import { mapActivityLogRow, ActivityLogUI } from '@/lib/mappers';
 
-export interface ActivityLog {
-  id: string;
-  action: string;
-  affected_user: string;
-  performed_by: string;
+export type ActivityLog = ActivityLogUI & {
   platform: 'ordering_platform' | 'ot_platform';
   description: string | null;
-  metadata: any;
-  timestamp: string;
-}
+};
 
 export function useUserActivityLogs(selectedPlatform?: 'ordering_platform' | 'ot_platform') {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -56,7 +51,7 @@ export function useUserActivityLogs(selectedPlatform?: 'ordering_platform' | 'ot
       );
 
       console.log(`[useUserActivityLogs] Successfully fetched ${result.length} activity logs`);
-      setLogs(result);
+      setLogs((result || []).map(mapActivityLogRow) as any);
       
     } catch (err: any) {
       const errorInfo = logError('useUserActivityLogs.fetchLogs', err, {

@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       return data ? {
-        id: data.id,
+        id: String(data.id),
         name: data.name,
         email: data.email,
         role: data.role || 'Store Manager',

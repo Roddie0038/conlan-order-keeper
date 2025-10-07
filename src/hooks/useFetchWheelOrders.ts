@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { mapOrderRow } from "@/lib/mappers";
 
 export interface WheelOrderRecord {
   id: string;
@@ -46,7 +47,7 @@ export function useFetchWheelOrders() {
         throw error;
       }
       
-      setOrders(data as WheelOrderRecord[] || []);
+      setOrders((data || []).map(mapOrderRow) as any);
     } catch (err) {
       console.error("Error fetching wheel orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));

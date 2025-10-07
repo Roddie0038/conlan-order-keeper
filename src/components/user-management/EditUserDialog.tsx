@@ -56,7 +56,7 @@ export function EditUserDialog({ open, onOpenChange, user, onUserUpdated }: Edit
           updated_by: 'roderickdemarais@aol.com',
           updated_at: new Date().toISOString()
         } as any)
-        .eq('id', user.id);
+        .eq('id', Number(user.id));
 
       if (error) throw error;
 

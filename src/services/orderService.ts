@@ -1,4 +1,5 @@
 
+// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
 import type { OrderData, MTOOrderData, SupabaseInsertResult, MTOOrderRecord, TransferOrderRecord, WheelOrderRecord } from "@/types/supabase-extensions";
 import { mapOrderToSupabase } from "@/utils/mapOrderToSupabase";

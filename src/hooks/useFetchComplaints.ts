@@ -2,28 +2,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { mapComplaintRow, ComplaintUI } from "@/lib/mappers";
 
-export interface Complaint {
-  id: string;
-  store_number: string;
-  store_name: string;
-  complaint_type: string;
-  issue_type: string;
+export type Complaint = ComplaintUI & {
   work_order_number?: string;
   order_id?: string;
-  identified_concern: string;
-  submitted_by_name: string;
-  submitted_by_email: string;
   sales_person?: string;
-  status: string;
   admin_response?: string;
   admin_responder?: string;
   attachments?: string[];
-  date_submitted: string;
-  created_at: string;
-  updated_at: string;
-  resolved_at?: string;
-}
+};
 
 export function useFetchComplaints() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -49,7 +37,7 @@ export function useFetchComplaints() {
       }
 
       console.log(`✅ Fetched ${data?.length || 0} complaints`);
-      setComplaints(data || []);
+      setComplaints((data || []).map(mapComplaintRow) as any);
     } catch (error) {
       console.error('❌ Fetch complaints error:', error);
       toast({
@@ -86,7 +74,7 @@ export function useFetchComplaints() {
       const { error } = await supabase
         .from('complaints')
         .update(updateData)
-        .eq('id', complaintId);
+        .eq('id', Number(complaintId));
 
       if (error) {
         console.error('❌ Error updating complaint:', error);

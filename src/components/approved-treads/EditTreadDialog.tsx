@@ -39,7 +39,7 @@ export function EditTreadDialog({ tread, onClose, onTreadUpdated, onTreadChange 
           notes: tread.notes || null,
           category: tread.category || null
         })
-        .eq('id', tread.id);
+        .eq('id', Number(tread.id));
 
       if (error) {
         console.error('Error updating tread:', error);

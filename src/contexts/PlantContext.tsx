@@ -169,11 +169,10 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
           const { error } = await supabase
             .from('user_preferences')
             .insert({
-              id: crypto.randomUUID(),
               user_id: user.id,
               current_plant: newPlant,
               last_plant_switch: new Date().toISOString()
-            });
+            } as any);
 
           if (error) {
             console.error("🔍 PLANT CONTEXT - Error creating user preferences:", error);

@@ -73,11 +73,10 @@ export const usePlantSwitching = () => {
         const { error } = await supabase
           .from('user_preferences')
           .insert({
-            id: crypto.randomUUID(),
             user_id: user.id,
             current_plant: currentPlant,
             last_plant_switch: lastSwitchTime?.toISOString() || new Date().toISOString()
-          });
+          } as any);
 
         if (error) {
           console.error('Failed to create user preferences:', error);

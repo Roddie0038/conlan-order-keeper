@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { MessageSquare, CalendarDays, Eye, FileText } from "lucide-react";
 import { Complaint } from "@/hooks/useFetchComplaints";
+import { mapComplaintRow } from "@/lib/mappers";
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
@@ -62,7 +63,7 @@ export function MyComplaints() {
       }
 
       console.log(`✅ Fetched ${data?.length || 0} complaints for store ${storeNumber}`);
-      setComplaints(data || []);
+      setComplaints((data || []).map(mapComplaintRow) as any);
     } catch (error) {
       console.error('❌ Fetch my complaints error:', error);
       toast({

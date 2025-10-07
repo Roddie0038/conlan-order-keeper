@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { mapOrderRow } from "@/lib/mappers";
 
 export interface WarrantyOrderRecord {
   id: string;
@@ -43,7 +44,7 @@ export function useFetchWarrantyOrders() {
         throw error;
       }
       
-      setOrders(data as WarrantyOrderRecord[] || []);
+      setOrders((data || []).map(mapOrderRow) as any);
     } catch (err) {
       console.error("Error fetching warranty orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));
