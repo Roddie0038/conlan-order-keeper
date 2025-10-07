@@ -59,7 +59,13 @@ export function useUserManagement(platform?: PlatformType) {
       );
       
       console.log(`[useUserManagement] Successfully fetched ${result.length} users for ${targetPlatform || selectedPlatform}`);
-      setUsers((result || []).map(mapPlatformUserRow) as any);
+      setUsers((result || []).map((r: any) => ({
+        ...mapPlatformUserRow(r),
+        platform: r.platform as PlatformType,
+        role: r.role as UserRole,
+        status: r.status as UserStatus,
+        last_login: r.last_login
+      })) as PlatformUser[]);
       if (targetPlatform) setSelectedPlatform(targetPlatform);
       
     } catch (err: any) {

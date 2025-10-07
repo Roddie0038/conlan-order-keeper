@@ -30,6 +30,12 @@ export type ComplaintUI = {
   created_at: string;
   updated_at: string;
   resolved_at: string;
+  work_order_number?: string;
+  order_id?: string;
+  sales_person?: string;
+  admin_response?: string;
+  admin_responder?: string;
+  attachments?: string[];
 };
 
 export const mapComplaintRow = (r: any): ComplaintUI => ({
@@ -49,7 +55,13 @@ export const mapComplaintRow = (r: any): ComplaintUI => ({
   date_submitted: toStr(r.date_submitted ?? r.created_at ?? new Date().toISOString()),
   created_at: toStr(r.created_at ?? ""),
   updated_at: toStr(r.updated_at ?? ""),
-  resolved_at: toStr(r.resolved_at ?? "")
+  resolved_at: toStr(r.resolved_at ?? ""),
+  work_order_number: r.work_order_number ? toStr(r.work_order_number) : undefined,
+  order_id: r.order_id ? toStr(r.order_id) : undefined,
+  sales_person: r.sales_person ? toStr(r.sales_person) : undefined,
+  admin_response: r.admin_response ? toStr(r.admin_response) : undefined,
+  admin_responder: r.admin_responder ? toStr(r.admin_responder) : undefined,
+  attachments: r.attachments || undefined
 });
 
 // ----- Orders (generic) -----

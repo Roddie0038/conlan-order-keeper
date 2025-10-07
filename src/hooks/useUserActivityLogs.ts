@@ -4,10 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { waitForSessionReadiness, withRetry, logError } from '@/utils/sessionUtils';
 import { mapActivityLogRow, ActivityLogUI } from '@/lib/mappers';
 
-export type ActivityLog = ActivityLogUI & {
-  platform: 'ordering_platform' | 'ot_platform';
-  description: string | null;
-};
+export type ActivityLog = ActivityLogUI;
 
 export function useUserActivityLogs(selectedPlatform?: 'ordering_platform' | 'ot_platform') {
   const [logs, setLogs] = useState<ActivityLog[]>([]);

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { mapOrderRow } from "@/lib/mappers";
 
-export interface MTOOrderRecord {
+export type MTOOrderRecord = {
   id: string;
   timestamp: string;
   name: string;
@@ -19,9 +19,9 @@ export interface MTOOrderRecord {
   notes: string;
   status: string;
   completed: boolean;
-  completed_at?: string; // Added completed_at field
+  completed_at?: string;
   order_type: string;
-}
+};
 
 export function useFetchMTOOrders() {
   const [orders, setOrders] = useState<MTOOrderRecord[]>([]);
@@ -47,7 +47,23 @@ export function useFetchMTOOrders() {
         throw error;
       }
       
-      setOrders((data || []).map(mapOrderRow) as any);
+      setOrders((data || []).map((r: any) => ({
+        id: String(r.id),
+        timestamp: r.timestamp || r.created_at || "",
+        name: r.submitted_by_name || r.name || "",
+        store: r.store || "",
+        product_number: r.product_number || "",
+        casing_grade: r.casing_grade || "",
+        tire_size: r.tire_size || "",
+        tread: r.tread || "",
+        quantity: Number(r.quantity) || 0,
+        projected_delivery: r.projected_delivery || r.promised_date || "",
+        notes: r.notes || "",
+        status: r.status || "open",
+        completed: r.status === "completed" || r.completed === true,
+        completed_at: r.completed_at || undefined,
+        order_type: r.order_type || "mto"
+      })) as MTOOrderRecord[]);
     } catch (err) {
       console.error("Error fetching MTO orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));

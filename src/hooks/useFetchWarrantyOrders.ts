@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { mapOrderRow } from "@/lib/mappers";
 
-export interface WarrantyOrderRecord {
+export type WarrantyOrderRecord = {
   id: string;
   created_at: string;
   name: string;
@@ -16,9 +16,9 @@ export interface WarrantyOrderRecord {
   condition: string;
   notes: string;
   status: string;
-  completed_at?: string; // Added completed_at field
+  completed_at?: string;
   plant: string;
-}
+};
 
 export function useFetchWarrantyOrders() {
   const [orders, setOrders] = useState<WarrantyOrderRecord[]>([]);
@@ -44,7 +44,20 @@ export function useFetchWarrantyOrders() {
         throw error;
       }
       
-      setOrders((data || []).map(mapOrderRow) as any);
+      setOrders((data || []).map((r: any) => ({
+        id: String(r.id),
+        created_at: r.created_at || "",
+        name: r.submitted_by_name || r.name || "",
+        store: r.store || "",
+        dot_number: r.dot_number || "",
+        tire_type: r.tire_type || "",
+        tire_size: r.tire_size || "",
+        condition: r.condition || "",
+        notes: r.notes || "",
+        status: r.status || "open",
+        completed_at: r.completed_at || undefined,
+        plant: r.plant || ""
+      })) as WarrantyOrderRecord[]);
     } catch (err) {
       console.error("Error fetching warranty orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));

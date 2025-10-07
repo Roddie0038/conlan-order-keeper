@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { mapOrderRow } from "@/lib/mappers";
 
-export interface WheelOrderRecord {
+export type WheelOrderRecord = {
   id: string;
   timestamp: string;
   name: string;
@@ -19,9 +19,9 @@ export interface WheelOrderRecord {
   notes: string;
   status: string;
   completed: boolean;
-  completed_at?: string; // Added completed_at field
+  completed_at?: string;
   ordertype: string;
-}
+};
 
 export function useFetchWheelOrders() {
   const [orders, setOrders] = useState<WheelOrderRecord[]>([]);
@@ -47,7 +47,23 @@ export function useFetchWheelOrders() {
         throw error;
       }
       
-      setOrders((data || []).map(mapOrderRow) as any);
+      setOrders((data || []).map((r: any) => ({
+        id: String(r.id),
+        timestamp: r.timestamp || r.created_at || "",
+        name: r.submitted_by_name || r.name || "",
+        store: r.store || "",
+        productnumber: r.productnumber || r.product_number || "",
+        wheeltype: r.wheeltype || r.wheel_type || "",
+        wheelsize: r.wheelsize || r.wheel_size || "",
+        desiredcolor: r.desiredcolor || r.desired_color || "",
+        quantity: Number(r.quantity) || 0,
+        schedulearrival: r.schedulearrival || r.schedule_arrival || "",
+        notes: r.notes || "",
+        status: r.status || "open",
+        completed: r.status === "completed" || r.completed === true,
+        completed_at: r.completed_at || undefined,
+        ordertype: r.ordertype || r.order_type || "wheel"
+      })) as WheelOrderRecord[]);
     } catch (err) {
       console.error("Error fetching wheel orders:", err);
       setError(err instanceof Error ? err : new Error(String(err)));

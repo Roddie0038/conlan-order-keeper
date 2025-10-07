@@ -120,10 +120,11 @@ export function ComplaintForm() {
           order_id: formData.orderId || null,
           issue_type: formData.issueType,
           identified_concern: formData.identifiedConcern,
-          attachments: attachmentUrls,
+          attachments: attachmentUrls as any,
           status: 'Open',
           submitted_by_name: user.name,
           submitted_by_email: user.email,
+          submitted_by: user.email,
           date_submitted: new Date().toISOString()
         } as any)
         .select()

@@ -4,14 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { mapComplaintRow, ComplaintUI } from "@/lib/mappers";
 
-export type Complaint = ComplaintUI & {
-  work_order_number?: string;
-  order_id?: string;
-  sales_person?: string;
-  admin_response?: string;
-  admin_responder?: string;
-  attachments?: string[];
-};
+export type Complaint = ComplaintUI;
 
 export function useFetchComplaints() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
