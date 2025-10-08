@@ -1,8 +1,5 @@
 // SAFE: no import-time env reads — submitOtOrder.ts
-// Ordering → OT edge-function caller
-// Reads env lazily at call-time to avoid runtime crashes in preview hosts.
-// Adds timeout, single retry on 429/5xx, and x-idempotency-key.
-// Keeps your public types and return shapes exactly as before.
+// Ordering → OT edge-function caller (lazy env), timeout, single retry, idempotency header.
 
 export type OtOrderPayload = {
   order_number: string;
@@ -28,40 +25,31 @@ export type IngestFail = {
 };
 
 export type IngestResult = IngestOk | IngestFail;
+export function isIngestFail(r: IngestResult): r is IngestFail { return r.ok === false; }
 
-export function isIngestFail(r: IngestResult): r is IngestFail {
-  return r.ok === false;
-}
-
-/** Try to read a Vite env value without throwing at module load. */
 function readViteEnv(name: string): string | undefined {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const v = (import.meta as any)?.env?.[name];
     return typeof v === "string" ? v : undefined;
-  } catch {
-    return undefined;
-  }
+  } catch { return undefined; }
 }
 
-/** Optional browser global escape hatch: window.__ENV__ = { VITE_*: "..." } */
 function readWindowEnv(name: string): string | undefined {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const w = (globalThis as any) ?? (window as any);
-    const val = (w && w.__ENV__ && w.__ENV__[name]) || (w && w.ENV && w.ENV[name]) || undefined;
+    const val = (w?.__ENV__?.[name]) || (w?.ENV?.[name]) || undefined;
     return typeof val === "string" ? val : undefined;
-  } catch {
-    return undefined;
-  }
+  } catch { return undefined; }
 }
 
-/** Resolve OT config at call-time. Never throws; returns {ok:false, missing[]} if incomplete. */
-function resolveOtConfig(): { ok: true; url: string; anon: string; secret: string } | { ok: false; missing: string[] } {
+function resolveOtConfig():
+  | { ok: true; url: string; anon: string; secret: string }
+  | { ok: false; missing: string[] } {
   const url = readViteEnv("VITE_OT_SUPABASE_URL") || readWindowEnv("VITE_OT_SUPABASE_URL");
   const anon = readViteEnv("VITE_OT_SUPABASE_ANON_KEY") || readWindowEnv("VITE_OT_SUPABASE_ANON_KEY");
   const secret = readViteEnv("VITE_INTERNAL_SECRET") || readWindowEnv("VITE_INTERNAL_SECRET");
-
   if (!url || !anon || !secret) {
     const missing: string[] = [];
     if (!url) missing.push("VITE_OT_SUPABASE_URL");
@@ -72,23 +60,12 @@ function resolveOtConfig(): { ok: true; url: string; anon: string; secret: strin
   return { ok: true, url, anon, secret };
 }
 
-/** fetch with timeout helper */
 async function fetchWithTimeout(url: string, init: RequestInit, ms = 20000): Promise<Response> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), ms);
-  try {
-    return await fetch(url, { ...init, signal: ctrl.signal });
-  } finally {
-    clearTimeout(t);
-  }
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { ...init, signal: ctrl.signal }); }
+  finally { clearTimeout(t); }
 }
 
-/**
- * Main submitter: never crashes the app on missing env.
- * - If config missing → returns { ok:false, status:0, message:"Missing config …" }.
- * - On 429/5xx → single retry with small backoff.
- * - Accepts 200/201 as success; safely parses JSON.
- */
 export async function submitOtOrder(payload: OtOrderPayload): Promise<IngestResult> {
   const cfg = resolveOtConfig();
   if (!cfg.ok) {
@@ -104,52 +81,33 @@ export async function submitOtOrder(payload: OtOrderPayload): Promise<IngestResu
     Authorization: `Bearer ${cfg.anon}`,
     "x-internal-secret": cfg.secret,
     "Content-Type": "application/json",
-    // allow server to dedupe on same order_number
     "x-idempotency-key": payload.order_number,
   };
   const body = JSON.stringify(payload);
 
-  const attempt = async () => fetchWithTimeout(endpoint, { method: "POST", headers, body }, 20000);
+  const attempt = () => fetchWithTimeout(endpoint, { method: "POST", headers, body }, 20000);
 
   let res: Response;
-  try {
-    res = await attempt();
-  } catch (e: any) {
-    return { ok: false, status: 0, message: `Network error: ${e?.message || String(e)}` };
-  }
+  try { res = await attempt(); }
+  catch (e: any) { return { ok: false, status: 0, message: `Network error: ${e?.message || String(e)}` }; }
 
   if (res.status === 429 || (res.status >= 500 && res.status <= 599)) {
     const backoff = 400 + Math.floor(Math.random() * 400);
     console.warn(`[submitOtOrder] transient ${res.status}; retrying after ${backoff}ms`);
     await new Promise((r) => setTimeout(r, backoff));
-    try {
-      res = await attempt();
-    } catch (e: any) {
-      return { ok: false, status: 0, message: `Network error after retry: ${e?.message || String(e)}` };
-    }
+    try { res = await attempt(); }
+    catch (e: any) { return { ok: false, status: 0, message: `Network error after retry: ${e?.message || String(e)}` }; }
   }
 
   if (!res.ok) {
     let message = "";
-    try {
-      const j = await res.json();
-      message = (j && (j.error || j.message)) || JSON.stringify(j);
-    } catch {
-      try {
-        message = await res.text();
-      } catch {
-        message = "Unknown error";
-      }
-    }
+    try { const j = await res.json(); message = (j && (j.error || j.message)) || JSON.stringify(j); }
+    catch { try { message = await res.text(); } catch { message = "Unknown error"; } }
     return { ok: false, status: res.status, message };
   }
 
   let data: any = {};
-  try {
-    data = await res.json();
-  } catch {
-    data = {};
-  }
+  try { data = await res.json(); } catch { data = {}; }
 
   return {
     ok: true,
