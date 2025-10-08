@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
+import { submitOtOrder, type OtOrderPayload, type Fail } from "@/services/submitOtOrder";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { getPlantForStore } from "@/utils/plantMapping";
 
@@ -66,10 +66,13 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       const result = await submitOtOrder(payload);
 
       if (!result.ok) {
-        console.error("❌ OT submit failed:", result.status, result.message);
-        throw new Error(`Failed to submit MTO order: ${result.message}`);
+        // Type assertion: when ok is false, result is Fail type
+        const failResult = result as Fail;
+        console.error("❌ OT submit failed:", failResult.status, failResult.message);
+        throw new Error(`Failed to submit MTO order: ${failResult.message}`);
       }
 
+      // Type narrowing: when ok is true, result is Ok type
       console.log("✅ MTO submitted:", result.id, result.order_number);
       toast({
         title: "🎉 MTO order submitted!",

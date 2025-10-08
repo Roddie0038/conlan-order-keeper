@@ -9,8 +9,8 @@ export type OtOrderPayload = {
   submitted_by_name?: string;
 };
 
-type Ok = { ok: true; id: string; created_at: string; order_number: string };
-type Fail = { ok: false; status: number; message: string };
+export type Ok = { ok: true; id: string; created_at: string; order_number: string };
+export type Fail = { ok: false; status: number; message: string };
 
 const OT_URL = import.meta.env.VITE_OT_SUPABASE_URL;
 const OT_ANON = import.meta.env.VITE_OT_SUPABASE_ANON_KEY;
