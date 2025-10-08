@@ -1,18 +1,27 @@
+// HARD DISABLE SHEETS DURING OT MIGRATION
+export const submitToGoogleSheets = async (_data: any, _user?: any) => {
+  console.warn('🚫 SHEETS - DISABLED: Using OT ingest only, no Google Scripts webhooks');
+  return { status: 'disabled' as const };
+};
 
+// Legacy imports kept for type exports only
+import { OrderType, MTOOrderData } from './webhook/config';
+import type { OrderData } from '@/types/supabase-extensions';
+
+export type { OrderType, MTOOrderData };
+export type { OrderData };
+
+// OLD IMPLEMENTATION BELOW - DISABLED
+/*
 import { PLANT_WEBHOOKS } from '@/contexts/PlantContext';
 import { submitToWebhook } from './webhook/utils';
 import { submitToOrdersWebhook } from './webhook/orderWebhook';
 import { submitToWheelOrdersWebhook } from './webhook/wheelWebhook';
 import { submitToMTOOrdersWebhook } from './webhook/mtoWebhook';
-import { OrderType, MTOOrderData, WEBHOOK_URLS } from './webhook/config';
-import type { OrderData } from '@/types/supabase-extensions';
 import { mapOrderToGoogleSheets } from '@/utils/mapOrderToGoogleSheets';
 import { mapMTOToGoogleSheets } from '@/utils/mapMTOToGoogleSheets';
 
-export type { OrderType, MTOOrderData };
-export type { OrderData };
-
-export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?: any) => {
+export const submitToGoogleSheets_OLD = async (data: OrderData | MTOOrderData, user?: any) => {
   console.log("🔍 SHEETS - ENTRY POINT - submitToGoogleSheets called");
   console.log("🔍 SHEETS - Order data:", JSON.stringify(data, null, 2));
   console.log("🔍 SHEETS - Order type:", data.type);
@@ -108,3 +117,4 @@ export const submitToGoogleSheets = async (data: OrderData | MTOOrderData, user?
     return { status: 'error' };
   }
 };
+*/

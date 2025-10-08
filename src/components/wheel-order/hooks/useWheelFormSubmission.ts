@@ -144,7 +144,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       // Save to Supabase with properly typed data
       await saveOrderToSupabase(supabaseOrder);
       
-      if (result.status === 'success' || result.status === 'partial_success') {
+      if ((result as any).status === 'success' || (result as any).status === 'partial_success' || (result as any).status === 'disabled') {
         const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
         existingOrders.push({
           ...supabaseOrder,

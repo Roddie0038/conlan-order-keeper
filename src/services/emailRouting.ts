@@ -17,6 +17,16 @@ export async function getStoreEmailRecipients(
   fallbackReason?: string;
 }> {
   try {
+    // Early return if no store number provided
+    if (!storeNumber || storeNumber.trim() === '') {
+      console.log('📧 EMAIL ROUTING - No store number provided; skip logging');
+      return {
+        recipients: [],
+        source: 'fallback',
+        fallbackReason: 'No store number provided'
+      };
+    }
+    
     console.log(`📧 EMAIL ROUTING - Querying database for store ${storeNumber}, type ${emailType}`);
     
     const { data, error } = await supabase
@@ -114,6 +124,12 @@ async function logEmailRouting(
   source: 'database' | 'fallback',
   fallbackReason?: string
 ): Promise<void> {
+  // Skip logging if no recipients
+  if (!recipients || recipients.length === 0) {
+    console.log('📧 EMAIL ROUTING - Zero recipients; skip notification logging');
+    return;
+  }
+  
   try {
     const metadata = {
       routing_source: source,
