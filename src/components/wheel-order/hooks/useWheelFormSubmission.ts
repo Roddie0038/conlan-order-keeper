@@ -4,9 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { useToast } from "@/components/ui/use-toast";
-import { submitToGoogleSheets } from "@/services/sheets";
-import { WEBHOOK_URLS } from "@/services/webhook/config";
-import { saveOrderToSupabase } from "@/services/orderService";
+import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import { getPlantForStore } from "@/utils/plantMapping";
@@ -60,9 +58,9 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         qtyWheels: formData.qtyWheels
       });
       
-      // Determine plant based on store
-      const plant = getPlantForStore(formData.storeName);
-      console.log(`🔍 WHEEL FORM - ✅ PLANT DETERMINED - '${plant}' for store: ${formData.storeName}`);
+      // Determine plant based on store  
+      const plantForOrder = getPlantForStore(formData.storeName);
+      console.log(`🔍 WHEEL FORM - ✅ PLANT DETERMINED - '${plantForOrder}' for store: ${formData.storeName}`);
       
       // Format timestamps properly
       const currentTimestamp = formatTimestamp(new Date().toISOString());
@@ -78,11 +76,11 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         quantity: parseInt(formData.qtyWheels) || 0,
         scheduleArrival: formattedScheduleArrival,
         notes: "",
-        email: managerEmail,
-        timestamp: currentTimestamp,
-        type: "WHEEL_POWDER_COATING",
-        plant: plant,
-        status: "open",
+          email: managerEmail,
+          timestamp: currentTimestamp,
+          type: "WHEEL_POWDER_COATING",
+          plant: plantForOrder,
+          status: "open",
         crossDock: "No" as const,
         crossDockType: "No" as const,
         
@@ -134,32 +132,44 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         return;
       }
 
-      console.log("🔍 WHEEL FORM - ✅ ALL VALIDATIONS PASSED - About to call submitToGoogleSheets");
-      console.log("🔍 WHEEL FORM - ✅ CRITICAL: This should trigger the wheel webhook to Google Sheets");
+      console.log("🔍 WHEEL FORM - ✅ ALL VALIDATIONS PASSED - Submitting to OT ingest");
       
-      const result = await submitToGoogleSheets(supabaseOrder);
-      
-      console.log("🔍 WHEEL FORM - ✅ GOOGLE SHEETS CALL COMPLETED - Result:", result);
-      
-      // Save to Supabase with properly typed data
-      await saveOrderToSupabase(supabaseOrder);
-      
-      if ((result as any).status === 'success' || (result as any).status === 'partial_success' || (result as any).status === 'disabled') {
-        const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
-        existingOrders.push({
-          ...supabaseOrder,
-          id: crypto.randomUUID()
-        });
-        localStorage.setItem('wheelOrders', JSON.stringify(existingOrders));
+      // Submit to OT function (NO Google Sheets, NO ordering DB)
+      const plant = getPlantForStore(formData.storeName);
+      const payload: OtOrderPayload = {
+        order_number: `WHEEL-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        product_number: "WHEEL-COATING",
+        quantity: parseInt(formData.qtyWheels) || 0,
+        store: formData.storeName,
+        plant: plant,
+        submitted_by_email: managerEmail || "",
+        submitted_by_name: formData.yourName || "",
+      };
 
-        toast({
-          title: "🔧 Wheel order submitted successfully! 🔧",
-          description: "Your wheel powder coating order has been submitted and is ready for processing!",
-        });
-        navigate('/dashboard');
-      } else {
-        throw new Error("Failed to submit order");
+      console.log("🔍 WHEEL Payload:", JSON.stringify(payload, null, 2));
+      const result = await submitOtOrder(payload);
+
+      if (!result.ok) {
+        const status = 'status' in result ? result.status : 'unknown';
+        const message = 'message' in result ? result.message : 'unknown error';
+        console.error("❌ OT submit failed:", status, message);
+        throw new Error(`Failed to submit wheel order: ${message}`);
       }
+
+      console.log("✅ Wheel submitted:", result.id, result.order_number);
+      
+      const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
+      existingOrders.push({
+        ...supabaseOrder,
+        id: crypto.randomUUID()
+      });
+      localStorage.setItem('wheelOrders', JSON.stringify(existingOrders));
+
+      toast({
+        title: "🔧 Wheel order submitted successfully! 🔧",
+        description: `Order ${result.order_number} has been submitted and is ready for processing!`,
+      });
+      navigate('/dashboard');
     } catch (error) {
       console.error("❌ WHEEL FORM - Error submitting wheel order:", error);
       toast({

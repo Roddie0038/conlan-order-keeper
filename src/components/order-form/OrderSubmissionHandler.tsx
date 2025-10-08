@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { OrderCountSummary } from "./OrderCountSummary";
 import { OrderSubmitButton } from "./OrderSubmitButton";
 import { useToast } from "@/hooks/use-toast";
-import { submitOtOrder, type OtOrderPayload } from "@/lib/ingestOtOrder";
+import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
 import { getPlantForStore } from "@/utils/plantMapping";
 
 interface OrderSubmissionHandlerProps {
@@ -49,9 +49,9 @@ export function OrderSubmissionHandler({
         const plant = getPlantForStore(order.store);
         
         const payload: OtOrderPayload = {
-          order_number: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          order_number: `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           product_number: order.productNumber, // Pass exactly as typed
-          quantity: parseInt(order.quantity?.toString() || "0") || 0,
+          quantity: Number(order.quantity ?? 0) || 0,
           store: order.store,
           plant: plant,
           submitted_by_email: user?.email || "",
@@ -61,13 +61,13 @@ export function OrderSubmissionHandler({
         console.log("[SUBMIT] Sending to ingest-ot-order:", payload);
         const result = await submitOtOrder(payload);
 
-        if (result.ok === true) {
+        if (result.ok) {
           successCount++;
           successIds.push(order.id);
-          console.log("✅ Order submitted:", result.id);
+          console.log("✅ Order submitted:", result.id, result.order_number);
         } else {
           failCount++;
-          console.error("❌ Order failed:", result.status, result.message);
+          console.error("❌ Order failed:", 'status' in result ? result.status : 'unknown', 'message' in result ? result.message : 'unknown');
         }
       }
       

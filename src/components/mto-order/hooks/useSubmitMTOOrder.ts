@@ -4,12 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
 import { useToast } from "@/components/ui/use-toast";
-import { submitToGoogleSheets } from "@/services/sheets";
-import { saveOrderToSupabase } from "@/services/orderService";
+import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { getStoreEmailRecipients } from "@/services/emailRouting";
-import { sendOrderConfirmationEmail } from "@/services/orderingEmailService";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/types/database";
 
@@ -92,94 +89,35 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       
       console.log("✅ MTO FORM - Saved to Supabase successfully:", data);
       
-      // Store savedOrder reference for email notifications
-      const savedOrder = { data, error: null };
+      // Submit to OT function (NO Google Sheets, NO ordering DB writes, NO notification_logs)
+      console.log("📊 Submitting MTO order to OT ingest...");
+      
+      const payload: OtOrderPayload = {
+        order_number: `MTO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        product_number: formData.productNumber || 'MTO',
+        quantity: parseInt(formData.quantity) || 1,
+        store: formData.store,
+        plant: plant,
+        submitted_by_email: managerEmail,
+        submitted_by_name: formData.name,
+      };
 
-      // Send order confirmation email
-      try {
-        console.log("📧 MTO FORM - Sending order confirmation email...");
-        
-        const storeNumber = formData.store.match(/\d+$/)?.[0] || "";
-        const orderConfirmationData = {
-          store_number: storeNumber,
-          store_name: formData.store,
-          order_type: 'MTO',
-          order_id: data?.id?.toString() || 'Unknown',
-          timestamp: timestamp,
-          name: formData.name,
-          email: managerEmail,
-          quantity: parseInt(formData.quantity) || 0,
-          product_number: formData.productNumber,
-          description: `MTO - ${formData.tireTreadNeeded} - ${tireSize}`
-        };
+      console.log("📊 MTO Payload:", JSON.stringify(payload, null, 2));
+      const result = await submitOtOrder(payload);
 
-        const confirmationResult = await sendOrderConfirmationEmail(orderConfirmationData);
-        
-        if (confirmationResult.success) {
-          console.log(`✅ MTO FORM - Order confirmation email sent for order ${data?.id}`);
-        }
-      } catch (emailError) {
-        console.error("❌ MTO FORM - Error sending order confirmation email:", emailError);
+      if (!result.ok) {
+        const status = 'status' in result ? result.status : 'unknown';
+        const message = 'message' in result ? result.message : 'unknown error';
+        console.error("❌ OT submit failed:", status, message);
+        throw new Error(`Failed to submit MTO order: ${message}`);
       }
 
-      // Submit to Google Sheets (uses mapMTOToGoogleSheets internally for camelCase)
-      // Cast to any since submitToGoogleSheets expects old camelCase format
-      const result = await submitToGoogleSheets(mtoOrderData as any, user);
-      console.log("🔍 MTO FORM - Google Sheets result:", result);
-
-      // Send workflow notification emails using centralized database routing
-      const storeNumberForNotification = formData.store.match(/\d+$/)?.[0] || "";
-      if (storeNumberForNotification) {
-        try {
-          const emailResult = await getStoreEmailRecipients(storeNumberForNotification, 'mto');
-          const emailRecipients = emailResult.recipients;
-          
-          console.log(`🔍 MTO FORM - Email recipients (${emailResult.source}):`, emailRecipients);
-          if (emailResult.source === 'fallback') {
-            console.warn(`🔍 MTO FORM - Using fallback routing: ${emailResult.fallbackReason}`);
-          }
-          
-          if (emailRecipients.length > 0) {
-            try {
-            const emailResponse = await fetch(
-              `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/mto-notification`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
-                },
-                body: JSON.stringify({
-                  mtoData: mtoOrderData,
-                  orderId: data?.id || 'unknown',
-                  recipients: emailRecipients
-                })
-              }
-            );
-            
-            if (emailResponse.ok) {
-              console.log("✅ MTO FORM - Email notification sent successfully");
-            } else {
-              console.error("❌ MTO FORM - Email notification failed");
-            }
-            } catch (emailError) {
-              console.error("❌ MTO FORM - Error sending email notification:", emailError);
-            }
-          }
-        } catch (emailRoutingError) {
-          console.error("❌ MTO FORM - Error getting email recipients:", emailRoutingError);
-        }
-      }
-
-      if ((result as any).status === 'success' || (result as any).status === 'partial_success' || (result as any).status === 'disabled') {
-        toast({
-          title: "🎉 MTO order submitted successfully! 🎉",
-          description: "Your MTO order has been submitted and is being processed with excitement!",
-        });
-        resetForm();
-      } else {
-        throw new Error("Failed to submit MTO order");
-      }
+      console.log("✅ MTO submitted:", result.id, result.order_number);
+      toast({
+        title: "🎉 MTO order submitted successfully! 🎉",
+        description: `Order ${result.order_number} has been submitted and is being processed!`,
+      });
+      resetForm();
     } catch (error) {
       console.error("❌ MTO FORM - Error submitting MTO order:", error);
       toast({

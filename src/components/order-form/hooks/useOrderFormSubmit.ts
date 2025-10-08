@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { OrderSummary } from "../types";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { submitOtOrder, type OtOrderPayload } from "@/lib/ingestOtOrder";
+import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
 import { toast as sonnerToast } from "sonner";
 
 export function useOrderFormSubmit() {
