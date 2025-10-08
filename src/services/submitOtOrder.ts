@@ -92,7 +92,8 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms = 20000): Pro
 export async function submitOtOrder(payload: OtOrderPayload): Promise<IngestResult> {
   const cfg = resolveOtConfig();
   if (!cfg.ok) {
-    const msg = `Missing config: ${cfg.missing.join(", ")}. Check .env.local locally and host env in preview.`;
+    const failConfig = cfg as { ok: false; missing: string[] };
+    const msg = `Missing config: ${failConfig.missing.join(", ")}. Check .env.local locally and host env in preview.`;
     console.error("[submitOtOrder] " + msg);
     return { ok: false, status: 0, message: msg };
   }
