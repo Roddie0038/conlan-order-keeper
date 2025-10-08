@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { submitOtOrder, type OtOrderPayload, type Fail } from "@/services/submitOtOrder";
+import { submitOtOrder, type OtOrderPayload, isIngestFail } from "@/services/submitOtOrder";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { getPlantForStore } from "@/utils/plantMapping";
 
@@ -52,7 +52,7 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       }
 
       // Build MTO payload with safe types
-      const payload: OtOrderPayload = {
+      const payload = {
         order_number: `MTO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         product_number: String(formData.productNumber || 'MTO'),
         quantity: toInt(formData.quantity, 1),
@@ -60,19 +60,18 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         plant: String(plant),
         submitted_by_email: managerEmail,
         submitted_by_name: submitterName,
-      };
+      } satisfies OtOrderPayload;
 
       console.log("📊 MTO Payload:", JSON.stringify(payload, null, 2));
       const result = await submitOtOrder(payload);
 
-      if (!result.ok) {
-        // Type assertion: when ok is false, result is Fail type
-        const failResult = result as Fail;
-        console.error("❌ OT submit failed:", failResult.status, failResult.message);
-        throw new Error(`Failed to submit MTO order: ${failResult.message}`);
+      if (isIngestFail(result)) {
+        // result is IngestFail here
+        console.error("❌ OT submit failed:", result.status, result.message);
+        throw new Error(`Failed to submit MTO order: ${result.message}`);
       }
 
-      // Type narrowing: when ok is true, result is Ok type
+      // result is IngestOk here
       console.log("✅ MTO submitted:", result.id, result.order_number);
       toast({
         title: "🎉 MTO order submitted!",
