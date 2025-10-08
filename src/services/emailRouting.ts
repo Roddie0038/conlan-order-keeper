@@ -1,199 +1,140 @@
 // @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
-import { getTransferEmailRecipients, getMTOEmailRecipients, getRefurbishedEmailRecipients, getWarrantyEmailRecipients } from "@/config/contactSystem";
+import {
+  getTransferEmailRecipients,
+  getMTOEmailRecipients,
+  getRefurbishedEmailRecipients,
+  getWarrantyEmailRecipients,
+} from "@/config/contactSystem";
 
-export type EmailType = 'transfer' | 'mto' | 'wheel' | 'warranty' | 'completion';
+export type EmailType = "transfer" | "mto" | "wheel" | "warranty" | "completion";
+
+type RoutingResult = {
+  recipients: string[];
+  source: "database" | "fallback";
+  fallbackReason?: string;
+};
 
 /**
- * Get store email recipients from the centralized store_email_recipients table
- * Filtered by platform_source = 'ordering_platform'
+ * Primary lookup: centralized store_email_recipients (platform_source='ordering_platform').
+ * NO WRITES to notification_logs (logging is disabled).
  */
-export async function getStoreEmailRecipients(
-  storeNumber: string,
-  emailType: EmailType
-): Promise<{
-  recipients: string[];
-  source: 'database' | 'fallback';
-  fallbackReason?: string;
-}> {
+export async function getStoreEmailRecipients(storeNumber: string, emailType: EmailType): Promise<RoutingResult> {
+  // Early exit if we weren't given a store number
+  if (!storeNumber || storeNumber.trim() === "") {
+    console.log("📧 EMAIL ROUTING - No store number provided; skipping DB lookup");
+    return {
+      recipients: [],
+      source: "fallback",
+      fallbackReason: "No store number provided",
+    };
+  }
+
   try {
-    // Early return if no store number provided
-    if (!storeNumber || storeNumber.trim() === '') {
-      console.log('📧 EMAIL ROUTING - No store number provided; skip logging');
-      return {
-        recipients: [],
-        source: 'fallback',
-        fallbackReason: 'No store number provided'
-      };
-    }
-    
-    console.log(`📧 EMAIL ROUTING - Querying database for store ${storeNumber}, type ${emailType}`);
-    
+    console.log(`📧 EMAIL ROUTING - Querying DB for store ${storeNumber}, type ${emailType}`);
+
     const { data, error } = await supabase
-      .from('store_email_recipients')
-      .select('recipient_email')
-      .eq('store_number', storeNumber)
-      .eq('email_type', emailType)
-      .eq('is_active', true)
-      .eq('platform_source', 'ordering_platform');
+      .from("store_email_recipients")
+      .select("recipient_email")
+      .eq("store_number", storeNumber)
+      .eq("email_type", emailType)
+      .eq("is_active", true)
+      .eq("platform_source", "ordering_platform");
 
     if (error) {
-      console.error('📧 EMAIL ROUTING - Database query error:', error);
-      return await getFallbackRecipients(storeNumber, emailType, 'database_error');
+      console.error("📧 EMAIL ROUTING - DB query error:", error);
+      return getFallbackRecipients(storeNumber, emailType, "database_error");
     }
 
-    const recipients = data?.map(row => row.recipient_email) || [];
-    
-    if (recipients.length === 0) {
-      console.log(`📧 EMAIL ROUTING - No database recipients found for store ${storeNumber}, type ${emailType}, using fallback`);
-      return await getFallbackRecipients(storeNumber, emailType, 'no_recipients');
+    const recipients = (data ?? []).map((r) => r.recipient_email).filter(Boolean);
+
+    if (recipients.length > 0) {
+      console.log(`📧 EMAIL ROUTING - Found ${recipients.length} recipient(s) from database`, recipients);
+      // Logging to notification_logs is intentionally disabled.
+      return { recipients, source: "database" };
     }
 
-    console.log(`📧 EMAIL ROUTING - Found ${recipients.length} database recipients:`, recipients);
-    
-    // Log the database-driven routing
-    await logEmailRouting(storeNumber, emailType, recipients, 'database');
-    
-    return {
-      recipients,
-      source: 'database'
-    };
-  } catch (error) {
-    console.error('📧 EMAIL ROUTING - Unexpected error:', error);
-    return await getFallbackRecipients(storeNumber, emailType, 'exception');
+    console.log(`📧 EMAIL ROUTING - No DB recipients for store ${storeNumber}, type ${emailType}; using fallback`);
+    return getFallbackRecipients(storeNumber, emailType, "no_recipients");
+  } catch (err) {
+    console.error("📧 EMAIL ROUTING - Unexpected error:", err);
+    return getFallbackRecipients(storeNumber, emailType, "exception");
   }
 }
 
 /**
- * Fallback to legacy contactSystem functions if database query fails or returns no results
+ * Fallback to legacy contactSystem functions when DB is empty/unavailable.
+ * Also used when the store number was missing. No writes are performed.
  */
 async function getFallbackRecipients(
-  storeNumber: string, 
+  storeNumber: string,
   emailType: EmailType,
-  reason: string
-): Promise<{
-  recipients: string[];
-  source: 'database' | 'fallback';
-  fallbackReason: string;
-}> {
+  reason: string,
+): Promise<RoutingResult> {
   console.log(`📧 EMAIL ROUTING - Using fallback for store ${storeNumber}, type ${emailType}, reason: ${reason}`);
-  
+
   let recipients: string[] = [];
-  
+
   switch (emailType) {
-    case 'transfer':
+    case "transfer":
       recipients = getTransferEmailRecipients(storeNumber);
       break;
-    case 'mto':
+    case "mto":
       recipients = getMTOEmailRecipients(storeNumber);
       break;
-    case 'wheel':
+    case "wheel":
       recipients = getRefurbishedEmailRecipients(storeNumber);
       break;
-    case 'warranty':
+    case "warranty":
       recipients = getWarrantyEmailRecipients(storeNumber);
       break;
-    case 'completion':
-      // For completion emails, use transfer recipients as default
+    case "completion":
+      // Default to transfer contacts for completion emails
       recipients = getTransferEmailRecipients(storeNumber);
       break;
     default:
       console.warn(`📧 EMAIL ROUTING - Unknown email type: ${emailType}`);
       recipients = [];
   }
-  
-  console.log(`📧 EMAIL ROUTING - Fallback returned ${recipients.length} recipients:`, recipients);
-  
-  // Log the fallback usage
-  await logEmailRouting(storeNumber, emailType, recipients, 'fallback', reason);
-  
-  return {
-    recipients,
-    source: 'fallback',
-    fallbackReason: reason
-  };
+
+  console.log(`📧 EMAIL ROUTING - Fallback returned ${recipients.length} recipient(s)`, recipients);
+
+  // NOTE: We intentionally DO NOT write to notification_logs here.
+  return { recipients, source: "fallback", fallbackReason: reason };
 }
 
 /**
- * Log email routing to notification_logs for monitoring and debugging
+ * (Disabled) Historical logger. Left in place in case other modules import it.
+ * If you decide to re-enable logging later, implement the insert here.
  */
 async function logEmailRouting(
-  storeNumber: string,
-  emailType: EmailType,
-  recipients: string[],
-  source: 'database' | 'fallback',
-  fallbackReason?: string
+  _storeNumber: string,
+  _emailType: EmailType,
+  _recipients: string[],
+  _source: "database" | "fallback",
+  _fallbackReason?: string,
 ): Promise<void> {
-  // Skip logging if no recipients
-  if (!recipients || recipients.length === 0) {
-    console.log('📧 EMAIL ROUTING - Zero recipients; skip notification logging');
-    return;
-  }
-  
-  try {
-    const metadata = {
-      routing_source: source,
-      email_type: emailType,
-      store_number: storeNumber,
-      recipient_count: recipients.length,
-      recipients: recipients,
-      platform_source: 'ordering_platform',
-      ...(fallbackReason && { fallback_reason: fallbackReason })
-    };
-
-    await supabase
-      .from('notification_logs')
-      .insert({
-        notification_type: 'email_routing_query',
-        order_id: `store-${storeNumber}-${emailType}-${Date.now()}`, // Unique identifier
-        recipient_email: recipients.join(', ') || 'none',
-        status: 'success',
-        platform: 'ordering_platform',
-        order_type: emailType,
-        store: storeNumber,
-        email_provider: 'resend',
-        metadata
-      });
-      
-    console.log(`📧 EMAIL ROUTING - Logged routing query: ${source} source, ${recipients.length} recipients`);
-  } catch (error) {
-    console.error('📧 EMAIL ROUTING - Failed to log routing:', error);
-    // Don't throw - logging failures shouldn't block email sending
-  }
+  // 🚫 Disabled: no writes to notification_logs from the ordering app
+  return;
 }
 
-/**
- * Get email recipients for transfer orders (legacy wrapper for backward compatibility)
- * @deprecated Use getStoreEmailRecipients(storeNumber, 'transfer') instead
- */
+/** Legacy wrappers for backward compatibility */
 export async function getTransferRecipientsDatabase(storeNumber: string): Promise<string[]> {
-  const result = await getStoreEmailRecipients(storeNumber, 'transfer');
+  const result = await getStoreEmailRecipients(storeNumber, "transfer");
   return result.recipients;
 }
 
-/**
- * Get email recipients for MTO orders (legacy wrapper for backward compatibility)
- * @deprecated Use getStoreEmailRecipients(storeNumber, 'mto') instead
- */
 export async function getMTORecipientsDatabase(storeNumber: string): Promise<string[]> {
-  const result = await getStoreEmailRecipients(storeNumber, 'mto');
+  const result = await getStoreEmailRecipients(storeNumber, "mto");
   return result.recipients;
 }
 
-/**
- * Get email recipients for wheel orders (legacy wrapper for backward compatibility)
- * @deprecated Use getStoreEmailRecipients(storeNumber, 'wheel') instead
- */
 export async function getWheelRecipientsDatabase(storeNumber: string): Promise<string[]> {
-  const result = await getStoreEmailRecipients(storeNumber, 'wheel');
+  const result = await getStoreEmailRecipients(storeNumber, "wheel");
   return result.recipients;
 }
 
-/**
- * Get email recipients for warranty orders (legacy wrapper for backward compatibility)
- * @deprecated Use getStoreEmailRecipients(storeNumber, 'warranty') instead
- */
 export async function getWarrantyRecipientsDatabase(storeNumber: string): Promise<string[]> {
-  const result = await getStoreEmailRecipients(storeNumber, 'warranty');
+  const result = await getStoreEmailRecipients(storeNumber, "warranty");
   return result.recipients;
 }
