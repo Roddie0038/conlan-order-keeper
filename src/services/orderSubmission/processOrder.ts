@@ -1,262 +1,150 @@
-import { OrderSummary } from "@/hooks/useOrderSubmission";
-import { submitToGoogleSheets } from "@/services/sheets";
-import { saveOrderToSupabase } from "@/services/orderService";
-import { storeData } from "@/config/storeData";
-import { OrderType } from "@/services/webhook/config";
-import { getPlantForStore } from "@/utils/plantMapping";
-import { getStoreEmailRecipients } from "@/services/emailRouting";
-import type { OrderData } from "@/types/supabase-extensions";
-import { formatDateForSupabase } from "@/utils/dateTime";
-import { supabase } from "@/integrations/supabase/client";
+// src/services/orderSubmission/processOrder.ts
 
 /**
- * Process an individual order - handle Google Sheets submission and Supabase storage
- * 
- * @param order - The order to process
- * @param selectedPlant - The currently selected plant
- * @returns The processed order with additional metadata
+ * Processes a single order:
+ * - Determines order type (TRANSFER | MTO | WHEEL_POWDER_COATING)
+ * - Builds & submits an OT ingest payload (primary system of record)
+ * - (TRANSFER only) Fire-and-forget backup to Google Sheets via Apps Script
+ * - Returns a camelCase object compatible with downstream webhook processors
+ *
+ * IMPORTANT:
+ * - No writes to the Ordering DB tables
+ * - No calls to /notification_logs
+ * - No email routing or notification functions here
  */
+
+import { OrderSummary } from "@/hooks/useOrderSubmission";
+import { getPlantForStore } from "@/utils/plantMapping";
+import { storeData } from "@/config/storeData";
+import { formatDateForSupabase } from "@/utils/dateTime";
+import { submitOtOrder, type OtOrderPayload, isIngestFail } from "@/services/submitOtOrder";
+import { submitToOrdersWebhook } from "@/services/webhook/orderWebhook";
+import type { OrderType } from "@/services/webhook/config";
+
+// ---------- helpers ----------
+
+const toInt = (v: unknown, fallback = 0) => {
+  const n = parseInt(String(v), 10);
+  return Number.isFinite(n) ? n : fallback;
+};
+
+const onlyDigits = (s: string) => (s.match(/\d+$/)?.[0] ?? "").trim();
+
+/** Best-effort normalization when user enters only a store number */
+const normalizeCrossDockDestination = (value: string | undefined) => {
+  const raw = (value ?? "").trim();
+  if (!raw) return "";
+  // If it's just digits, expand to a friendlier label using storeData when possible
+  if (/^\d+$/.test(raw)) {
+    const found = storeData.find((s) => s.storeNumber === raw);
+    return found ? found.name : `Store ${raw}`;
+  }
+  return raw;
+};
+
+// ---------- main ----------
+
 export const processOrder = async (order: OrderSummary, selectedPlant: string) => {
   console.log("🔍 SUBMIT - Processing order:", order.id);
-  
-  // Get store manager email from database (no hardcoded emails)
-  const storeNumber = order.store.match(/\d+$/)?.[0] || "";
-  const storeManagerEmail = ""; // Will be retrieved from database during email routing
-  
-  // Determine correct plant based on store - this is critical for cross-platform routing
-  const plant = getPlantForStore(order.store);
+
+  // Store number (e.g., "Grand Prairie 27" -> "27")
+  const storeNumber = onlyDigits(order.store);
+
+  // Resolve plant from store (authoritative)
+  const plant = getPlantForStore(order.store) || selectedPlant;
   console.log(`🔍 SUBMIT - Determined plant '${plant}' for store: ${order.store}`);
-  
-  // Validate plant determination
-  if (!plant) {
-    console.warn(`⚠️ SUBMIT - Could not determine plant for store: ${order.store}`);
-    console.warn(`⚠️ SUBMIT - Defaulting to selected plant: ${selectedPlant}`);
-  }
-  
-  // CRITICAL FIX: Determine order type based on order properties
-  let orderType: OrderType = "TRANSFER"; // Default to TRANSFER
-  
-  // Check if it's a wheel order
-  if ('qtyWheels' in order && order.qtyWheels) {
+
+  // Determine order type
+  let orderType: OrderType = "TRANSFER";
+  if ("qtyWheels" in order && order.qtyWheels) {
     orderType = "WHEEL_POWDER_COATING";
-  }
-  // Check if it's explicitly marked as MTO
-  else if (order.type === 'MTO' || ('casingGrade' in order && order.casingGrade)) {
+  } else if (order.type === "MTO" || ("casingGrade" in order && order.casingGrade)) {
     orderType = "MTO";
   }
-  
   console.log("🔍 SUBMIT - Determined order type:", orderType, "for order:", order.id);
-  
-  // Get destination manager email for cross dock orders
-  let destinationManagerEmail = "";
-  let formattedCrossDockDestination = order.crossDockDestination || "";
-  
-  if (order.crossDock === "Yes" && order.crossDockDestination) {
-    // Check if crossDockDestination already contains store name
-    if (!/\s/.test(order.crossDockDestination) && /^\d+$/.test(order.crossDockDestination.trim())) {
-      // If it only contains a number, we need to find the full store name
-      const destStoreNumber = order.crossDockDestination.trim();
-      const destStore = storeData.find(s => s.storeNumber === destStoreNumber);
-      
-      if (destStore) {
-        // Use the full store name with number from storeData
-        formattedCrossDockDestination = destStore.name;
-        console.log(`🔍 SUBMIT - Formatted cross dock destination: ${formattedCrossDockDestination}`);
-      } else {
-        console.warn(`🔍 SUBMIT - Could not find store with number ${destStoreNumber}, using original value`);
-      }
-    }
-    
-    // Destination manager email will be retrieved from database during email routing
-    const destStoreNumber = formattedCrossDockDestination.match(/\d+$/)?.[0] || "";
-    destinationManagerEmail = ""; // Will be retrieved from database
-    console.log(`🔍 SUBMIT - Cross-dock destination store: ${destStoreNumber}`);
-  }
-  
-  // Format timestamp for Supabase in MM/DD-YYYY HH:MM AM/PM format
+
+  // Cross-dock formatting (transfer only)
+  const formattedCrossDockDestination =
+    orderType === "TRANSFER" ? normalizeCrossDockDestination(order.crossDockDestination) : "";
+
+  // Timestamp (kept for UI/debug parity)
   const formattedTimestamp = formatDateForSupabase(new Date());
-  
-  // Create Google Sheets payload (camelCase format)
-  const googleSheetsPayload = {
+
+  // ---------- 1) OT ingest (PRIMARY) ----------
+  // We do not require email routing at this stage; pass what we have.
+  const submittedByEmail = (order as any).email || "";
+  const submittedByName = order.yourName || order.name || "Unknown";
+
+  const otPayload: OtOrderPayload = {
+    order_number:
+      (order as any).orderNumber || `ORD-${orderType}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    product_number: String(order.productNumber || ""),
+    quantity: toInt(order.quantity, 0),
+    store: String(order.store),
+    plant: String(plant),
+    submitted_by_email: String(submittedByEmail),
+    submitted_by_name: String(submittedByName),
+  };
+
+  console.log("📦 OT - Payload:", otPayload);
+  const ingestResult = await submitOtOrder(otPayload);
+  if (isIngestFail(ingestResult)) {
+    console.error("❌ OT - Ingest failed:", ingestResult.status, ingestResult.message);
+    throw new Error(`OT ingest failed: ${ingestResult.message}`);
+  }
+  console.log("✅ OT - Ingested:", ingestResult.id, ingestResult.order_number);
+
+  // ---------- 2) Google Sheets backup (TRANSFER only, non-blocking) ----------
+  if (orderType === "TRANSFER") {
+    try {
+      const backupPayload = {
+        // These keys mirror the previous camelCase payload used by scripts
+        ...order,
+        plant,
+        type: orderType,
+        name: submittedByName,
+        email: submittedByEmail,
+        // For legacy scripts:
+        crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
+        crossDockDestination: formattedCrossDockDestination,
+        receiverNo: order.receiverNo || null,
+        etaDate: order.etaDate || null,
+        destinationManagerEmail: "",
+        timestamp: formattedTimestamp,
+        // helpful metadata
+        orderNumber: ingestResult.order_number,
+        _correlationId: ingestResult.id,
+      };
+
+      // fire & forget; do not block the main flow on backup
+      console.log("🗂️ SHEETS BACKUP - Dispatching transfer backup");
+      await submitToOrdersWebhook(backupPayload);
+    } catch (err) {
+      // Non-fatal: the OT ingest already succeeded
+      console.warn("⚠️ SHEETS BACKUP - Non-fatal error posting to Apps Script:", err);
+    }
+  }
+
+  // ---------- Return shape for downstream processors ----------
+  // Keep camelCase for compatibility with existing webhook/render code.
+  const processedForDownstream = {
     ...order,
-    plant: plant || selectedPlant,
-    type: orderType, // Use the determined order type for proper routing
-    name: order.yourName || order.name || "Unknown",
-    email: storeManagerEmail,
-    
-    // Keep the frontend field names for Google Sheets/Zapier (camelCase)
-    crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No", 
+    plant,
+    type: orderType,
+    name: submittedByName,
+    email: submittedByEmail,
+    crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
     crossDockDestination: formattedCrossDockDestination,
     receiverNo: order.receiverNo || null,
     etaDate: order.etaDate || null,
-    
-    // Include destination manager email for cross-dock orders
-    destinationManagerEmail: destinationManagerEmail,
-    
+    destinationManagerEmail: "",
     timestamp: formattedTimestamp,
-    // Add manager email fields for webhook compatibility
-    managerEmail: storeManagerEmail,
-    managersEmail: storeManagerEmail
+
+    // OT ingest metadata (useful downstream)
+    ot_id: ingestResult.id,
+    ot_created_at: ingestResult.created_at,
+    orderNumber: ingestResult.order_number,
   };
 
-  // Create Supabase payload (snake_case format) - CRITICAL FIX: Remove dateReceived
-  let supabaseOrder: any = {
-    name: order.yourName || order.name || "Unknown",
-    store: order.store,
-    product_number: order.productNumber, // snake_case for Supabase
-    description: order.description,
-    quantity: parseInt(order.quantity?.toString() || "0") || 0,
-    schedule_arrival: order.scheduleArrival, // snake_case for Supabase
-    notes: order.notes,
-    email: storeManagerEmail,
-    plant: plant || selectedPlant,
-    order_type: orderType,
-    timestamp: formattedTimestamp, // Use formatted timestamp - NO dateReceived
-    status: 'pending',
-    status_updated_at: new Date().toISOString()
-  };
-  
-  // Only add cross dock fields for regular transfer orders (not MTO/Wheel)
-  if (orderType === 'TRANSFER') {
-    supabaseOrder = {
-      ...supabaseOrder,
-      cross_dock_type: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
-      cross_dock_destination: formattedCrossDockDestination,
-      cross_dock_receiver_number: order.receiverNo || null,
-      cross_dock_eta_date: order.etaDate || null,
-      destination_manager_email: destinationManagerEmail
-    };
-  }
-  
-  console.log("🔍 SUBMIT - Using sheets service with order type:", orderType);
-  console.log("🔍 SUBMIT - Google Sheets payload:", googleSheetsPayload);
-  console.log("🔍 SUBMIT - Supabase payload (NO dateReceived):", supabaseOrder);
-  
-  // Force the network request by adding a random parameter to avoid caching
-  try {
-    console.log("🔍 SUBMIT - Beginning webhook submission at:", new Date().toISOString());
-    
-    // Create a copy with cache-busting parameter for Google Sheets
-    const webhookData = {
-      ...googleSheetsPayload,
-      _nocache: Date.now()
-    };
-    
-    // Submit to Google Sheets with cache-busting (using camelCase field names and correct type)
-    const result = await submitToGoogleSheets(webhookData as any);
-    console.log("🔍 SUBMIT - submitToGoogleSheets result:", result);
-    
-    // Save the order to Supabase using the properly formatted data (snake_case, NO dateReceived)
-    console.log("🔍 SUBMIT - Saving order to Supabase with type:", orderType);
-    
-    // Use the appropriate table based on order type
-    const tableName = orderType === 'MTO' ? 'mto_orders' : orderType === 'WHEEL_POWDER_COATING' ? 'wheel_orders' : 'orders';
-    console.log("🔍 SUBMIT - Using table:", tableName);
-    
-    const { data, error } = await supabase
-      .from(tableName)
-      .insert(supabaseOrder)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("❌ SUBMIT - Error saving to Supabase:", error);
-      throw error;
-    } else {
-      console.log("✅ SUBMIT - Successfully saved to Supabase:", data);
-    }
-    
-    // Send email notifications for ALL stores using centralized routing
-    if (storeNumber) {
-      let emailRecipients: string[] = [];
-      let emailType: 'transfer' | 'mto' | 'wheel' = 'transfer';
-      
-      if (orderType === 'TRANSFER') {
-        emailType = 'transfer';
-        const emailResult = await getStoreEmailRecipients(storeNumber, emailType);
-        emailRecipients = emailResult.recipients;
-        
-        console.log(`📧 SUBMIT - Transfer email recipients (${emailResult.source}):`, emailRecipients);
-        if (emailResult.source === 'fallback') {
-          console.warn(`📧 SUBMIT - Using fallback routing: ${emailResult.fallbackReason}`);
-        }
-        
-        if (emailRecipients.length > 0) {
-          try {
-            console.log("📧 SUBMIT - Calling transfer-notification edge function for store:", storeNumber);
-            const emailResponse = await fetch(
-              `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/transfer-notification`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
-                },
-                body: JSON.stringify({
-                  transferData: googleSheetsPayload,
-                  orderId: data?.id || 'unknown',
-                  recipients: emailRecipients
-                })
-              }
-            );
-            
-            if (emailResponse.ok) {
-              const emailResult = await emailResponse.json();
-              console.log("✅ SUBMIT - Transfer email notification sent successfully:", emailResult);
-            } else {
-              const emailError = await emailResponse.text();
-              console.error("❌ SUBMIT - Email notification failed:", emailError);
-            }
-          } catch (emailError) {
-            console.error("❌ SUBMIT - Error sending transfer email:", emailError);
-          }
-        }
-      } else if (orderType === 'WHEEL_POWDER_COATING') {
-        emailType = 'wheel';
-        const emailResult = await getStoreEmailRecipients(storeNumber, emailType);
-        emailRecipients = emailResult.recipients;
-        
-        console.log(`📧 SUBMIT - Wheel email recipients (${emailResult.source}):`, emailRecipients);
-        if (emailResult.source === 'fallback') {
-          console.warn(`📧 SUBMIT - Using fallback routing: ${emailResult.fallbackReason}`);
-        }
-        
-        if (emailRecipients.length > 0) {
-          try {
-            console.log("📧 SUBMIT - Calling transfer-notification edge function for wheel order, store:", storeNumber);
-            const emailResponse = await fetch(
-              `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/transfer-notification`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
-                },
-                body: JSON.stringify({
-                  transferData: { ...googleSheetsPayload, orderType: 'Refurbished' },
-                  orderId: data?.id || 'unknown', 
-                  recipients: emailRecipients
-                })
-              }
-            );
-            
-            if (emailResponse.ok) {
-              const emailResult = await emailResponse.json();
-              console.log("✅ SUBMIT - Refurbished email notification sent successfully:", emailResult);
-            } else {
-              const emailError = await emailResponse.text();
-              console.error("❌ SUBMIT - Email notification failed:", emailError);
-            }
-          } catch (emailError) {
-            console.error("❌ SUBMIT - Error sending refurbished email:", emailError);
-          }
-        }
-      }
-    }
-    
-    return googleSheetsPayload;
-  } catch (error) {
-    console.error("❌ SUBMIT - Error in processOrder:", error);
-    throw error;
-  }
+  return processedForDownstream;
 };
