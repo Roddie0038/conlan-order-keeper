@@ -1,17 +1,6 @@
 // src/services/orderSubmission/processOrder.ts
-
-/**
- * Processes a single order:
- * - Determines order type (TRANSFER | MTO | WHEEL_POWDER_COATING)
- * - Builds & submits an OT ingest payload (primary system of record)
- * - (TRANSFER only) Fire-and-forget backup to Google Sheets via Apps Script
- * - Returns a camelCase object compatible with downstream webhook processors
- *
- * IMPORTANT:
- * - No writes to the Ordering DB tables
- * - No calls to /notification_logs
- * - No email routing or notification functions here
- */
+// Processes a single order and sends to OT ingest (primary) + Sheets backup (TRANSFER only).
+// No writes to Ordering DB, no notification_logs, no email routing.
 
 import { OrderSummary } from "@/hooks/useOrderSubmission";
 import { getPlantForStore } from "@/utils/plantMapping";
@@ -30,11 +19,10 @@ const toInt = (v: unknown, fallback = 0) => {
 
 const onlyDigits = (s: string) => (s.match(/\d+$/)?.[0] ?? "").trim();
 
-/** Best-effort normalization when user enters only a store number */
+/** Normalize cross-dock destination for display/scripts */
 const normalizeCrossDockDestination = (value: string | undefined) => {
   const raw = (value ?? "").trim();
   if (!raw) return "";
-  // If it's just digits, expand to a friendlier label using storeData when possible
   if (/^\d+$/.test(raw)) {
     const found = storeData.find((s) => s.storeNumber === raw);
     return found ? found.name : `Store ${raw}`;
@@ -42,15 +30,23 @@ const normalizeCrossDockDestination = (value: string | undefined) => {
   return raw;
 };
 
+// Utility: if store entered as "... 27" pad to 027 for readability; we leave canonical formatting server-side if needed.
+function padStoreNumberLabel(label: string): string {
+  const m = label.match(/(\d+)\s*$/);
+  if (!m) return label;
+  const padded = m[1].padStart(3, "0");
+  return label.replace(/(\d+)\s*$/, padded);
+}
+
 // ---------- main ----------
 
 export const processOrder = async (order: OrderSummary, selectedPlant: string) => {
   console.log("🔍 SUBMIT - Processing order:", order.id);
 
-  // Store number (e.g., "Grand Prairie 27" -> "27")
+  // Extract store number (e.g., "Grand Prairie 27" -> "27")
   const storeNumber = onlyDigits(order.store);
 
-  // Resolve plant from store (authoritative)
+  // Resolve plant from store (authoritative) with fallback to user-selected plant
   const plant = getPlantForStore(order.store) || selectedPlant;
   console.log(`🔍 SUBMIT - Determined plant '${plant}' for store: ${order.store}`);
 
@@ -67,20 +63,25 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const formattedCrossDockDestination =
     orderType === "TRANSFER" ? normalizeCrossDockDestination(order.crossDockDestination) : "";
 
-  // Timestamp (kept for UI/debug parity)
+  // Timestamp for backup/UI parity
   const formattedTimestamp = formatDateForSupabase(new Date());
 
   // ---------- 1) OT ingest (PRIMARY) ----------
-  // We do not require email routing at this stage; pass what we have.
   const submittedByEmail = (order as any).email || "";
-  const submittedByName = order.yourName || order.name || "Unknown";
+  const submittedByName = order.yourName || (order as any).name || "Unknown";
+
+  // Preserve caller-provided order number when present (helps idempotency on server)
+  const canonicalOrderNumber =
+    (order as any).orderNumber || `ORD-${orderType}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+
+  // Prefer padded store label for readability; server may normalize differently.
+  const storeLabel = padStoreNumberLabel(String(order.store || ""));
 
   const otPayload: OtOrderPayload = {
-    order_number:
-      (order as any).orderNumber || `ORD-${orderType}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    order_number: canonicalOrderNumber,
     product_number: String(order.productNumber || ""),
     quantity: toInt(order.quantity, 0),
-    store: String(order.store),
+    store: storeLabel,
     plant: String(plant),
     submitted_by_email: String(submittedByEmail),
     submitted_by_name: String(submittedByName),
@@ -104,29 +105,27 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
         type: orderType,
         name: submittedByName,
         email: submittedByEmail,
-        // For legacy scripts:
+        // Legacy script expectations:
         crossDock: (order.crossDock === "Yes" ? "Yes" : "No") as "Yes" | "No",
         crossDockDestination: formattedCrossDockDestination,
         receiverNo: order.receiverNo || null,
         etaDate: order.etaDate || null,
         destinationManagerEmail: "",
         timestamp: formattedTimestamp,
-        // helpful metadata
+        // helpful metadata (traceability)
         orderNumber: ingestResult.order_number,
         _correlationId: ingestResult.id,
       };
 
-      // fire & forget; do not block the main flow on backup
       console.log("🗂️ SHEETS BACKUP - Dispatching transfer backup");
+      // fire & forget; non-fatal if it fails
       await submitToOrdersWebhook(backupPayload);
     } catch (err) {
-      // Non-fatal: the OT ingest already succeeded
       console.warn("⚠️ SHEETS BACKUP - Non-fatal error posting to Apps Script:", err);
     }
   }
 
   // ---------- Return shape for downstream processors ----------
-  // Keep camelCase for compatibility with existing webhook/render code.
   const processedForDownstream = {
     ...order,
     plant,
