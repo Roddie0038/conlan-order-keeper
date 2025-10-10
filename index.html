@@ -36,17 +36,8 @@
       })(window, document, "clarity", "script", "r0g9rwyx8");
     </script>
 
-    <!-- Preview runtime env shim (used only when Vite envs aren't injected, e.g. Lovable preview) -->
-    <script>
-      window.__ENV__ =
-        window.__ENV__ || {
-          VITE_OT_SUPABASE_URL: "https://hpgjbpvugasktphwntee.supabase.co",
-          VITE_OT_SUPABASE_ANON_KEY:
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwZ2picHZ1Z2Fza3RwaHdudGVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyNjQ2MjYsImV4cCI6MjA3NDg0MDYyNn0.rdBeHuUhHa_4yrdzXHnGzcXAolrcfPKV2mQhdjcgnYY",
-          VITE_INTERNAL_SECRET:
-            "D7aEFWMVoyAC6GytPdBCqkJaJrdwbS+KxRjHORf4RBWg=",
-        };
-    </script>
+    <!-- Load runtime environment config -->
+    <script src="/env.js"></script>
   </head>
 
   <body>
