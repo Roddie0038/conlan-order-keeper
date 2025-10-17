@@ -1,4 +1,7 @@
-project_id = "hpgjbpvugasktphwntee"
+project_id = "cyzywykgdravxfnhskzq"
 
 [functions.ingest-ot-order]
+verify_jwt = false
+
+[functions.accept-user-sync]
 verify_jwt = false
