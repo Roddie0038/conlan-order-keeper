@@ -1,55 +1,37 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "@/hooks/use-toast";
-import { Truck, Plus, Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "@/components/ui/use-toast";
+import type { Database } from "@/integrations/supabase/types";
 
-interface CrossDockRequest {
-  id: string;
-  request_number: string;
-  requesting_store: string;
-  sending_store: string;
-  desired_delivery_date: string | null;
-  notes: string | null;
-  status: string;
-  plant: string;
-  submitted_by_email: string | null;
-  submitted_by_name: string | null;
-  created_at: string;
-  updated_at: string;
-}
+type CrossDockRequestRow = Database["public"]["Tables"]["cross_dock_requests"]["Row"];
 
 export default function CrossDockRequests() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [requests, setRequests] = useState<CrossDockRequest[]>([]);
+  const [requests, setRequests] = useState<CrossDockRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchRequests = async () => {
+  async function fetchRequests() {
     try {
-      // @ts-ignore - Table exists but types not yet regenerated
       const { data, error } = await supabase
-        .from("cross_dock_requests")
+        .from("cross_dock_requests" as any)
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
-      setRequests((data || []) as any);
-    } catch (error: any) {
-      console.error("Error fetching requests:", error);
+      setRequests((data as unknown as CrossDockRequestRow[]) ?? []);
+    } catch (err: any) {
+      console.error("Error fetching requests:", err);
       toast({
         variant: "destructive",
         title: "Error",
@@ -58,118 +40,101 @@ export default function CrossDockRequests() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const filteredRequests = requests.filter((request) =>
-    request.request_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    request.requesting_store.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    request.sending_store.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = requests.filter((r) => {
+    const t = searchTerm.toLowerCase();
+    return (
+      (r.request_number ?? "").toLowerCase().includes(t) ||
+      (r.requesting_store ?? "").toLowerCase().includes(t) ||
+      (r.sending_store ?? "").toLowerCase().includes(t)
+    );
+  });
 
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
-      pending: { variant: "default", label: "Pending" },
-      approved: { variant: "secondary", label: "Approved" },
-      fulfilled: { variant: "outline", label: "Fulfilled" },
-      denied: { variant: "destructive", label: "Denied" },
-    };
-
-    const statusInfo = statusMap[status] || { variant: "default" as const, label: status };
-    return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
-  };
+  function StatusBadge({ status }: { status: string }) {
+    const label =
+      status === "pending"
+        ? "Pending"
+        : status === "approved"
+        ? "Approved"
+        : status === "fulfilled"
+        ? "Fulfilled"
+        : status === "denied"
+        ? "Denied"
+        : status;
+    return <span className="text-xs px-2 py-1 rounded border">{label}</span>;
+  }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Truck className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-3xl font-bold">Cross-Dock Requests</h1>
-              <p className="text-muted-foreground mt-1">
-                View and manage your cross-dock requests
-              </p>
-            </div>
-          </div>
-          <Button onClick={() => navigate("/cross-dock-request")}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Request
-          </Button>
+    <div className="p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">Cross-Dock Requests</h1>
+          <p className="text-sm text-muted-foreground">
+            View and manage your cross-dock requests
+          </p>
         </div>
+        <Button onClick={() => navigate("/cross-dock-request")}>
+          New Request
+        </Button>
       </div>
 
-      <Card className="p-6">
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by request number, requesting store, or sending store..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+      <div className="mb-4 max-w-md relative">
+        <Input
+          placeholder="Search by request #, requesting or sending store…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-3"
+        />
+      </div>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading requests...</p>
-          </div>
-        ) : filteredRequests.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">
+      {loading ? (
+        <p>Loading requests...</p>
+      ) : filtered.length === 0 ? (
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm">
               {searchTerm ? "No requests match your search." : "No cross-dock requests yet."}
             </p>
             {!searchTerm && (
-              <Button
-                onClick={() => navigate("/cross-dock-request")}
-                variant="outline"
-                className="mt-4"
-              >
+              <Button variant="outline" className="mt-4" onClick={() => navigate("/cross-dock-request")}>
                 Create Your First Request
               </Button>
             )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-2">
+          <div className="grid grid-cols-7 gap-3 text-xs font-medium px-2">
+            <div>Request #</div>
+            <div>Requesting Store</div>
+            <div>Sending Store</div>
+            <div>Desired Date</div>
+            <div>Status</div>
+            <div>Submitted By</div>
+            <div>Created</div>
           </div>
-        ) : (
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Request #</TableHead>
-                  <TableHead>Requesting Store</TableHead>
-                  <TableHead>Sending Store</TableHead>
-                  <TableHead>Desired Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted By</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRequests.map((request) => (
-                <TableRow
-                    key={request.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                  >
-                    <TableCell className="font-medium">{request.request_number}</TableCell>
-                    <TableCell>{request.requesting_store}</TableCell>
-                    <TableCell>{request.sending_store}</TableCell>
-                    <TableCell>
-                      {request.desired_delivery_date
-                        ? format(new Date(request.desired_delivery_date), "MMM d, yyyy")
-                        : "Not specified"}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell>{request.submitted_by_name || "N/A"}</TableCell>
-                    <TableCell>
-                      {format(new Date(request.created_at), "MMM d, yyyy")}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </Card>
+          {filtered.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => navigate(`/cross-dock-request/${r.id}`)}
+              className="grid grid-cols-7 gap-3 items-center text-left px-2 py-2 rounded hover:bg-muted/50"
+            >
+              <div>{r.request_number}</div>
+              <div>{r.requesting_store}</div>
+              <div>{r.sending_store}</div>
+              <div>
+                {r.desired_delivery_date
+                  ? format(new Date(r.desired_delivery_date), "MMM d, yyyy")
+                  : "Not specified"}
+              </div>
+              <div><StatusBadge status={r.status ?? "pending"} /></div>
+              <div>{r.submitted_by_name || "N/A"}</div>
+              <div>{r.created_at ? format(new Date(r.created_at), "MMM d, yyyy") : "-"}</div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
