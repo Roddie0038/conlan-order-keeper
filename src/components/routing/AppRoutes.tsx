@@ -22,6 +22,8 @@ import ApprovedTreads from '@/pages/ApprovedTreads';
 import RelentlessInventory from '@/pages/RelentlessInventory';
 import MTOOrder from '@/pages/MTOOrder';
 import CrossDock from '@/pages/CrossDock';
+import CrossDockRequest from '@/pages/CrossDockRequest';
+import CrossDockRequests from '@/pages/CrossDockRequests';
 import WheelOrder from '@/pages/WheelOrder';
 import RetreadWarranty from '@/pages/RetreadWarranty';
 import ComplaintTracking from '@/pages/ComplaintTracking';
@@ -143,6 +145,18 @@ export function AppRoutes() {
       <Route path="/cross-dock" element={
         <AuthGuard>
           <CrossDock />
+        </AuthGuard>
+      } />
+      
+      <Route path="/cross-dock-request" element={
+        <AuthGuard>
+          <CrossDockRequest />
+        </AuthGuard>
+      } />
+      
+      <Route path="/cross-dock-requests" element={
+        <AuthGuard>
+          <CrossDockRequests />
         </AuthGuard>
       } />
       

@@ -287,6 +287,130 @@ export type Database = {
         }
         Relationships: []
       }
+      cross_dock_request_audit: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_status: string | null
+          notes: string | null
+          old_status: string | null
+          request_id: string
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          notes?: string | null
+          old_status?: string | null
+          request_id: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          notes?: string | null
+          old_status?: string | null
+          request_id?: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cross_dock_request_audit_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "cross_dock_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cross_dock_request_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          product_number: string
+          quantity: number
+          request_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          product_number: string
+          quantity?: number
+          request_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          product_number?: string
+          quantity?: number
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cross_dock_request_items_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "cross_dock_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cross_dock_requests: {
+        Row: {
+          created_at: string
+          desired_delivery_date: string | null
+          id: string
+          notes: string | null
+          plant: string
+          request_number: string
+          requesting_store: string
+          sending_store: string
+          status: string
+          submitted_by_email: string | null
+          submitted_by_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          desired_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          plant: string
+          request_number: string
+          requesting_store: string
+          sending_store: string
+          status?: string
+          submitted_by_email?: string | null
+          submitted_by_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          desired_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          plant?: string
+          request_number?: string
+          requesting_store?: string
+          sending_store?: string
+          status?: string
+          submitted_by_email?: string | null
+          submitted_by_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       draft_telemetry_log: {
         Row: {
           id: number
@@ -2194,6 +2318,10 @@ export type Database = {
       can_read_row: {
         Args: { p_plant: string; p_store: string }
         Returns: boolean
+      }
+      generate_cross_dock_request_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       is_admin: {
         Args: Record<PropertyKey, never>

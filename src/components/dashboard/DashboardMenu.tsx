@@ -57,12 +57,25 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         loaded
       },
       {
-        title: "CROSS DOCK",
+        title: "CROSS DOCK FORM",
         icon: null,
         path: "/cross-dock",
         color: "",
         borderColor: "border-green-400",
         delay: 0.4,
+        size: "col-span-1",
+        hideTitle: true,
+        fullSizeImage: true,
+        backgroundImage: "/lovable-uploads/621af873-8fbf-44ed-8587-a590c85a7b53.png",
+        loaded
+      },
+      {
+        title: "CROSS DOCK REQUEST",
+        icon: null,
+        path: "/cross-dock-request",
+        color: "",
+        borderColor: "border-teal-400",
+        delay: 0.45,
         size: "col-span-1",
         hideTitle: true,
         fullSizeImage: true,
