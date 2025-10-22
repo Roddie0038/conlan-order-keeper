@@ -61,6 +61,11 @@ const navigationItems = [
     icon: FileText,
   },
   {
+    title: "Cross-Dock Requests",
+    url: "/cross-dock-requests",
+    icon: Truck,
+  },
+  {
     title: "Wheel Refurb Order",
     url: "/wheel-order",
     icon: Disc,
