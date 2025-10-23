@@ -12,30 +12,26 @@ export type StoreOption = {
  */
 export async function fetchAllStores(): Promise<StoreOption[]> {
   try {
-    const { data, error } = await supabase
-      .from('platform_users')
-      .select('store, normalized_store')
-      .eq('status', 'active')
-      .order('normalized_store', { ascending: true });
+    const { data, error } = await (supabase as any)
+      .from('ordering_store_list')
+      .select('label, store_ref, plant')
+      .order('label', { ascending: true });
 
     if (error) {
       console.error('❌ STORES - Failed to fetch stores:', error);
       throw error;
     }
 
-    // Get unique normalized stores or store values
-    const uniqueStores = Array.from(
-      new Set(
-        (data ?? [])
-          .map(r => r.normalized_store || r.store)
-          .filter(Boolean)
-      )
-    );
+    // Map dropdown options
+    const options = (data ?? []).map((d: any) => ({ 
+      value: d.store_ref, 
+      label: d.label 
+    }));
 
-    console.log(`✅ STORES - Loaded ${uniqueStores.length} unique stores from database`);
+    console.log(`✅ STORES - Loaded ${options.length} stores from ordering_store_list`);
 
     // If we have fewer than 5 stores, fallback to storeData for full list
-    if (uniqueStores.length < 5) {
+    if (options.length < 5) {
       console.log('⚠️ STORES - Using storeData fallback for comprehensive store list');
       const { storeData } = await import('@/config/storeData');
       const fallbackStores = storeData.map(s => `${s.name} ${s.storeNumber}`);
@@ -46,10 +42,7 @@ export async function fetchAllStores(): Promise<StoreOption[]> {
       }));
     }
 
-    return uniqueStores.map(store => ({
-      value: store!,
-      label: store!
-    }));
+    return options;
   } catch (error) {
     console.error('❌ STORES - Error in fetchAllStores, using storeData fallback:', error);
     const { storeData } = await import('@/config/storeData');
