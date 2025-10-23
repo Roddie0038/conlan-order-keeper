@@ -37,7 +37,7 @@ export async function getStoreEmailRecipients(storeNumber: string, emailType: Em
       .from("store_email_recipients")
       .select("recipient_email")
       .eq("store_number", storeNumber)
-      .eq("email_type", emailType)
+      .contains("order_types", [emailType])
       .eq("is_active", true)
       .eq("platform_source", "ordering_platform");
 

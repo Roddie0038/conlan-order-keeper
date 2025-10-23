@@ -1254,6 +1254,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ot_orders: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          order_number: string
+          plant: string
+          product_number: string
+          quantity: number
+          status: string
+          store: string
+          submitted_by_email: string
+          submitted_by_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          order_number: string
+          plant: string
+          product_number: string
+          quantity: number
+          status?: string
+          store: string
+          submitted_by_email: string
+          submitted_by_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          order_number?: string
+          plant?: string
+          product_number?: string
+          quantity?: number
+          status?: string
+          store?: string
+          submitted_by_email?: string
+          submitted_by_name?: string
+        }
+        Relationships: []
+      }
       ot_password_resets: {
         Row: {
           id: number
@@ -2319,18 +2361,9 @@ export type Database = {
         Args: { p_plant: string; p_store: string }
         Returns: boolean
       }
-      generate_cross_dock_request_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      jwt_email: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_cross_dock_request_number: { Args: never; Returns: string }
+      is_admin: { Args: never; Returns: boolean }
+      jwt_email: { Args: never; Returns: string }
       log_notification_attempt: {
         Args: {
           body: Json
@@ -2340,10 +2373,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      normalize_store_name: {
-        Args: { raw: string }
-        Returns: string
-      }
+      normalize_store_name: { Args: { raw: string }; Returns: string }
       safe_http_post: {
         Args: { body: Json; notif_type: string; url: string }
         Returns: Json

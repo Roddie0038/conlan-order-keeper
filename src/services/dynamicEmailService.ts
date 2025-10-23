@@ -48,12 +48,12 @@ export async function getOrderingEmailRecipients(store: string, emailType: Email
   console.log(`🔍 DYNAMIC EMAIL - Looking up recipients for store ${storeNumber}, email type: ${emailType}`);
 
   try {
-    // Primary: Query store_email_recipients table
+    // Primary: Query store_email_recipients table (uses order_types array column)
     const { data: storeRecipients, error: storeError } = await supabase
       .from('store_email_recipients')
       .select('recipient_email, recipient_role, store_number, store_name')
       .eq('store_number', storeNumber)
-      .eq('email_type', emailType)
+      .contains('order_types', [emailType])
       .eq('is_active', true);
 
     if (storeError) {
