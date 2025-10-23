@@ -65,7 +65,8 @@ export function OrderForm() {
   // Update store when user changes - email routing now handled dynamically
   useEffect(() => {
     if (user?.store && !user?.isAdmin) {
-      form.setValue("store", user.store);
+      const isUnassigned = user.store.trim().toLowerCase() === 'unassigned';
+      form.setValue("store", isUnassigned ? "" : user.store);
       form.setValue("managersEmail", ""); // Email routing handled in edge function
     }
   }, [user, form]);
@@ -76,7 +77,9 @@ export function OrderForm() {
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     // Validate store selection
-    const canChooseStore = user?.isAdmin || !user?.store;
+    const userStoreLower = user?.store?.trim().toLowerCase();
+    const hasAssignedStore = Boolean(userStoreLower && userStoreLower !== 'unassigned');
+    const canChooseStore = Boolean(user?.isAdmin) || !hasAssignedStore;
     const storeForSubmit = canChooseStore ? values.store : user?.store;
     
     if (!storeForSubmit) {

@@ -36,7 +36,8 @@ export function ContactSection({ form }: ContactSectionProps) {
   const [storeOptions, setStoreOptions] = useState<StoreOption[]>([]);
   
   // Determine if user can choose store (admin or no assigned store)
-  const canChooseStore = isAdmin || !user?.store;
+  const hasAssignedStore = Boolean(user?.store && user.store.trim().toLowerCase() !== 'unassigned');
+  const canChooseStore = isAdmin || !hasAssignedStore;
   
   // Function to extract store number from store name
   const extractStoreNumber = (storeName: string): string => {
@@ -99,10 +100,18 @@ export function ContactSection({ form }: ContactSectionProps) {
     form.setValue("dateReceived", getCurrentDateTime());
     
     if (user && user.store && !isAdmin) {
-      // Set store
-      form.setValue("store", user.store);
-      // Fetch and set manager emails
-      fetchManagerEmails(user.store);
+      const isUnassigned = user.store.trim().toLowerCase() === 'unassigned';
+      if (!isUnassigned) {
+        // Set store
+        form.setValue("store", user.store);
+        // Fetch and set manager emails
+        fetchManagerEmails(user.store);
+      } else {
+        // Clear store for unassigned users so they can choose
+        form.setValue("store", "");
+        setManagerEmails("");
+        form.setValue("managersEmail", "");
+      }
     }
   }, [user, isAdmin, form]);
 
