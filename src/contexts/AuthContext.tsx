@@ -92,37 +92,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Helper function to determine admin status
-  const isUserAdmin = (email: string, role?: string): boolean => {
-    // Check for specific admin emails
-    const adminEmails = [
-      'conlan97@conlantire.com',
-      'bperry@conlantire.com',
-      'admin@conlantire.com'
-    ];
-    
-    if (adminEmails.includes(email.toLowerCase())) {
-      return true;
+// Helper function to determine admin status
+const isUserAdmin = (email: string, role?: string): boolean => {
+  // Check for specific admin emails
+  const adminEmails = [
+    'conlan97@conlantire.com',
+    'bperry@conlantire.com',
+    'admin@conlantire.com'
+  ];
+  
+  if (adminEmails.includes(email.toLowerCase())) {
+    return true;
+  }
+
+  // Check for admin roles/titles
+  const adminRoles = [
+    'plant_manager',
+    'warehouse_manager', 
+    'operations_manager',
+    'corporate_director',
+    'admin',
+    'super_admin'
+  ];
+  
+  if (role && adminRoles.some(adminRole => 
+    role.toLowerCase().includes(adminRole.toLowerCase())
+  )) {
+    return true;
+  }
+
+  return false;
+};
+
+// Additional check: look up ordering_directory role
+const fetchOrderingDirectoryRole = async (email: string): Promise<string | null> => {
+  try {
+    const { data, error } = await (supabase as any)
+      .from('ordering_directory')
+      .select('role')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (error) {
+      console.error('AuthProvider: ordering_directory lookup failed:', error);
+      return null;
     }
 
-    // Check for admin roles/titles
-    const adminRoles = [
-      'plant_manager',
-      'warehouse_manager', 
-      'operations_manager',
-      'corporate_director',
-      'admin',
-      'super_admin'
-    ];
-    
-    if (role && adminRoles.some(adminRole => 
-      role.toLowerCase().includes(adminRole.toLowerCase())
-    )) {
-      return true;
-    }
-
-    return false;
-  };
+    return data?.role ?? null;
+  } catch (err) {
+    console.error('AuthProvider: ordering_directory lookup error:', err);
+    return null;
+  }
+};
 
   // Helper function to format store name
   const formatStoreName = (storeNumber: string): string => {
@@ -133,6 +154,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Enhanced user object with flattened store manager data
   const enrichUserWithStoreData = async (authUser: User): Promise<ExtendedUser> => {
     const storeManager = await fetchStoreManagerProfile(authUser.email!);
+    const dirRole = await fetchOrderingDirectoryRole(authUser.email!);
+    const isAdminDb = dirRole ? ['admin','super_admin','regional_admin','platform_admin'].includes(dirRole.toLowerCase()) : false;
     
     // Get plant and store info from user metadata if available
     const userMetadata = authUser.user_metadata || {};
@@ -148,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         store: storeManager.store_number,
         storeName: storeNameNumber, // Use metadata format: "Store Name Store Number"
         plant: defaultPlant, // Use metadata default plant
-        isAdmin: isUserAdmin(authUser.email!, storeManager.role),
+        isAdmin: isUserAdmin(authUser.email!, storeManager.role) || isAdminDb,
         username: storeManager.name, // Use name as username
         
         // Keep nested object for backwards compatibility
@@ -168,12 +191,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       store: 'Unassigned',
       storeName: storeNameNumber,
       plant: defaultPlant,
-      isAdmin: isUserAdmin(authUser.email!),
+      isAdmin: isUserAdmin(authUser.email!) || isAdminDb,
       username: userMetadata.role_title || authUser.email!,
       storeManager: undefined
     };
   };
-
   useEffect(() => {
     console.log("AuthProvider: Initializing Supabase Auth...");
     

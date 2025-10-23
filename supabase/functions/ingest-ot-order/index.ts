@@ -7,19 +7,25 @@ const ALLOWED_ORIGINS = new Set<string>([
   "http://localhost:3000", // dev
 ]);
 
-interface OtOrderPayload {
-  order_number: string;
-  product_number: string;
-  quantity: number;
-  store: string;
-  plant: string;
-  submitted_by_email: string;
-  submitted_by_name: string;
+function isAllowedOrigin(origin: string) {
+  try {
+    const { host } = new URL(origin);
+    // Allow known explicit origins and any Lovable preview domains
+    return (
+      ALLOWED_ORIGINS.has(origin) ||
+      host.endsWith('.lovableproject.com') ||
+      host.endsWith('.lovable.app') ||
+      host === 'localhost:5173' ||
+      host === 'localhost:3000'
+    );
+  } catch {
+    return false;
+  }
 }
 
 function corsHeadersFor(req: Request) {
   const origin = req.headers.get("origin") ?? "";
-  const allow = ALLOWED_ORIGINS.has(origin) ? origin : "";
+  const allow = isAllowedOrigin(origin) ? origin : "";
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Headers":
