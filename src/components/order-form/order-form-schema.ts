@@ -12,9 +12,7 @@ export const formSchema = z
     quantity: z.string().min(1, "Quantity is required"),
     scheduleArrival: z.string().min(1, "Schedule arrival is required"),
     notes: z.string().optional(),
-    crossDock: z.enum(["Yes", "No"], {
-      required_error: "Please specify if this is a cross dock order",
-    }),
+    crossDock: z.enum(["Yes", "No"]).optional().default("No"),
     crossDockDestination: z.string().optional(),
     receiverNo: z.string().optional(),
     etaDate: z.string().optional(),

@@ -75,12 +75,25 @@ export function OrderForm() {
   const showCrossDockDestination = SHOW_CROSS_DOCK && form.watch("crossDock") === "Yes";
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    // Validate store selection
+    const canChooseStore = user?.isAdmin || !user?.store;
+    const storeForSubmit = canChooseStore ? values.store : user?.store;
+    
+    if (!storeForSubmit) {
+      toast({
+        title: "Error",
+        description: "Please select a store before adding items to the order.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Add current form values to the order summaries
     const newOrder = {
       ...values,
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
-      store: values.store,
+      store: storeForSubmit,
       selected: true
     };
     

@@ -115,7 +115,40 @@ serve(async (req) => {
       );
     }
 
-    // 5) Idempotency check by order_number
+    // 5) Store-level authorization for non-admins
+    const isAdmin = userRoles.includes('ot_admin');
+    
+    if (!isAdmin) {
+      // Non-admin must submit orders only for their assigned store
+      const { data: platformUser } = await supabase
+        .from('platform_users')
+        .select('store, normalized_store')
+        .eq('email', user.email)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      const userStore = platformUser?.normalized_store || platformUser?.store;
+      
+      if (!userStore) {
+        console.error(`❌ INGEST-OT-ORDER: User ${user.email} has no assigned store`);
+        return new Response(
+          JSON.stringify({ error: 'Forbidden: User has no assigned store' }),
+          { status: 403, headers: { 'Content-Type': 'application/json', ...cors } }
+        );
+      }
+
+      if (payload.store !== userStore) {
+        console.error(`❌ INGEST-OT-ORDER: User ${user.email} (store: ${userStore}) attempted to submit for store: ${payload.store}`);
+        return new Response(
+          JSON.stringify({ error: 'Forbidden: Cannot submit orders for other stores' }),
+          { status: 403, headers: { 'Content-Type': 'application/json', ...cors } }
+        );
+      }
+
+      console.log(`✅ INGEST-OT-ORDER: Non-admin user ${user.email} authorized for store ${userStore}`);
+    }
+
+    // 6) Idempotency check by order_number
     const idempotencyKey = req.headers.get('x-idempotency-key') || payload.order_number;
     
     if (idempotencyKey) {
@@ -141,7 +174,7 @@ serve(async (req) => {
       }
     }
 
-    // 6) Insert new order
+    // 7) Insert new order
     const insertData = {
       id: crypto.randomUUID(),
       order_number: payload.order_number,

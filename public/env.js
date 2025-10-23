@@ -4,9 +4,9 @@
 
 (() => {
   const ENV = Object.freeze({
-    VITE_SUPABASE_URL: "https://hpgjbpvugasktphwntee.supabase.co",
+    VITE_SUPABASE_URL: "https://cyzywykgdravxfnhskzq.supabase.co",
     VITE_SUPABASE_ANON_KEY:
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwZ2picHZ1Z2Fza3RwaHdudGVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyNjQ2MjYsImV4cCI6MjA3NDg0MDYyNn0.rdBeHuUhHa_4yrdzXHnGzcXAolrcfPKV2mQhdjcgnYY"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5enl3eWtnZHJhdnhmbmhza3pxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyNjIzMTMsImV4cCI6MjA3NDgzODMxM30.9ywisPvTNhFXzwYjLb69t5rsA_3JPYl7kTlvbU1Qg38"
   });
 
   Object.defineProperty(window, "__PUBLIC_ENV__", {

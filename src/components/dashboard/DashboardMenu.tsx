@@ -79,7 +79,7 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         size: "col-span-1",
         hideTitle: true,
         fullSizeImage: true,
-        backgroundImage: "/lovable-uploads/621af873-8fbf-44ed-8587-a590c85a7b53.png",
+        backgroundImage: "/lovable-uploads/6ddbd3d3-6d33-4a42-97a8-746ec6d6767e.png",
         loaded
       },
       {

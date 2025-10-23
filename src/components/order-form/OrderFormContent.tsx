@@ -5,8 +5,6 @@ import { Form } from "@/components/ui/form";
 import { ContactSection } from "./sections/ContactSection";
 import { ProductSection } from "./sections/ProductSection";
 import { ScheduleSection } from "./sections/ScheduleSection";
-import { CrossDockSection } from "./sections/CrossDockSection";
-import { SHOW_CROSS_DOCK } from "@/config/featureFlags";
 
 interface OrderFormContentProps {
   form: UseFormReturn<OrderFormValues>;
@@ -36,16 +34,6 @@ export function OrderFormContent({
         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6 border border-green-100 dark:border-green-900/30">
           <ScheduleSection form={form} />
         </div>
-        
-        {/* Cross Dock - Only show if feature flag is enabled */}
-        {SHOW_CROSS_DOCK && (
-          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6 border border-purple-100 dark:border-purple-900/30">
-            <CrossDockSection 
-              form={form} 
-              showCrossDockDestination={showCrossDockDestination} 
-            />
-          </div>
-        )}
       </form>
     </Form>
   );

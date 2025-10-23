@@ -22,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { getCurrentDateTime } from "@/utils/dateTime";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
+import { fetchAllStores, StoreOption } from "@/lib/stores";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -32,6 +33,10 @@ export function ContactSection({ form }: ContactSectionProps) {
   const isAdmin = user?.isAdmin || false;
   const [managerEmails, setManagerEmails] = useState<string>("");
   const [isLoadingEmails, setIsLoadingEmails] = useState(false);
+  const [storeOptions, setStoreOptions] = useState<StoreOption[]>([]);
+  
+  // Determine if user can choose store (admin or no assigned store)
+  const canChooseStore = isAdmin || !user?.store;
   
   // Function to extract store number from store name
   const extractStoreNumber = (storeName: string): string => {
@@ -73,6 +78,20 @@ export function ContactSection({ form }: ContactSectionProps) {
     }
   };
   
+  // Load stores list when user can choose
+  useEffect(() => {
+    if (canChooseStore) {
+      fetchAllStores()
+        .then(stores => {
+          setStoreOptions(stores);
+          console.log(`✅ CONTACT SECTION - Loaded ${stores.length} stores for selection`);
+        })
+        .catch(error => {
+          console.error('❌ CONTACT SECTION - Failed to load stores:', error);
+        });
+    }
+  }, [canChooseStore]);
+
   // Set the store to the user's store on component mount for non-admin users
   // Also set the current date and time
   useEffect(() => {
@@ -128,16 +147,16 @@ export function ContactSection({ form }: ContactSectionProps) {
               <FormLabel className="flex items-center">
                 <Building className="h-4 w-4 mr-1 text-gray-400" />
                 Store*
-                {!isAdmin && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
+                {!canChooseStore && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
               </FormLabel>
                <Select 
                 onValueChange={field.onChange}
                 defaultValue={field.value}
                 value={field.value}
-                disabled={!isAdmin}
+                disabled={!canChooseStore}
               >
                 <FormControl>
-                  <SelectTrigger className={`transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200 ${!isAdmin ? 'bg-gray-100' : ''}`}>
+                  <SelectTrigger className={`transition-all border-gray-300 focus:border-blue-300 focus:ring-1 focus:ring-blue-200 ${!canChooseStore ? 'bg-gray-100' : ''}`}>
                     <SelectValue placeholder="Select a store" />
                   </SelectTrigger>
                 </FormControl>
@@ -145,11 +164,18 @@ export function ContactSection({ form }: ContactSectionProps) {
                   {isAdmin && (
                     <SelectItem value="Admin">Admin Only</SelectItem>
                   )}
-                  {stores.map((store) => (
-                    <SelectItem key={store.id} value={store.name}>
-                      {store.name}
-                    </SelectItem>
-                  ))}
+                  {canChooseStore 
+                    ? storeOptions.map((store) => (
+                        <SelectItem key={store.value} value={store.value}>
+                          {store.label}
+                        </SelectItem>
+                      ))
+                    : stores.map((store) => (
+                        <SelectItem key={store.id} value={store.name}>
+                          {store.name}
+                        </SelectItem>
+                      ))
+                  }
                 </SelectContent>
               </Select>
               <FormMessage />
