@@ -99,23 +99,42 @@ Deno.serve(async (req) => {
       notes: `Request created with ${items.length} item(s)`,
     })
 
-    // Optional push to OT (don't fail user if OT is unavailable)
-    const otUrl = Deno.env.get('OT_INGEST_URL')
-    const internalToken = Deno.env.get('INTERNAL_TOKEN')
-    if (otUrl && internalToken) {
+    // Forward to OT Platform (don't fail user if OT is unavailable)
+    const otEdgeBase = Deno.env.get('OT_EDGE_BASE')
+    const orderingSyncSecret = Deno.env.get('ORDERING_SYNC_SECRET')
+    if (otEdgeBase && orderingSyncSecret) {
       const otPayload = {
-        type: 'cross_dock_request',
-        request: { ...requestRecord, items: items.map((i: any) => ({
-          product_number: i.product_number, description: i.description, quantity: i.quantity
-        })) }
+        request_number: requestRecord.request_number,
+        requesting_store: requestRecord.requesting_store,
+        sending_store: requestRecord.sending_store,
+        desired_delivery_date: requestRecord.desired_delivery_date,
+        notes: requestRecord.notes,
+        plant: requestRecord.plant,
+        submitted_by_email: requestRecord.submitted_by_email,
+        submitted_by_name: requestRecord.submitted_by_name,
+        status: requestRecord.status,
+        items: items.map((i: any) => ({
+          product_number: i.product_number,
+          description: i.description,
+          quantity: i.quantity
+        }))
       }
-      const otResp = await fetch(otUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${internalToken}` },
-        body: JSON.stringify(otPayload),
-      })
-      if (!otResp.ok) {
-        console.error('OT push failed', otResp.status, await otResp.text())
+      try {
+        const otResp = await fetch(`${otEdgeBase}/ingest-cross-dock`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${orderingSyncSecret}`
+          },
+          body: JSON.stringify(otPayload),
+        })
+        if (!otResp.ok) {
+          console.error('OT ingest-cross-dock failed', otResp.status, await otResp.text())
+        } else {
+          console.log('✅ Cross-dock request forwarded to OT platform')
+        }
+      } catch (e: any) {
+        console.error('OT forward error:', e.message)
       }
     }
 
