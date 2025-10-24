@@ -1,55 +1,38 @@
-import { supabase } from '@/integrations/supabase/client';
+// src/lib/stores.ts
+// Fetch store list via Ordering → OT proxy Edge Function
 
-export type StoreOption = { 
-  value: string; 
-  label: string; 
-};
+import { supabase } from "@/integrations/supabase/client";
+
+export type StoreOption = { value: string; label: string; plant?: string };
 
 /**
- * Fetch all unique stores from platform_users for dropdown population
+ * Fetch all unique stores via the get-stores Edge Function
  * Used by admins and unassigned users to select a store
- * Falls back to storeData if database returns insufficient results
+ * Falls back to storeData if Edge Function call fails
  */
 export async function fetchAllStores(): Promise<StoreOption[]> {
   try {
-    const { data, error } = await (supabase as any)
-      .from('ordering_store_list')
-      .select('label, store_ref, plant')
-      .order('label', { ascending: true });
+    const { data, error } = await supabase.functions.invoke("get-stores");
 
     if (error) {
-      console.error('❌ STORES - Failed to fetch stores:', error);
+      console.error("❌ STORES - get-stores failed:", error);
       throw error;
     }
 
-    // Map dropdown options
-    const options = (data ?? []).map((d: any) => ({ 
-      value: d.store_ref, 
-      label: d.label 
-    }));
+    const rows = (data?.data ?? []) as Array<{ label: string; store_ref: string; plant: string }>;
+    const options = rows.map((d) => ({ value: d.store_ref, label: d.label, plant: d.plant }));
 
-    console.log(`✅ STORES - Loaded ${options.length} stores from ordering_store_list`);
-
-    // If we have fewer than 5 stores, fallback to storeData for full list
     if (options.length < 5) {
-      console.log('⚠️ STORES - Using storeData fallback for comprehensive store list');
-      const { storeData } = await import('@/config/storeData');
-      const fallbackStores = storeData.map(s => `${s.name} ${s.storeNumber}`);
-      console.log(`✅ STORES - Loaded ${fallbackStores.length} stores from storeData`);
-      return fallbackStores.map(store => ({
-        value: store,
-        label: store
-      }));
+      console.warn("⚠️ STORES - Using storeData fallback");
+      const { storeData } = await import("@/config/storeData");
+      return storeData.map((s: any) => ({ value: s.storeNumber, label: `${s.name} ${s.storeNumber}` }));
     }
 
+    console.log(`✅ STORES - Loaded ${options.length} stores via get-stores`);
     return options;
   } catch (error) {
-    console.error('❌ STORES - Error in fetchAllStores, using storeData fallback:', error);
-    const { storeData } = await import('@/config/storeData');
-    const fallbackStores = storeData.map(s => `${s.name} ${s.storeNumber}`);
-    return fallbackStores.map(store => ({
-      value: store,
-      label: store
-    }));
+    console.error("❌ STORES - Error in fetchAllStores, using storeData fallback:", error);
+    const { storeData } = await import("@/config/storeData");
+    return storeData.map((s: any) => ({ value: s.storeNumber, label: `${s.name} ${s.storeNumber}` }));
   }
 }
