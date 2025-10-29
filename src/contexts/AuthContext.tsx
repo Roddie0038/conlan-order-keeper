@@ -62,32 +62,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Helper function to fetch store manager profile using direct table query
-  const fetchStoreManagerProfile = async (email: string): Promise<StoreManager | null> => {
+  // Fetch user data from ordering_directory using auth user_id
+  const fetchOrderingDirectoryUser = async (userId: string): Promise<any | null> => {
     try {
-      const { data, error } = await supabase
-        .from('managers')
-        .select('*')
-        .eq('email', email)
-        .eq('is_active', true)
-        .single();
+      const { data, error } = await (supabase as any)
+        .from('ordering_directory')
+        .select('email, full_name, role, primary_plant_code, status, can_access_ordering')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .eq('can_access_ordering', true)
+        .maybeSingle();
 
       if (error) {
-        console.error('Error fetching store manager profile:', error);
+        console.error('Error fetching ordering_directory user:', error);
         return null;
       }
 
-      return data ? {
-        id: String(data.id),
-        name: data.name,
-        email: data.email,
-        role: data.role || 'Store Manager',
-        store_number: data.store_number || 'Unassigned',
-        plant_code: data.plant_code || 'Grand Prairie 97',
-        is_active: data.is_active
-      } : null;
+      return data;
     } catch (error) {
-      console.error('Error calling store manager query:', error);
+      console.error('Error querying ordering_directory:', error);
       return null;
     }
   };
@@ -124,75 +117,40 @@ const isUserAdmin = (email: string, role?: string): boolean => {
   return false;
 };
 
-// Additional check: look up ordering_directory role
-const fetchOrderingDirectoryRole = async (email: string): Promise<string | null> => {
-  try {
-    const { data, error } = await (supabase as any)
-      .from('ordering_directory')
-      .select('role')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (error) {
-      console.error('AuthProvider: ordering_directory lookup failed:', error);
-      return null;
-    }
-
-    return data?.role ?? null;
-  } catch (err) {
-    console.error('AuthProvider: ordering_directory lookup error:', err);
-    return null;
-  }
-};
-
-  // Helper function to format store name
-  const formatStoreName = (storeNumber: string): string => {
-    // Convert store number to readable store name
-    return storeNumber || 'Unassigned';
-  };
-
-  // Enhanced user object with flattened store manager data
+  // Enhanced user object with ordering_directory data
   const enrichUserWithStoreData = async (authUser: User): Promise<ExtendedUser> => {
-    const storeManager = await fetchStoreManagerProfile(authUser.email!);
-    const dirRole = await fetchOrderingDirectoryRole(authUser.email!);
-    const isAdminDb = dirRole ? ['admin','super_admin','regional_admin','platform_admin'].includes(dirRole.toLowerCase()) : false;
+    // Query ordering_directory by user_id (NOT email)
+    const directoryUser = await fetchOrderingDirectoryUser(authUser.id);
     
-    // Get plant and store info from user metadata if available
-    const userMetadata = authUser.user_metadata || {};
-    const storeNameNumber = userMetadata.store_name_number || storeManager?.store_number || 'Unassigned';
-    const defaultPlant = userMetadata.default_plant || storeManager?.plant_code || 'Grand Prairie 97';
-    
-    if (storeManager) {
+    if (directoryUser) {
+      const isAdminDb = ['admin', 'super_admin', 'regional_admin', 'platform_admin'].includes(
+        directoryUser.role?.toLowerCase() || ''
+      );
+      
       return {
         ...authUser,
-        // Flattened fields for component compatibility
-        name: storeManager.name,
-        title: storeManager.role,
-        store: storeManager.store_number,
-        storeName: storeNameNumber, // Use metadata format: "Store Name Store Number"
-        plant: defaultPlant, // Use metadata default plant
-        isAdmin: isUserAdmin(authUser.email!, storeManager.role) || isAdminDb,
-        username: storeManager.name, // Use name as username
-        
-        // Keep nested object for backwards compatibility
-        storeManager: {
-          ...storeManager,
-          store_number: storeNameNumber, // Update with proper format
-          plant_code: defaultPlant
-        }
+        name: directoryUser.full_name || authUser.email!,
+        title: directoryUser.role || 'User',
+        store: 'Unassigned', // Store info may not be in ordering_directory
+        storeName: 'Unassigned',
+        plant: directoryUser.primary_plant_code || 'Grand Prairie 097',
+        isAdmin: isUserAdmin(authUser.email!, directoryUser.role) || isAdminDb,
+        username: directoryUser.full_name || authUser.email!,
+        storeManager: undefined
       };
     }
 
-    // Fallback for users without store manager records
+    // Fallback for users not in ordering_directory or without access
+    console.warn('User not found in ordering_directory or does not have access:', authUser.email);
     return {
       ...authUser,
-      name: userMetadata.role_title || authUser.email!,
-      title: userMetadata.role_title || 'User',
+      name: authUser.email!,
+      title: 'User',
       store: 'Unassigned',
-      storeName: storeNameNumber,
-      plant: defaultPlant,
-      isAdmin: isUserAdmin(authUser.email!) || isAdminDb,
-      username: userMetadata.role_title || authUser.email!,
+      storeName: 'Unassigned',
+      plant: 'Grand Prairie 097',
+      isAdmin: isUserAdmin(authUser.email!),
+      username: authUser.email!,
       storeManager: undefined
     };
   };

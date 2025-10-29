@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ForgotPasswordModal } from "@/components/auth/ForgotPasswordModal";
 
@@ -10,21 +10,25 @@ interface SupabaseLoginFormProps {
 }
 
 export const SupabaseLoginForm = ({ onLogin, isSubmitting }: SupabaseLoginFormProps) => {
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
 
-  // Load saved credentials on component mount
+  // Load saved credentials or pre-filled email from navigation state
   useEffect(() => {
+    const prefillEmail = (location.state as any)?.email;
     const savedEmail = localStorage.getItem('rememberedEmail');
     const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
     
-    if (savedEmail && savedRememberMe) {
+    if (prefillEmail) {
+      setEmail(prefillEmail);
+    } else if (savedEmail && savedRememberMe) {
       setEmail(savedEmail);
       setRememberMe(true);
     }
-  }, []);
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

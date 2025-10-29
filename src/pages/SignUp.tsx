@@ -5,58 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, ArrowLeft, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { validateEmail, validatePassword } from '@/utils/validation';
 
-const ALLOWED_DOMAINS = ['@conlantire.com'];
+const ALLOWED_DOMAINS = ['@conlantire.com', '@aol.com'];
 
-const PLANTS = [
-  { code: '97', name: 'Grand Prairie 97' },
-  { code: '98', name: 'Romulus 98' },
-  { code: '99', name: 'Mulberry 99' }
-];
-
-const STORES_BY_PLANT: Record<string, Array<{ number: string; name: string }>> = {
-  '97': [
-    { number: '22', name: 'Fort Worth 22' },
-    { number: '27', name: 'Grand Prairie Service 27' },
-    { number: '97', name: 'Grand Prairie 97' },
-    { number: '28', name: 'Houston 28' },
-    { number: '29', name: 'San Antonio 29' },
-    { number: '35', name: 'Laredo 35' },
-    { number: '39', name: 'Austin 39' },
-    { number: '30', name: 'Oklahoma City 30' },
-    { number: '32', name: 'Little Rock 32' },
-    { number: '33', name: 'Kansas City 33' },
-    { number: '36', name: 'Tulsa 36' }
-  ],
-  '98': [
-    { number: '98', name: 'Romulus 98' },
-    { number: '8', name: 'Toledo 8' },
-    { number: '11', name: 'Detroit 11' },
-    { number: '13', name: 'Grand Rapids 13' },
-    { number: '18', name: 'Cleveland 18' },
-    { number: '41', name: 'Chicago 41' }
-  ],
-  '99': [
-    { number: '3', name: 'Miami 3' },
-    { number: '7', name: 'Pompano Beach 7' },
-    { number: '9', name: 'Fort Myers 9' },
-    { number: '002', name: 'Jacksonville 002' },
-    { number: '5', name: 'Ocala 5' },
-    { number: '15', name: 'Tallahassee 15' },
-    { number: '1', name: 'Mulberry Service 1' },
-    { number: '99', name: 'Mulberry 99' },
-    { number: '4', name: 'New Orleans 4' },
-    { number: '6', name: 'Tampa 6' },
-    { number: '21', name: 'Vero Beach 21' },
-    { number: '23', name: 'Sarasota 23' },
-    { number: '40', name: 'Tampa Foam Fill 40' }
-  ]
-};
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -66,9 +20,7 @@ export default function SignUp() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    plant: '',
-    store: '',
-    roleTitle: ''
+    confirmPassword: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -81,32 +33,21 @@ export default function SignUp() {
     } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     } else if (!ALLOWED_DOMAINS.some(domain => formData.email.toLowerCase().endsWith(domain))) {
-      newErrors.email = 'Email must be from an authorized domain (@conlantire.com)';
+      newErrors.email = `Only ${ALLOWED_DOMAINS.join(' and ')} emails are allowed`;
     }
 
     // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else {
-      const passwordValidation = validatePassword(formData.password);
-      if (!passwordValidation.isValid) {
-        newErrors.password = passwordValidation.errors[0];
-      }
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
     }
 
-    // Plant validation
-    if (!formData.plant) {
-      newErrors.plant = 'Please select a plant';
-    }
-
-    // Store validation
-    if (!formData.store) {
-      newErrors.store = 'Please select a store';
-    }
-
-    // Role validation
-    if (!formData.roleTitle.trim()) {
-      newErrors.roleTitle = 'Role/Title is required';
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords don\'t match';
     }
 
     setErrors(newErrors);
@@ -123,66 +64,92 @@ export default function SignUp() {
     setIsSubmitting(true);
 
     try {
-      // First, create the pending registration record
-      const selectedStore = STORES_BY_PLANT[formData.plant]?.find(store => store.number === formData.store);
-      const storeName = selectedStore?.name || `Store ${formData.store}`;
-      const plantName = PLANTS.find(p => p.code === formData.plant)?.name || `Plant ${formData.plant}`;
-      
-      const { error: registrationError } = await supabase
-        .from('pending_registrations')
-        .insert({
-          email: formData.email.toLowerCase(),
-          password_hash: formData.password, // This will be handled by Supabase auth
-          plant_code: plantName,
-          store_number: storeName, // Store as "Store Name Store Number" format
-          role_title: formData.roleTitle.trim()
-        });
+      const emailLower = formData.email.toLowerCase().trim();
 
-      if (registrationError) {
-        if (registrationError.code === '23505') { // Unique constraint violation
-          throw new Error('An account with this email already exists or is pending approval');
-        }
-        throw registrationError;
-      }
-
-      // Then create the Supabase auth user with proper metadata
-      const { error: authError } = await supabase.auth.signUp({
-        email: formData.email.toLowerCase(),
+      // Step 1: Call Supabase signUp
+      const { data: signUpData, error: authError } = await supabase.auth.signUp({
+        email: emailLower,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/signup-success`,
-          data: {
-            store_name_number: storeName, // "Store Name Store Number" format
-            default_plant: plantName,
-            role_title: formData.roleTitle.trim(),
-            plant_code: formData.plant
-          }
+          emailRedirectTo: `${window.location.origin}/login`
         }
       });
 
       if (authError) {
-        // If auth signup fails, we should clean up the pending registration
-        await supabase
-          .from('pending_registrations')
-          .delete()
-          .eq('email', formData.email.toLowerCase());
-        
+        // Handle specific auth errors
+        if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
+          toast({
+            title: 'Account already exists',
+            description: 'This email is already registered. Please use Log In instead.',
+            variant: 'destructive'
+          });
+          return;
+        }
         throw authError;
       }
 
+      if (!signUpData.user) {
+        throw new Error('Sign up succeeded but no user returned');
+      }
+
+      // Step 2: Get fresh session token for the edge function call
+      const { data: sessionData } = await supabase.auth.getSession();
+      const authToken = sessionData.session?.access_token;
+
+      if (!authToken) {
+        throw new Error('No auth token available');
+      }
+
+      // Step 3: Link auth user to ordering_directory
+      const { data: linkResult, error: linkError } = await supabase.functions.invoke(
+        'link-auth-user',
+        {
+          body: { email: emailLower, auth_user_id: signUpData.user.id },
+          headers: {
+            Authorization: `Bearer ${authToken}`
+          }
+        }
+      );
+
+      if (linkError || !linkResult?.ok) {
+        // Auth account created but linking failed
+        const errorMsg = linkResult?.error || linkError?.message || 'Failed to link account';
+        
+        toast({
+          title: 'Admin must add you first',
+          description: errorMsg,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Step 4: Success!
       toast({
-        title: 'Registration submitted!',
-        description: 'Please check your email to verify your account. After verification, an admin will review your registration.',
+        title: 'Account created!',
+        description: 'You can now log in with your credentials.',
         className: 'bg-green-50 border-green-200'
       });
 
-      navigate('/signup-success');
+      // Step 5: Redirect to login with pre-filled email
+      setTimeout(() => {
+        navigate('/login', { state: { email: emailLower } });
+      }, 1000);
 
     } catch (error: any) {
-      console.error('Registration error:', error);
+      console.error('Sign up error:', error);
+      
+      // Provide specific error messages
+      let errorMessage = 'An error occurred during sign up. Please try again.';
+      
+      if (error.message.includes('network') || error.message.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: 'Registration failed',
-        description: error.message || 'An error occurred during registration. Please try again.',
+        title: 'Sign up failed',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -197,7 +164,6 @@ export default function SignUp() {
     }
   };
 
-  const availableStores = formData.plant ? STORES_BY_PLANT[formData.plant] || [] : [];
   const passwordValidation = formData.password ? validatePassword(formData.password) : null;
 
   return (
@@ -214,9 +180,9 @@ export default function SignUp() {
           <div className="flex items-center justify-center mb-2">
             <UserPlus className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">Create Account</CardTitle>
+          <CardTitle className="text-2xl font-bold text-gray-900">Create your account</CardTitle>
           <CardDescription className="text-gray-600">
-            Join the Ordering Platform
+            Set your password for an existing account
           </CardDescription>
         </CardHeader>
         
@@ -230,7 +196,7 @@ export default function SignUp() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="your.name@conlantire.com"
+                placeholder="your.name@conlantire.com or @aol.com"
                 className={errors.email ? 'border-red-500' : ''}
               />
               {errors.email && (
@@ -272,70 +238,28 @@ export default function SignUp() {
               )}
             </div>
 
-            {/* Plant Field */}
+            {/* Confirm Password Field */}
             <div className="space-y-2">
-              <Label htmlFor="plant">Plant</Label>
-              <Select 
-                value={formData.plant} 
-                onValueChange={(value) => {
-                  handleInputChange('plant', value);
-                  // Clear store selection when plant changes
-                  setFormData(prev => ({ ...prev, store: '' }));
-                }}
-              >
-                <SelectTrigger className={errors.plant ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="Select your plant" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PLANTS.map((plant) => (
-                    <SelectItem key={plant.code} value={plant.code}>
-                      {plant.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.plant && (
-                <p className="text-sm text-red-600">{errors.plant}</p>
-              )}
-            </div>
-
-            {/* Store Field */}
-            <div className="space-y-2">
-              <Label htmlFor="store">Store</Label>
-              <Select 
-                value={formData.store} 
-                onValueChange={(value) => handleInputChange('store', value)}
-                disabled={!formData.plant}
-              >
-                <SelectTrigger className={errors.store ? 'border-red-500' : ''}>
-                  <SelectValue placeholder={formData.plant ? "Select your store" : "First select a plant"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableStores.map((store) => (
-                    <SelectItem key={store.number} value={store.number}>
-                      {store.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.store && (
-                <p className="text-sm text-red-600">{errors.store}</p>
-              )}
-            </div>
-
-            {/* Role/Title Field */}
-            <div className="space-y-2">
-              <Label htmlFor="roleTitle">Role/Title</Label>
-              <Input
-                id="roleTitle"
-                type="text"
-                value={formData.roleTitle}
-                onChange={(e) => handleInputChange('roleTitle', e.target.value)}
-                placeholder="e.g., Store Manager, Assistant Manager"
-                className={errors.roleTitle ? 'border-red-500' : ''}
-              />
-              {errors.roleTitle && (
-                <p className="text-sm text-red-600">{errors.roleTitle}</p>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  className={errors.confirmPassword ? 'border-red-500 pr-10' : 'pr-10'}
+                  placeholder="Re-enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-600">{errors.confirmPassword}</p>
               )}
             </div>
 
