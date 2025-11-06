@@ -146,6 +146,50 @@ export type Database = {
         }
         Relationships: []
       }
+      app_platform_audit: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          new_values: Json | null
+          old_values: Json | null
+          platform_id: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          platform_id?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          platform_id?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_platform_audit_platform_id_fkey"
+            columns: ["platform_id"]
+            isOneToOne: false
+            referencedRelation: "app_platforms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_platform_links: {
         Row: {
           created_at: string | null
@@ -212,32 +256,41 @@ export type Database = {
         Row: {
           base_url: string | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           id: string
           is_active: boolean | null
           platform_key: string
           platform_name: string
+          rate_limit_per_minute: number | null
           updated_at: string | null
+          webhook_secret: string | null
         }
         Insert: {
           base_url?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
           platform_key: string
           platform_name: string
+          rate_limit_per_minute?: number | null
           updated_at?: string | null
+          webhook_secret?: string | null
         }
         Update: {
           base_url?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
           platform_key?: string
           platform_name?: string
+          rate_limit_per_minute?: number | null
           updated_at?: string | null
+          webhook_secret?: string | null
         }
         Relationships: []
       }

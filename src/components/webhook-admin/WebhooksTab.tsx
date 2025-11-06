@@ -9,6 +9,7 @@ import type { AppWebhook, WebhookEventSubscription } from "@/types/webhook-admin
 import { ConnectionDetailsDialog } from "./ConnectionDetailsDialog";
 import { EventSubscriptionsDialog } from "./EventSubscriptionsDialog";
 import { WebhookConfigDialog } from "./WebhookConfigDialog";
+import { ReceivingCredentialsHeader } from "./ReceivingCredentialsHeader";
 
 export function WebhooksTab() {
   const [webhooks, setWebhooks] = useState<AppWebhook[]>([]);
@@ -19,12 +20,74 @@ export function WebhooksTab() {
   const [showEventsDialog, setShowEventsDialog] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [userRole, setUserRole] = useState<'super_admin' | 'ops_manager' | null>(null);
+  const [firstPlatform, setFirstPlatform] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadWebhooks();
     loadUserRole();
+    loadAndEnsurePlatform();
   }, []);
+
+  const loadAndEnsurePlatform = async () => {
+    try {
+      // Load existing platforms
+      const { data: platforms, error } = await supabase
+        .from('app_platforms' as any)
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (!platforms || platforms.length === 0) {
+        // Auto-create default platform
+        const { data: { user } } = await supabase.auth.getUser();
+        const defaultPlatform = {
+          platform_name: 'Ordering Platform Default',
+          platform_key: 'ordering-platform',
+          webhook_secret: crypto.randomUUID(),
+          is_active: true,
+          rate_limit_per_minute: 100,
+          description: 'Default webhook receiver for Ordering Platform',
+          created_by: user?.id,
+        };
+
+        const { data: newPlatform, error: insertError } = await supabase
+          .from('app_platforms' as any)
+          .insert(defaultPlatform)
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        if (!newPlatform) throw new Error('Failed to create platform');
+
+        // Log audit
+        await supabase.from('app_platform_audit' as any).insert({
+          platform_id: (newPlatform as any).id,
+          user_id: user?.id,
+          user_email: user?.email,
+          action: 'platform_created',
+          new_values: defaultPlatform,
+          metadata: { auto_created: true },
+        });
+
+        setFirstPlatform(newPlatform);
+        toast({
+          title: "Default Platform Created",
+          description: "A default webhook receiver platform has been set up for you.",
+        });
+      } else {
+        setFirstPlatform(platforms[0]);
+      }
+    } catch (error: any) {
+      console.error('Error loading/creating platform:', error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const loadUserRole = async () => {
     try {
@@ -136,6 +199,9 @@ export function WebhooksTab() {
   return (
     <>
       <div className="space-y-6">
+        {/* Receiving Credentials Header */}
+        <ReceivingCredentialsHeader platform={firstPlatform} />
+
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Webhook Endpoints</h2>
@@ -143,7 +209,7 @@ export function WebhooksTab() {
               Manage webhook configurations for OT, Inventory, Management, and Fleet platforms
             </p>
           </div>
-          <Button onClick={loadWebhooks}>
+          <Button onClick={() => { loadWebhooks(); loadAndEnsurePlatform(); }}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
