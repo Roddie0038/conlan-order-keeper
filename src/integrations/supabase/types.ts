@@ -146,6 +146,101 @@ export type Database = {
         }
         Relationships: []
       }
+      app_platform_links: {
+        Row: {
+          created_at: string | null
+          hmac_algorithm: string | null
+          hmac_enabled: boolean | null
+          id: string
+          is_active: boolean | null
+          max_retries: number | null
+          metadata: Json | null
+          platform_id: string | null
+          rate_limit_per_minute: number | null
+          retry_enabled: boolean | null
+          timeout_seconds: number | null
+          updated_at: string | null
+          webhook_secret: string | null
+          webhook_type: string
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          hmac_algorithm?: string | null
+          hmac_enabled?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          max_retries?: number | null
+          metadata?: Json | null
+          platform_id?: string | null
+          rate_limit_per_minute?: number | null
+          retry_enabled?: boolean | null
+          timeout_seconds?: number | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+          webhook_type: string
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string | null
+          hmac_algorithm?: string | null
+          hmac_enabled?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          max_retries?: number | null
+          metadata?: Json | null
+          platform_id?: string | null
+          rate_limit_per_minute?: number | null
+          retry_enabled?: boolean | null
+          timeout_seconds?: number | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+          webhook_type?: string
+          webhook_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_platform_links_platform_id_fkey"
+            columns: ["platform_id"]
+            isOneToOne: false
+            referencedRelation: "app_platforms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_platforms: {
+        Row: {
+          base_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          platform_key: string
+          platform_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          base_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform_key: string
+          platform_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          base_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform_key?: string
+          platform_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       app_regions: {
         Row: {
           id: number
@@ -2224,6 +2319,115 @@ export type Database = {
           warranty_number?: string
         }
         Relationships: []
+      }
+      webhook_analytics: {
+        Row: {
+          avg_duration_ms: number | null
+          created_at: string | null
+          date: string
+          failed_deliveries: number | null
+          id: string
+          platform_link_id: string | null
+          successful_deliveries: number | null
+          total_deliveries: number | null
+        }
+        Insert: {
+          avg_duration_ms?: number | null
+          created_at?: string | null
+          date: string
+          failed_deliveries?: number | null
+          id?: string
+          platform_link_id?: string | null
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+        }
+        Update: {
+          avg_duration_ms?: number | null
+          created_at?: string | null
+          date?: string
+          failed_deliveries?: number | null
+          id?: string
+          platform_link_id?: string | null
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_analytics_platform_link_id_fkey"
+            columns: ["platform_link_id"]
+            isOneToOne: false
+            referencedRelation: "app_platform_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_deliveries: {
+        Row: {
+          created_at: string | null
+          duration_ms: number | null
+          error_message: string | null
+          hmac_signature: string | null
+          id: string
+          idempotency_key: string | null
+          platform_link_id: string | null
+          request_body: Json | null
+          request_headers: Json | null
+          request_method: string | null
+          response_body: string | null
+          response_headers: Json | null
+          response_status: number | null
+          retry_count: number | null
+          success: boolean | null
+          webhook_type: string
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          hmac_signature?: string | null
+          id?: string
+          idempotency_key?: string | null
+          platform_link_id?: string | null
+          request_body?: Json | null
+          request_headers?: Json | null
+          request_method?: string | null
+          response_body?: string | null
+          response_headers?: Json | null
+          response_status?: number | null
+          retry_count?: number | null
+          success?: boolean | null
+          webhook_type: string
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          hmac_signature?: string | null
+          id?: string
+          idempotency_key?: string | null
+          platform_link_id?: string | null
+          request_body?: Json | null
+          request_headers?: Json | null
+          request_method?: string | null
+          response_body?: string | null
+          response_headers?: Json | null
+          response_status?: number | null
+          retry_count?: number | null
+          success?: boolean | null
+          webhook_type?: string
+          webhook_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_platform_link_id_fkey"
+            columns: ["platform_link_id"]
+            isOneToOne: false
+            referencedRelation: "app_platform_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wheel_orders: {
         Row: {
