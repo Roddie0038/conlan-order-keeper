@@ -1,246 +1,248 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Edit, Trash2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import type { AppPlatform, AppPlatformLink } from "@/types/webhook-admin";
-
-interface Platform extends AppPlatform {
-  app_platform_links: AppPlatformLink[];
-}
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, Settings, Zap, Key, RefreshCw } from "lucide-react";
+import type { AppWebhook, WebhookEventSubscription } from "@/types/webhook-admin";
+import { ConnectionDetailsDialog } from "./ConnectionDetailsDialog";
+import { EventSubscriptionsDialog } from "./EventSubscriptionsDialog";
+import { WebhookConfigDialog } from "./WebhookConfigDialog";
 
 export function WebhooksTab() {
-  const [platforms, setPlatforms] = useState<Platform[]>([]);
+  const [webhooks, setWebhooks] = useState<AppWebhook[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Record<string, WebhookEventSubscription[]>>({});
   const [loading, setLoading] = useState(true);
-  const [editingLink, setEditingLink] = useState<AppPlatformLink | null>(null);
-  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedWebhook, setSelectedWebhook] = useState<AppWebhook | null>(null);
+  const [showConnectionDialog, setShowConnectionDialog] = useState(false);
+  const [showEventsDialog, setShowEventsDialog] = useState(false);
+  const [showConfigDialog, setShowConfigDialog] = useState(false);
+  const [userRole, setUserRole] = useState<'super_admin' | 'ops_manager' | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadPlatforms();
+    loadWebhooks();
+    loadUserRole();
   }, []);
 
-  async function loadPlatforms() {
-    setLoading(true);
+  const loadUserRole = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const { data, error } = await supabase
-        .from("app_platforms" as any)
-        .select("*, app_platform_links(*)")
-        .order("platform_name");
+        .from('user_roles' as any)
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
 
       if (error) throw error;
-      setPlatforms((data || []) as unknown as Platform[]);
+      setUserRole((data as any)?.role || null);
+    } catch (error) {
+      console.error('Error loading user role:', error);
+    }
+  };
+
+  const loadWebhooks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('app_webhooks' as any)
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setWebhooks((data || []) as unknown as AppWebhook[]);
+
+      // Load subscriptions for each webhook
+      const subsMap: Record<string, WebhookEventSubscription[]> = {};
+      for (const webhook of (data || []) as unknown as AppWebhook[]) {
+        const { data: subs } = await supabase
+          .from('webhook_event_subscriptions' as any)
+          .select('*')
+          .eq('webhook_id', webhook.id);
+        subsMap[webhook.id] = (subs || []) as unknown as WebhookEventSubscription[];
+      }
+      setSubscriptions(subsMap);
     } catch (error: any) {
       toast({
-        title: "Error loading platforms",
+        title: "Error loading webhooks",
         description: error.message,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function handleSaveLink() {
-    if (!editingLink) return;
-
+  const handleToggleActive = async (webhook: AppWebhook) => {
     try {
       const { error } = await supabase
-        .from("app_platform_links" as any)
-        .update({
-          webhook_url: editingLink.webhook_url,
-          webhook_secret: editingLink.webhook_secret,
-          hmac_enabled: editingLink.hmac_enabled,
-          rate_limit_per_minute: editingLink.rate_limit_per_minute,
-          timeout_seconds: editingLink.timeout_seconds,
-          is_active: editingLink.is_active,
-        })
-        .eq("id", editingLink.id);
+        .from('app_webhooks' as any)
+        .update({ is_active: !webhook.is_active })
+        .eq('id', webhook.id);
 
       if (error) throw error;
 
+      // Log audit
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('app_webhook_audit' as any).insert({
+        webhook_id: webhook.id,
+        user_id: user?.id,
+        user_email: user?.email,
+        action: 'webhook_toggled',
+        old_values: { is_active: webhook.is_active },
+        new_values: { is_active: !webhook.is_active },
+      });
+
       toast({
         title: "Success",
-        description: "Webhook configuration updated successfully",
+        description: `Webhook ${!webhook.is_active ? 'enabled' : 'disabled'}`,
       });
-      setShowEditDialog(false);
-      loadPlatforms();
+
+      loadWebhooks();
     } catch (error: any) {
       toast({
-        title: "Error updating webhook",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     }
-  }
+  };
+
+  const openConnectionDialog = (webhook: AppWebhook) => {
+    setSelectedWebhook(webhook);
+    setShowConnectionDialog(true);
+  };
+
+  const openEventsDialog = (webhook: AppWebhook) => {
+    setSelectedWebhook(webhook);
+    setShowEventsDialog(true);
+  };
+
+  const openConfigDialog = (webhook: AppWebhook) => {
+    setSelectedWebhook(webhook);
+    setShowConfigDialog(true);
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {platforms.map((platform) => (
-        <Card key={platform.id}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>{platform.platform_name}</CardTitle>
-                <CardDescription>{platform.description}</CardDescription>
-              </div>
-              <Switch checked={platform.is_active} disabled />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {platform.app_platform_links.map((link) => (
-                <div
-                  key={link.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{link.webhook_type}</span>
-                      <Switch checked={link.is_active} disabled />
-                    </div>
-                    <div className="text-sm text-muted-foreground break-all">
-                      {link.webhook_url}
-                    </div>
-                    <div className="flex gap-4 text-xs text-muted-foreground">
-                      <span>HMAC: {link.hmac_enabled ? "✓" : "✗"}</span>
-                      <span>Rate Limit: {link.rate_limit_per_minute}/min</span>
-                      <span>Timeout: {link.timeout_seconds}s</span>
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Webhook Endpoints</h2>
+            <p className="text-muted-foreground">
+              Manage webhook configurations for OT, Inventory, Management, and Fleet platforms
+            </p>
+          </div>
+          <Button onClick={loadWebhooks}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+
+        <div className="grid gap-4">
+          {webhooks.map((webhook) => {
+            const webhookSubs = subscriptions[webhook.id] || [];
+            const enabledSubs = webhookSubs.filter(s => s.is_enabled).length;
+
+            return (
+              <Card key={webhook.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <CardTitle>{webhook.name}</CardTitle>
+                        <Badge variant={webhook.is_active ? "default" : "secondary"}>
+                          {webhook.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                      <CardDescription>{webhook.description}</CardDescription>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setEditingLink(link);
-                      setShowEditDialog(true);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Badge variant="outline">{enabledSubs} / {webhookSubs.length} events</Badge>
+                    <span>•</span>
+                    <span>Rate: {webhook.rate_limit_per_minute}/min</span>
+                    <span>•</span>
+                    <span>Timeout: {webhook.timeout_seconds}s</span>
+                    <span>•</span>
+                    <span>Retries: {webhook.retry_enabled ? webhook.max_retries : 'Disabled'}</span>
+                  </div>
 
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Webhook Configuration</DialogTitle>
-            <DialogDescription>
-              Update the webhook endpoint and security settings
-            </DialogDescription>
-          </DialogHeader>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openConnectionDialog(webhook)}
+                    >
+                      <Key className="h-4 w-4 mr-2" />
+                      Connection Details
+                    </Button>
 
-          {editingLink && (
-            <div className="space-y-4">
-              <div>
-                <Label>Webhook Type</Label>
-                <Input value={editingLink.webhook_type} disabled />
-              </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEventsDialog(webhook)}
+                    >
+                      <Zap className="h-4 w-4 mr-2" />
+                      Event Subscriptions
+                    </Button>
 
-              <div>
-                <Label>Webhook URL</Label>
-                <Input
-                  value={editingLink.webhook_url}
-                  onChange={(e) =>
-                    setEditingLink({ ...editingLink, webhook_url: e.target.value })
-                  }
-                />
-              </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openConfigDialog(webhook)}
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
 
-              <div>
-                <Label>Webhook Secret (for HMAC)</Label>
-                <Input
-                  type="password"
-                  value={editingLink.webhook_secret || ""}
-                  onChange={(e) =>
-                    setEditingLink({ ...editingLink, webhook_secret: e.target.value })
-                  }
-                  placeholder="Leave empty to disable HMAC"
-                />
-              </div>
+                    <Button
+                      variant={webhook.is_active ? "secondary" : "default"}
+                      size="sm"
+                      onClick={() => handleToggleActive(webhook)}
+                    >
+                      {webhook.is_active ? "Disable" : "Enable"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
 
-              <div className="flex items-center justify-between">
-                <Label>Enable HMAC Signatures</Label>
-                <Switch
-                  checked={editingLink.hmac_enabled}
-                  onCheckedChange={(checked) =>
-                    setEditingLink({ ...editingLink, hmac_enabled: checked })
-                  }
-                />
-              </div>
+      <ConnectionDetailsDialog
+        webhook={selectedWebhook}
+        open={showConnectionDialog}
+        onOpenChange={setShowConnectionDialog}
+        onUpdate={loadWebhooks}
+        userRole={userRole}
+      />
 
-              <div>
-                <Label>Rate Limit (per minute)</Label>
-                <Input
-                  type="number"
-                  value={editingLink.rate_limit_per_minute}
-                  onChange={(e) =>
-                    setEditingLink({
-                      ...editingLink,
-                      rate_limit_per_minute: parseInt(e.target.value),
-                    })
-                  }
-                />
-              </div>
+      <EventSubscriptionsDialog
+        webhook={selectedWebhook}
+        open={showEventsDialog}
+        onOpenChange={setShowEventsDialog}
+      />
 
-              <div>
-                <Label>Timeout (seconds)</Label>
-                <Input
-                  type="number"
-                  value={editingLink.timeout_seconds}
-                  onChange={(e) =>
-                    setEditingLink({
-                      ...editingLink,
-                      timeout_seconds: parseInt(e.target.value),
-                    })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label>Active</Label>
-                <Switch
-                  checked={editingLink.is_active}
-                  onCheckedChange={(checked) =>
-                    setEditingLink({ ...editingLink, is_active: checked })
-                  }
-                />
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveLink}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+      <WebhookConfigDialog
+        webhook={selectedWebhook}
+        open={showConfigDialog}
+        onOpenChange={setShowConfigDialog}
+        onUpdate={loadWebhooks}
+      />
+    </>
   );
 }

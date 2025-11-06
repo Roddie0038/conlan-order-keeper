@@ -30,7 +30,7 @@ export function DeliveriesTab() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("webhook_deliveries" as any)
+        .from("app_webhook_deliveries" as any)
         .select("*")
         .order("created_at", { ascending: false })
         .limit(100);
@@ -99,7 +99,7 @@ export function DeliveriesTab() {
                     <Badge variant={delivery.success ? "default" : "destructive"}>
                       {delivery.success ? "Success" : "Failed"}
                     </Badge>
-                    <span className="font-medium">{delivery.webhook_type}</span>
+                    <span className="font-medium">{delivery.event_type}</span>
                     <Badge variant="outline">{delivery.response_status}</Badge>
                     <span className="text-sm text-muted-foreground">
                       {delivery.duration_ms}ms
@@ -169,7 +169,7 @@ export function DeliveriesTab() {
                 <div>
                   <span className="font-semibold">URL:</span>
                   <div className="text-muted-foreground break-all">
-                    {selectedDelivery.webhook_url}
+                    {selectedDelivery.request_url}
                   </div>
                 </div>
                 <div>
