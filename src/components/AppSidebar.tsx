@@ -29,7 +29,8 @@ import {
   AlertTriangle,
   MessageSquare,
   Users,
-  Mail
+  Mail,
+  Webhook
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -135,6 +136,11 @@ const superAdminItems = [
     title: "Email Routing",
     url: "/admin/email-routing",
     icon: Mail,
+  },
+  {
+    title: "Webhook Admin",
+    url: "/admin/webhooks",
+    icon: Webhook,
   },
 ];
 
