@@ -68,7 +68,7 @@ export function AnalyticsTab() {
         return acc;
       }, {});
 
-      const analyticsArray = Object.values(aggregated).map((item) => ({
+      const analyticsArray = Object.values(aggregated).map((item: Analytics) => ({
         ...item,
         avg_duration_ms: Math.round(item.avg_duration_ms / item.total_deliveries),
       }));

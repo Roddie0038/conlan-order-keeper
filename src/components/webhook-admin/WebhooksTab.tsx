@@ -20,14 +20,6 @@ import type { AppPlatform, AppPlatformLink } from "@/types/webhook-admin";
 interface Platform extends AppPlatform {
   app_platform_links: AppPlatformLink[];
 }
-  webhook_type: string;
-  webhook_url: string;
-  webhook_secret?: string;
-  hmac_enabled: boolean;
-  rate_limit_per_minute: number;
-  timeout_seconds: number;
-  is_active: boolean;
-}
 
 export function WebhooksTab() {
   const [platforms, setPlatforms] = useState<Platform[]>([]);
