@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, ExternalLink } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, RefreshCw, Eye, RotateCcw } from "lucide-react";
+import type { WebhookDelivery, AppWebhook } from "@/types/webhook-admin";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -13,27 +22,64 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { WebhookDelivery } from "@/types/webhook-admin";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function DeliveriesTab() {
   const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([]);
+  const [webhooks, setWebhooks] = useState<AppWebhook[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDelivery, setSelectedDelivery] = useState<WebhookDelivery | null>(null);
-  const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [filterWebhook, setFilterWebhook] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [replaying, setReplaying] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadDeliveries();
+    loadWebhooks();
   }, []);
 
-  async function loadDeliveries() {
-    setLoading(true);
+  const loadWebhooks = async () => {
     try {
       const { data, error } = await supabase
-        .from("app_webhook_deliveries" as any)
-        .select("*")
-        .order("created_at", { ascending: false })
+        .from('app_webhooks' as any)
+        .select('id, name, max_retries')
+        .order('name');
+
+      if (error) throw error;
+      setWebhooks((data || []) as unknown as AppWebhook[]);
+    } catch (error) {
+      console.error('Error loading webhooks:', error);
+    }
+  };
+
+  const loadDeliveries = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('app_webhook_deliveries' as any)
+        .select('*')
+        .order('created_at', { ascending: false })
         .limit(100);
+
+      if (filterWebhook !== "all") {
+        query = query.eq('webhook_id', filterWebhook);
+      }
+
+      if (filterStatus === "success") {
+        query = query.eq('success', true);
+      } else if (filterStatus === "failed") {
+        query = query.eq('success', false);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setDeliveries((data || []) as unknown as WebhookDelivery[]);
@@ -46,147 +92,284 @@ export function DeliveriesTab() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function handleReplay(deliveryId: string) {
+  useEffect(() => {
+    loadDeliveries();
+  }, [filterWebhook, filterStatus]);
+
+  const handleReplay = async (delivery: WebhookDelivery) => {
+    if (!delivery.webhook_id) {
+      toast({
+        title: "Error",
+        description: "Cannot replay: webhook not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if retries are available
+    const webhook = webhooks.find(w => w.id === delivery.webhook_id);
+    if (webhook && delivery.retry_count >= webhook.max_retries) {
+      toast({
+        title: "Cannot Replay",
+        description: "Maximum retry attempts reached",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setReplaying(delivery.id);
     try {
       const { data, error } = await supabase.functions.invoke("webhook-config", {
-        body: { action: "replay-delivery", delivery_id: deliveryId },
+        body: {
+          action: "replay-delivery",
+          delivery_id: delivery.id,
+        },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Webhook replayed",
-        description: data.success ? "Successfully replayed" : "Replay failed",
+        title: data.success ? "Replay successful" : "Replay failed",
+        description: data.message,
         variant: data.success ? "default" : "destructive",
       });
+
       loadDeliveries();
     } catch (error: any) {
       toast({
-        title: "Error replaying webhook",
+        title: "Error replaying delivery",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setReplaying(null);
     }
-  }
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
+  const filteredDeliveries = deliveries;
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Recent Deliveries</h2>
-        <Button variant="outline" size="sm" onClick={loadDeliveries}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Webhook Deliveries</h2>
+            <p className="text-muted-foreground">
+              View recent webhook delivery attempts and replay failed deliveries
+            </p>
+          </div>
+          <Button onClick={loadDeliveries} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <Select value={filterWebhook} onValueChange={setFilterWebhook}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by webhook" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Webhooks</SelectItem>
+                {webhooks.map((webhook) => (
+                  <SelectItem key={webhook.id} value={webhook.id}>
+                    {webhook.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Deliveries</CardTitle>
+            <CardDescription>Last 100 webhook delivery attempts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Delivery ID</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Retries</TableHead>
+                  <TableHead>Timestamp</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredDeliveries.map((delivery) => {
+                  const webhook = webhooks.find(w => w.id === delivery.webhook_id);
+                  const canReplay = !delivery.success && webhook && delivery.retry_count < webhook.max_retries;
+                  
+                  return (
+                    <TableRow key={delivery.id}>
+                      <TableCell className="font-mono text-xs">
+                        {delivery.event_type}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs max-w-[200px] truncate">
+                        {delivery.idempotency_key || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={delivery.success ? "default" : "destructive"}>
+                          {delivery.response_status || "N/A"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{delivery.duration_ms || 0}ms</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{delivery.retry_count}</Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {new Date(delivery.created_at).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedDelivery(delivery);
+                              setDetailsOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {canReplay && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleReplay(delivery)}
+                              disabled={replaying === delivery.id}
+                            >
+                              {replaying === delivery.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <RotateCcw className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="space-y-2">
-        {deliveries.map((delivery) => (
-          <Card key={delivery.id} className="hover:bg-accent/50 transition-colors">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={delivery.success ? "default" : "destructive"}>
-                      {delivery.success ? "Success" : "Failed"}
-                    </Badge>
-                    <span className="font-medium">{delivery.event_type}</span>
-                    <Badge variant="outline">{delivery.response_status}</Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {delivery.duration_ms}ms
-                    </span>
-                    {delivery.retry_count > 0 && (
-                      <Badge variant="secondary">Retry {delivery.retry_count}</Badge>
-                    )}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(delivery.created_at), { addSuffix: true })}
-                  </div>
-                  {delivery.error_message && (
-                    <div className="text-sm text-destructive">{delivery.error_message}</div>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedDelivery(delivery);
-                      setShowDetailDialog(true);
-                    }}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleReplay(delivery.id)}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Delivery Details</DialogTitle>
             <DialogDescription>
-              Complete request and response information
+              Full details of the webhook delivery attempt
             </DialogDescription>
           </DialogHeader>
 
           {selectedDelivery && (
             <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">Request Body</h3>
-                <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs">
-                  {JSON.stringify(selectedDelivery.request_body, null, 2)}
-                </pre>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Event Type</Label>
+                  <p className="text-sm font-mono">{selectedDelivery.event_type}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <Badge variant={selectedDelivery.success ? "default" : "destructive"}>
+                    {selectedDelivery.response_status}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Duration</Label>
+                  <p className="text-sm">{selectedDelivery.duration_ms || 0}ms</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Retry Count</Label>
+                  <p className="text-sm">{selectedDelivery.retry_count}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Delivery ID</Label>
+                  <p className="text-xs font-mono break-all">{selectedDelivery.idempotency_key || 'N/A'}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Timestamp</Label>
+                  <p className="text-sm">{new Date(selectedDelivery.request_timestamp).toLocaleString()}</p>
+                </div>
               </div>
 
-              <div>
-                <h3 className="font-semibold mb-2">Response Body</h3>
-                <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs">
-                  {selectedDelivery.response_body}
-                </pre>
-              </div>
+              {selectedDelivery.hmac_signature && (
+                <div>
+                  <Label className="text-sm font-medium">HMAC Signature</Label>
+                  <code className="block mt-1 p-2 bg-muted rounded text-xs break-all">
+                    {selectedDelivery.hmac_signature}
+                  </code>
+                </div>
+              )}
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              {selectedDelivery.request_headers && (
                 <div>
-                  <span className="font-semibold">URL:</span>
-                  <div className="text-muted-foreground break-all">
-                    {selectedDelivery.request_url}
-                  </div>
+                  <Label className="text-sm font-medium">Request Headers</Label>
+                  <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-x-auto">
+                    {JSON.stringify(selectedDelivery.request_headers, null, 2)}
+                  </pre>
                 </div>
+              )}
+
+              {selectedDelivery.request_body && (
                 <div>
-                  <span className="font-semibold">Status:</span>{" "}
-                  {selectedDelivery.response_status}
+                  <Label className="text-sm font-medium">Request Body</Label>
+                  <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-x-auto max-h-60">
+                    {JSON.stringify(selectedDelivery.request_body, null, 2)}
+                  </pre>
                 </div>
+              )}
+
+              {selectedDelivery.response_body && (
                 <div>
-                  <span className="font-semibold">Duration:</span> {selectedDelivery.duration_ms}ms
+                  <Label className="text-sm font-medium">Response Body</Label>
+                  <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-x-auto max-h-60">
+                    {selectedDelivery.response_body}
+                  </pre>
                 </div>
+              )}
+
+              {selectedDelivery.error_message && (
                 <div>
-                  <span className="font-semibold">Retry Count:</span> {selectedDelivery.retry_count}
+                  <Label className="text-sm font-medium text-destructive">Error Message</Label>
+                  <p className="mt-1 text-sm text-destructive">{selectedDelivery.error_message}</p>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

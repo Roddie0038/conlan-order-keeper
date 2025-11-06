@@ -1,40 +1,111 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import type { AppWebhook } from "@/types/webhook-admin";
+import { EVENT_TYPES } from "@/types/webhook-admin";
+
+const EVENT_PAYLOAD_TEMPLATES: Record<typeof EVENT_TYPES[number], any> = {
+  'order.created': {
+    event_type: 'order.created',
+    order_id: 'ORD-20250106-000001',
+    store: 'Store 123',
+    plant: 'Plant ABC',
+    product: 'Product XYZ',
+    quantity: 10,
+  },
+  'order.updated': {
+    event_type: 'order.updated',
+    order_id: 'ORD-20250106-000001',
+    status: 'processing',
+  },
+  'order.completed': {
+    event_type: 'order.completed',
+    order_id: 'ORD-20250106-000001',
+  },
+  'mto.created': {
+    event_type: 'mto.created',
+    mto_id: 'MTO-20250106-000001',
+    store: 'Store 123',
+  },
+  'mto.updated': {
+    event_type: 'mto.updated',
+    mto_id: 'MTO-20250106-000001',
+    status: 'in_progress',
+  },
+  'wheel.created': {
+    event_type: 'wheel.created',
+    wheel_id: 'WHEEL-20250106-000001',
+    store: 'Store 123',
+  },
+  'warranty.created': {
+    event_type: 'warranty.created',
+    warranty_id: 'WAR-20250106-000001',
+    store: 'Store 123',
+  },
+  'user.sync': {
+    event_type: 'user.sync',
+    user_id: 'user-123',
+    email: 'user@example.com',
+  },
+  'cross_dock.created': {
+    event_type: 'cross_dock.created',
+    cross_dock_id: 'CD-20250106-000001',
+    store: 'Store 123',
+  },
+};
 
 export function ToolsTab() {
-  const [testUrl, setTestUrl] = useState("");
-  const [testSecret, setTestSecret] = useState("");
-  const [hmacEnabled, setHmacEnabled] = useState(false);
+  const [webhooks, setWebhooks] = useState<AppWebhook[]>([]);
+  const [selectedWebhook, setSelectedWebhook] = useState<string>("");
+  const [selectedEvent, setSelectedEvent] = useState<typeof EVENT_TYPES[number]>("order.created");
   const [testPayload, setTestPayload] = useState(
-    JSON.stringify(
-      {
-        test: true,
-        timestamp: new Date().toISOString(),
-        data: {
-          message: "Test webhook delivery",
-        },
-      },
-      null,
-      2
-    )
+    JSON.stringify(EVENT_PAYLOAD_TEMPLATES['order.created'], null, 2)
   );
   const [testResult, setTestResult] = useState<any>(null);
   const [testing, setTesting] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    loadWebhooks();
+  }, []);
+
+  const loadWebhooks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('app_webhooks' as any)
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      const webhookList = (data || []) as unknown as AppWebhook[];
+      setWebhooks(webhookList);
+      
+      if (webhookList.length > 0) {
+        setSelectedWebhook(webhookList[0].id);
+      }
+    } catch (error) {
+      console.error('Error loading webhooks:', error);
+    }
+  };
+
+  const handleEventChange = (event: typeof EVENT_TYPES[number]) => {
+    setSelectedEvent(event);
+    setTestPayload(JSON.stringify(EVENT_PAYLOAD_TEMPLATES[event], null, 2));
+  };
+
   async function handleTestSend() {
-    if (!testUrl) {
+    if (!selectedWebhook) {
       toast({
         title: "Error",
-        description: "Please enter a webhook URL",
+        description: "Please select a webhook",
         variant: "destructive",
       });
       return;
@@ -56,13 +127,18 @@ export function ToolsTab() {
     setTestResult(null);
 
     try {
+      // Generate unified headers
+      const timestamp = Math.floor(Date.now() / 1000);
+      const deliveryId = crypto.randomUUID();
+      
       const { data, error } = await supabase.functions.invoke("webhook-config", {
         body: {
           action: "test-webhook",
-          webhook_url: testUrl,
-          webhook_secret: testSecret,
-          hmac_enabled: hmacEnabled,
+          webhook_id: selectedWebhook,
+          event_type: selectedEvent,
           test_payload: parsedPayload,
+          timestamp,
+          delivery_id: deliveryId,
         },
       });
 
@@ -71,7 +147,9 @@ export function ToolsTab() {
       setTestResult(data);
       toast({
         title: data.success ? "Test successful" : "Test failed",
-        description: `Response: ${data.status} in ${data.duration_ms}ms`,
+        description: data.success 
+          ? `Response: ${data.status} in ${data.duration_ms}ms`
+          : `Error: ${data.error_message}`,
         variant: data.success ? "default" : "destructive",
       });
     } catch (error: any) {
@@ -85,55 +163,93 @@ export function ToolsTab() {
     }
   }
 
+  const webhook = webhooks.find(w => w.id === selectedWebhook);
+
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Testing & Utilities</h2>
+          <p className="text-muted-foreground">
+            Test webhook deliveries and verify connectivity
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={loadWebhooks}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Test Webhook Sender</CardTitle>
+          <CardTitle>Test Webhook Delivery</CardTitle>
           <CardDescription>
-            Send a test webhook to verify your endpoint configuration
+            Send a test webhook with unified headers (x-cto-signature, x-cto-timestamp, x-cto-delivery-id)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label>Webhook URL</Label>
-            <Input
-              placeholder="https://example.com/webhook"
-              value={testUrl}
-              onChange={(e) => setTestUrl(e.target.value)}
-            />
+          <div className="space-y-2">
+            <Label>Select Webhook Endpoint</Label>
+            <Select value={selectedWebhook} onValueChange={setSelectedWebhook}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a webhook..." />
+              </SelectTrigger>
+              <SelectContent>
+                {webhooks.map((webhook) => (
+                  <SelectItem key={webhook.id} value={webhook.id}>
+                    {webhook.name} - {webhook.endpoint_url}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {webhook && (
+              <p className="text-xs text-muted-foreground">
+                Endpoint: <code className="px-1 py-0.5 bg-muted rounded">{webhook.endpoint_url}</code>
+              </p>
+            )}
           </div>
 
-          <div>
-            <Label>Webhook Secret (for HMAC)</Label>
-            <Input
-              type="password"
-              placeholder="Optional - for HMAC signature testing"
-              value={testSecret}
-              onChange={(e) => setTestSecret(e.target.value)}
-            />
+          <div className="space-y-2">
+            <Label>Event Type</Label>
+            <Select value={selectedEvent} onValueChange={(v) => handleEventChange(v as typeof EVENT_TYPES[number])}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EVENT_TYPES.map((event) => (
+                  <SelectItem key={event} value={event}>
+                    {event}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-center justify-between">
-            <Label>Enable HMAC Signature</Label>
-            <Switch checked={hmacEnabled} onCheckedChange={setHmacEnabled} />
-          </div>
-
-          <div>
+          <div className="space-y-2">
             <Label>Test Payload (JSON)</Label>
             <Textarea
-              className="font-mono text-sm"
-              rows={10}
+              className="font-mono text-xs"
+              rows={12}
               value={testPayload}
               onChange={(e) => setTestPayload(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              Edit the payload as needed. The system will automatically add unified headers.
+            </p>
           </div>
 
-          <Button onClick={handleTestSend} disabled={testing} className="w-full">
+          <div className="p-3 bg-muted rounded-lg">
+            <p className="text-xs text-muted-foreground">
+              📋 Headers will include: <code>x-cto-signature</code> (HMAC-SHA256), 
+              <code>x-cto-timestamp</code>, <code>x-cto-delivery-id</code>
+            </p>
+          </div>
+
+          <Button onClick={handleTestSend} disabled={testing || !selectedWebhook} className="w-full">
             {testing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                Sending Test Webhook...
               </>
             ) : (
               <>
@@ -144,25 +260,49 @@ export function ToolsTab() {
           </Button>
 
           {testResult && (
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-3">
               <h3 className="font-semibold">Test Result</h3>
-              <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                <div>
-                  <span className="font-medium">Status:</span>{" "}
-                  <span className={testResult.success ? "text-green-600" : "text-red-600"}>
-                    {testResult.success ? "Success" : "Failed"}
+              <div className="bg-muted p-4 rounded-lg space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Status:</span>
+                  <span className={testResult.success ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+                    {testResult.success ? "✓ Success" : "✗ Failed"}
                   </span>
                 </div>
-                <div>
-                  <span className="font-medium">HTTP Status:</span> {testResult.status}
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">HTTP Status:</span>
+                  <span>{testResult.status}</span>
                 </div>
-                <div>
-                  <span className="font-medium">Duration:</span> {testResult.duration_ms}ms
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Duration:</span>
+                  <span>{testResult.duration_ms}ms</span>
                 </div>
-                {testResult.response_body && (
+                {testResult.delivery_id && (
                   <div>
+                    <span className="font-medium">Delivery ID:</span>
+                    <code className="ml-2 px-2 py-1 bg-background rounded text-xs">
+                      {testResult.delivery_id}
+                    </code>
+                  </div>
+                )}
+                {testResult.signature && (
+                  <div>
+                    <span className="font-medium">Signature:</span>
+                    <code className="ml-2 px-2 py-1 bg-background rounded text-xs break-all">
+                      {testResult.signature}
+                    </code>
+                  </div>
+                )}
+                {testResult.error_message && (
+                  <div className="pt-2 border-t">
+                    <span className="font-medium text-red-600">Error:</span>
+                    <p className="mt-1 text-red-600">{testResult.error_message}</p>
+                  </div>
+                )}
+                {testResult.response_body && (
+                  <div className="pt-2 border-t">
                     <span className="font-medium">Response:</span>
-                    <pre className="mt-2 p-2 bg-background rounded text-xs overflow-x-auto">
+                    <pre className="mt-2 p-2 bg-background rounded text-xs overflow-x-auto max-h-40">
                       {testResult.response_body}
                     </pre>
                   </div>

@@ -99,7 +99,7 @@ export function ConnectionDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Connection Details - {webhook.name}</DialogTitle>
           <DialogDescription>
@@ -107,12 +107,12 @@ export function ConnectionDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Endpoint URL */}
           <div className="space-y-2">
             <Label>Webhook Endpoint URL</Label>
             <div className="flex gap-2">
-              <Input value={webhook.endpoint_url} readOnly />
+              <Input value={webhook.endpoint_url} readOnly className="font-mono text-xs" />
               <Button
                 variant="outline"
                 size="icon"
@@ -120,6 +120,46 @@ export function ConnectionDetailsDialog({
               >
                 <Copy className="h-4 w-4" />
               </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Use this URL when configuring webhook endpoints in external platforms
+            </p>
+          </div>
+
+          {/* Unified Headers Documentation */}
+          <div className="p-4 bg-muted rounded-lg space-y-3">
+            <h4 className="font-semibold text-sm">Required Headers</h4>
+            <div className="space-y-2 text-xs">
+              <div>
+                <code className="px-2 py-1 bg-background rounded">x-cto-signature</code>
+                <p className="mt-1 text-muted-foreground">
+                  HMAC-SHA256 signature computed over: <code>timestamp.raw_body</code>
+                </p>
+              </div>
+              <div>
+                <code className="px-2 py-1 bg-background rounded">x-cto-timestamp</code>
+                <p className="mt-1 text-muted-foreground">
+                  Unix timestamp (seconds). Must be within 5 minutes of server time.
+                </p>
+              </div>
+              <div>
+                <code className="px-2 py-1 bg-background rounded">x-cto-delivery-id</code>
+                <p className="mt-1 text-muted-foreground">
+                  Unique delivery ID (UUID) for idempotency checking.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* HMAC Signature Algorithm */}
+          <div className="p-4 bg-muted rounded-lg space-y-2">
+            <h4 className="font-semibold text-sm">HMAC Signature Algorithm</h4>
+            <div className="text-xs space-y-2 text-muted-foreground">
+              <p>1. Concatenate: <code className="px-1 py-0.5 bg-background rounded">timestamp + "." + raw_body</code></p>
+              <p>2. Compute: <code className="px-1 py-0.5 bg-background rounded">HMAC-SHA256(secret, data)</code></p>
+              <p>3. Encode as hex and set in header: <code className="px-1 py-0.5 bg-background rounded">x-cto-signature</code></p>
+              <p className="pt-2 font-medium">⏰ Timestamp Tolerance: 5 minutes</p>
+              <p>🔒 Idempotency: Duplicate delivery IDs within 24 hours are rejected</p>
             </div>
           </div>
 
@@ -212,15 +252,26 @@ export function ConnectionDetailsDialog({
           {/* Integration Instructions */}
           <div className="p-4 bg-muted rounded-lg space-y-2">
             <h4 className="font-medium text-sm">Integration Instructions:</h4>
-            <ol className="text-sm space-y-1 list-decimal list-inside text-muted-foreground">
+            <ol className="text-xs space-y-1 list-decimal list-inside text-muted-foreground">
               <li>Copy the Endpoint URL and Webhook Secret above</li>
-              <li>In your external platform, navigate to webhook configuration</li>
+              <li>In your external platform (OT, Inventory, Management, Fleet), navigate to webhook configuration</li>
               <li>Add a new webhook endpoint with the copied URL</li>
               <li>Set the secret for HMAC signature verification</li>
-              <li>Configure the header: <code className="px-1 py-0.5 bg-background rounded">x-cto-signature</code></li>
-              <li>Test the connection using the test payload generator</li>
+              <li>Configure the required headers: <code className="px-1 py-0.5 bg-background rounded">x-cto-signature</code>, <code className="px-1 py-0.5 bg-background rounded">x-cto-timestamp</code>, <code className="px-1 py-0.5 bg-background rounded">x-cto-delivery-id</code></li>
+              <li>Select the events you want to subscribe to</li>
+              <li>Test the connection using the Tools tab's test payload generator</li>
             </ol>
           </div>
+
+          {/* Secret Rotation Info */}
+          {webhook.previous_secret && (
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                ⚠️ <strong>Secret rotation active:</strong> Both current and previous secrets are valid during the migration period. 
+                Update your external platforms with the new secret, then the previous secret will be automatically expired.
+              </p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
