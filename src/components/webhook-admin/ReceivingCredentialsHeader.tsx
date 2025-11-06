@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Copy, Server } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Platform {
   id: string;
@@ -22,12 +22,20 @@ const BASE_URL = `https://${PROJECT_REF}.supabase.co/functions/v1/webhook-receiv
 export function ReceivingCredentialsHeader({ platform }: ReceivingCredentialsHeaderProps) {
   const { toast } = useToast();
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Copied!",
-      description: `${label} copied to clipboard`,
-    });
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied!",
+        description: `${label} copied to clipboard`,
+      });
+    } catch (error) {
+      toast({
+        title: "Copy failed",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+      });
+    }
   };
 
   const fullUrl = platform ? `${BASE_URL}/${platform.platform_key}` : BASE_URL;
@@ -122,7 +130,7 @@ export function ReceivingCredentialsHeader({ platform }: ReceivingCredentialsHea
                 <Input 
                   value={platform.webhook_secret} 
                   readOnly 
-                  type="password"
+                  type="text"
                   className="font-mono text-xs"
                 />
                 <Button
