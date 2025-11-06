@@ -2,8 +2,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Server } from "lucide-react";
+import { Copy, Server, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Platform {
   id: string;
@@ -14,13 +26,16 @@ interface Platform {
 
 interface ReceivingCredentialsHeaderProps {
   platform: Platform | null;
+  onPlatformUpdated?: () => void;
 }
 
 const PROJECT_REF = "cyzywykgdravxfnhskzq";
 const BASE_URL = `https://${PROJECT_REF}.supabase.co/functions/v1/webhook-receiver/webhook`;
 
-export function ReceivingCredentialsHeader({ platform }: ReceivingCredentialsHeaderProps) {
+export function ReceivingCredentialsHeader({ platform, onPlatformUpdated }: ReceivingCredentialsHeaderProps) {
   const { toast } = useToast();
+  const [showRotateDialog, setShowRotateDialog] = useState(false);
+  const [rotating, setRotating] = useState(false);
 
   const copyToClipboard = async (text: string, label: string) => {
     try {
@@ -40,7 +55,58 @@ export function ReceivingCredentialsHeader({ platform }: ReceivingCredentialsHea
 
   const fullUrl = platform ? `${BASE_URL}/${platform.platform_key}` : BASE_URL;
 
+  const handleRotateSecret = async () => {
+    if (!platform) return;
+    
+    setRotating(true);
+    try {
+      const newSecret = crypto.randomUUID();
+      const now = new Date().toISOString();
+
+      // Update platform with new secret
+      const { error: updateError } = await supabase
+        .from('app_platforms' as any)
+        .update({
+          webhook_secret: newSecret,
+          updated_at: now,
+        })
+        .eq('id', platform.id);
+
+      if (updateError) throw updateError;
+
+      // Log audit
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('app_platform_audit' as any).insert({
+        platform_id: platform.id,
+        user_id: user?.id,
+        user_email: user?.email,
+        action: 'secret_rotated',
+        old_values: { webhook_secret: platform.webhook_secret },
+        new_values: { webhook_secret: newSecret },
+        metadata: { rotated_at: now },
+      });
+
+      toast({
+        title: "Secret Rotated",
+        description: "Webhook secret has been regenerated successfully",
+      });
+
+      setShowRotateDialog(false);
+      onPlatformUpdated?.();
+    } catch (error: any) {
+      console.error('Error rotating secret:', error);
+      toast({
+        title: "Rotation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setRotating(false);
+    }
+  };
+
   return (
+    <>
     <Card className="bg-gradient-to-br from-primary/5 via-primary/3 to-background border-primary/20">
       <CardHeader>
         <div className="flex items-start gap-3">
@@ -125,7 +191,19 @@ export function ReceivingCredentialsHeader({ platform }: ReceivingCredentialsHea
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Webhook Secret</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Webhook Secret</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowRotateDialog(true)}
+                  disabled={rotating}
+                  className="h-7 text-xs"
+                >
+                  <RefreshCw className={`h-3 w-3 mr-1 ${rotating ? 'animate-spin' : ''}`} />
+                  Rotate Secret
+                </Button>
+              </div>
               <div className="flex gap-2">
                 <Input 
                   value={platform.webhook_secret} 
@@ -175,5 +253,38 @@ export function ReceivingCredentialsHeader({ platform }: ReceivingCredentialsHea
         )}
       </CardContent>
     </Card>
+
+      <AlertDialog open={showRotateDialog} onOpenChange={setShowRotateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rotate Webhook Secret?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will generate a new webhook secret for the <strong>{platform?.platform_name}</strong> platform.
+              <br /><br />
+              <strong className="text-destructive">Warning:</strong> External platforms using the old secret will stop working until you update them with the new secret.
+              <br /><br />
+              This action will be logged in the audit trail.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={rotating}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRotateSecret}
+              disabled={rotating}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {rotating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Rotating...
+                </>
+              ) : (
+                "Rotate Secret"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -200,7 +200,10 @@ export function WebhooksTab() {
     <>
       <div className="space-y-6">
         {/* Receiving Credentials Header */}
-        <ReceivingCredentialsHeader platform={firstPlatform} />
+        <ReceivingCredentialsHeader 
+          platform={firstPlatform} 
+          onPlatformUpdated={() => loadAndEnsurePlatform()}
+        />
 
         <div className="flex items-center justify-between">
           <div>
