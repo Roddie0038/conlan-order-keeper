@@ -667,6 +667,51 @@ export type Database = {
         }
         Relationships: []
       }
+      event_receipts: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_id: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          processing_duration_ms: number | null
+          received_at: string
+          source: string
+          status: string
+          trace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          processing_duration_ms?: number | null
+          received_at?: string
+          source: string
+          status?: string
+          trace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          processing_duration_ms?: number | null
+          received_at?: string
+          source?: string
+          status?: string
+          trace_id?: string | null
+        }
+        Relationships: []
+      }
       global_email_settings: {
         Row: {
           id: number
