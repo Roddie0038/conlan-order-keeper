@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.webhook-outbound-publisher]
 verify_jwt = false
+
+[functions.ot-webhook-receiver]
+verify_jwt = false

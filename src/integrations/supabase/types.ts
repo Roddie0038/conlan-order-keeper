@@ -712,6 +712,57 @@ export type Database = {
         }
         Relationships: []
       }
+      failed_webhooks: {
+        Row: {
+          created_at: string
+          error_message: string
+          event_id: string
+          event_type: string
+          id: string
+          last_attempt_at: string
+          max_retries: number
+          next_retry_at: string | null
+          payload: Json
+          resolution_notes: string | null
+          resolved_at: string | null
+          retry_count: number
+          source: string
+          trace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message: string
+          event_id: string
+          event_type: string
+          id?: string
+          last_attempt_at?: string
+          max_retries?: number
+          next_retry_at?: string | null
+          payload?: Json
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          retry_count?: number
+          source: string
+          trace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string
+          event_id?: string
+          event_type?: string
+          id?: string
+          last_attempt_at?: string
+          max_retries?: number
+          next_retry_at?: string | null
+          payload?: Json
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          retry_count?: number
+          source?: string
+          trace_id?: string | null
+        }
+        Relationships: []
+      }
       global_email_settings: {
         Row: {
           id: number
@@ -736,6 +787,42 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_cache: {
+        Row: {
+          created_at: string
+          id: string
+          last_updated_at: string
+          metadata: Json | null
+          plant: string
+          product_number: string
+          quantity: number
+          status: string
+          sync_trace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_updated_at?: string
+          metadata?: Json | null
+          plant: string
+          product_number: string
+          quantity?: number
+          status?: string
+          sync_trace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_updated_at?: string
+          metadata?: Json | null
+          plant?: string
+          product_number?: string
+          quantity?: number
+          status?: string
+          sync_trace_id?: string | null
+        }
+        Relationships: []
+      }
       inventory_counts: {
         Row: {
           id: number
@@ -757,6 +844,45 @@ export type Database = {
         }
         Update: {
           id?: number
+        }
+        Relationships: []
+      }
+      inventory_sync_log: {
+        Row: {
+          event_id: string
+          id: string
+          metadata: Json | null
+          new_quantity: number | null
+          old_quantity: number | null
+          plant: string
+          product_number: string
+          sync_type: string
+          synced_at: string
+          trace_id: string | null
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          metadata?: Json | null
+          new_quantity?: number | null
+          old_quantity?: number | null
+          plant: string
+          product_number: string
+          sync_type: string
+          synced_at?: string
+          trace_id?: string | null
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          metadata?: Json | null
+          new_quantity?: number | null
+          old_quantity?: number | null
+          plant?: string
+          product_number?: string
+          sync_type?: string
+          synced_at?: string
+          trace_id?: string | null
         }
         Relationships: []
       }
@@ -2458,6 +2584,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      webhook_audit: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          metadata: Json
+          new_values: Json | null
+          old_values: Json | null
+          platform_id: string | null
+          user_email: string | null
+          user_id: string | null
+          webhook_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_values?: Json | null
+          old_values?: Json | null
+          platform_id?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          webhook_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_values?: Json | null
+          old_values?: Json | null
+          platform_id?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          webhook_id?: string | null
+        }
+        Relationships: []
       }
       webhook_deliveries: {
         Row: {
