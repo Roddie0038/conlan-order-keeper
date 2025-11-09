@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { InboundPlatformsSection } from "./InboundPlatformsSection";
 import { OutboundWebhooksSection } from "./OutboundWebhooksSection";
 import { PlatformInitializer } from "./PlatformInitializer";
+import { OutboxDashboard } from "./OutboxDashboard";
 
 interface Platform {
   id: string;
@@ -117,6 +118,8 @@ export function WebhooksTab() {
   return (
     <div className="space-y-8">
       <PlatformInitializer onInitialized={loadData} />
+      
+      <OutboxDashboard />
       
       <InboundPlatformsSection 
         platforms={platforms}
