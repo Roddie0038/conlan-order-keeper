@@ -2482,6 +2482,54 @@ export type Database = {
           },
         ]
       }
+      webhook_outbox: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          event_id: string
+          event_type: string
+          id: string
+          max_retries: number
+          next_retry_at: string | null
+          payload: Json
+          retry_count: number
+          status: string
+          trace_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          max_retries?: number
+          next_retry_at?: string | null
+          payload?: Json
+          retry_count?: number
+          status?: string
+          trace_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          max_retries?: number
+          next_retry_at?: string | null
+          payload?: Json
+          retry_count?: number
+          status?: string
+          trace_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       wheel_orders: {
         Row: {
           color: string | null
