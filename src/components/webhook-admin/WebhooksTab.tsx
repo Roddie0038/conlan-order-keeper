@@ -5,6 +5,7 @@ import { InboundPlatformsSection } from "./InboundPlatformsSection";
 import { OutboundWebhooksSection } from "./OutboundWebhooksSection";
 import { PlatformInitializer } from "./PlatformInitializer";
 import { OutboxDashboard } from "./OutboxDashboard";
+import { WebhookIntegrationTests } from "./WebhookIntegrationTests";
 
 interface Platform {
   id: string;
@@ -120,6 +121,8 @@ export function WebhooksTab() {
       <PlatformInitializer onInitialized={loadData} />
       
       <OutboxDashboard />
+      
+      <WebhookIntegrationTests />
       
       <InboundPlatformsSection 
         platforms={platforms}
