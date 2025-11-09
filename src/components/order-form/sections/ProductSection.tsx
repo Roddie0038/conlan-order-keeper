@@ -1,4 +1,3 @@
-
 import { UseFormReturn } from "react-hook-form";
 import { OrderFormValues } from "../order-form-schema";
 import { 
@@ -11,12 +10,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Package, FileText, Hash } from "lucide-react";
+import { InventoryAvailabilityAlert } from "../InventoryAvailabilityAlert";
+import { usePlant } from "@/contexts/PlantContext";
 
 interface ProductSectionProps {
   form: UseFormReturn<OrderFormValues>;
 }
 
 export function ProductSection({ form }: ProductSectionProps) {
+  const { selectedPlant } = usePlant();
+  const productNumber = form.watch("productNumber");
+  const quantity = form.watch("quantity");
+  
   return (
     <>
       <div className="flex items-center space-x-2 mb-6 border-l-4 border-green-500 pl-3">
@@ -90,6 +95,17 @@ export function ProductSection({ form }: ProductSectionProps) {
           )}
         />
       </div>
+      
+      {/* Real-time Inventory Availability Check */}
+      {productNumber && selectedPlant && (
+        <div className="mt-6">
+          <InventoryAvailabilityAlert 
+            productNumber={productNumber}
+            plant={selectedPlant}
+            requestedQuantity={parseInt(quantity) || 0}
+          />
+        </div>
+      )}
     </>
   );
 }

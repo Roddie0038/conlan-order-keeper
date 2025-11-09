@@ -1,4 +1,3 @@
-
 import { FormField } from "../order-form/FormField";
 import { stores } from "../order-form/formConfig";
 import { casingGrades, tireSizes, scheduleOptions, MTOFormData } from "./mto-form-config";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { InventoryAvailabilityAlert } from "../order-form/InventoryAvailabilityAlert";
 
 interface MTOFormFieldsProps {
   formData: MTOFormData;
@@ -178,6 +178,17 @@ export const MTOFormFields = ({
         placeholder="Enter quantity" 
         required 
       />
+
+      {/* Real-time Inventory Availability Check */}
+      {formData.productNumber && plant && (
+        <div className="mt-4">
+          <InventoryAvailabilityAlert 
+            productNumber={formData.productNumber}
+            plant={plant}
+            requestedQuantity={parseInt(formData.quantity) || 0}
+          />
+        </div>
+      )}
 
       <FormField 
         label="Notes" 
