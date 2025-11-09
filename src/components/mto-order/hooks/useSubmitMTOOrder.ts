@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { submitOtOrder, type OtOrderPayload, isIngestFail } from "@/services/submitOtOrder";
 import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { publishMTOOrderPlaced } from "@/services/webhookOutbox";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
   const { user } = useAuth();
@@ -73,6 +74,43 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
 
       // result is IngestOk here
       console.log("✅ MTO submitted:", result.id, result.order_number);
+      
+      // Enqueue webhook event to outbox (non-blocking)
+      try {
+        const traceId = `mto-${result.id}-${Date.now()}`;
+        console.log("📤 WEBHOOK OUTBOX - Enqueuing MTOOrderPlaced event, trace_id:", traceId);
+        
+        const webhookResult = await publishMTOOrderPlaced({
+          order_id: result.id,
+          order_number: result.order_number,
+          store: String(formData.store),
+          plant: String(plant),
+          product_number: String(formData.productNumber || 'MTO'),
+          description: `MTO Order - ${formData.tread || ''} ${formData.tireSize || ''}`.trim(),
+          quantity: toInt(formData.quantity, 1),
+          status: "open",
+          submitted_by_name: submitterName,
+          submitted_by_email: managerEmail,
+          order_type: "MTO",
+          metadata: {
+            tread: formData.tread || undefined,
+            tire_size: formData.tireSize || undefined,
+            casing_grade: formData.casingGrade || undefined,
+            notes: formData.notes || undefined,
+            ot_created_at: result.created_at,
+            idempotent: result.idempotent || false
+          }
+        }, traceId);
+
+        if (webhookResult.success) {
+          console.log("✅ WEBHOOK OUTBOX - MTO event enqueued:", webhookResult.event_id);
+        } else {
+          console.warn("⚠️ WEBHOOK OUTBOX - Failed to enqueue MTO event:", webhookResult.error);
+        }
+      } catch (err) {
+        console.warn("⚠️ WEBHOOK OUTBOX - Non-fatal error enqueuing MTO event:", err);
+      }
+      
       toast({
         title: "🎉 MTO order submitted!",
         description: `Order ${result.order_number} has been submitted.`,

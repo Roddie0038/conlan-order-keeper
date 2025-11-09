@@ -9,6 +9,7 @@ import { formatDateForSupabase } from "@/utils/dateTime";
 import { submitOtOrder, type OtOrderPayload, isIngestFail } from "@/services/submitOtOrder";
 import { submitToOrdersWebhook } from "@/services/webhook/orderWebhook";
 import type { OrderType } from "@/services/webhook/config";
+import { publishOrderPlaced } from "@/services/webhookOutbox";
 
 // ---------- helpers ----------
 
@@ -94,6 +95,44 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
     throw new Error(`OT ingest failed: ${ingestResult.message}`);
   }
   console.log("✅ OT - Ingested:", ingestResult.id, ingestResult.order_number);
+
+  // ---------- 3) Enqueue webhook event to outbox (non-blocking) ----------
+  try {
+    const traceId = `order-${ingestResult.id}-${Date.now()}`;
+    console.log("📤 WEBHOOK OUTBOX - Enqueuing OrderPlaced event, trace_id:", traceId);
+    
+    const webhookResult = await publishOrderPlaced({
+      order_id: ingestResult.id,
+      order_number: ingestResult.order_number,
+      store: storeLabel,
+      plant: String(plant),
+      product_number: String(order.productNumber || ""),
+      description: String(order.description || ""),
+      quantity: toInt(order.quantity, 0),
+      schedule_arrival: order.scheduleArrival || "",
+      status: "open",
+      submitted_by_name: submittedByName,
+      submitted_by_email: submittedByEmail,
+      order_type: orderType,
+      metadata: {
+        cross_dock: order.crossDock === "Yes",
+        cross_dock_destination: formattedCrossDockDestination || undefined,
+        receiver_no: order.receiverNo || undefined,
+        eta_date: order.etaDate || undefined,
+        ot_created_at: ingestResult.created_at,
+        idempotent: ingestResult.idempotent || false
+      }
+    }, traceId);
+
+    if (webhookResult.success) {
+      console.log("✅ WEBHOOK OUTBOX - Event enqueued:", webhookResult.event_id);
+    } else {
+      console.warn("⚠️ WEBHOOK OUTBOX - Failed to enqueue event:", webhookResult.error);
+    }
+  } catch (err) {
+    // Non-fatal: order was successfully ingested, webhook is best-effort
+    console.warn("⚠️ WEBHOOK OUTBOX - Non-fatal error enqueuing event:", err);
+  }
 
   // ---------- 2) Google Sheets backup (TRANSFER only, non-blocking) ----------
   if (orderType === "TRANSFER") {

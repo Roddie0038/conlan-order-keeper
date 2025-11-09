@@ -9,6 +9,7 @@ import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import { getPlantForStore } from "@/utils/plantMapping";
 import type { OrderData } from "@/types/supabase-extensions";
+import { publishWheelOrderPlaced } from "@/services/webhookOutbox";
 
 // Helper function to format dates as MM/DD/YYYY hh:mm AM/PM
 const formatTimestamp = (dateString: string): string => {
@@ -157,6 +158,48 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       }
 
       console.log("✅ Wheel submitted:", result.id, result.order_number);
+      
+      // Enqueue webhook event to outbox (non-blocking)
+      try {
+        const traceId = `wheel-${result.id}-${Date.now()}`;
+        console.log("📤 WEBHOOK OUTBOX - Enqueuing WheelOrderPlaced event, trace_id:", traceId);
+        
+        const webhookResult = await publishWheelOrderPlaced({
+          order_id: result.id,
+          order_number: result.order_number,
+          store: formData.storeName,
+          plant: plant,
+          product_number: "WHEEL-COATING",
+          description: `Wheel coating - ${formData.wheelColor} - ${formData.wheelSize}`,
+          quantity: parseInt(formData.qtyWheels) || 0,
+          schedule_arrival: formattedScheduleArrival,
+          status: "open",
+          submitted_by_name: formData.yourName || "",
+          submitted_by_email: managerEmail || "",
+          order_type: "WHEEL_POWDER_COATING",
+          metadata: {
+            customer_name: formData.customerName,
+            wheel_material: formData.wheelMaterial,
+            wheel_type: formData.wheelType,
+            hand_holes: parseInt(formData.handHoles || "0"),
+            wheel_size: formData.wheelSize,
+            wheel_color: formData.wheelColor,
+            qty_wheels: formData.qtyWheels,
+            store_colors: formData.storeColors || "Yellow",
+            date_received: formData.dateReceived,
+            ot_created_at: result.created_at,
+            idempotent: result.idempotent || false
+          }
+        }, traceId);
+
+        if (webhookResult.success) {
+          console.log("✅ WEBHOOK OUTBOX - Wheel event enqueued:", webhookResult.event_id);
+        } else {
+          console.warn("⚠️ WEBHOOK OUTBOX - Failed to enqueue wheel event:", webhookResult.error);
+        }
+      } catch (err) {
+        console.warn("⚠️ WEBHOOK OUTBOX - Non-fatal error enqueuing wheel event:", err);
+      }
       
       const existingOrders = JSON.parse(localStorage.getItem('wheelOrders') || '[]');
       existingOrders.push({
