@@ -342,6 +342,57 @@ export type Database = {
         }
         Relationships: []
       }
+      app_webhook_deliveries: {
+        Row: {
+          attempt: number
+          created_at: string
+          delivered_at: string | null
+          destination_url: string
+          error_message: string | null
+          event_id: string
+          id: string
+          outbox_id: string | null
+          request_body: Json
+          request_headers: Json
+          response_body: string | null
+          response_headers: Json | null
+          response_status: number | null
+          trace_id: string | null
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          delivered_at?: string | null
+          destination_url: string
+          error_message?: string | null
+          event_id: string
+          id?: string
+          outbox_id?: string | null
+          request_body?: Json
+          request_headers?: Json
+          response_body?: string | null
+          response_headers?: Json | null
+          response_status?: number | null
+          trace_id?: string | null
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          delivered_at?: string | null
+          destination_url?: string
+          error_message?: string | null
+          event_id?: string
+          id?: string
+          outbox_id?: string | null
+          request_body?: Json
+          request_headers?: Json
+          response_body?: string | null
+          response_headers?: Json | null
+          response_status?: number | null
+          trace_id?: string | null
+        }
+        Relationships: []
+      }
       approved_treads: {
         Row: {
           category: string | null

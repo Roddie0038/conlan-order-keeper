@@ -99,18 +99,18 @@ async function publishWebhookEvent(
       signature = await generateHmacSignature(payloadString, config.webhook_secret, timestamp);
     }
 
-    // Build headers
+    // Build headers - use x-ot-* prefix for OT Platform compatibility
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'x-cto-timestamp': timestamp,
-      'x-cto-delivery-id': deliveryId,
-      'x-cto-trace-id': traceId,
-      'x-cto-event-type': event.event_type,
-      'x-cto-source': 'ordering'
+      'x-ot-timestamp': timestamp,
+      'x-ot-delivery-id': deliveryId,
+      'x-trace-id': traceId,
+      'x-ot-event-type': event.event_type,
+      'x-ot-source': 'ordering'
     };
 
     if (config.hmac_enabled && signature) {
-      headers['x-cto-signature'] = signature;
+      headers['x-ot-signature'] = signature;
     }
 
     // Send webhook request
