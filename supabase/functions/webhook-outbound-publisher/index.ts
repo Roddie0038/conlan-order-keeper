@@ -213,7 +213,6 @@ serve(async (req) => {
       .select('*')
       .in('status', ['pending', 'failed'])
       .or(`next_retry_at.is.null,next_retry_at.lte.${new Date().toISOString()}`)
-      .lt('retry_count', 'max_retries')
       .order('created_at', { ascending: true })
       .limit(50);
 
@@ -244,6 +243,12 @@ serve(async (req) => {
 
     // Process each event
     for (const event of pendingEvents) {
+      // Skip events that have exceeded max retries
+      if (event.retry_count >= event.max_retries) {
+        console.log(`[Webhook Publisher] Skipping event ${event.event_id} - max retries exceeded`);
+        continue;
+      }
+
       // Mark as processing
       await supabase
         .from('webhook_outbox' as any)
