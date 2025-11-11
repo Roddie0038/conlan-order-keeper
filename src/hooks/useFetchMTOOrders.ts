@@ -21,6 +21,7 @@ export type MTOOrderRecord = {
   completed: boolean;
   completed_at?: string;
   order_type: string;
+  out_of_stock?: boolean;
 };
 
 export function useFetchMTOOrders() {
@@ -62,7 +63,8 @@ export function useFetchMTOOrders() {
         status: r.status || "open",
         completed: r.status === "completed" || r.completed === true,
         completed_at: r.completed_at || undefined,
-        order_type: r.order_type || "mto"
+        order_type: r.order_type || "mto",
+        out_of_stock: r.out_of_stock || false
       })) as MTOOrderRecord[]);
     } catch (err) {
       console.error("Error fetching MTO orders:", err);

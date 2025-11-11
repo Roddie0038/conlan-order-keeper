@@ -17,6 +17,7 @@ export default function OrderManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<string>("timestamp");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [filterInventoryWarnings, setFilterInventoryWarnings] = useState<string>("all");
 
   // Debounce search for better performance
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -63,7 +64,7 @@ export default function OrderManagement() {
     orders.warranty
   );
 
-  // Filter orders based on debounced search term
+  // Filter orders based on debounced search term and inventory warnings
   const filteredOrders = allOrders.filter(order => {
     const matchesSearch = 
       order.productNumber?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -71,7 +72,12 @@ export default function OrderManagement() {
       order.store?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       order.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
     
-    return matchesSearch;
+    const matchesInventoryFilter = 
+      filterInventoryWarnings === "all" ||
+      (filterInventoryWarnings === "warnings" && order.out_of_stock === true) ||
+      (filterInventoryWarnings === "no-warnings" && order.out_of_stock !== true);
+    
+    return matchesSearch && matchesInventoryFilter;
   });
 
   // Separate pending and completed orders
@@ -105,6 +111,8 @@ export default function OrderManagement() {
               setSearchTerm={setSearchTerm}
               refreshAllOrders={refreshAllOrders}
               allOrders={allOrders}
+              filterInventoryWarnings={filterInventoryWarnings}
+              setFilterInventoryWarnings={setFilterInventoryWarnings}
             />
             
             <OrderManagementTabs

@@ -18,6 +18,7 @@ export type WarrantyOrderRecord = {
   status: string;
   completed_at?: string;
   plant: string;
+  out_of_stock?: boolean;
 };
 
 export function useFetchWarrantyOrders() {
@@ -56,7 +57,8 @@ export function useFetchWarrantyOrders() {
         notes: r.notes || "",
         status: r.status || "open",
         completed_at: r.completed_at || undefined,
-        plant: r.plant || ""
+        plant: r.plant || "",
+        out_of_stock: r.out_of_stock || false
       })) as WarrantyOrderRecord[]);
     } catch (err) {
       console.error("Error fetching warranty orders:", err);

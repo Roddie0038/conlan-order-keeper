@@ -14,4 +14,5 @@ export interface CombinedOrder {
   orderType: 'Transfer' | 'MTO' | 'Wheel' | 'Warranty';
   completedAt?: string;
   completedBy?: string;
+  out_of_stock?: boolean;
 }

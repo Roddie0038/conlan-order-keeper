@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, FileText } from "lucide-react";
+import { Search, FileText, AlertTriangle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportButton } from "@/components/ExportButton";
 import { CombinedOrder } from "../types";
 
@@ -12,14 +13,20 @@ interface OrderManagementControlsProps {
   setSearchTerm: (term: string) => void;
   refreshAllOrders: () => void;
   allOrders: CombinedOrder[];
+  filterInventoryWarnings: string;
+  setFilterInventoryWarnings: (value: string) => void;
 }
 
 export function OrderManagementControls({
   searchTerm,
   setSearchTerm,
   refreshAllOrders,
-  allOrders
+  allOrders,
+  filterInventoryWarnings,
+  setFilterInventoryWarnings
 }: OrderManagementControlsProps) {
+  const ordersWithWarnings = allOrders.filter(o => o.out_of_stock).length;
+  
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
       <div className="flex flex-col w-full md:w-1/3">
@@ -38,7 +45,26 @@ export function OrderManagementControls({
         </div>
       </div>
       
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-end">
+        <div className="flex flex-col">
+          <Label htmlFor="inventory-filter" className="text-slate-700 mb-1 font-medium">Inventory Status</Label>
+          <Select value={filterInventoryWarnings} onValueChange={setFilterInventoryWarnings}>
+            <SelectTrigger id="inventory-filter" className="w-[200px] bg-white">
+              <SelectValue placeholder="Filter by inventory" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Orders</SelectItem>
+              <SelectItem value="warnings">
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-destructive" />
+                  Inventory Warnings ({ordersWithWarnings})
+                </span>
+              </SelectItem>
+              <SelectItem value="no-warnings">No Warnings</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
         <Button 
           onClick={refreshAllOrders}
           variant="outline"

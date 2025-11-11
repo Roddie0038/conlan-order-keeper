@@ -21,6 +21,7 @@ export type WheelOrderRecord = {
   completed: boolean;
   completed_at?: string;
   ordertype: string;
+  out_of_stock?: boolean;
 };
 
 export function useFetchWheelOrders() {
@@ -62,7 +63,8 @@ export function useFetchWheelOrders() {
         status: r.status || "open",
         completed: r.status === "completed" || r.completed === true,
         completed_at: r.completed_at || undefined,
-        ordertype: r.ordertype || r.order_type || "wheel"
+        ordertype: r.ordertype || r.order_type || "wheel",
+        out_of_stock: r.out_of_stock || false
       })) as WheelOrderRecord[]);
     } catch (err) {
       console.error("Error fetching wheel orders:", err);

@@ -29,6 +29,7 @@ export const combineOrders = (
       completed: order.completed || false,
       orderType: 'Transfer',
       completedAt: order.completed_at,
+      out_of_stock: order.out_of_stock,
     });
   });
 
@@ -48,6 +49,7 @@ export const combineOrders = (
       completed: order.completed || false,
       orderType: 'MTO',
       completedAt: order.completed_at,
+      out_of_stock: order.out_of_stock,
     });
   });
 
@@ -67,6 +69,7 @@ export const combineOrders = (
       completed: order.completed || false,
       orderType: 'Wheel',
       completedAt: order.completed_at,
+      out_of_stock: order.out_of_stock,
     });
   });
 
@@ -86,6 +89,7 @@ export const combineOrders = (
       completed: order.status === 'completed',
       orderType: 'Warranty',
       completedAt: order.completed_at,
+      out_of_stock: order.out_of_stock,
     });
   });
 
