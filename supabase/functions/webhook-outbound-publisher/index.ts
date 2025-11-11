@@ -346,7 +346,7 @@ serve(async (req) => {
           .from('webhook_outbox' as any)
           .update({
             status: 'failed',
-            last_error: 'No active webhook configured for this event type'
+            error_message: 'No active webhook configured for this event type'
           })
           .eq('id', event.id);
         
@@ -416,7 +416,7 @@ serve(async (req) => {
               status: 'retrying',
               retry_count: newRetryCount,
               next_retry_at: nextRetryAt,
-              last_error: lastError
+              error_message: lastError
             })
             .eq('id', event.id);
           
@@ -428,7 +428,7 @@ serve(async (req) => {
             .update({
               status: 'failed',
               retry_count: newRetryCount,
-              last_error: `Max retries exceeded: ${lastError}`
+              error_message: `Max retries exceeded: ${lastError}`
             })
             .eq('id', event.id);
           
