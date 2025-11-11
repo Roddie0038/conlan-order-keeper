@@ -1519,6 +1519,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ordering_store_list: {
+        Row: {
+          created_at: string | null
+          id: number
+          label: string
+          plant: string
+          store_ref: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          label: string
+          plant: string
+          store_ref: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          label?: string
+          plant?: string
+          store_ref?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string
