@@ -34,6 +34,7 @@ import PlantSwitcherGuide from '@/pages/PlantSwitcherGuide';
 import UserManagement from '@/pages/UserManagement';
 import AdminEmailRouting from '@/pages/AdminEmailRouting';
 import WebhookAdmin from '@/pages/WebhookAdmin';
+import InventoryIssues from '@/pages/InventoryIssues';
 
 export function AppRoutes() {
   return (
@@ -218,6 +219,12 @@ export function AppRoutes() {
       <Route path="/admin/webhooks" element={
         <AuthGuard>
           <WebhookAdmin />
+        </AuthGuard>
+      } />
+      
+      <Route path="/inventory-issues" element={
+        <AuthGuard>
+          <InventoryIssues />
         </AuthGuard>
       } />
     </Routes>
