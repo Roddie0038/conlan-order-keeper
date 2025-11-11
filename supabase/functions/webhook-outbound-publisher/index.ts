@@ -219,9 +219,31 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // A. Enforce JWT authentication
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.warn('[Webhook Publisher] Unauthorized request - missing or invalid Authorization header');
+    return new Response(
+      JSON.stringify({ error: 'unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Verify JWT is valid by attempting to get user
+  const token = authHeader.replace('Bearer ', '');
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  
+  if (authError || !user) {
+    console.warn('[Webhook Publisher] Unauthorized request - invalid JWT token');
+    return new Response(
+      JSON.stringify({ error: 'unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 
   try {
     console.log('[Webhook Publisher] Starting outbox processing...');
@@ -336,6 +358,12 @@ serve(async (req) => {
         };
 
         const result = await publishWebhookEvent(event, config, supabase);
+
+        // D. Log per-dispatch status
+        console.info(
+          `[Publisher] dispatch event_type=${event.event_type} event_id=${event.event_id} ` +
+          `url=${config.webhook_url} status=${result.statusCode || 'error'} signed=${config.hmac_enabled}`
+        );
 
         if (!result.success) {
           allSucceeded = false;
