@@ -86,8 +86,8 @@ export function InventoryAvailabilityAlert({
           <p className="text-xs text-muted-foreground">
             Last updated: {format(new Date(inventory.lastUpdated), 'MMM d, yyyy HH:mm:ss')}
           </p>
-          <p className="text-xs">
-            You can still submit this order, but expect delays until the item is restocked.
+          <p className="text-xs font-medium">
+            ⚠️ You can still proceed with this order. It will be flagged for manual review and may experience delays until restocked.
           </p>
         </AlertDescription>
       </Alert>
@@ -113,8 +113,8 @@ export function InventoryAvailabilityAlert({
           <p className="text-xs text-muted-foreground">
             Last updated: {format(new Date(inventory.lastUpdated), 'MMM d, yyyy HH:mm:ss')}
           </p>
-          <p className="text-xs">
-            Consider reducing your order quantity or splitting across multiple shipments.
+          <p className="text-xs font-medium">
+            ⚠️ You can still proceed with this order. It will be flagged for manual review. Consider reducing quantity or splitting shipments.
           </p>
         </AlertDescription>
       </Alert>

@@ -7,9 +7,10 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchInventory } from "@/services/inventoryService";
 import { InventoryItem } from "@/types/inventory";
-import { Info, Package, Calendar, Truck, Building, Mail, MapPin } from "lucide-react";
+import { Info, Package, Calendar, Truck, Building, Mail, MapPin, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { InventoryWarningDialog } from "./InventoryWarningDialog";
 
 interface OrderFormInputsProps {
   formData: FormData;
@@ -29,6 +30,8 @@ export const OrderFormInputs = ({
     quantity: number;
   } | null>(null);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [showWarningDialog, setShowWarningDialog] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState(false);
 
   // Calculate plant based on selected store
   const plant = formData.store ? getPlantForStore(formData.store) : "";
@@ -119,15 +122,79 @@ export const OrderFormInputs = ({
     if (inventoryCheck && formData.quantity && Number(formData.quantity) > inventoryCheck.quantity) {
       toast({
         title: "Insufficient Stock",
-        description: `You're requesting ${formData.quantity} units, but only ${inventoryCheck.quantity} are available.`,
+        description: `You're requesting ${formData.quantity} units, but only ${inventoryCheck.quantity} are available. You can still proceed, but the order will be flagged for review.`,
         variant: "destructive"
       });
     }
   }, [formData.quantity, inventoryCheck, toast]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Check if there's an inventory issue
+    const hasInventoryIssue = inventoryCheck !== null && (
+      !inventoryCheck.available || 
+      (formData.quantity && parseInt(formData.quantity) > inventoryCheck.quantity)
+    );
+    
+    // If there's an inventory issue, show warning dialog
+    if (hasInventoryIssue) {
+      setPendingSubmit(true);
+      setShowWarningDialog(true);
+      return;
+    }
+    
+    // Otherwise proceed normally
+    onSubmit(e);
+  };
+
+  const handleConfirmSubmit = () => {
+    setPendingSubmit(false);
+    // Call the parent's onSubmit handler without an event since we're bypassing the form submission
+    const form = document.createElement('form');
+    const fakeEvent = new Event('submit', { cancelable: true, bubbles: true }) as any;
+    Object.defineProperty(fakeEvent, 'currentTarget', { value: form, writable: false });
+    Object.defineProperty(fakeEvent, 'target', { value: form, writable: false });
+    onSubmit(fakeEvent);
+  };
+
+  // Determine if there's a critical inventory issue
+  const hasInventoryIssue = inventoryCheck !== null && (
+    !inventoryCheck.available || 
+    (formData.quantity && parseInt(formData.quantity) > inventoryCheck.quantity)
+  );
+
   return (
-    <form onSubmit={onSubmit} className="max-w-2xl mx-auto backdrop-blur-md bg-black/60 p-8 rounded-xl shadow-xl border border-gray-800 transition-all">
-      <div className="space-y-6">
+    <>
+      <InventoryWarningDialog
+        open={showWarningDialog}
+        onOpenChange={setShowWarningDialog}
+        onConfirm={handleConfirmSubmit}
+        productNumber={formData.productNumber}
+        availableQuantity={inventoryCheck?.quantity || 0}
+        requestedQuantity={parseInt(formData.quantity) || 0}
+        isOutOfStock={inventoryCheck !== null && !inventoryCheck.available}
+      />
+      
+      <form 
+        onSubmit={handleSubmit} 
+        className={`max-w-2xl mx-auto backdrop-blur-md bg-black/60 p-8 rounded-xl shadow-xl border transition-all ${
+          hasInventoryIssue ? 'border-destructive border-2' : 'border-gray-800'
+        }`}
+      >
+        {hasInventoryIssue && (
+          <div className="mb-6 bg-destructive/10 border border-destructive rounded-md p-4 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-destructive">Inventory Warning</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                This order has inventory availability issues. You can still proceed, but it will require manual review.
+              </p>
+            </div>
+          </div>
+        )}
+        
+        <div className="space-y-6">
         {/* Contact Information Section */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-4 border-l-4 border-blue-500 pl-3">
@@ -342,14 +409,26 @@ export const OrderFormInputs = ({
             )}
           </div>
         </div>
-      </div>
+        </div>
 
-      <Button 
-        type="submit" 
-        className="w-full text-slate-50 rounded-3xl bg-rose-600 hover:bg-rose-500 mt-8 transition-all hover:scale-[1.01] py-6 text-lg font-semibold shadow-lg" 
-        disabled={inventoryCheck !== null && !inventoryCheck.available}>
-        ADD TO ORDER
-      </Button>
-    </form>
+        <Button 
+          type="submit" 
+          className={`w-full rounded-3xl mt-8 transition-all hover:scale-[1.01] py-6 text-lg font-semibold shadow-lg ${
+            hasInventoryIssue 
+              ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' 
+              : 'text-slate-50 bg-rose-600 hover:bg-rose-500'
+          }`}
+        >
+          {hasInventoryIssue ? (
+            <span className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              ADD TO ORDER (INVENTORY WARNING)
+            </span>
+          ) : (
+            'ADD TO ORDER'
+          )}
+        </Button>
+      </form>
+    </>
   );
 };
