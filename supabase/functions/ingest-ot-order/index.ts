@@ -83,7 +83,7 @@ serve(async (req) => {
     // 3) Check user role (ot_admin, ot_approver, or ot_viewer)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { data: roles, error: roleError } = await supabase
-      .from('user_roles')
+      .from('store_user_roles')
       .select('role')
       .eq('user_id', user.id);
 
