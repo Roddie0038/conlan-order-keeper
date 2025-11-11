@@ -2791,6 +2791,36 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_subscriptions: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          event_type: string
+          hmac_enabled: boolean | null
+          id: string
+          secret_key: string | null
+          target_url: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          event_type: string
+          hmac_enabled?: boolean | null
+          id?: string
+          secret_key?: string | null
+          target_url: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          event_type?: string
+          hmac_enabled?: boolean | null
+          id?: string
+          secret_key?: string | null
+          target_url?: string
+        }
+        Relationships: []
+      }
       wheel_orders: {
         Row: {
           color: string | null

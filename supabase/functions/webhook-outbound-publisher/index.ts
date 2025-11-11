@@ -60,13 +60,13 @@ async function generateHmacSignature(
     .join('');
 }
 
-function calculateBackoff(retryCount: number): number {
-  // Exponential backoff with full jitter
-  const baseDelay = 1000; // 1 second
-  const maxDelay = 300000; // 5 minutes
-  const exponentialDelay = Math.min(baseDelay * Math.pow(2, retryCount), maxDelay);
-  return Math.floor(Math.random() * exponentialDelay);
-}
+// Not used anymore - backoff logic moved inline for clarity
+// function calculateBackoff(retryCount: number): number {
+//   const baseDelay = 1000; // 1 second
+//   const maxDelay = 300000; // 5 minutes
+//   const exponentialDelay = Math.min(baseDelay * Math.pow(2, retryCount), maxDelay);
+//   return Math.floor(Math.random() * exponentialDelay);
+// }
 
 async function publishWebhookEvent(
   event: OutboxEvent,
@@ -236,34 +236,60 @@ serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    console.log('[Webhook Publisher] Starting outbox processing...');
+    // C. Check for force mode
+    const url = new URL(req.url);
+    const forceMode = url.searchParams.get('mode') === 'force';
+    
+    console.log(`[Webhook Publisher] Starting outbox processing... (force=${forceMode})`);
 
-    // Query pending events from webhook_outbox
-    const { data: pendingEvents, error: outboxError } = await supabase
+    // Query pending and retrying events from webhook_outbox
+    // A. Load pending events
+    const { data: pendingEvents, error: pendingError } = await supabase
       .from('webhook_outbox' as any)
       .select('*')
-      .in('status', ['pending', 'failed'])
-      .or(`next_retry_at.is.null,next_retry_at.lte.${new Date().toISOString()}`)
+      .eq('status', 'pending')
       .order('created_at', { ascending: true })
       .limit(50);
 
-    if (outboxError) {
-      console.error('[Webhook Publisher] Error fetching outbox:', outboxError);
+    if (pendingError) {
+      console.error('[Webhook Publisher] Error fetching pending events:', pendingError);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch outbox events', details: outboxError.message }),
+        JSON.stringify({ error: 'Failed to fetch pending events', details: pendingError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!pendingEvents || pendingEvents.length === 0) {
-      console.log('[Webhook Publisher] No pending events to process');
+    // A. Load retrying events (with or without force mode)
+    let retryingQuery = supabase
+      .from('webhook_outbox' as any)
+      .select('*')
+      .eq('status', 'retrying')
+      .order('next_retry_at', { ascending: true })
+      .limit(50);
+
+    // Only apply time filter if not in force mode
+    if (!forceMode) {
+      retryingQuery = retryingQuery.lte('next_retry_at', new Date().toISOString());
+    }
+
+    const { data: retryingEvents, error: retryingError } = await retryingQuery;
+
+    if (retryingError) {
+      console.error('[Webhook Publisher] Error fetching retrying events:', retryingError);
+    }
+
+    // Combine pending and retrying events
+    const allEvents = [...(pendingEvents || []), ...(retryingEvents || [])];
+
+    if (!allEvents || allEvents.length === 0) {
+      console.log('[Webhook Publisher] No events to process');
       return new Response(
-        JSON.stringify({ message: 'No pending events', processed: 0 }),
+        JSON.stringify({ message: 'No pending or retrying events', processed: 0 }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`[Webhook Publisher] Found ${pendingEvents.length} pending events`);
+    console.log(`[Webhook Publisher] Found ${allEvents.length} events to process (${pendingEvents?.length || 0} pending, ${retryingEvents?.length || 0} retrying)`);
 
     const results = {
       processed: 0,
@@ -273,7 +299,7 @@ serve(async (req) => {
     };
 
     // Process each event
-    for (const event of pendingEvents) {
+    for (const event of allEvents) {
       // Skip events that have exceeded max retries
       if (event.retry_count >= event.max_retries) {
         console.log(`[Webhook Publisher] Skipping event ${event.event_id} - max retries exceeded`);
@@ -305,10 +331,30 @@ serve(async (req) => {
         .eq('webhook_type', event.event_type)
         .eq('is_active', true);
 
+      // D. No-link handling
       if (linksError || !webhookLinks || webhookLinks.length === 0) {
         console.log(`[Webhook Publisher] No active webhooks configured for ${event.event_type}`);
         
-        // Mark as failed - no webhook configured
+        // Log failed delivery to app_webhook_deliveries
+        await supabase
+          .from('app_webhook_deliveries' as any)
+          .insert({
+            webhook_id: null,
+            event_type: event.event_type,
+            idempotency_key: event.event_id,
+            request_url: null,
+            request_method: 'POST',
+            request_headers: {},
+            request_body: { event_type: event.event_type, payload: event.payload },
+            request_timestamp: new Date().toISOString(),
+            response_status: null,
+            duration_ms: 0,
+            success: false,
+            error_message: 'No active webhook configured for this event type',
+            retry_count: event.retry_count
+          });
+
+        // Mark as failed - no webhook configured (do not retry)
         await supabase
           .from('webhook_outbox' as any)
           .update({
@@ -361,7 +407,7 @@ serve(async (req) => {
         }
       }
 
-      // Update outbox status
+      // B. Update outbox status with proper transitions
       if (allSucceeded) {
         await supabase
           .from('webhook_outbox' as any)
@@ -378,19 +424,23 @@ serve(async (req) => {
         const shouldRetry = newRetryCount < event.max_retries;
 
         if (shouldRetry) {
-          const backoffMs = calculateBackoff(newRetryCount);
+          // Use exponential backoff: 15s * 2^retry_count, max 5 minutes
+          const baseDelay = 15000; // 15 seconds
+          const maxDelay = 300000; // 5 minutes
+          const backoffMs = Math.min(baseDelay * Math.pow(2, newRetryCount), maxDelay);
           const nextRetryAt = new Date(Date.now() + backoffMs).toISOString();
 
           await supabase
             .from('webhook_outbox' as any)
             .update({
-              status: 'failed',
+              status: 'retrying',
               retry_count: newRetryCount,
               next_retry_at: nextRetryAt,
               error_message: lastError
             })
             .eq('id', event.id);
           
+          console.log(`[Webhook Publisher] Event ${event.event_id} scheduled for retry ${newRetryCount}/${event.max_retries} at ${nextRetryAt}`);
           results.retrying++;
         } else {
           await supabase
@@ -402,6 +452,7 @@ serve(async (req) => {
             })
             .eq('id', event.id);
           
+          console.log(`[Webhook Publisher] Event ${event.event_id} permanently failed after ${newRetryCount} attempts`);
           results.failed++;
         }
       }
