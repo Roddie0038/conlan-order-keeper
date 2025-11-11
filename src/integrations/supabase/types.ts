@@ -2677,12 +2677,14 @@ export type Database = {
       }
       webhook_deliveries: {
         Row: {
+          attempt_no: number | null
           created_at: string | null
           duration_ms: number | null
           error_message: string | null
           hmac_signature: string | null
           id: string
           idempotency_key: string | null
+          outbox_id: string | null
           platform_link_id: string | null
           request_body: Json | null
           request_headers: Json | null
@@ -2696,12 +2698,14 @@ export type Database = {
           webhook_url: string
         }
         Insert: {
+          attempt_no?: number | null
           created_at?: string | null
           duration_ms?: number | null
           error_message?: string | null
           hmac_signature?: string | null
           id?: string
           idempotency_key?: string | null
+          outbox_id?: string | null
           platform_link_id?: string | null
           request_body?: Json | null
           request_headers?: Json | null
@@ -2715,12 +2719,14 @@ export type Database = {
           webhook_url: string
         }
         Update: {
+          attempt_no?: number | null
           created_at?: string | null
           duration_ms?: number | null
           error_message?: string | null
           hmac_signature?: string | null
           id?: string
           idempotency_key?: string | null
+          outbox_id?: string | null
           platform_link_id?: string | null
           request_body?: Json | null
           request_headers?: Json | null

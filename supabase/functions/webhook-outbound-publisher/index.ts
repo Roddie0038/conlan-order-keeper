@@ -74,28 +74,28 @@ async function publishWebhookEvent(
   supabase: any
 ): Promise<{ success: boolean; statusCode?: number; error?: string; duration?: number }> {
   const startTime = Date.now();
-  const timestamp = new Date().toISOString();
+  const timestampMs = Date.now().toString(); // Epoch milliseconds as string
   const deliveryId = event.event_id;
   const traceId = event.trace_id || crypto.randomUUID();
 
   console.log(`[Webhook Publisher] Publishing ${event.event_type} to ${config.platform_name}`);
 
   try {
-    // Prepare webhook payload
+    // Prepare webhook payload - exact envelope format
     const webhookPayload = {
       event_id: event.event_id,
       event_type: event.event_type,
       source: 'ordering',
-      timestamp: timestamp,
+      timestamp: timestampMs,
       trace_id: traceId,
       payload: event.payload
     };
 
     const payloadString = JSON.stringify(webhookPayload);
 
-    // Generate HMAC signature if enabled - sign RAW body only (no timestamp prefix)
+    // Generate HMAC signature if enabled - SHA-256 over raw JSON body, hex lowercase
     let signature = '';
-    if (config.hmac_enabled) {
+    if (config.hmac_enabled && config.webhook_secret) {
       const encoder = new TextEncoder();
       const keyData = encoder.encode(config.webhook_secret);
       const key = await crypto.subtle.importKey(
@@ -117,20 +117,21 @@ async function publishWebhookEvent(
         .join('');
     }
 
-    // Build headers - generic format only
+    // Build headers - generic format: X-Signature, X-Timestamp (ms), X-Event-Id
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-Timestamp': timestamp,
+      'X-Timestamp': timestampMs,
       'X-Event-Id': deliveryId
     };
 
     if (config.hmac_enabled && signature) {
       headers['X-Signature'] = signature;
     }
-
-    // Log headers and dispatch info
-    console.log(`[Publisher] Headers sent: ${Object.keys(headers).join(', ')}`);
-    console.log(`[Publisher] publisher.sent event_id=${event.event_id} webhook_type=${event.event_type} target_url=${config.webhook_url}`);
+    
+    // Optional trace ID header
+    if (traceId) {
+      headers['X-Trace-Id'] = traceId;
+    }
 
     // Send webhook request
     const controller = new AbortController();
@@ -149,26 +150,35 @@ async function publishWebhookEvent(
     const responseBody = await response.text();
     const success = response.ok;
 
-    console.log(`[Webhook Publisher] Response: ${response.status} in ${duration}ms`);
+    // D. Log per-dispatch status (one line per attempt)
+    console.log(
+      `[Publisher] dispatch type=${event.event_type} outbox_id=${event.id} url=${config.webhook_url} status=${response.status} signed=${config.hmac_enabled}`
+    );
 
-    // Log delivery attempt to app_webhook_deliveries
+    // 4. Log delivery attempt to webhook_deliveries
     await supabase
-      .from('app_webhook_deliveries' as any)
+      .from('webhook_deliveries' as any)
       .insert({
-        webhook_id: config.id,
-        event_type: event.event_type,
-        idempotency_key: deliveryId,
-        request_url: config.webhook_url,
+        outbox_id: event.id,
+        attempt_no: event.retry_count + 1,
+        target_url: config.webhook_url,
+        http_status: response.status,
+        status: success ? 'delivered' : 'failed',
+        error: success ? null : responseBody.substring(0, 1000),
+        // Legacy fields for compatibility
+        platform_link_id: config.id,
+        webhook_type: event.event_type,
+        webhook_url: config.webhook_url,
         request_method: 'POST',
         request_headers: headers,
         request_body: webhookPayload,
-        request_timestamp: timestamp,
         response_status: response.status,
         response_headers: Object.fromEntries(response.headers.entries()),
-        response_body: responseBody.substring(0, 10000), // Limit size
+        response_body: responseBody.substring(0, 10000),
         duration_ms: duration,
         success: success,
         error_message: success ? null : `HTTP ${response.status}: ${responseBody}`,
+        idempotency_key: deliveryId,
         hmac_signature: signature || null,
         retry_count: event.retry_count
       });
@@ -184,24 +194,30 @@ async function publishWebhookEvent(
     const duration = Date.now() - startTime;
     const errorMessage = error.message || String(error);
 
-    console.error(`[Webhook Publisher] Error:`, errorMessage);
+    console.error(`[Publisher] dispatch type=${event.event_type} outbox_id=${event.id} url=${config.webhook_url} status=error signed=${config.hmac_enabled}`);
 
     // Log failed delivery attempt
     await supabase
-      .from('app_webhook_deliveries' as any)
+      .from('webhook_deliveries' as any)
       .insert({
-        webhook_id: config.id,
-        event_type: event.event_type,
-        idempotency_key: deliveryId,
-        request_url: config.webhook_url,
+        outbox_id: event.id,
+        attempt_no: event.retry_count + 1,
+        target_url: config.webhook_url,
+        http_status: null,
+        status: 'failed',
+        error: errorMessage.substring(0, 1000),
+        // Legacy fields for compatibility
+        platform_link_id: config.id,
+        webhook_type: event.event_type,
+        webhook_url: config.webhook_url,
         request_method: 'POST',
         request_headers: { 'Content-Type': 'application/json' },
         request_body: { event_type: event.event_type, payload: event.payload },
-        request_timestamp: timestamp,
         response_status: null,
         duration_ms: duration,
         success: false,
         error_message: errorMessage,
+        idempotency_key: deliveryId,
         retry_count: event.retry_count
       });
 
@@ -312,7 +328,7 @@ serve(async (req) => {
         .update({ status: 'processing' })
         .eq('id', event.id);
 
-      // Get webhook configurations for this event type
+      // 1. Get webhook configurations for this event type from app_platform_links
       const { data: webhookLinks, error: linksError } = await supabase
         .from('app_platform_links' as any)
         .select(`
@@ -331,26 +347,31 @@ serve(async (req) => {
         .eq('webhook_type', event.event_type)
         .eq('is_active', true);
 
-      // D. No-link handling
+      // 5. No-link handling - if no active webhook configured, mark as failed
       if (linksError || !webhookLinks || webhookLinks.length === 0) {
         console.log(`[Webhook Publisher] No active webhooks configured for ${event.event_type}`);
         
-        // Log failed delivery to app_webhook_deliveries
+        // Log failed delivery to webhook_deliveries
         await supabase
-          .from('app_webhook_deliveries' as any)
+          .from('webhook_deliveries' as any)
           .insert({
-            webhook_id: null,
-            event_type: event.event_type,
-            idempotency_key: event.event_id,
-            request_url: null,
+            outbox_id: event.id,
+            attempt_no: event.retry_count + 1,
+            target_url: null,
+            http_status: null,
+            status: 'failed',
+            error: 'No active webhook configured for this event type',
+            // Legacy fields
+            webhook_type: event.event_type,
+            webhook_url: null,
             request_method: 'POST',
             request_headers: {},
             request_body: { event_type: event.event_type, payload: event.payload },
-            request_timestamp: new Date().toISOString(),
             response_status: null,
             duration_ms: 0,
             success: false,
             error_message: 'No active webhook configured for this event type',
+            idempotency_key: event.event_id,
             retry_count: event.retry_count
           });
 
@@ -394,12 +415,6 @@ serve(async (req) => {
         };
 
         const result = await publishWebhookEvent(event, config, supabase);
-
-        // D. Log per-dispatch status
-        console.info(
-          `[Publisher] dispatch event_type=${event.event_type} event_id=${event.event_id} ` +
-          `url=${config.webhook_url} status=${result.statusCode || 'error'} signed=${config.hmac_enabled}`
-        );
 
         if (!result.success) {
           allSucceeded = false;
