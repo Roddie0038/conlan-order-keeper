@@ -1,5 +1,8 @@
 project_id = "cyzywykgdravxfnhskzq"
 
+[functions.forward-to-ot]
+verify_jwt = false
+
 [functions.ingest-ot-order]
 verify_jwt = false
 

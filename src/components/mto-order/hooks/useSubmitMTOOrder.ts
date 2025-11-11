@@ -1,15 +1,7 @@
-
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
 import { submitOtOrder, type OtOrderPayload, isIngestFail } from "@/services/submitOtOrder";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { publishMTOOrderPlaced } from "@/services/webhookOutbox";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
-  const { user } = useAuth();
-
-  // Robust integer coercion
   const toInt = (v: unknown, fallback = 1) => {
     const n = parseInt(String(v), 10);
     return Number.isFinite(n) ? n : fallback;
@@ -19,7 +11,6 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validation: Only validate truly required fields
     if (!formData.store || !formData.name) {
       toast({
         title: "Validation Error",
@@ -33,91 +24,50 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
     try {
       console.log("🔍 MTO FORM - Starting MTO submission");
       
-      // Get manager email and plant
-      const managerEmail = (await getFirstManagerEmail(formData.store) ?? formData.email ?? user?.email ?? '').trim();
-      const submitterName = (formData.name ?? formData.yourName ?? user?.name ?? '').trim();
       const plant = getPlantForStore(formData.store);
       
-      console.log("🔍 MTO FORM - Manager email:", managerEmail);
-      console.log("🔍 MTO FORM - Plant:", plant);
-      
-      // Validate email format
-      if (!managerEmail || !managerEmail.includes('@')) {
+      // Build MTO payload with metadata for OT to route/process
+      const payload: OtOrderPayload = {
+        order_number: `MTO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        product_number: String(formData.productNumber || 'MTO'),
+        quantity: toInt(formData.quantity, 1),
+        store: String(formData.store),
+        plant: String(plant),
+        submitted_by_email: formData.email || "",
+        submitted_by_name: formData.name || formData.yourName || "",
+        metadata: {
+          type: "MTO",
+          tread: formData.tread || undefined,
+          tire_size: formData.tireSize || undefined,
+          casing_grade: formData.casingGrade || undefined,
+          notes: formData.notes || undefined,
+        }
+      };
+
+      console.log("🚀 MTO FORM - Submitting to OT:", payload);
+      const result = await submitOtOrder(payload);
+
+      if (isIngestFail(result)) {
+        console.error("❌ MTO FORM - OT submission failed:", result.status, result.message, result.trace_id);
         toast({
-          title: "Validation Error", 
-          description: "A valid email is required.",
+          title: "Submission Failed",
+          description: `Error: ${result.message}. Trace ID: ${result.trace_id}`,
           variant: "destructive",
         });
         setIsSubmitting(false);
         return;
       }
 
-      // Build MTO payload with safe types
-      const payload = {
-        order_number: `MTO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        product_number: String(formData.productNumber || 'MTO'),
-        quantity: toInt(formData.quantity, 1),
-        store: String(formData.store),
-        plant: String(plant),
-        submitted_by_email: managerEmail,
-        submitted_by_name: submitterName,
-      } satisfies OtOrderPayload;
-
-      console.log("📊 MTO Payload:", JSON.stringify(payload, null, 2));
-      const result = await submitOtOrder(payload);
-
-      if (isIngestFail(result)) {
-        // result is IngestFail here
-        console.error("❌ OT submit failed:", result.status, result.message);
-        throw new Error(`Failed to submit MTO order: ${result.message}`);
-      }
-
-      // result is IngestOk here
-      console.log("✅ MTO submitted:", result.id, result.order_number);
-      
-      // Enqueue webhook event to outbox (non-blocking)
-      try {
-        const traceId = `mto-${result.id}-${Date.now()}`;
-        console.log("📤 WEBHOOK OUTBOX - Enqueuing MTOOrderPlaced event, trace_id:", traceId);
-        
-        const webhookResult = await publishMTOOrderPlaced({
-          order_id: result.id,
-          order_number: result.order_number,
-          store: String(formData.store),
-          plant: String(plant),
-          product_number: String(formData.productNumber || 'MTO'),
-          description: `MTO Order - ${formData.tread || ''} ${formData.tireSize || ''}`.trim(),
-          quantity: toInt(formData.quantity, 1),
-          status: "open",
-          submitted_by_name: submitterName,
-          submitted_by_email: managerEmail,
-          order_type: "MTO",
-          metadata: {
-            tread: formData.tread || undefined,
-            tire_size: formData.tireSize || undefined,
-            casing_grade: formData.casingGrade || undefined,
-            notes: formData.notes || undefined,
-            ot_created_at: result.created_at,
-            idempotent: result.idempotent || false
-          }
-        }, traceId);
-
-        if (webhookResult.success) {
-          console.log("✅ WEBHOOK OUTBOX - MTO event enqueued:", webhookResult.event_id);
-        } else {
-          console.warn("⚠️ WEBHOOK OUTBOX - Failed to enqueue MTO event:", webhookResult.error);
-        }
-      } catch (err) {
-        console.warn("⚠️ WEBHOOK OUTBOX - Non-fatal error enqueuing MTO event:", err);
-      }
+      console.log(`✅ MTO FORM - Success from ${result.project}, order: ${result.order_number}, trace_id: ${result.trace_id}`);
       
       toast({
-        title: "🎉 MTO order submitted!",
-        description: `Order ${result.order_number} has been submitted.`,
+        title: "🎉 MTO Order Submitted!",
+        description: `Order ${result.order_number} submitted to ${result.project}. Trace ID: ${result.trace_id}`,
       });
+      
       resetForm();
-    } catch (error) {
-      console.error("❌ MTO FORM - Error submitting MTO order:", error);
+    } catch (error: any) {
+      console.error("❌ MTO FORM - Unexpected error:", error);
       toast({
         title: "Error",
         description: "There was a problem submitting your MTO order. Please try again.",

@@ -1,7 +1,5 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import { OrderSummary } from "../types";
 import { getPlantForStore } from "@/utils/plantMapping";
 import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
@@ -27,8 +25,8 @@ export function useOrderFormSubmit() {
     try {
       let successCount = 0;
       let failCount = 0;
+      const traces: string[] = [];
 
-      // Process each order
       for (const order of selectedOrders) {
         const plant = getPlantForStore(order.store);
         
@@ -40,30 +38,36 @@ export function useOrderFormSubmit() {
           plant: plant,
           submitted_by_email: user?.email || "",
           submitted_by_name: order.yourName,
+          metadata: {
+            type: order.type || "TRANSFER",
+            schedule_arrival: order.scheduleArrival,
+            notes: order.notes,
+            cross_dock: order.crossDock,
+          }
         };
 
         const result = await submitOtOrder(payload);
 
         if (result.ok === true) {
           successCount++;
-          console.log("✅ Order submitted successfully:", result.id);
-        }
-        
-        if (result.ok === false) {
+          traces.push(result.trace_id);
+          console.log(`✅ Order submitted to ${result.project}:`, result.order_number, result.trace_id);
+        } else {
           failCount++;
-          console.error("❌ Order submission failed:", result.status, result.message);
+          traces.push(result.trace_id);
+          console.error(`❌ Order submission failed:`, result.message, result.trace_id);
         }
       }
 
       if (successCount > 0) {
         sonnerToast.success("Orders Submitted", {
-          description: `${successCount} order(s) submitted successfully${failCount > 0 ? `, ${failCount} failed` : ""}.`,
+          description: `${successCount} order(s) submitted successfully${failCount > 0 ? `, ${failCount} failed` : ""}. Trace IDs: ${traces.slice(0, 3).join(", ")}${traces.length > 3 ? "..." : ""}`,
         });
       }
 
       if (failCount > 0 && successCount === 0) {
         sonnerToast.error("Submission Failed", {
-          description: `Failed to submit ${failCount} order(s). Please try again.`,
+          description: `Failed to submit ${failCount} order(s). Trace IDs: ${traces.slice(0, 3).join(", ")}`,
         });
       }
 
