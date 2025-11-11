@@ -31,21 +31,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Return early if no user is authenticated yet
-  if (!user) {
-    return (
-      <NotificationContext.Provider value={{
-        notifications: [],
-        unreadCount: 0,
-        markAsRead: async () => {},
-        markAllAsRead: async () => {},
-        refreshNotifications: async () => {}
-      }}>
-        {children}
-      </NotificationContext.Provider>
-    );
-  }
-
   const fetchNotifications = async () => {
     if (!user) return;
     
