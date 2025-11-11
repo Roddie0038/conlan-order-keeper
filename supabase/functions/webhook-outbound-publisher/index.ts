@@ -115,6 +115,13 @@ async function publishWebhookEvent(
       signature = Array.from(new Uint8Array(signatureBytes))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
+      
+      // 3️⃣ Log signature details for verification (not full secret)
+      console.log(
+        `[Publisher] HMAC signature generated - length=${signature.length} prefix=${signature.substring(0, 8)}`
+      );
+    } else {
+      console.log(`[Publisher] HMAC disabled or no secret - hmac_enabled=${config.hmac_enabled} has_secret=${!!config.webhook_secret}`);
     }
 
     // Build headers - generic format: X-Signature, X-Timestamp (ms), X-Event-Id
