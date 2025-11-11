@@ -93,25 +93,44 @@ async function publishWebhookEvent(
 
     const payloadString = JSON.stringify(webhookPayload);
 
-    // Generate HMAC signature if enabled
+    // Generate HMAC signature if enabled - sign RAW body only (no timestamp prefix)
     let signature = '';
     if (config.hmac_enabled) {
-      signature = await generateHmacSignature(payloadString, config.webhook_secret, timestamp);
+      const encoder = new TextEncoder();
+      const keyData = encoder.encode(config.webhook_secret);
+      const key = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+      
+      const signatureBytes = await crypto.subtle.sign(
+        'HMAC',
+        key,
+        encoder.encode(payloadString)
+      );
+      
+      signature = Array.from(new Uint8Array(signatureBytes))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
     }
 
-    // Build headers - use x-ot-* prefix for OT Platform compatibility
+    // Build headers - generic format only
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'x-ot-timestamp': timestamp,
-      'x-ot-delivery-id': deliveryId,
-      'x-trace-id': traceId,
-      'x-ot-event-type': event.event_type,
-      'x-ot-source': 'ordering'
+      'X-Timestamp': timestamp,
+      'X-Event-Id': deliveryId
     };
 
     if (config.hmac_enabled && signature) {
-      headers['x-ot-signature'] = signature;
+      headers['X-Signature'] = signature;
     }
+
+    // Log headers and dispatch info
+    console.log(`[Publisher] Headers sent: ${Object.keys(headers).join(', ')}`);
+    console.log(`[Publisher] publisher.sent event_id=${event.event_id} webhook_type=${event.event_type} target_url=${config.webhook_url}`);
 
     // Send webhook request
     const controller = new AbortController();
