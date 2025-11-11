@@ -15,6 +15,7 @@ interface Notification {
   metadata: any;
   store_ref: string | null;
   plant_code: string | null;
+  saved_for_later?: boolean;
 }
 
 interface NotificationContextType {
@@ -22,6 +23,8 @@ interface NotificationContextType {
   unreadCount: number;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  toggleSaveForLater: (id: string) => Promise<void>;
   refreshNotifications: () => Promise<void>;
 }
 
@@ -116,6 +119,42 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     fetchNotifications();
   };
 
+  const deleteNotification = async (id: string) => {
+    const { error } = await supabase
+      .from('user_notifications' as any)
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting notification:', error);
+      return;
+    }
+    
+    fetchNotifications();
+  };
+
+  const toggleSaveForLater = async (id: string) => {
+    const notification = notifications.find(n => n.id === id);
+    if (!notification) return;
+
+    const { error } = await supabase
+      .from('user_notifications' as any)
+      .update({ 
+        metadata: { 
+          ...notification.metadata, 
+          saved_for_later: !notification.metadata?.saved_for_later 
+        } 
+      })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error saving notification:', error);
+      return;
+    }
+    
+    fetchNotifications();
+  };
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -124,6 +163,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       unreadCount,
       markAsRead,
       markAllAsRead,
+      deleteNotification,
+      toggleSaveForLater,
       refreshNotifications: fetchNotifications
     }}>
       {children}
