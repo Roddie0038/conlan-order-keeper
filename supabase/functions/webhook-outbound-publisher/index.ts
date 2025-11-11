@@ -144,6 +144,9 @@ async function publishWebhookEvent(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), config.timeout_seconds * 1000);
 
+    console.log(`[Publisher] Attempting delivery: outbox_id=${event.id} type=${event.event_type} url=${config.webhook_url}`);
+    console.log(`[Publisher] Headers: X-Timestamp=${timestampMs} X-Event-Id=${deliveryId} X-Signature=${signature.slice(0,8)}…`);
+
     const response = await fetch(config.webhook_url, {
       method: 'POST',
       headers,
@@ -157,13 +160,15 @@ async function publishWebhookEvent(
     const responseBody = await response.text();
     const success = response.ok;
 
+    console.log(`[Publisher] Response: status=${response.status} body=${(responseBody || '').slice(0,200)}`);
+
     // D. Log per-dispatch status (one line per attempt)
     console.log(
       `[Publisher] dispatch type=${event.event_type} outbox_id=${event.id} url=${config.webhook_url} status=${response.status} signed=${config.hmac_enabled}`
     );
 
     // 4. Log delivery attempt to webhook_deliveries
-    await supabase
+    const { error: insErr } = await supabase
       .from('webhook_deliveries' as any)
       .insert({
         outbox_id: event.id,
@@ -171,8 +176,12 @@ async function publishWebhookEvent(
         target_url: config.webhook_url,
         http_status: response.status,
         status: success ? 'delivered' : 'failed',
-        error: success ? null : responseBody.substring(0, 1000)
+        error: success ? null : (responseBody || '').slice(0, 1000),
       });
+
+    if (insErr) {
+      console.error('[Publisher] Failed to log delivery attempt (success path):', insErr);
+    }
 
     return {
       success,
@@ -188,7 +197,7 @@ async function publishWebhookEvent(
     console.error(`[Publisher] dispatch type=${event.event_type} outbox_id=${event.id} url=${config.webhook_url} status=error signed=${config.hmac_enabled}`);
 
     // Log failed delivery attempt
-    await supabase
+    const { error: insErr } = await supabase
       .from('webhook_deliveries' as any)
       .insert({
         outbox_id: event.id,
@@ -196,8 +205,12 @@ async function publishWebhookEvent(
         target_url: config.webhook_url,
         http_status: null,
         status: 'failed',
-        error: errorMessage.substring(0, 1000)
+        error: (errorMessage || '').slice(0, 1000),
       });
+
+    if (insErr) {
+      console.error('[Publisher] Failed to log delivery attempt (catch path):', insErr);
+    }
 
     return {
       success: false,
@@ -330,7 +343,7 @@ serve(async (req) => {
         console.log(`[Webhook Publisher] No active webhooks configured for ${event.event_type}`);
         
         // Log failed delivery to webhook_deliveries
-        await supabase
+        const { error: insErr } = await supabase
           .from('webhook_deliveries' as any)
           .insert({
             outbox_id: event.id,
@@ -338,8 +351,12 @@ serve(async (req) => {
             target_url: null,
             http_status: null,
             status: 'failed',
-            error: 'No active webhook configured for this event type'
+            error: 'No active webhook configured for this event type',
           });
+
+        if (insErr) {
+          console.error('[Publisher] Failed to log delivery attempt (no-link path):', insErr);
+        }
 
         // Mark as failed - no webhook configured (do not retry)
         await supabase
