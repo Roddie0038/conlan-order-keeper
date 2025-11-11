@@ -2680,8 +2680,10 @@ export type Database = {
           attempt_no: number | null
           created_at: string | null
           duration_ms: number | null
+          error: string | null
           error_message: string | null
           hmac_signature: string | null
+          http_status: number | null
           id: string
           idempotency_key: string | null
           outbox_id: string | null
@@ -2693,7 +2695,9 @@ export type Database = {
           response_headers: Json | null
           response_status: number | null
           retry_count: number | null
+          status: string | null
           success: boolean | null
+          target_url: string | null
           webhook_type: string
           webhook_url: string
         }
@@ -2701,8 +2705,10 @@ export type Database = {
           attempt_no?: number | null
           created_at?: string | null
           duration_ms?: number | null
+          error?: string | null
           error_message?: string | null
           hmac_signature?: string | null
+          http_status?: number | null
           id?: string
           idempotency_key?: string | null
           outbox_id?: string | null
@@ -2714,7 +2720,9 @@ export type Database = {
           response_headers?: Json | null
           response_status?: number | null
           retry_count?: number | null
+          status?: string | null
           success?: boolean | null
+          target_url?: string | null
           webhook_type: string
           webhook_url: string
         }
@@ -2722,8 +2730,10 @@ export type Database = {
           attempt_no?: number | null
           created_at?: string | null
           duration_ms?: number | null
+          error?: string | null
           error_message?: string | null
           hmac_signature?: string | null
+          http_status?: number | null
           id?: string
           idempotency_key?: string | null
           outbox_id?: string | null
@@ -2735,7 +2745,9 @@ export type Database = {
           response_headers?: Json | null
           response_status?: number | null
           retry_count?: number | null
+          status?: string | null
           success?: boolean | null
+          target_url?: string | null
           webhook_type?: string
           webhook_url?: string
         }
