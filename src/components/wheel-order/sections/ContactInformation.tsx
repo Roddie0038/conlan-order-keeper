@@ -3,7 +3,9 @@ import { FormField } from "../../order-form/FormField";
 import { stores } from "../../order-form/formConfig";
 import { WheelFormData } from "../types";
 import { getPlantForStore } from "@/utils/plantMapping";
-import { getStoreColorName } from "@/utils/storeColorMapping";
+import { getStoreColorName, getStoreColorHex } from "@/utils/storeColorMapping";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface ContactInformationProps {
   formData: WheelFormData;
@@ -25,6 +27,7 @@ export function ContactInformation({
   
   // Calculate store color based on selected store (matches OT's mapping)
   const storeColor = formData.storeName ? getStoreColorName(formData.storeName) : "";
+  const storeColorHex = formData.storeName ? getStoreColorHex(formData.storeName) : "";
 
   return (
     <div className="space-y-4">
@@ -59,14 +62,26 @@ export function ContactInformation({
         placeholder="Plant will be automatically assigned"
       />
 
-      {/* Store Colors Field - Read-only, auto-fills based on store */}
-      <FormField
-        label="Store Colors"
-        value={storeColor || ""}
-        onChange={() => {}}
-        disabled={true}
-        placeholder="Store color will be automatically assigned"
-      />
+      {/* Store Colors Field - Read-only, auto-fills based on store with color chip */}
+      <div className="space-y-2">
+        <Label htmlFor="storeColor">Store Color</Label>
+        <div className="flex items-center gap-2">
+          {storeColorHex && (
+            <div 
+              className="w-8 h-8 rounded-md border-2 border-border shadow-sm flex-shrink-0"
+              style={{ backgroundColor: storeColorHex }}
+              title={storeColor}
+            />
+          )}
+          <Input
+            id="storeColor"
+            value={storeColor || ""}
+            disabled={true}
+            placeholder="Store color will be automatically assigned"
+            className="flex-1"
+          />
+        </div>
+      </div>
       
       <FormField
         label="Manager's Email"
