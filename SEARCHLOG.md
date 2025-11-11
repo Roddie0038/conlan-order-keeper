@@ -107,9 +107,29 @@ const { data, error } = await supabase.functions.invoke("forward-to-ot", {
 3. No rows in Ordering's `ot_orders` table after submission
 4. OT platform returns `{status:"ok", project:"OT", trace_id:...}`
 
+## Payload Structure Update
+
+**Date:** 2025-11-11 (Phase 2)
+
+Added **top-level `type` field** to all OT order payloads per OT ingest requirements:
+- Wheel orders: `type: "WHEEL_POWDER_COATING"`
+- MTO orders: `type: "MTO"`
+- Transfer orders: `type: "TRANSFER"`
+- Warranty orders: `type: "WARRANTY"` (future)
+
+The `type` field was previously only in `metadata` but OT ingest requires it at the root level.
+
+## External Library Warnings (Not Our Code)
+
+**MutationObserver & postMessage warnings:**
+- Searched entire codebase: ZERO usage of `MutationObserver`, `.observe()`, or `postMessage` in our code
+- All warnings originate from `lovable.js` (external library, not user code)
+- No action needed in our codebase
+
 ## Notes
 
 - localStorage writes for UI-only data (wheelOrders) were removed as they're not business data
 - The `ingest-ot-order` function is kept for backward compatibility but should be removed in next cleanup
 - All trace_id logging includes `{project:"Ordering", forward_to_ot:true}` for observability
 - HMAC secret is server-side only, never exposed to browser
+- Top-level `type` field is now mandatory on all submissions

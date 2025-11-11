@@ -3,6 +3,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type OtOrderPayload = {
+  type: string; // REQUIRED top-level: "WHEEL_POWDER_COATING" | "MTO" | "TRANSFER" | "WARRANTY"
   order_number: string;
   product_number: string;
   quantity: number;

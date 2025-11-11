@@ -79,6 +79,7 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
   const storeLabel = padStoreNumberLabel(String(order.store || ""));
 
   const otPayload: OtOrderPayload = {
+    type: orderType,
     order_number: canonicalOrderNumber,
     product_number: String(order.productNumber || ""),
     quantity: toInt(order.quantity, 0),

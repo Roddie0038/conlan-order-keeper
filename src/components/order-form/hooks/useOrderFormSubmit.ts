@@ -31,6 +31,7 @@ export function useOrderFormSubmit() {
         const plant = getPlantForStore(order.store);
         
         const payload: OtOrderPayload = {
+          type: order.type || "TRANSFER",
           order_number: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           product_number: order.productNumber,
           quantity: parseInt(order.quantity.toString()) || 0,
@@ -39,7 +40,6 @@ export function useOrderFormSubmit() {
           submitted_by_email: user?.email || "",
           submitted_by_name: order.yourName,
           metadata: {
-            type: order.type || "TRANSFER",
             schedule_arrival: order.scheduleArrival,
             notes: order.notes,
             cross_dock: order.crossDock,

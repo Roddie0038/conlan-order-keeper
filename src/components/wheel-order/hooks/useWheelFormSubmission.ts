@@ -40,8 +40,9 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
 
       const plant = getPlantForStore(formData.storeName);
       
-      // Build payload with metadata for OT to route/process
+      // Build payload with top-level type for OT to route/process
       const payload: OtOrderPayload = {
+        type: "WHEEL_POWDER_COATING",
         order_number: `WHEEL-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         product_number: "WHEEL-COATING",
         quantity: parseInt(formData.qtyWheels) || 0,
@@ -50,7 +51,6 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
         submitted_by_email: managerEmail || user?.email || "",
         submitted_by_name: formData.yourName || "",
         metadata: {
-          type: "WHEEL_POWDER_COATING",
           customer_name: formData.customerName,
           wheel_material: formData.wheelMaterial,
           wheel_type: formData.wheelType,

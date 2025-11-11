@@ -49,6 +49,7 @@ export function OrderSubmissionHandler({
         const plant = getPlantForStore(order.store);
         
         const payload: OtOrderPayload = {
+          type: "TRANSFER",
           order_number: `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           product_number: order.productNumber, // Pass exactly as typed
           quantity: Number(order.quantity ?? 0) || 0,

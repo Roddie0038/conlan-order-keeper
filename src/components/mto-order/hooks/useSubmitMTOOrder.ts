@@ -26,8 +26,9 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
       
       const plant = getPlantForStore(formData.store);
       
-      // Build MTO payload with metadata for OT to route/process
+      // Build MTO payload with top-level type for OT to route/process
       const payload: OtOrderPayload = {
+        type: "MTO",
         order_number: `MTO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         product_number: String(formData.productNumber || 'MTO'),
         quantity: toInt(formData.quantity, 1),
@@ -36,7 +37,6 @@ export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast 
         submitted_by_email: formData.email || "",
         submitted_by_name: formData.name || formData.yourName || "",
         metadata: {
-          type: "MTO",
           tread: formData.tread || undefined,
           tire_size: formData.tireSize || undefined,
           casing_grade: formData.casingGrade || undefined,
