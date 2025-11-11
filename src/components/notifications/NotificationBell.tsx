@@ -1,7 +1,8 @@
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useNotifications } from '@/contexts/NotificationContext';
+import { useContext } from 'react';
+import { NotificationContext } from '@/contexts/NotificationContext';
 import {
   Popover,
   PopoverContent,
@@ -10,7 +11,14 @@ import {
 import { NotificationPanel } from './NotificationPanel';
 
 export function NotificationBell() {
-  const { unreadCount } = useNotifications();
+  const context = useContext(NotificationContext);
+  
+  // Don't render if context isn't available yet
+  if (!context) {
+    return null;
+  }
+  
+  const { unreadCount } = context;
 
   return (
     <Popover>
