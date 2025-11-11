@@ -1,8 +1,9 @@
 
 import { FormField } from "../../order-form/FormField";
-import { stores, getStoreColor } from "../../order-form/formConfig";
+import { stores } from "../../order-form/formConfig";
 import { WheelFormData } from "../types";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { getStoreColorName } from "@/utils/storeColorMapping";
 
 interface ContactInformationProps {
   formData: WheelFormData;
@@ -22,8 +23,8 @@ export function ContactInformation({
   // Calculate plant based on selected store
   const plant = formData.storeName ? getPlantForStore(formData.storeName) : "";
   
-  // Calculate store color based on selected store
-  const storeColor = formData.storeName ? getStoreColor(formData.storeName) : "";
+  // Calculate store color based on selected store (matches OT's mapping)
+  const storeColor = formData.storeName ? getStoreColorName(formData.storeName) : "";
 
   return (
     <div className="space-y-4">

@@ -6,6 +6,7 @@ import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import { getPlantForStore } from "@/utils/plantMapping";
+import { getStoreColorName } from "@/utils/storeColorMapping";
 
 export function useWheelFormSubmission(formData: WheelFormData, managerEmail: string) {
   const { user } = useAuth();
@@ -39,6 +40,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       }
 
       const plant = getPlantForStore(formData.storeName);
+      const storeColor = getStoreColorName(formData.storeName);
       
       // Build payload with top-level type for OT to route/process
       const payload: OtOrderPayload = {
@@ -60,7 +62,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
           qty_wheels: formData.qtyWheels,
           date_received: formData.dateReceived,
           schedule_arrival: formData.scheduleArrival || formData.dateReceived,
-          store_colors: formData.storeColors || "Yellow",
+          store_color: storeColor,
         }
       };
 
