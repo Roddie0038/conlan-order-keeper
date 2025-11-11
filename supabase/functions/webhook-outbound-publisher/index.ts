@@ -171,23 +171,7 @@ async function publishWebhookEvent(
         target_url: config.webhook_url,
         http_status: response.status,
         status: success ? 'delivered' : 'failed',
-        error: success ? null : responseBody.substring(0, 1000),
-        // Legacy fields for compatibility
-        platform_link_id: config.id,
-        webhook_type: event.event_type,
-        webhook_url: config.webhook_url,
-        request_method: 'POST',
-        request_headers: headers,
-        request_body: webhookPayload,
-        response_status: response.status,
-        response_headers: Object.fromEntries(response.headers.entries()),
-        response_body: responseBody.substring(0, 10000),
-        duration_ms: duration,
-        success: success,
-        error_message: success ? null : `HTTP ${response.status}: ${responseBody}`,
-        idempotency_key: deliveryId,
-        hmac_signature: signature || null,
-        retry_count: event.retry_count
+        error: success ? null : responseBody.substring(0, 1000)
       });
 
     return {
@@ -212,20 +196,7 @@ async function publishWebhookEvent(
         target_url: config.webhook_url,
         http_status: null,
         status: 'failed',
-        error: errorMessage.substring(0, 1000),
-        // Legacy fields for compatibility
-        platform_link_id: config.id,
-        webhook_type: event.event_type,
-        webhook_url: config.webhook_url,
-        request_method: 'POST',
-        request_headers: { 'Content-Type': 'application/json' },
-        request_body: { event_type: event.event_type, payload: event.payload },
-        response_status: null,
-        duration_ms: duration,
-        success: false,
-        error_message: errorMessage,
-        idempotency_key: deliveryId,
-        retry_count: event.retry_count
+        error: errorMessage.substring(0, 1000)
       });
 
     return {
@@ -367,19 +338,7 @@ serve(async (req) => {
             target_url: null,
             http_status: null,
             status: 'failed',
-            error: 'No active webhook configured for this event type',
-            // Legacy fields
-            webhook_type: event.event_type,
-            webhook_url: null,
-            request_method: 'POST',
-            request_headers: {},
-            request_body: { event_type: event.event_type, payload: event.payload },
-            response_status: null,
-            duration_ms: 0,
-            success: false,
-            error_message: 'No active webhook configured for this event type',
-            idempotency_key: event.event_id,
-            retry_count: event.retry_count
+            error: 'No active webhook configured for this event type'
           });
 
         // Mark as failed - no webhook configured (do not retry)
@@ -387,7 +346,7 @@ serve(async (req) => {
           .from('webhook_outbox' as any)
           .update({
             status: 'failed',
-            error_message: 'No active webhook configured for this event type'
+            last_error: 'No active webhook configured for this event type'
           })
           .eq('id', event.id);
         
@@ -435,8 +394,7 @@ serve(async (req) => {
           .from('webhook_outbox' as any)
           .update({
             status: 'delivered',
-            delivered_at: new Date().toISOString(),
-            error_message: null
+            delivered_at: new Date().toISOString()
           })
           .eq('id', event.id);
         
@@ -458,7 +416,7 @@ serve(async (req) => {
               status: 'retrying',
               retry_count: newRetryCount,
               next_retry_at: nextRetryAt,
-              error_message: lastError
+              last_error: lastError
             })
             .eq('id', event.id);
           
@@ -470,7 +428,7 @@ serve(async (req) => {
             .update({
               status: 'failed',
               retry_count: newRetryCount,
-              error_message: `Max retries exceeded: ${lastError}`
+              last_error: `Max retries exceeded: ${lastError}`
             })
             .eq('id', event.id);
           
