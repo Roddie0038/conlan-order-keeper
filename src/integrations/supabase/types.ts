@@ -2322,6 +2322,99 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notification_settings: {
+        Row: {
+          email_enabled: boolean | null
+          in_app_enabled: boolean | null
+          notify_order_approved: boolean | null
+          notify_order_completed: boolean | null
+          notify_order_created: boolean | null
+          notify_order_denied: boolean | null
+          notify_order_updated: boolean | null
+          notify_warranty_events: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          email_enabled?: boolean | null
+          in_app_enabled?: boolean | null
+          notify_order_approved?: boolean | null
+          notify_order_completed?: boolean | null
+          notify_order_created?: boolean | null
+          notify_order_denied?: boolean | null
+          notify_order_updated?: boolean | null
+          notify_warranty_events?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          email_enabled?: boolean | null
+          in_app_enabled?: boolean | null
+          notify_order_approved?: boolean | null
+          notify_order_completed?: boolean | null
+          notify_order_created?: boolean | null
+          notify_order_denied?: boolean | null
+          notify_order_updated?: boolean | null
+          notify_warranty_events?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_notifications: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          message: string
+          metadata: Json | null
+          notification_type: string
+          order_number: string | null
+          order_type: string | null
+          plant_code: string | null
+          read: boolean | null
+          read_at: string | null
+          store_ref: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          order_number?: string | null
+          order_type?: string | null
+          plant_code?: string | null
+          read?: boolean | null
+          read_at?: string | null
+          store_ref?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          order_number?: string | null
+          order_type?: string | null
+          plant_code?: string | null
+          read?: boolean | null
+          read_at?: string | null
+          store_ref?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { AuthHealthMonitor } from './components/auth/AuthHealthMonitor';
 import { PlantProvider } from './contexts/PlantContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { Toaster } from "@/components/ui/toaster"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
 import { AppRoutes } from './components/routing/AppRoutes';
@@ -30,12 +31,14 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <PlantProvider>
-          <QueryClientProvider client={queryClient}>
-            <Toaster />
-            <AppContent />
-          </QueryClientProvider>
-        </PlantProvider>
+        <NotificationProvider>
+          <PlantProvider>
+            <QueryClientProvider client={queryClient}>
+              <Toaster />
+              <AppContent />
+            </QueryClientProvider>
+          </PlantProvider>
+        </NotificationProvider>
       </AuthProvider>
     </Router>
   );
