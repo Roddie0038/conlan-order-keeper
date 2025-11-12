@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -9,18 +8,32 @@ import { OrderManagementControls } from "./order-management/components/OrderMana
 import { OrderManagementTabs } from "./order-management/components/OrderManagementTabs";
 import { combineOrders } from "./order-management/utils/orderCombiner";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useSearchParams } from "react-router-dom";
 
 export default function OrderManagement() {
   const { user } = useAuth();
   const { orders, loading, error, refreshAllOrders } = useOrdersManager();
   
-  const [searchTerm, setSearchTerm] = useState("");
+  // Read ?order= URL parameter for deep linking from notifications
+  const [searchParams, setSearchParams] = useSearchParams();
+  const orderFromUrl = searchParams.get("order") || "";
+  
+  const [searchTerm, setSearchTerm] = useState(orderFromUrl);
   const [sortField, setSortField] = useState<string>("timestamp");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filterInventoryWarnings, setFilterInventoryWarnings] = useState<string>("all");
 
   // Debounce search for better performance
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Handle URL parameter: pre-fill search and clean URL
+  useEffect(() => {
+    if (orderFromUrl) {
+      setSearchTerm(orderFromUrl);
+      // Clean URL for back-button sanity
+      setSearchParams({}, { replace: true });
+    }
+  }, [orderFromUrl, setSearchParams]);
 
   if (loading) {
     return (

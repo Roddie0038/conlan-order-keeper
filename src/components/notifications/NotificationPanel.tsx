@@ -5,7 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NotificationItem } from './NotificationItem';
 import { CheckCheck, Bell, Bookmark } from 'lucide-react';
 
-export function NotificationPanel() {
+export interface NotificationPanelProps {
+  onNavigate?: () => void;
+}
+
+export function NotificationPanel({ onNavigate }: NotificationPanelProps) {
   const { notifications, unreadCount, markAllAsRead } = useNotifications();
 
   const unreadNotifications = notifications.filter(n => !n.read);
@@ -74,7 +78,7 @@ export function NotificationPanel() {
           <ScrollArea className="h-[450px]">
             <div className="divide-y">
               {notifications.map(notification => (
-                <NotificationItem key={notification.id} notification={notification} />
+                <NotificationItem key={notification.id} notification={notification} onNavigate={onNavigate} />
               ))}
             </div>
           </ScrollArea>
@@ -90,7 +94,7 @@ export function NotificationPanel() {
             ) : (
               <div className="divide-y">
                 {unreadNotifications.map(notification => (
-                  <NotificationItem key={notification.id} notification={notification} />
+                  <NotificationItem key={notification.id} notification={notification} onNavigate={onNavigate} />
                 ))}
               </div>
             )}
@@ -107,7 +111,7 @@ export function NotificationPanel() {
             ) : (
               <div className="divide-y">
                 {savedNotifications.map(notification => (
-                  <NotificationItem key={notification.id} notification={notification} />
+                  <NotificationItem key={notification.id} notification={notification} onNavigate={onNavigate} />
                 ))}
               </div>
             )}

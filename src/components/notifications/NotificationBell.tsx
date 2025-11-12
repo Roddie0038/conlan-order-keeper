@@ -1,7 +1,7 @@
 import { Bell, BellRing } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { NotificationContext } from '@/contexts/NotificationContext';
 import {
   Popover,
@@ -12,6 +12,7 @@ import { NotificationPanel } from './NotificationPanel';
 
 export function NotificationBell() {
   const context = useContext(NotificationContext);
+  const [open, setOpen] = useState(false);
   
   // Don't render if context isn't available yet
   if (!context) {
@@ -21,7 +22,7 @@ export function NotificationBell() {
   const { unreadCount } = context;
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button 
           variant="ghost" 
@@ -43,7 +44,7 @@ export function NotificationBell() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[420px] p-0 shadow-2xl border-primary/20" align="end">
-        <NotificationPanel />
+        <NotificationPanel onNavigate={() => setOpen(false)} />
       </PopoverContent>
     </Popover>
   );

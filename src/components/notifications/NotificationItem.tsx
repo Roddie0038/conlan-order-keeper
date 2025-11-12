@@ -29,9 +29,10 @@ interface NotificationItemProps {
     created_at: string;
     metadata: any;
   };
+  onNavigate?: () => void;
 }
 
-export function NotificationItem({ notification }: NotificationItemProps) {
+export function NotificationItem({ notification, onNavigate }: NotificationItemProps) {
   const { markAsRead, deleteNotification, toggleSaveForLater } = useNotifications();
   const navigate = useNavigate();
 
@@ -40,9 +41,14 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       await markAsRead(notification.id);
     }
     
-    // Navigate to order management page with order filter
+    // Close popover before navigating
+    onNavigate?.();
+    
+    // Navigate to order management page with order filter (URL-encoded)
     if (notification.order_number) {
-      navigate(`/order-management?order=${notification.order_number}`);
+      navigate(`/order-management?order=${encodeURIComponent(notification.order_number)}`);
+    } else {
+      navigate('/order-management');
     }
   };
 
