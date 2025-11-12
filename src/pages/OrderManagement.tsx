@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -9,10 +9,12 @@ import { OrderManagementTabs } from "./order-management/components/OrderManageme
 import { combineOrders } from "./order-management/utils/orderCombiner";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export default function OrderManagement() {
   const { user } = useAuth();
   const { orders, loading, error, refreshAllOrders } = useOrdersManager();
+  const { toast } = useToast();
   
   // Read ?order= URL parameter for deep linking from notifications
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,18 +24,41 @@ export default function OrderManagement() {
   const [sortField, setSortField] = useState<string>("timestamp");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filterInventoryWarnings, setFilterInventoryWarnings] = useState<string>("all");
+  
+  // Highlight + auto-scroll for deep-linked orders
+  const [highlightOrder, setHighlightOrder] = useState<string | null>(orderFromUrl || null);
+  const firstMatchRef = useRef<HTMLTableRowElement | null>(null);
 
   // Debounce search for better performance
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Handle URL parameter: pre-fill search and clean URL
+  // Handle URL parameter: pre-fill search, highlight, scroll, and clean URL
   useEffect(() => {
     if (orderFromUrl) {
       setSearchTerm(orderFromUrl);
+      setHighlightOrder(orderFromUrl);
+      
       // Clean URL for back-button sanity
       setSearchParams({}, { replace: true });
+      
+      // Show toast confirmation
+      toast({
+        title: "Order found",
+        description: `Focused on order ${orderFromUrl}`,
+      });
+      
+      // Remove highlight after animation
+      const timer = setTimeout(() => setHighlightOrder(null), 2400);
+      return () => clearTimeout(timer);
     }
-  }, [orderFromUrl, setSearchParams]);
+  }, [orderFromUrl, setSearchParams, toast]);
+  
+  // Auto-scroll to first matching order when highlighted
+  useEffect(() => {
+    if (highlightOrder && firstMatchRef.current) {
+      firstMatchRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlightOrder]);
 
   if (loading) {
     return (
@@ -134,6 +159,8 @@ export default function OrderManagement() {
               sortField={sortField}
               sortDirection={sortDirection}
               handleSort={handleSort}
+              highlightOrder={highlightOrder}
+              firstMatchRef={firstMatchRef}
             />
           </CardContent>
         </Card>

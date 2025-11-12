@@ -19,6 +19,8 @@ interface OrderManagementTabsProps {
   sortField: string;
   sortDirection: 'asc' | 'desc';
   handleSort: (field: string) => void;
+  highlightOrder?: string | null;
+  firstMatchRef?: React.RefObject<HTMLTableRowElement>;
 }
 
 export function OrderManagementTabs({
@@ -26,7 +28,9 @@ export function OrderManagementTabs({
   completedOrders,
   sortField,
   sortDirection,
-  handleSort
+  handleSort,
+  highlightOrder,
+  firstMatchRef
 }: OrderManagementTabsProps) {
   const { user } = useAuth();
   const [selectedOrder, setSelectedOrder] = useState<CombinedOrder | null>(null);
@@ -94,6 +98,8 @@ export function OrderManagementTabs({
                 handleSort={handleSort}
                 showCompletedAt={false}
                 onOrderClick={handleOrderClick}
+                highlightOrder={highlightOrder}
+                firstMatchRef={firstMatchRef}
               />
             </CardContent>
           </Card>
@@ -109,6 +115,8 @@ export function OrderManagementTabs({
                 handleSort={handleSort}
                 showCompletedAt={true}
                 onOrderClick={handleOrderClick}
+                highlightOrder={highlightOrder}
+                firstMatchRef={firstMatchRef}
               />
             </CardContent>
           </Card>

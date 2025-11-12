@@ -12,6 +12,8 @@ interface OrdersTableContentProps {
   handleSort: (field: string) => void;
   showCompletedAt?: boolean;
   onOrderClick?: (order: CombinedOrder) => void;
+  highlightOrder?: string | null;
+  firstMatchRef?: React.RefObject<HTMLTableRowElement>;
 }
 
 export function OrdersTableContent({
@@ -20,7 +22,9 @@ export function OrdersTableContent({
   sortDirection,
   handleSort,
   showCompletedAt = false,
-  onOrderClick
+  onOrderClick,
+  highlightOrder,
+  firstMatchRef
 }: OrdersTableContentProps) {
   return (
     <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
@@ -58,14 +62,19 @@ export function OrdersTableContent({
               </TableCell>
             </TableRow>
           ) : (
-            orders.map((order, index) => (
-              <TableRow 
-                key={order.id} 
-                className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${
-                  onOrderClick ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''
-                }`}
-                onClick={() => onOrderClick?.(order)}
-              >
+            orders.map((order, index) => {
+              const isHighlighted = highlightOrder && order.productNumber === highlightOrder;
+              const isFirstMatch = isHighlighted && index === 0;
+              
+              return (
+                <TableRow 
+                  key={order.id}
+                  ref={isFirstMatch ? firstMatchRef : null}
+                  className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${
+                    onOrderClick ? 'cursor-pointer hover:bg-blue-50 transition-colors' : ''
+                  } ${isHighlighted ? 'ring-2 ring-primary/60 bg-primary/5' : ''}`}
+                  onClick={() => onOrderClick?.(order)}
+                >
                 <TableCell>
                   {showCompletedAt ? (
                     order.completedAt ? 
@@ -92,7 +101,8 @@ export function OrdersTableContent({
                   </TableCell>
                 )}
               </TableRow>
-            ))
+              );
+            })
           )}
         </TableBody>
       </Table>
