@@ -1,9 +1,9 @@
-import { useNotifications } from '@/contexts/NotificationContext';
+import { useNotifications, useNotificationControls } from '@/contexts/NotificationContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NotificationItem } from './NotificationItem';
-import { CheckCheck, Bell, Bookmark } from 'lucide-react';
+import { CheckCheck, Bell, Bookmark, BellRing } from 'lucide-react';
 
 export interface NotificationPanelProps {
   onNavigate?: () => void;
@@ -11,6 +11,7 @@ export interface NotificationPanelProps {
 
 export function NotificationPanel({ onNavigate }: NotificationPanelProps) {
   const { notifications, unreadCount, markAllAsRead } = useNotifications();
+  const { permission, request } = useNotificationControls();
 
   const unreadNotifications = notifications.filter(n => !n.read);
   const savedNotifications = notifications.filter(n => n.metadata?.saved_for_later);
@@ -38,17 +39,30 @@ export function NotificationPanel({ onNavigate }: NotificationPanelProps) {
             </p>
           )}
         </div>
-        {unreadCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={markAllAsRead}
-            className="text-xs hover:bg-primary/10"
-          >
-            <CheckCheck className="h-4 w-4 mr-1" />
-            Mark all read
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {permission !== 'granted' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={request}
+              className="text-xs"
+            >
+              <BellRing className="h-3 w-3 mr-1" />
+              Enable Desktop Alerts
+            </Button>
+          )}
+          {unreadCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={markAllAsRead}
+              className="text-xs hover:bg-primary/10"
+            >
+              <CheckCheck className="h-4 w-4 mr-1" />
+              Mark all read
+            </Button>
+          )}
+        </div>
       </div>
       
       <Tabs defaultValue="all" className="w-full">

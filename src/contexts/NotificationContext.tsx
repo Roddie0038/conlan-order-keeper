@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 
-interface Notification {
+interface AppNotification {
   id: string;
   notification_type: string;
   event_type: string;
@@ -19,7 +19,7 @@ interface Notification {
 }
 
 interface NotificationContextType {
-  notifications: Notification[];
+  notifications: AppNotification[];
   unreadCount: number;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
@@ -28,28 +28,42 @@ interface NotificationContextType {
   refreshNotifications: () => Promise<void>;
 }
 
+// Export notification controls hook for UI components
+export const useNotificationControls = () => {
+  const [permission, setPermission] = useState<'default' | 'granted' | 'denied'>(
+    typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
+  );
+
+  const request = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    try {
+      const p = await Notification.requestPermission();
+      setPermission(p);
+      localStorage.setItem('notif_permission', p);
+    } catch (error) {
+      console.warn('Could not request notification permission:', error);
+    }
+  };
+
+  return { permission, request };
+};
+
 export const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
-  // Request notification permission on mount
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
-        setNotificationPermission(permission);
-      });
-    } else if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-    }
-  }, []);
-
-  // Play notification sound
+  // Throttle sound to avoid multiple beeps for batched inserts
+  let lastBeep = 0;
   const playNotificationSound = () => {
+    if (typeof window === 'undefined' || !('AudioContext' in window || 'webkitAudioContext' in (window as any))) return;
+    
+    const now = Date.now();
+    if (now - lastBeep < 1500) return; // throttle 1.5s
+    lastBeep = now;
+
     try {
-      // Simple notification beep using Web Audio API
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -71,21 +85,22 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   };
 
   // Show desktop notification
-  const showDesktopNotification = (notification: Notification) => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        const desktopNotif = new Notification(notification.title, {
-          body: notification.message,
-          icon: '/favicon.ico',
-          tag: notification.id,
-          requireInteraction: false
-        });
+  const showDesktopNotification = (notification: AppNotification) => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
 
-        // Auto-close after 5 seconds
-        setTimeout(() => desktopNotif.close(), 5000);
-      } catch (error) {
-        console.warn('Could not show desktop notification:', error);
-      }
+    try {
+      const desktopNotif = new Notification(notification.title, {
+        body: notification.message,
+        icon: '/favicon.ico',
+        tag: notification.id,
+        requireInteraction: false
+      });
+
+      // Auto-close after 5 seconds
+      setTimeout(() => desktopNotif.close(), 5000);
+    } catch (error) {
+      console.warn('Could not show desktop notification:', error);
     }
   };
 
@@ -107,7 +122,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
     
     console.log(`Fetched ${data?.length || 0} notifications`);
-    setNotifications((data || []) as unknown as Notification[]);
+    setNotifications((data || []) as unknown as AppNotification[]);
   };
 
   // Subscribe to realtime updates
@@ -134,7 +149,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           // Play sound and show desktop notification for new notifications
           if (payload.eventType === 'INSERT' && payload.new) {
             playNotificationSound();
-            showDesktopNotification(payload.new as Notification);
+            showDesktopNotification(payload.new as AppNotification);
           }
           
           fetchNotifications();
@@ -146,7 +161,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     return () => {
       console.log('Cleaning up notification subscription');
-      supabase.removeChannel(channel);
+      try {
+        supabase.removeChannel(channel);
+      } catch (error) {
+        console.warn('Error removing notification channel:', error);
+      }
     };
   }, [user]);
 
