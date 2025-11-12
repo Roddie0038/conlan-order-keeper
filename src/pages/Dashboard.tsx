@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,6 +5,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardMenu } from "@/components/dashboard/DashboardMenu";
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
+import LiquidEther from "@/components/backgrounds/LiquidEther";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -54,8 +54,26 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6">
-      <div className="container mx-auto">
+    <div className="min-h-screen bg-slate-900 text-white p-6" style={{ position: 'relative' }}>
+      <LiquidEther
+        colors={['#5227FF', '#FF9FFC', '#B19EEF']}
+        mouseForce={20}
+        cursorSize={100}
+        isViscous={false}
+        viscous={30}
+        iterationsViscous={32}
+        iterationsPoisson={32}
+        resolution={0.5}
+        isBounce={false}
+        autoDemo={true}
+        autoSpeed={0.5}
+        autoIntensity={2.2}
+        takeoverDuration={0.25}
+        autoResumeDelay={3000}
+        autoRampDuration={0.6}
+      />
+      
+      <div className="container mx-auto" style={{ position: 'relative', zIndex: 1 }}>
         <DashboardHeader />
 
         <div className="flex flex-col justify-center items-center mb-10">
