@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 
 interface AppNotification {
   id: string;
@@ -52,11 +53,13 @@ export const NotificationContext = createContext<NotificationContextType | undef
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { preferences } = useNotificationPreferences();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   // Throttle sound to avoid multiple beeps for batched inserts
   let lastBeep = 0;
   const playNotificationSound = () => {
+    if (!preferences.enableSound) return;
     if (typeof window === 'undefined' || !('AudioContext' in window || 'webkitAudioContext' in (window as any))) return;
     
     const now = Date.now();
@@ -74,7 +77,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       oscillator.frequency.value = 800;
       oscillator.type = 'sine';
       
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(preferences.soundVolume, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
       
       oscillator.start(audioContext.currentTime);
@@ -86,6 +89,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   // Show desktop notification
   const showDesktopNotification = (notification: AppNotification) => {
+    if (!preferences.enableDesktop) return;
     if (typeof window === 'undefined' || !('Notification' in window)) return;
     if (Notification.permission !== 'granted') return;
 
@@ -97,8 +101,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         requireInteraction: false
       });
 
-      // Auto-close after 5 seconds
-      setTimeout(() => desktopNotif.close(), 5000);
+      // Auto-close based on user preference
+      setTimeout(() => desktopNotif.close(), preferences.displayDuration);
     } catch (error) {
       console.warn('Could not show desktop notification:', error);
     }

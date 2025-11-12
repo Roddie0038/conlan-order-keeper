@@ -8,6 +8,7 @@ import { Download, MessageSquare, Building, Warehouse, CheckCircle, Paperclip, M
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
+import { NotificationPreferences } from '@/components/settings/NotificationPreferences';
 
 const Settings = () => {
   const [viewMode, setViewMode] = useState<'store' | 'warehouse'>('store');
@@ -326,19 +327,7 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="preferences" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Preferences</CardTitle>
-                <CardDescription>
-                  Customize your experience (coming soon)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Additional settings and preferences will be available here in future updates.
-                </p>
-              </CardContent>
-            </Card>
+            <NotificationPreferences />
           </TabsContent>
         </Tabs>
       </div>
