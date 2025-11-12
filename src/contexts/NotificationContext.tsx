@@ -33,6 +33,61 @@ export const NotificationContext = createContext<NotificationContextType | undef
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        setNotificationPermission(permission);
+      });
+    } else if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  // Play notification sound
+  const playNotificationSound = () => {
+    try {
+      // Simple notification beep using Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (error) {
+      console.warn('Could not play notification sound:', error);
+    }
+  };
+
+  // Show desktop notification
+  const showDesktopNotification = (notification: Notification) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        const desktopNotif = new Notification(notification.title, {
+          body: notification.message,
+          icon: '/favicon.ico',
+          tag: notification.id,
+          requireInteraction: false
+        });
+
+        // Auto-close after 5 seconds
+        setTimeout(() => desktopNotif.close(), 5000);
+      } catch (error) {
+        console.warn('Could not show desktop notification:', error);
+      }
+    }
+  };
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -75,6 +130,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         },
         (payload) => {
           console.log('Notification realtime update:', payload);
+          
+          // Play sound and show desktop notification for new notifications
+          if (payload.eventType === 'INSERT' && payload.new) {
+            playNotificationSound();
+            showDesktopNotification(payload.new as Notification);
+          }
+          
           fetchNotifications();
         }
       )
