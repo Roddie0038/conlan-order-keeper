@@ -63,7 +63,9 @@ export function OrdersTableContent({
             </TableRow>
           ) : (
             orders.map((order, index) => {
-              const isHighlighted = highlightOrder && order.productNumber === highlightOrder;
+              const isHighlighted = 
+                !!highlightOrder && 
+                (order.productNumber === highlightOrder || String(order.productNumber) === String(highlightOrder));
               const isFirstMatch = isHighlighted && index === 0;
               
               return (
