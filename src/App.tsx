@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
 import { AppRoutes } from './components/routing/AppRoutes';
 import { useRegistrationNotification } from './hooks/useRegistrationNotification';
+import { OTSyncProvider } from '@/integrations/ot-platform/OTSyncProvider';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -34,8 +35,10 @@ function App() {
         <NotificationProvider>
           <PlantProvider>
             <QueryClientProvider client={queryClient}>
-              <Toaster />
-              <AppContent />
+              <OTSyncProvider>
+                <Toaster />
+                <AppContent />
+              </OTSyncProvider>
             </QueryClientProvider>
           </PlantProvider>
         </NotificationProvider>

@@ -5,7 +5,7 @@ import { OrderCountSummary } from "./OrderCountSummary";
 import { OrderSubmitButton } from "./OrderSubmitButton";
 import { useToast } from "@/hooks/use-toast";
 import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
-import { getPlantForStore } from "@/utils/plantMapping";
+import { getPlantForStore } from "@/utils/storeHelpers";
 
 interface OrderSubmissionHandlerProps {
   orderSummaries: any[];

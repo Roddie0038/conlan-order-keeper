@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { getPlantForStore } from "@/utils/plantMapping";
+import { getPlantForStore } from "@/utils/storeHelpers";
 import { InventoryAvailabilityAlert } from "../order-form/InventoryAvailabilityAlert";
 
 interface MTOFormFieldsProps {

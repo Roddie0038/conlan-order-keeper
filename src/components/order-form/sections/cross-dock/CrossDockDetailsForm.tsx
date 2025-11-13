@@ -4,7 +4,7 @@ import { OrderFormValues } from "../../order-form-schema";
 import { Card } from "@/components/ui/card";
 import { Truck } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
+// REMOVED: Email routing now handled by OT Platform
 import { StoreFields } from "./components/StoreFields";
 import { OrderInfoFields } from "./components/OrderInfoFields";
 import { ConfirmationCheckbox } from "./components/ConfirmationCheckbox";
@@ -20,21 +20,17 @@ export function CrossDockDetailsForm({ form }: CrossDockDetailsFormProps) {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin || false;
   
-  // Update manager email when destination store changes
+  // REMOVED: Email loading - OT Platform handles email routing
   useEffect(() => {
     const destStore = form.watch("crossDockDestination");
     if (destStore) {
-      const loadEmail = async () => {
-        const email = await getFirstManagerEmail(destStore);
-        setDestManagerEmail(email || "");
-      };
-      loadEmail();
+      // Email routing removed - handled by OT Platform
     }
   }, [form.watch("crossDockDestination")]);
 
   const handleDestinationChange = async (value: string) => {
-    const email = await getFirstManagerEmail(value);
-    setDestManagerEmail(email || "");
+    // Email routing removed - handled by OT Platform
+    setDestManagerEmail("");
   };
 
   // Auto-validate that FROM and TO stores are different

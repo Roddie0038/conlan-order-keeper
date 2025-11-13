@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { MTOFormData, initialMTOFormData } from "../mto-form-config";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 
 interface SessionValues {
   name: string;
@@ -21,7 +20,7 @@ export const useMTOForm = () => {
     return {
       ...initialMTOFormData,
       store: user?.store || "",
-      managerEmail: "", // Will be populated dynamically
+      managerEmail: "", // REMOVED - OT Platform handles email routing
     };
   });
 
@@ -39,17 +38,13 @@ export const useMTOForm = () => {
     }
   }, []);
 
+  // REMOVED: Email loading - OT Platform handles email routing
   useEffect(() => {
     if (user?.store) {
-      const loadManagerEmail = async () => {
-        const managerEmail = await getFirstManagerEmail(user.store);
-        setFormData(prev => ({
-          ...prev,
-          store: user.store,
-          managerEmail: managerEmail
-        }));
-      };
-      loadManagerEmail();
+      setFormData(prev => ({
+        ...prev,
+        store: user.store,
+      }));
     }
   }, [user?.store]);
 
@@ -73,7 +68,7 @@ export const useMTOForm = () => {
     setFormData({
       ...initialMTOFormData,
       store: user?.store || "",
-      managerEmail: "", // Will be populated dynamically
+      managerEmail: "", // REMOVED - OT Platform handles email routing
       name: sessionValues.name,
     });
   };

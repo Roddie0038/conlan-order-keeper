@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { uploadFileToSupabase, uploadMultipleFiles } from "@/services/storageService";
 import { submitRetreadWarranty } from "@/services/warrantyService";
 import { validateWarrantyForm } from "@/utils/warrantyValidation";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
+// REMOVED: Email routing now handled by OT Platform
 import { RetreadWarrantyFormData } from "./useRetreadWarrantyForm";
 
 export const useWarrantySubmission = () => {
@@ -31,10 +31,7 @@ export const useWarrantySubmission = () => {
     try {
       console.log("🚀 Starting warranty claim submission...");
       
-      // Get the proper manager email and store name using the same logic as other forms
-      const managerEmail = await getFirstManagerEmail(user?.store || "");
-      const storeName = user?.store || "";
-      const submitterName = user?.name || "Store Manager";
+  // REMOVED: Manager email - OT Platform handles email routing
       
       console.log("📧 WARRANTY SUBMISSION - Using email:", managerEmail, "for store:", storeName);
       
@@ -53,10 +50,10 @@ export const useWarrantySubmission = () => {
         ? await uploadMultipleFiles(form.photoFiles, "warranty-photos", user?.id)
         : [];
 
-      // Submit warranty claim with proper email and store information
+      // Submit warranty claim - email routing handled by OT Platform
       const result = await submitRetreadWarranty({
         plant: user?.plant || "Grand Prairie 97",
-        store: storeName,
+        store: user?.store || "",
         tire_type: "Retread",
         dot_number: form.dotNumber,
         condition: form.condition,
@@ -66,8 +63,8 @@ export const useWarrantySubmission = () => {
         tire_size: form.tireSize,
         invoice_url: invoiceUrl,
         photo_urls: photoUrls,
-        email: managerEmail,
-        name: submitterName,
+        email: user?.email || "",
+        name: user?.name || "Store Manager",
       });
 
       if (result.error) {

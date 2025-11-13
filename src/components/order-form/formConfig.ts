@@ -1,48 +1,48 @@
+// src/components/order-form/formConfig.ts
+// DEPRECATED - Stores should come from OT Platform via useOTStores()
+// Colors should come from OT Platform via useOTStoreColors()
 
 import { CrossDockFields } from "@/types/cross-dock.types";
 
+// DEPRECATED: Use useOTStores() instead
 export const stores = [
-  { id: "22", name: "Fort Worth 22" },
-  { id: "27", name: "Grand Prairie 27" },
-  { id: "28", name: "Houston 28" },
-  { id: "29", name: "San Antonio 29" },
-  { id: "30", name: "OKC 30" },
-  { id: "32", name: "Little Rock 32" },
-  { id: "33", name: "Kansas 33" },
-  { id: "35", name: "Laredo 35" },
-  { id: "36", name: "Tulsa 36" },
-  { id: "39", name: "Austin 39" },
+  { id: "022", name: "Fort Worth 022" },
+  { id: "027", name: "Grand Prairie 027" },
+  { id: "028", name: "Houston 028" },
+  { id: "029", name: "San Antonio 029" },
+  { id: "030", name: "OKC 030" },
+  { id: "032", name: "Little Rock 032" },
+  { id: "033", name: "Kansas 033" },
+  { id: "035", name: "Laredo 035" },
+  { id: "036", name: "Tulsa 036" },
+  { id: "039", name: "Austin 039" },
 ];
 
-// REMOVED: Hardcoded email mappings - now using dynamic platform_users lookup
-// export const storeManagerEmails: Record<string, string> = { ... };
-// This has been replaced with dynamic database lookups in the user management system
-
-// Store to color mapping for wheel orders
+// DEPRECATED: Use useOTStoreColors() instead
 export const storeColors: Record<string, string> = {
-  "22": "Yellow",
-  "27": "Yellow", 
-  "28": "Yellow",
-  "29": "Yellow",
-  "30": "Yellow",
-  "32": "Yellow",
-  "33": "Yellow",
-  "35": "Yellow",
-  "36": "Yellow",
-  "39": "Yellow",
+  "022": "Yellow",
+  "027": "Yellow", 
+  "028": "Yellow",
+  "029": "Yellow",
+  "030": "Yellow",
+  "032": "Yellow",
+  "033": "Yellow",
+  "035": "Yellow",
+  "036": "Yellow",
+  "039": "Yellow",
   "Admin": "Yellow"
 };
 
-// REMOVED: getManagerEmail function - now using dynamic platform_users lookup
-// This hardcoded function has been replaced with dynamic database queries
-// All email routing now happens through the ordering-confirmation-email edge function
-
-// Export the getStoreColor function for wheel orders
+// DEPRECATED: Use useOTStoreColors() instead
 export const getStoreColor = (store: string): string => {
   if (store === "Admin") return storeColors["Admin"];
-  const match = store.match(/\d+$/);
-  const storeNumber = match ? match[0] : '';
-  return storeColors[storeNumber] || 'Yellow';
+  const match = store.match(/\d{3}$/);
+  if (!match) {
+    const match2 = store.match(/\d{2}$/);
+    const storeNumber = match2 ? match2[0].padStart(3, '0') : '';
+    return storeColors[storeNumber] || 'Yellow';
+  }
+  return storeColors[match[0]] || 'Yellow';
 };
 
 export const scheduleOptions = [

@@ -9,7 +9,7 @@ import { fetchInventory } from "@/services/inventoryService";
 import { InventoryItem } from "@/types/inventory";
 import { Info, Package, Calendar, Truck, Building, Mail, MapPin, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getPlantForStore } from "@/utils/plantMapping";
+import { getPlantForStore } from "@/utils/storeHelpers";
 import { InventoryWarningDialog } from "./InventoryWarningDialog";
 
 interface OrderFormInputsProps {

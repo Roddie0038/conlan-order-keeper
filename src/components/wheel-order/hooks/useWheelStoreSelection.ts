@@ -3,18 +3,18 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { stores, getStoreColor } from "@/components/order-form/formConfig";
-import { getFirstManagerEmail } from "@/services/dynamicEmailService";
 import { WheelFormData } from "../types";
 
 export function useWheelStoreSelection(formData: WheelFormData, setFormData: React.Dispatch<React.SetStateAction<WheelFormData>>) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [managerEmail, setManagerEmail] = useState("");
+  
+  // REMOVED: Manager email - OT Platform handles email routing
   
   useEffect(() => {
     if (user?.store) {
       const storeIdMatch = user.store.match(/\d+$/);
-      const storeId = storeIdMatch ? storeIdMatch[0] : "";
+      const storeId = storeIdMatch ? storeIdMatch[0].padStart(3, '0') : "";
       
       const storeObj = stores.find(s => s.id === storeId);
       
@@ -24,16 +24,10 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
           ...prev,
           storeName: user.store,
           storeId: storeId,
-          userStore: user.store,  // Set the userStore field based on the authenticated user
-          storeColors: storeColor  // Set the store colors automatically
+          userStore: user.store,
+          storeColors: storeColor
         }));
       }
-
-      const loadEmail = async () => {
-        const email = await getFirstManagerEmail(user.store);
-        setManagerEmail(email);
-      };
-      loadEmail();
     }
   }, [user?.store, setFormData]);
 
@@ -54,14 +48,11 @@ export function useWheelStoreSelection(formData: WheelFormData, setFormData: Rea
         ...prev, 
         storeId: value,
         storeName: selectedStore.name,
-        userStore: user?.store || "",  // Preserve the user's actual store for validation
-        storeColors: storeColor  // Set the store colors automatically
+        userStore: user?.store || "",
+        storeColors: storeColor
       }));
-      
-      const email = await getFirstManagerEmail(selectedStore.name);
-      setManagerEmail(email);
     }
   };
 
-  return { managerEmail, handleStoreChange, user };
+  return { managerEmail: "", handleStoreChange, user }; // Return empty string for managerEmail
 }

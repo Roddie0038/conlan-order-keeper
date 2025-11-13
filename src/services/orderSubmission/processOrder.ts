@@ -3,8 +3,7 @@
 // No writes to Ordering DB, no notification_logs, no email routing.
 
 import { OrderSummary } from "@/hooks/useOrderSubmission";
-import { getPlantForStore } from "@/utils/plantMapping";
-import { storeData } from "@/config/storeData";
+import { getPlantForStore } from "@/utils/storeHelpers";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import { submitOtOrder, type OtOrderPayload, isIngestFail } from "@/services/submitOtOrder";
 import { submitToOrdersWebhook } from "@/services/webhook/orderWebhook";
@@ -24,10 +23,7 @@ const onlyDigits = (s: string) => (s.match(/\d+$/)?.[0] ?? "").trim();
 const normalizeCrossDockDestination = (value: string | undefined) => {
   const raw = (value ?? "").trim();
   if (!raw) return "";
-  if (/^\d+$/.test(raw)) {
-    const found = storeData.find((s) => s.storeNumber === raw);
-    return found ? found.name : `Store ${raw}`;
-  }
+  // Simple passthrough - store lookup removed
   return raw;
 };
 

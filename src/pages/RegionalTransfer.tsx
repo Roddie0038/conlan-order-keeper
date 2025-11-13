@@ -11,15 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft, TrendingUp } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { PLANT_STORE_MAP } from "@/utils/plantMapping";
-
-const PLANTS = ["Grand Prairie 097", "Romulus 098", "Mulberry 099"];
-
-// Flatten all stores from plant map and filter out any empty values
-const ALL_STORES = Object.values(PLANT_STORE_MAP)
-  .flat()
-  .filter(store => store && store.trim() !== '')
-  .sort();
+import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
+import { useOTPlants } from "@/integrations/ot-platform/hooks/useOTPlants";
 
 type TransportMethod = "PAM_TRANSPORT" | "CENTRAL_TRANSPORT" | "CUSTOM";
 type CostResponsibility = "SHIPPER" | "RECEIVER";
@@ -32,6 +25,14 @@ export default function RegionalTransfer() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [userStore, setUserStore] = useState<string>("");
   const [isLoadingUserData, setIsLoadingUserData] = useState(true);
+
+  // Fetch data from OT Platform - Single source of truth
+  const { data: otPlants, isLoading: plantsLoading } = useOTPlants();
+  const { data: otStores, isLoading: storesLoading } = useOTStores();
+
+  // Derive PLANTS and ALL_STORES from OT Platform data
+  const PLANTS = otPlants?.map(p => p.plant_name) || [];
+  const ALL_STORES = otStores?.map(s => s.store_name).sort() || [];
 
   // Auto-filled metadata (locked fields)
   const submittedByName = user?.name || user?.email || "";

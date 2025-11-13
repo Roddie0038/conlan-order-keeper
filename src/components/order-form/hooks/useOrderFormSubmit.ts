@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { OrderSummary } from "../types";
-import { getPlantForStore } from "@/utils/plantMapping";
+import { getPlantForStore } from "@/utils/storeHelpers";
 import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
 import { toast as sonnerToast } from "sonner";
 

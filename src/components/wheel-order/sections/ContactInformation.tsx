@@ -2,8 +2,8 @@
 import { FormField } from "../../order-form/FormField";
 import { stores } from "../../order-form/formConfig";
 import { WheelFormData } from "../types";
-import { getPlantForStore } from "@/utils/plantMapping";
-import { getStoreColorName, getStoreColorHex } from "@/utils/storeColorMapping";
+import { getPlantForStore, extractStoreCode } from "@/utils/storeHelpers";
+import { useOTStoreColors } from "@/integrations/ot-platform/hooks/useOTStores";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
@@ -22,12 +22,17 @@ export function ContactInformation({
   onStoreChange, 
   user 
 }: ContactInformationProps) {
-  // Calculate plant based on selected store
+  // Fetch store colors from OT Platform
+  const { data: storeColorsMap } = useOTStoreColors();
+  
+  // Calculate plant based on selected store (should come from OT in future)
   const plant = formData.storeName ? getPlantForStore(formData.storeName) : "";
   
-  // Calculate store color based on selected store (matches OT's mapping)
-  const storeColor = formData.storeName ? getStoreColorName(formData.storeName) : "";
-  const storeColorHex = formData.storeName ? getStoreColorHex(formData.storeName) : "";
+  // Get store color from OT Platform
+  const storeCode = formData.storeName ? extractStoreCode(formData.storeName) : null;
+  const storeColorData = storeCode && storeColorsMap ? storeColorsMap.get(storeCode) : null;
+  const storeColor = storeColorData?.color_name || "";
+  const storeColorHex = storeColorData?.color_hex || "";
 
   return (
     <div className="space-y-4">
@@ -43,15 +48,25 @@ export function ContactInformation({
         required
       />
       
-      <FormField
-        label="Store"
-        value={formData.storeName}
-        onChange={onStoreChange}
-        options={stores}
-        placeholder="Select store"
-        disabled={!user?.isAdmin}
-        required
-      />
+      {/* Store Select - Fixed to use storeId */}
+      <div className="space-y-2">
+        {!user?.isAdmin && (
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+              🔒 LOCKED
+            </span>
+          </div>
+        )}
+        <FormField
+          label="Store"
+          value={formData.storeId}
+          onChange={onStoreChange}
+          options={stores}
+          placeholder="Select store"
+          disabled={!user?.isAdmin}
+          required
+        />
+      </div>
 
       {/* Plant Field - Read-only, auto-fills based on store */}
       <div className="space-y-2">
@@ -69,7 +84,7 @@ export function ContactInformation({
         />
       </div>
 
-      {/* Store Colors Field - Read-only, auto-fills based on store with color chip */}
+      {/* Store Colors Field - From OT Platform */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
@@ -89,27 +104,13 @@ export function ContactInformation({
             id="storeColor"
             value={storeColor || ""}
             disabled={true}
-            placeholder="Store color will be automatically assigned"
+            placeholder="Store color from OT Platform"
             className="flex-1"
           />
         </div>
       </div>
       
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
-            🔒 LOCKED
-          </span>
-        </div>
-        <FormField
-          label="Manager's Email"
-          type="email"
-          value={managerEmail}
-          onChange={() => {}}
-          disabled={true}
-          placeholder="Manager's email will be automatically set"
-        />
-      </div>
+      {/* REMOVED: Manager Email - OT Platform handles email routing */}
       
       <FormField
         label="Date Received"

@@ -5,8 +5,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
-import { getPlantForStore } from "@/utils/plantMapping";
-import { getStoreColorName } from "@/utils/storeColorMapping";
+import { getPlantForStore } from "@/utils/storeHelpers";
+// REMOVED: Store colors now from OT Platform
 
 export function useWheelFormSubmission(formData: WheelFormData, managerEmail: string) {
   const { user } = useAuth();
@@ -40,7 +40,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       }
 
       const plant = getPlantForStore(formData.storeName);
-      const storeColor = getStoreColorName(formData.storeName);
+      // Store color removed - now from OT Platform via useOTStoreColors()
       
       // Build payload with top-level type for OT to route/process
       const payload: OtOrderPayload = {
@@ -62,7 +62,7 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
           qty_wheels: formData.qtyWheels,
           date_received: formData.dateReceived,
           schedule_arrival: formData.scheduleArrival || formData.dateReceived,
-          store_color: storeColor,
+          // store_color removed - OT Platform derives from app_store_colors
         }
       };
 

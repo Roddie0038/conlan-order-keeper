@@ -1,5 +1,5 @@
 import { submitOtOrder, type OtOrderPayload, isIngestFail } from "@/services/submitOtOrder";
-import { getPlantForStore } from "@/utils/plantMapping";
+import { getPlantForStore } from "@/utils/storeHelpers";
 
 export const useSubmitMTOOrder = ({ formData, setIsSubmitting, resetForm, toast }: any) => {
   const toInt = (v: unknown, fallback = 1) => {
