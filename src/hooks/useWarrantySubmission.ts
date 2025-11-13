@@ -30,10 +30,7 @@ export const useWarrantySubmission = () => {
     setLoading(true);
     try {
       console.log("🚀 Starting warranty claim submission...");
-      
-  // REMOVED: Manager email - OT Platform handles email routing
-      
-      console.log("📧 WARRANTY SUBMISSION - Using email:", managerEmail, "for store:", storeName);
+      console.log("📧 WARRANTY SUBMISSION - Email routing handled by OT Platform");
       
       // Upload invoice file if provided
       let invoiceUrl = "";

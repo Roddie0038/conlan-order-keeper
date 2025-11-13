@@ -63,17 +63,15 @@ export function ContactSection({ form }: ContactSectionProps) {
         setManagerEmails(emailsString);
         form.setValue("managersEmail", emailsString);
       } else {
-        // Fallback to legacy method
-        const dynamicEmail = await getFirstManagerEmail(storeName);
-        setManagerEmails(dynamicEmail);
-        form.setValue("managersEmail", dynamicEmail);
+        // No recipients found - OT Platform will handle routing
+        setManagerEmails("Email routing handled by OT Platform");
+        form.setValue("managersEmail", "");
       }
     } catch (error) {
       console.error("Error fetching manager emails:", error);
-      // Fallback to legacy method on error
-      const dynamicEmail = await getFirstManagerEmail(storeName);
-      setManagerEmails(dynamicEmail);
-      form.setValue("managersEmail", dynamicEmail);
+      // OT Platform will handle email routing
+      setManagerEmails("Email routing handled by OT Platform");
+      form.setValue("managersEmail", "");
     } finally {
       setIsLoadingEmails(false);
     }
