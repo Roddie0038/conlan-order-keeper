@@ -35,6 +35,7 @@ import UserManagement from '@/pages/UserManagement';
 import AdminEmailRouting from '@/pages/AdminEmailRouting';
 import WebhookAdmin from '@/pages/WebhookAdmin';
 import InventoryIssues from '@/pages/InventoryIssues';
+import RegionalTransfer from '@/pages/RegionalTransfer';
 
 export function AppRoutes() {
   return (
@@ -225,6 +226,12 @@ export function AppRoutes() {
       <Route path="/inventory-issues" element={
         <AuthGuard>
           <InventoryIssues />
+        </AuthGuard>
+      } />
+      
+      <Route path="/regional-transfer" element={
+        <AuthGuard>
+          <RegionalTransfer />
         </AuthGuard>
       } />
     </Routes>

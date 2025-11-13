@@ -1,6 +1,5 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { PlantSwitcher } from "@/components/plant-switcher";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export function DashboardHeader() {
@@ -31,9 +30,6 @@ export function DashboardHeader() {
       </div>
       <div className="flex items-center gap-4">
         <NotificationBell />
-        <div className="w-full md:w-auto md:max-w-sm">
-          <PlantSwitcher />
-        </div>
       </div>
     </header>
   );

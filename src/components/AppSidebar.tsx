@@ -30,7 +30,8 @@ import {
   MessageSquare,
   Users,
   Mail,
-  Webhook
+  Webhook,
+  TrendingUp
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -80,6 +81,11 @@ const navigationItems = [
     title: "Customer Complaint Form",
     url: "/complaint-tracking",
     icon: AlertTriangle,
+  },
+  {
+    title: "Regional / Plant Transfer",
+    url: "/regional-transfer",
+    icon: TrendingUp,
   },
   {
     title: "Approved Tire Tread List",

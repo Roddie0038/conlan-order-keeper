@@ -120,6 +120,18 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         fullSizeImage: true,
         backgroundImage: "/lovable-uploads/79d57732-9949-4d90-812e-8581ada7c116.png",
         loaded
+      },
+      {
+        title: "REGIONAL / PLANT TRANSFER",
+        icon: null,
+        path: "/regional-transfer",
+        color: "bg-gradient-to-br from-blue-600 to-purple-600",
+        borderColor: "border-purple-500",
+        delay: 0.85,
+        size: "col-span-1",
+        hideTitle: false,
+        fullSizeImage: false,
+        loaded
       }
     ];
     
