@@ -45,7 +45,7 @@ export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsP
               </FormControl>
               <SelectContent>
                 {isLoading ? (
-                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                  <SelectItem value="loading" disabled>Loading stores...</SelectItem>
                 ) : (
                   stores.map((store) => (
                     <SelectItem key={store.store_number} value={store.store_number}>
@@ -83,7 +83,7 @@ export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsP
               </FormControl>
               <SelectContent>
                 {isLoading ? (
-                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                  <SelectItem value="loading" disabled>Loading stores...</SelectItem>
                 ) : (
                   stores.map((store) => (
                     <SelectItem 

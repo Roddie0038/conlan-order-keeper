@@ -41,7 +41,7 @@ export const PlantSelect = ({ selectedPlant, setSelectedPlant }: PlantSelectProp
         </SelectTrigger>
         <SelectContent className="max-h-[300px]">
           {isLoading ? (
-            <SelectItem value="" disabled>Loading plants...</SelectItem>
+            <SelectItem value="loading" disabled>Loading plants...</SelectItem>
           ) : plants.length > 0 ? (
             plants.map(plant => (
               <SelectItem key={plant.plant_code} value={plant.plant_name}>
@@ -49,7 +49,7 @@ export const PlantSelect = ({ selectedPlant, setSelectedPlant }: PlantSelectProp
               </SelectItem>
             ))
           ) : (
-            <SelectItem value="" disabled>No plants available</SelectItem>
+            <SelectItem value="none" disabled>No plants available</SelectItem>
           )}
         </SelectContent>
       </Select>

@@ -46,7 +46,7 @@ export function CrossDockRequestForm({
                 </SelectTrigger>
                 <SelectContent>
                   {isLoading ? (
-                    <SelectItem value="" disabled>Loading stores...</SelectItem>
+                    <SelectItem value="loading" disabled>Loading stores...</SelectItem>
                   ) : (
                     storesData.map((store) => (
                       <SelectItem key={store.store_number} value={store.store_number}>
@@ -77,7 +77,7 @@ export function CrossDockRequestForm({
               </SelectTrigger>
               <SelectContent>
                 {isLoading ? (
-                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                  <SelectItem value="loading" disabled>Loading stores...</SelectItem>
                 ) : (
                   storesData
                     .filter((store) => store.store_number !== formData.requesting_store)

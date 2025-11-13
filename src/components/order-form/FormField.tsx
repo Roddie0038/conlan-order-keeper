@@ -46,7 +46,7 @@ export const FormField = ({
             {options.map(option => (
               <SelectItem 
                 key={option.id || option.value} 
-                value={option.id || option.value || ""}
+                value={option.id || option.value || "none"}
                 className="hover:bg-blue-50 cursor-pointer text-gray-900 focus:bg-blue-100"
               >
                 {option.name || option.value}

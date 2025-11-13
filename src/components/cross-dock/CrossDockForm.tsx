@@ -105,7 +105,7 @@ export const CrossDockForm = () => {
               </SelectTrigger>
               <SelectContent>
                 {isLoading ? (
-                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                  <SelectItem value="loading" disabled>Loading stores...</SelectItem>
                 ) : (
                   stores.map(store => <SelectItem key={store.store_number} value={store.store_number}>
                       {store.store_name}
@@ -123,7 +123,7 @@ export const CrossDockForm = () => {
               </SelectTrigger>
               <SelectContent>
                 {isLoading ? (
-                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                  <SelectItem value="loading" disabled>Loading stores...</SelectItem>
                 ) : (
                   stores.map(store => <SelectItem key={store.store_number} value={store.store_number}>
                       {store.store_name}
