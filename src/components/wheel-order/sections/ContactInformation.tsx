@@ -54,16 +54,28 @@ export function ContactInformation({
       />
 
       {/* Plant Field - Read-only, auto-fills based on store */}
-      <FormField
-        label="Plant"
-        value={plant || ""}
-        onChange={() => {}}
-        disabled={true}
-        placeholder="Plant will be automatically assigned"
-      />
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+            🔒 LOCKED
+          </span>
+        </div>
+        <FormField
+          label="Plant"
+          value={plant || ""}
+          onChange={() => {}}
+          disabled={true}
+          placeholder="Plant will be automatically assigned"
+        />
+      </div>
 
       {/* Store Colors Field - Read-only, auto-fills based on store with color chip */}
       <div className="space-y-2">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+            🔒 LOCKED
+          </span>
+        </div>
         <Label htmlFor="storeColor">Store Color</Label>
         <div className="flex items-center gap-2">
           {storeColorHex && (
@@ -83,14 +95,21 @@ export function ContactInformation({
         </div>
       </div>
       
-      <FormField
-        label="Manager's Email"
-        type="email"
-        value={managerEmail}
-        onChange={() => {}}
-        disabled={true}
-        placeholder="Manager's email will be automatically set"
-      />
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+            🔒 LOCKED
+          </span>
+        </div>
+        <FormField
+          label="Manager's Email"
+          type="email"
+          value={managerEmail}
+          onChange={() => {}}
+          disabled={true}
+          placeholder="Manager's email will be automatically set"
+        />
+      </div>
       
       <FormField
         label="Date Received"
