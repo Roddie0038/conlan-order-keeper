@@ -12,7 +12,7 @@ export async function fetchOTPlants(): Promise<OTPlant[]> {
     const { data, error } = await otClient
       .from('app_plants')
       .select('*')
-      .eq('active', true)
+      .eq('status', 'active')
       .order('plant_code');
 
     const duration = Math.round(performance.now() - startTime);

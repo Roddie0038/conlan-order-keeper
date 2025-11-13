@@ -39,8 +39,7 @@ export interface OTPlant {
   id: string;
   plant_code: string;            // "097"
   plant_name: string;            // "Grand Prairie 097"
-  active: boolean;
-  status?: string;
+  status: string;                // "active" | "inactive"
   associated_stores?: string[];
   enable_ordering_access?: boolean;
 }

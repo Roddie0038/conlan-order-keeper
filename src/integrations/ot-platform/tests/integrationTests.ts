@@ -132,8 +132,8 @@ export async function testPlants(): Promise<TestResult> {
   try {
     const { data: plants, error } = await otClient
       .from('app_plants')
-      .select('id, plant_name, plant_code, active, associated_stores')
-      .eq('active', true)
+      .select('id, plant_name, plant_code, status, associated_stores, enable_ordering_access')
+      .eq('status', 'active')
       .order('id');
     
     const duration = Math.round(performance.now() - startTime);
@@ -211,6 +211,7 @@ export async function testUsers(): Promise<TestResult> {
 
 /**
  * Phase 2.5: Test Cross-Reference Query (Stores + Colors)
+ * Tests embedded join using FK relationship
  */
 export async function testStoresWithColors(): Promise<TestResult> {
   const startTime = performance.now();
@@ -221,7 +222,8 @@ export async function testStoresWithColors(): Promise<TestResult> {
         store_number,
         store_name,
         plant,
-        app_store_colors (
+        is_active,
+        app_store_colors!fk_app_store_colors_store_code (
           color_name,
           color_hex
         )
