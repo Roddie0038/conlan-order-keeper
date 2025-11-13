@@ -160,7 +160,7 @@ export function ContactSection({ form }: ContactSectionProps) {
                     <SelectItem value="Admin">Admin Only</SelectItem>
                   )}
                   {isLoadingStores ? (
-                    <SelectItem value="" disabled>Loading stores...</SelectItem>
+                    <SelectItem value="loading" disabled>Loading stores...</SelectItem>
                   ) : (
                     storeOptions.map((store) => (
                       <SelectItem key={store.store_number} value={store.store_number}>
