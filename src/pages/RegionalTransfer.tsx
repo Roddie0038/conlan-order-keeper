@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, TrendingUp } from "lucide-react";
+import { ArrowLeft, TrendingUp, Package, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
 import { useOTPlants } from "@/integrations/ot-platform/hooks/useOTPlants";
+import { checkInventoryAvailability } from "@/services/otPlatformClient";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type TransportMethod = "PAM_TRANSPORT" | "CENTRAL_TRANSPORT" | "CUSTOM";
 type CostResponsibility = "SHIPPER" | "RECEIVER";
@@ -25,6 +27,13 @@ export default function RegionalTransfer() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [userStore, setUserStore] = useState<string>("");
   const [isLoadingUserData, setIsLoadingUserData] = useState(true);
+  const [inventoryStatus, setInventoryStatus] = useState<{
+    available: boolean;
+    quantity: number;
+    status: string;
+    lastUpdated: string;
+  } | null>(null);
+  const [isCheckingInventory, setIsCheckingInventory] = useState(false);
 
   // Fetch data from OT Platform - Single source of truth
   const { data: otPlants, isLoading: plantsLoading } = useOTPlants();
@@ -94,6 +103,34 @@ export default function RegionalTransfer() {
 
     fetchUserStore();
   }, [user?.email]);
+
+  // Check inventory availability when product number and source plant are filled
+  useEffect(() => {
+    const checkInventory = async () => {
+      if (!formData.productNumber.trim() || !formData.sourcePlant) {
+        setInventoryStatus(null);
+        return;
+      }
+
+      setIsCheckingInventory(true);
+      try {
+        const result = await checkInventoryAvailability(
+          formData.productNumber.trim(),
+          formData.sourcePlant
+        );
+        setInventoryStatus(result);
+      } catch (error) {
+        console.error('Error checking inventory:', error);
+        setInventoryStatus(null);
+      } finally {
+        setIsCheckingInventory(false);
+      }
+    };
+
+    // Debounce the check by 500ms
+    const timeoutId = setTimeout(checkInventory, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.productNumber, formData.sourcePlant]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -373,6 +410,67 @@ export default function RegionalTransfer() {
                       required
                     />
                   </div>
+                  
+                  {/* Inventory Availability Status */}
+                  {(isCheckingInventory || inventoryStatus) && formData.productNumber && formData.sourcePlant && (
+                    <div className="grid grid-cols-[200px_1fr] gap-4 items-start mb-3">
+                      <div className="text-right pt-2">
+                        <Label className="text-slate-700 font-medium">Inventory Status:</Label>
+                      </div>
+                      <div>
+                        {isCheckingInventory ? (
+                          <Alert className="bg-blue-50 border-blue-200">
+                            <Clock className="h-4 w-4 text-blue-600" />
+                            <AlertDescription className="text-blue-800">
+                              Checking inventory at {formData.sourcePlant}...
+                            </AlertDescription>
+                          </Alert>
+                        ) : inventoryStatus ? (
+                          <Alert className={
+                            inventoryStatus.available && inventoryStatus.quantity >= parseInt(formData.quantity || "1")
+                              ? "bg-green-50 border-green-200"
+                              : inventoryStatus.available && inventoryStatus.quantity > 0
+                              ? "bg-yellow-50 border-yellow-200"
+                              : "bg-red-50 border-red-200"
+                          }>
+                            {inventoryStatus.available && inventoryStatus.quantity >= parseInt(formData.quantity || "1") ? (
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                            ) : inventoryStatus.available && inventoryStatus.quantity > 0 ? (
+                              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                            ) : (
+                              <Package className="h-4 w-4 text-red-600" />
+                            )}
+                            <AlertDescription className={
+                              inventoryStatus.available && inventoryStatus.quantity >= parseInt(formData.quantity || "1")
+                                ? "text-green-800"
+                                : inventoryStatus.available && inventoryStatus.quantity > 0
+                                ? "text-yellow-800"
+                                : "text-red-800"
+                            }>
+                              <div className="font-semibold">
+                                {inventoryStatus.quantity} units available at {formData.sourcePlant}
+                              </div>
+                              <div className="text-xs mt-1">
+                                Status: {inventoryStatus.status} • Last updated: {new Date(inventoryStatus.lastUpdated).toLocaleString()}
+                              </div>
+                              {inventoryStatus.quantity < parseInt(formData.quantity || "1") && (
+                                <div className="text-xs mt-1 font-semibold">
+                                  ⚠️ Requested quantity ({formData.quantity}) exceeds available stock
+                                </div>
+                              )}
+                            </AlertDescription>
+                          </Alert>
+                        ) : (
+                          <Alert className="bg-gray-50 border-gray-200">
+                            <AlertTriangle className="h-4 w-4 text-gray-600" />
+                            <AlertDescription className="text-gray-800">
+                              No inventory data found for this product at {formData.sourcePlant}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="grid grid-cols-[200px_1fr] gap-4 items-center mb-3">
                     <Label htmlFor="productDescription" className="text-slate-700 font-medium text-right">
