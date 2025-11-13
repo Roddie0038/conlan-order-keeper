@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, CheckCircle2, XCircle, Clock, TrendingDown } from "lucide-react";
-import { checkInventoryAvailability } from "@/services/otPlatformClient";
 import { format } from "date-fns";
+import { useInventoryAvailability } from "@/hooks/useInventoryAvailability";
 
 interface InventoryAvailabilityAlertProps {
   productNumber: string;
@@ -17,37 +16,7 @@ export function InventoryAvailabilityAlert({
   plant,
   requestedQuantity = 0
 }: InventoryAvailabilityAlertProps) {
-  const [loading, setLoading] = useState(false);
-  const [inventory, setInventory] = useState<{
-    available: boolean;
-    quantity: number;
-    status: string;
-    lastUpdated: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const checkAvailability = async () => {
-      if (!productNumber || !plant) {
-        setInventory(null);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const result = await checkInventoryAvailability(productNumber, plant);
-        setInventory(result);
-      } catch (error) {
-        console.error('Failed to check inventory:', error);
-        setInventory(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Debounce the check to avoid too many requests
-    const timer = setTimeout(checkAvailability, 500);
-    return () => clearTimeout(timer);
-  }, [productNumber, plant]);
+  const { loading, inventory } = useInventoryAvailability(productNumber, plant);
 
   if (loading) {
     return (
