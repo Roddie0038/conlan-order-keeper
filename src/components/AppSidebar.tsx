@@ -32,7 +32,8 @@ import {
   Mail,
   Webhook,
   TrendingUp,
-  History
+  History,
+  TestTube
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -134,6 +135,11 @@ const adminItems = [
     title: "Completed Orders",
     url: "/completed-orders",
     icon: FileText,
+  },
+  {
+    title: "OT Platform Tests",
+    url: "/ot-platform-test",
+    icon: TestTube,
   },
 ];
 
