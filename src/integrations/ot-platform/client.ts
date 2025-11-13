@@ -1,12 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const OT_SUPABASE_URL = "https://hpgjbpvugasktphwntee.supabase.co";
-const OT_ANON_KEY = import.meta.env.VITE_OT_PLATFORM_ANON_KEY;
-
-if (!OT_ANON_KEY) {
-  console.error('❌ Missing VITE_OT_PLATFORM_ANON_KEY environment variable');
-  throw new Error('Missing OT_PLATFORM_ANON_KEY environment variable. Please configure this secret.');
-}
+// OT Platform anon key - this is a publishable key, safe for client-side use
+const OT_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwZ2picHZ1Z2Fza3RwaHdudGVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA2NTk4MzYsImV4cCI6MjA0NjIzNTgzNn0.shKfpzKJR81eP3m1G5GRzrq4HHdkNrPhFp_jYoTJtpg";
 
 console.info('[OT Platform Client] Connecting to OT Platform:', OT_SUPABASE_URL);
 
