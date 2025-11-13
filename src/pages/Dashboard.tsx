@@ -1,22 +1,36 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardMenu } from "@/components/dashboard/DashboardMenu";
-import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
-import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
-import LiquidEther from "@/components/backgrounds/LiquidEther";
+import { DashboardSidebar } from "@/components/dashboard/modern/DashboardSidebar";
+import { DashboardTopBar } from "@/components/dashboard/modern/DashboardTopBar";
+import { WelcomeHeader } from "@/components/dashboard/modern/WelcomeHeader";
+import { DashboardSection } from "@/components/dashboard/modern/DashboardSection";
+import { RequestButton } from "@/components/dashboard/modern/RequestButton";
+import { RightPanel } from "@/components/dashboard/modern/RightPanel";
+import { Button } from "@/components/ui/button";
+import {
+  FileText,
+  Package,
+  Wrench,
+  Shield,
+  AlertTriangle,
+  ArrowRightLeft,
+  ClipboardList,
+  History,
+  FileCheck,
+  Printer,
+  Users,
+  Mail,
+  TestTube,
+  ToggleLeft,
+  FileType,
+} from "lucide-react";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [loaded, setLoaded] = useState(false);
-
-  // Get store information from authenticated user
-  const storeInfo = user?.storeManager;
 
   useEffect(() => {
-    // Wait for auth to finish loading before checking user
     if (loading) return;
     
     if (!user) {
@@ -25,75 +39,193 @@ export default function Dashboard() {
       return;
     }
     
-    console.log("User authenticated, showing dashboard for:", storeInfo?.store_number || user.email);
-    
-    // Use requestIdleCallback for non-critical loading if available
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => setLoaded(true));
-    } else {
-      // Fallback for browsers without requestIdleCallback
-      setTimeout(() => setLoaded(true), 50);
-    }
-  }, [user, loading, navigate, storeInfo]);
+    console.log("User authenticated, showing dashboard");
+  }, [user, loading, navigate]);
 
-  // Show loading while auth is being checked
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-  // Don't render anything if no user (will redirect)
   if (!user) {
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6" style={{ position: 'relative' }}>
-      <LiquidEther
-        colors={['#5227FF', '#FF9FFC', '#B19EEF']}
-        mouseForce={20}
-        cursorSize={100}
-        isViscous={false}
-        viscous={30}
-        iterationsViscous={32}
-        iterationsPoisson={32}
-        resolution={0.5}
-        isBounce={false}
-        autoDemo={true}
-        autoSpeed={0.5}
-        autoIntensity={2.2}
-        takeoverDuration={0.25}
-        autoResumeDelay={3000}
-        autoRampDuration={0.6}
-      />
-      
-      <div className="container mx-auto" style={{ position: 'relative', zIndex: 1 }}>
-        <DashboardHeader />
+    <div className="min-h-screen bg-background flex">
+      {/* Left Sidebar */}
+      <DashboardSidebar />
 
-        <div className="flex flex-col justify-center items-center mb-10">
-          {/* Display store manager information */}
-          {storeInfo && (
-            <div className="flex items-center gap-2 p-2 px-4 rounded-full bg-green-700/30 border border-green-500 mb-4">
-              <span className="font-bold text-green-400">
-                {storeInfo.name} - {user.title} at {storeInfo.store_number}
-              </span>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Bar */}
+        <DashboardTopBar />
+
+        {/* Main Content with Right Panel */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Central Content */}
+          <main className="flex-1 overflow-y-auto p-8">
+            <WelcomeHeader />
+
+            <div className="space-y-6 max-w-5xl">
+              {/* Make a Request Section */}
+              <DashboardSection id="make-request" title="Make a Request">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <RequestButton
+                    icon={ArrowRightLeft}
+                    title="Transfer Request"
+                    path="/transfer-request"
+                  />
+                  <RequestButton
+                    icon={FileText}
+                    title="MTO Request"
+                    path="/mto-request"
+                  />
+                  <RequestButton
+                    icon={Wrench}
+                    title="Wheel Powder Coat Request"
+                    path="/powder-coat-request"
+                  />
+                  <RequestButton
+                    icon={Shield}
+                    title="Warranty Submission"
+                    path="/warranty-submission"
+                  />
+                  <RequestButton
+                    icon={Package}
+                    title="Cross-Dock Request"
+                    path="/cross-dock-request"
+                  />
+                  <RequestButton
+                    icon={AlertTriangle}
+                    title="Customer Complaint"
+                    path="/customer-complaint"
+                    variant="warning"
+                  />
+                  <RequestButton
+                    icon={ArrowRightLeft}
+                    title="Regional Transfer Request"
+                    path="/regional-transfer"
+                  />
+                </div>
+              </DashboardSection>
+
+              {/* Orders & Transfers Section */}
+              <DashboardSection id="orders" title="Orders & Transfers">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-auto py-6 justify-start gap-3"
+                    onClick={() => navigate("/all-orders")}
+                  >
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Package className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">View All Orders</div>
+                      <div className="text-xs text-muted-foreground">Browse order history</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-auto py-6 justify-start gap-3"
+                    onClick={() => navigate("/transfer-history")}
+                  >
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <History className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">View Transfer History</div>
+                      <div className="text-xs text-muted-foreground">Review past transfers</div>
+                    </div>
+                  </Button>
+                </div>
+              </DashboardSection>
+
+              {/* Tools & Resources Section */}
+              <DashboardSection id="tools" title="Tools & Resources">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-auto py-6 justify-start gap-3"
+                    onClick={() => navigate("/approved-tread-list")}
+                  >
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <FileCheck className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Approved Tire Tread List</div>
+                      <div className="text-xs text-muted-foreground">View approved products</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-auto py-6 justify-start gap-3"
+                    onClick={() => navigate("/cross-dock-printable")}
+                  >
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Printer className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Cross-Dock Printable Forms</div>
+                      <div className="text-xs text-muted-foreground">Download forms</div>
+                    </div>
+                  </Button>
+                </div>
+              </DashboardSection>
+
+              {/* Admin Dashboard Section - Conditional */}
+              {user.isAdmin && (
+                <DashboardSection id="admin" title="Admin Dashboard" defaultOpen={false}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <RequestButton
+                      icon={Users}
+                      title="User Management"
+                      path="/user-management"
+                    />
+                    <RequestButton
+                      icon={Mail}
+                      title="Email Routing Tools"
+                      path="/email-routing"
+                    />
+                    <RequestButton
+                      icon={TestTube}
+                      title="Test Suite"
+                      path="/test-suite"
+                    />
+                    <RequestButton
+                      icon={ToggleLeft}
+                      title="Feature Toggles"
+                      path="/feature-toggles"
+                    />
+                    <RequestButton
+                      icon={FileType}
+                      title="Templates"
+                      path="/templates"
+                    />
+                  </div>
+                </DashboardSection>
+              )}
             </div>
-          )}
-          
-          <DashboardBanner />
+          </main>
+
+          {/* Right Panel */}
+          <div className="border-l border-border p-6 overflow-y-auto">
+            <RightPanel />
+          </div>
         </div>
-
-        <main>
-          <DashboardMenu loaded={loaded} />
-        </main>
-
-        <DashboardFooter />
       </div>
     </div>
   );
