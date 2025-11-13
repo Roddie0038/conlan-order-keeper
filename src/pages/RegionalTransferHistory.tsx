@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useFetchCrossDockRequests } from '@/hooks/useFetchCrossDockRequests';
+import { useFetchCrossDockRequests, type CrossDockRequest } from '@/hooks/useFetchCrossDockRequests';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { TransferDetailsModal } from '@/components/regional-transfer/TransferDetailsModal';
 
 export default function RegionalTransferHistory() {
   const { requests, loading, error } = useFetchCrossDockRequests();
@@ -14,6 +15,13 @@ export default function RegionalTransferHistory() {
   const [filterSourcePlant, setFilterSourcePlant] = useState('all');
   const [filterDestStore, setFilterDestStore] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedRequest, setSelectedRequest] = useState<CrossDockRequest | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleRowClick = (request: CrossDockRequest) => {
+    setSelectedRequest(request);
+    setModalOpen(true);
+  };
 
   // Extract unique plants and stores for filters
   const { uniquePlants, uniqueStores } = useMemo(() => {
@@ -187,7 +195,11 @@ export default function RegionalTransferHistory() {
                 </TableRow>
               ) : (
                 filteredRequests.map(req => (
-                  <TableRow key={req.id}>
+                  <TableRow 
+                    key={req.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleRowClick(req)}
+                  >
                     <TableCell className="font-medium">{req.request_number}</TableCell>
                     <TableCell>
                       {format(new Date(req.created_at), 'MM/dd/yyyy')}
@@ -220,6 +232,12 @@ export default function RegionalTransferHistory() {
           </Table>
         </div>
       </Card>
+
+      <TransferDetailsModal 
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        request={selectedRequest}
+      />
     </div>
   );
 }
