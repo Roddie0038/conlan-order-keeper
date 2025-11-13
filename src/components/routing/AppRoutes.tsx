@@ -37,6 +37,7 @@ import WebhookAdmin from '@/pages/WebhookAdmin';
 import InventoryIssues from '@/pages/InventoryIssues';
 import RegionalTransfer from '@/pages/RegionalTransfer';
 import RegionalTransferHistory from '@/pages/RegionalTransferHistory';
+import OTPlatformTest from '@/pages/OTPlatformTest';
 
 export function AppRoutes() {
   return (
@@ -239,6 +240,12 @@ export function AppRoutes() {
       <Route path="/regional-transfer-history" element={
         <AuthGuard>
           <RegionalTransferHistory />
+        </AuthGuard>
+      } />
+      
+      <Route path="/ot-platform-test" element={
+        <AuthGuard>
+          <OTPlatformTest />
         </AuthGuard>
       } />
     </Routes>
