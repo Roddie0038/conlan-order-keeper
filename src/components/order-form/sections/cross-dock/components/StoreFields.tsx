@@ -9,7 +9,7 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { stores } from "@/components/order-form/formConfig";
+import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
 import { MapPin, Lock } from "lucide-react";
 
 interface StoreFieldsProps {
@@ -19,6 +19,8 @@ interface StoreFieldsProps {
 }
 
 export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsProps) {
+  const { data: stores = [], isLoading } = useOTStores();
+  
   return (
     <>
       <FormField
@@ -42,11 +44,15 @@ export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsP
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {stores.map((store) => (
-                  <SelectItem key={store.id} value={store.id}>
-                    {store.name}
-                  </SelectItem>
-                ))}
+                {isLoading ? (
+                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                ) : (
+                  stores.map((store) => (
+                    <SelectItem key={store.store_number} value={store.store_number}>
+                      {store.store_name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             <FormMessage />
@@ -76,15 +82,19 @@ export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsP
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {stores.map((store) => (
-                  <SelectItem 
-                    key={store.id} 
-                    value={store.id}
-                    disabled={!isAdmin && store.id === form.watch("store")}
-                  >
-                    {store.name}
-                  </SelectItem>
-                ))}
+                {isLoading ? (
+                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                ) : (
+                  stores.map((store) => (
+                    <SelectItem 
+                      key={store.store_number} 
+                      value={store.store_number}
+                      disabled={!isAdmin && store.store_number === form.watch("store")}
+                    >
+                      {store.store_name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             <FormMessage />

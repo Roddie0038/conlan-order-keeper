@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { stores } from "@/components/order-form/formConfig";
+import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
 // REMOVED: Email routing now handled by OT Platform
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parse } from "date-fns";
@@ -22,7 +22,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { getCurrentDateTime } from "@/utils/dateTime";
 import { getStoreEmailRecipients } from "@/services/emailRouting";
-import { fetchAllStores, StoreOption } from "@/lib/stores";
 
 interface ContactSectionProps {
   form: UseFormReturn<OrderFormValues>;
@@ -33,7 +32,7 @@ export function ContactSection({ form }: ContactSectionProps) {
   const isAdmin = user?.isAdmin || false;
   const [managerEmails, setManagerEmails] = useState<string>("");
   const [isLoadingEmails, setIsLoadingEmails] = useState(false);
-  const [storeOptions, setStoreOptions] = useState<StoreOption[]>([]);
+  const { data: storeOptions = [], isLoading: isLoadingStores } = useOTStores();
   
   // Determine if user can choose store (admin or no assigned store)
   const hasAssignedStore = Boolean(user?.store && user.store.trim().toLowerCase() !== 'unassigned');
@@ -77,19 +76,8 @@ export function ContactSection({ form }: ContactSectionProps) {
     }
   };
   
-  // Load stores list when user can choose
-  useEffect(() => {
-    if (canChooseStore) {
-      fetchAllStores()
-        .then(stores => {
-          setStoreOptions(stores);
-          console.log(`✅ CONTACT SECTION - Loaded ${stores.length} stores for selection`);
-        })
-        .catch(error => {
-          console.error('❌ CONTACT SECTION - Failed to load stores:', error);
-        });
-    }
-  }, [canChooseStore]);
+  // Remove the useEffect that loads stores - now using OT Platform hook
+  // useEffect removed - stores are loaded via useOTStores hook
 
   // Set the store to the user's store on component mount for non-admin users
   // Also set the current date and time
@@ -171,18 +159,15 @@ export function ContactSection({ form }: ContactSectionProps) {
                   {isAdmin && (
                     <SelectItem value="Admin">Admin Only</SelectItem>
                   )}
-                  {canChooseStore 
-                    ? storeOptions.map((store) => (
-                        <SelectItem key={store.value} value={store.value}>
-                          {store.label}
-                        </SelectItem>
-                      ))
-                    : stores.map((store) => (
-                        <SelectItem key={store.id} value={store.name}>
-                          {store.name}
-                        </SelectItem>
-                      ))
-                  }
+                  {isLoadingStores ? (
+                    <SelectItem value="" disabled>Loading stores...</SelectItem>
+                  ) : (
+                    storeOptions.map((store) => (
+                      <SelectItem key={store.store_number} value={store.store_number}>
+                        {store.store_name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

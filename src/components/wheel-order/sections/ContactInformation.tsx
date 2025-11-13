@@ -1,6 +1,6 @@
 
 import { FormField } from "../../order-form/FormField";
-import { stores } from "../../order-form/formConfig";
+import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
 import { WheelFormData } from "../types";
 import { getPlantForStore, extractStoreCode } from "@/utils/storeHelpers";
 import { useOTStoreColors } from "@/integrations/ot-platform/hooks/useOTStores";
@@ -22,7 +22,8 @@ export function ContactInformation({
   onStoreChange, 
   user 
 }: ContactInformationProps) {
-  // Fetch store colors from OT Platform
+  // Fetch stores and colors from OT Platform
+  const { data: stores = [] } = useOTStores();
   const { data: storeColorsMap } = useOTStoreColors();
   
   // Calculate plant based on selected store (should come from OT in future)
@@ -61,7 +62,7 @@ export function ContactInformation({
           label="Store"
           value={formData.storeId}
           onChange={onStoreChange}
-          options={stores}
+          options={stores.map(s => ({ id: s.store_number, name: s.store_name, value: s.store_number }))}
           placeholder="Select store"
           disabled={!user?.isAdmin}
           required

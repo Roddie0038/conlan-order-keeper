@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { stores } from "@/components/order-form/formConfig";
+import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
 import { Printer, Plus } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
@@ -14,6 +14,7 @@ interface ProductRow {
   quantity: string;
 }
 export const CrossDockForm = () => {
+  const { data: stores = [], isLoading } = useOTStores();
   const [date, setDate] = useState("");
   const [fromStore, setFromStore] = useState("");
   const [toStore, setToStore] = useState("");
@@ -103,9 +104,13 @@ export const CrossDockForm = () => {
                 <SelectValue placeholder="Select store" />
               </SelectTrigger>
               <SelectContent>
-                {stores.map(store => <SelectItem key={store.id} value={store.id}>
-                    {store.name}
-                  </SelectItem>)}
+                {isLoading ? (
+                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                ) : (
+                  stores.map(store => <SelectItem key={store.store_number} value={store.store_number}>
+                      {store.store_name}
+                    </SelectItem>)
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -117,9 +122,13 @@ export const CrossDockForm = () => {
                 <SelectValue placeholder="Select store" />
               </SelectTrigger>
               <SelectContent>
-                {stores.map(store => <SelectItem key={store.id} value={store.id}>
-                    {store.name}
-                  </SelectItem>)}
+                {isLoading ? (
+                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                ) : (
+                  stores.map(store => <SelectItem key={store.store_number} value={store.store_number}>
+                      {store.store_name}
+                    </SelectItem>)
+                )}
               </SelectContent>
             </Select>
           </div>

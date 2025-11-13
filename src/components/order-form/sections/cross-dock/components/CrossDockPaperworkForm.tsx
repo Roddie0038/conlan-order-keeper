@@ -2,7 +2,7 @@
 import { UseFormReturn } from "react-hook-form";
 import { OrderFormValues } from "../../../order-form-schema";
 import { format } from "date-fns";
-import { stores } from "../../../formConfig";
+import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
 
 interface CrossDockPaperworkFormProps {
   form: UseFormReturn<OrderFormValues>;
@@ -10,9 +10,10 @@ interface CrossDockPaperworkFormProps {
 
 export function CrossDockPaperworkForm({ form }: CrossDockPaperworkFormProps) {
   const values = form.getValues();
+  const { data: stores = [] } = useOTStores();
 
-  const storeFrom = stores.find((s) => s.id === values.store)?.name || values.store;
-  const storeTo = stores.find((s) => s.id === values.crossDockDestination)?.name || values.crossDockDestination;
+  const storeFrom = stores.find((s) => s.store_number === values.store)?.store_name || values.store;
+  const storeTo = stores.find((s) => s.store_number === values.crossDockDestination)?.store_name || values.crossDockDestination;
 
   return (
     <div className="font-sans px-8 py-6 max-w-4xl mx-auto bg-white text-black">

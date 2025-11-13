@@ -1,49 +1,7 @@
 // src/components/order-form/formConfig.ts
-// DEPRECATED - Stores should come from OT Platform via useOTStores()
-// Colors should come from OT Platform via useOTStoreColors()
+// Form configuration constants - data now comes from OT Platform
 
 import { CrossDockFields } from "@/types/cross-dock.types";
-
-// DEPRECATED: Use useOTStores() instead
-export const stores = [
-  { id: "022", name: "Fort Worth 022" },
-  { id: "027", name: "Grand Prairie 027" },
-  { id: "028", name: "Houston 028" },
-  { id: "029", name: "San Antonio 029" },
-  { id: "030", name: "OKC 030" },
-  { id: "032", name: "Little Rock 032" },
-  { id: "033", name: "Kansas 033" },
-  { id: "035", name: "Laredo 035" },
-  { id: "036", name: "Tulsa 036" },
-  { id: "039", name: "Austin 039" },
-];
-
-// DEPRECATED: Use useOTStoreColors() instead
-export const storeColors: Record<string, string> = {
-  "022": "Yellow",
-  "027": "Yellow", 
-  "028": "Yellow",
-  "029": "Yellow",
-  "030": "Yellow",
-  "032": "Yellow",
-  "033": "Yellow",
-  "035": "Yellow",
-  "036": "Yellow",
-  "039": "Yellow",
-  "Admin": "Yellow"
-};
-
-// DEPRECATED: Use useOTStoreColors() instead
-export const getStoreColor = (store: string): string => {
-  if (store === "Admin") return storeColors["Admin"];
-  const match = store.match(/\d{3}$/);
-  if (!match) {
-    const match2 = store.match(/\d{2}$/);
-    const storeNumber = match2 ? match2[0].padStart(3, '0') : '';
-    return storeColors[storeNumber] || 'Yellow';
-  }
-  return storeColors[match[0]] || 'Yellow';
-};
 
 export const scheduleOptions = [
   "Monday",

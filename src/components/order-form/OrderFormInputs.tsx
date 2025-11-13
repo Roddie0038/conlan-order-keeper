@@ -1,7 +1,8 @@
 
 import { FormField } from "./FormField";
 import { Button } from "@/components/ui/button";
-import { scheduleOptions, crossDockOptions, stores, type FormData } from "./formConfig";
+import { scheduleOptions, crossDockOptions, type FormData } from "./formConfig";
+import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
 // REMOVED: storeManagerEmails - now using dynamic email routing
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +26,7 @@ export const OrderFormInputs = ({
 }: OrderFormInputsProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { data: stores = [], isLoading: isLoadingStores } = useOTStores();
   const [inventoryCheck, setInventoryCheck] = useState<{
     available: boolean;
     quantity: number;
@@ -227,7 +229,7 @@ export const OrderFormInputs = ({
                   // REMOVED: hardcoded email lookup - handled dynamically in edge function
                   onChange("managersEmail", "");
                 }} 
-                options={stores} 
+                options={stores.map(s => ({ id: s.store_number, name: s.store_name, value: s.store_number }))} 
                 disabled={!user?.isAdmin}
               />
             </div>
@@ -372,8 +374,8 @@ export const OrderFormInputs = ({
                     // REMOVED: hardcoded email lookup - handled dynamically in edge function
                     onChange("managersEmail", "");
                   }} 
-                  options={stores} 
-                  placeholder="Select destination" 
+                  options={stores.map(s => ({ id: s.store_number, name: s.store_name, value: s.store_number }))} 
+                  placeholder="Select destination"
                   required 
                 />
 

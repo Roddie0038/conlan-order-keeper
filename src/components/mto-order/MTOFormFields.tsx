@@ -1,5 +1,5 @@
 import { FormField } from "../order-form/FormField";
-import { stores } from "../order-form/formConfig";
+import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
 import { casingGrades, tireSizes, scheduleOptions, MTOFormData } from "./mto-form-config";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,8 @@ export const MTOFormFields = ({
   isAdmin = false,
   section = "all"
 }: MTOFormFieldsProps) => {
+  const { data: stores = [], isLoading } = useOTStores();
+  
   const handleCasingGradeChange = (grade: string, checked: boolean) => {
     const updatedGrades = checked ? [...formData.casingGrade, grade] : formData.casingGrade.filter(g => g !== grade);
     onChange("casingGrade", updatedGrades);
@@ -42,7 +44,7 @@ export const MTOFormFields = ({
           label="Store" 
           value={formData.store} 
           onChange={value => onChange("store", value)} 
-          options={stores} 
+          options={stores.map(s => ({ id: s.store_number, name: s.store_name, value: s.store_number }))}
           placeholder="Select store" 
           required 
         />

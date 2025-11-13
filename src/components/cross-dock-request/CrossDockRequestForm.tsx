@@ -2,7 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { stores } from "@/components/order-form/formConfig";
+import { useOTStores } from "@/integrations/ot-platform/hooks/useOTStores";
 
 interface CrossDockRequestFormProps {
   formData: {
@@ -23,6 +23,8 @@ export function CrossDockRequestForm({
   userStore,
   isAdmin,
 }: CrossDockRequestFormProps) {
+  const { data: storesData = [], isLoading } = useOTStores();
+  
   const handleChange = (field: string, value: string) => {
     onFormChange({ ...formData, [field]: value });
   };
@@ -43,11 +45,15 @@ export function CrossDockRequestForm({
                   <SelectValue placeholder="Select requesting store" />
                 </SelectTrigger>
                 <SelectContent>
-                  {stores.map((store) => (
-                    <SelectItem key={store.id} value={store.id}>
-                      {store.name}
-                    </SelectItem>
-                  ))}
+                  {isLoading ? (
+                    <SelectItem value="" disabled>Loading stores...</SelectItem>
+                  ) : (
+                    storesData.map((store) => (
+                      <SelectItem key={store.store_number} value={store.store_number}>
+                        {store.store_name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             ) : (
@@ -70,13 +76,17 @@ export function CrossDockRequestForm({
                 <SelectValue placeholder="Select sending store" />
               </SelectTrigger>
               <SelectContent>
-                {stores
-                  .filter((store) => store.id !== formData.requesting_store)
-                  .map((store) => (
-                    <SelectItem key={store.id} value={store.id}>
-                      {store.name}
-                    </SelectItem>
-                  ))}
+                {isLoading ? (
+                  <SelectItem value="" disabled>Loading stores...</SelectItem>
+                ) : (
+                  storesData
+                    .filter((store) => store.store_number !== formData.requesting_store)
+                    .map((store) => (
+                      <SelectItem key={store.store_number} value={store.store_number}>
+                        {store.store_name}
+                      </SelectItem>
+                    ))
+                )}
               </SelectContent>
             </Select>
           </div>

@@ -4,19 +4,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Building } from "lucide-react";
+import { useOTPlants } from "@/integrations/ot-platform/hooks/useOTPlants";
 
 interface PlantSelectProps {
   selectedPlant: string;
   setSelectedPlant: (value: string) => void;
 }
 
-const plants = [
-  { value: "Grand Prairie 97", label: "Grand Prairie 97" },
-  { value: "Romulus 98", label: "Romulus 98" },
-  { value: "Mulberry 99", label: "Mulberry 99" }
-];
-
 export const PlantSelect = ({ selectedPlant, setSelectedPlant }: PlantSelectProps) => {
+  const { data: plants = [], isLoading } = useOTPlants();
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
@@ -44,11 +40,17 @@ export const PlantSelect = ({ selectedPlant, setSelectedPlant }: PlantSelectProp
           </div>
         </SelectTrigger>
         <SelectContent className="max-h-[300px]">
-          {plants.map(plant => (
-            <SelectItem key={plant.value} value={plant.value}>
-              {plant.label}
-            </SelectItem>
-          ))}
+          {isLoading ? (
+            <SelectItem value="" disabled>Loading plants...</SelectItem>
+          ) : plants.length > 0 ? (
+            plants.map(plant => (
+              <SelectItem key={plant.plant_code} value={plant.plant_name}>
+                {plant.plant_name}
+              </SelectItem>
+            ))
+          ) : (
+            <SelectItem value="" disabled>No plants available</SelectItem>
+          )}
         </SelectContent>
       </Select>
     </div>

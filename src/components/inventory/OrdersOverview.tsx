@@ -58,8 +58,8 @@ export function OrdersOverview() {
     setOrders(allOrders);
   }, []);
 
-  const stores = ["Fort Worth 22", "Grand Prairie 27", "Houston 28", "San Antonio 29", "Oklahoma 30", 
-    "Little Rock 32", "Kansas 33", "Laredo 35", "Tulsa 36", "Austin 39"];
+  // Get unique stores from orders for filter
+  const stores = Array.from(new Set(orders.map(order => order.store))).sort();
 
   // Memoized filtering for better performance
   const filteredOrders = useMemoizedFilter(
