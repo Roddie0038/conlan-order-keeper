@@ -147,24 +147,23 @@ export default function RegionalTransfer() {
         </Card>
 
         {/* Main Form */}
-        <Card className="border-slate-700">
+        <Card className="border-2 border-orange-400 bg-white">
           <CardHeader>
-            <CardTitle className="text-white">Transfer Details</CardTitle>
-            <CardDescription>All fields marked with * are required</CardDescription>
+            <CardTitle className="text-slate-900">Transfer Details</CardTitle>
+            <CardDescription className="text-slate-600">All fields marked with * are required</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleFormSubmit} className="space-y-6">
+            <form onSubmit={handleFormSubmit} className="space-y-4">
               {/* Source Plant */}
-              <div className="space-y-2">
-                <Label htmlFor="sourcePlant" className="text-white flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Source Plant *
+              <div className="grid grid-cols-[200px_1fr] gap-4 items-center">
+                <Label htmlFor="sourcePlant" className="text-slate-700 font-medium text-right">
+                  <span className="text-red-500">* </span>Source Plant:
                 </Label>
                 <Select
                   value={formData.sourcePlant}
                   onValueChange={(value) => setFormData({ ...formData, sourcePlant: value })}
                 >
-                  <SelectTrigger id="sourcePlant" className="bg-slate-800 border-slate-600 text-white">
+                  <SelectTrigger id="sourcePlant" className="bg-slate-50 border-slate-200 text-slate-900">
                     <SelectValue placeholder="Select source plant" />
                   </SelectTrigger>
                   <SelectContent>
@@ -178,16 +177,15 @@ export default function RegionalTransfer() {
               </div>
 
               {/* Target Store */}
-              <div className="space-y-2">
-                <Label htmlFor="targetStore" className="text-white flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Target Store *
+              <div className="grid grid-cols-[200px_1fr] gap-4 items-center">
+                <Label htmlFor="targetStore" className="text-slate-700 font-medium text-right">
+                  <span className="text-red-500">* </span>Target Store:
                 </Label>
                 <Select
                   value={formData.targetStore}
                   onValueChange={(value) => setFormData({ ...formData, targetStore: value })}
                 >
-                  <SelectTrigger id="targetStore" className="bg-slate-800 border-slate-600 text-white">
+                  <SelectTrigger id="targetStore" className="bg-slate-50 border-slate-200 text-slate-900">
                     <SelectValue placeholder="Select target store" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px]">
@@ -201,16 +199,15 @@ export default function RegionalTransfer() {
               </div>
 
               {/* Target Plant (Optional) */}
-              <div className="space-y-2">
-                <Label htmlFor="targetPlant" className="text-white flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Target Plant (Optional - for plant-to-plant transfers)
+              <div className="grid grid-cols-[200px_1fr] gap-4 items-center">
+                <Label htmlFor="targetPlant" className="text-slate-700 font-medium text-right">
+                  Target Plant:
                 </Label>
                 <Select
                   value={formData.targetPlant || "none"}
                   onValueChange={(value) => setFormData({ ...formData, targetPlant: value === "none" ? "" : value })}
                 >
-                  <SelectTrigger id="targetPlant" className="bg-slate-800 border-slate-600 text-white">
+                  <SelectTrigger id="targetPlant" className="bg-slate-50 border-slate-200 text-slate-900">
                     <SelectValue placeholder="Select target plant (optional)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -225,24 +222,23 @@ export default function RegionalTransfer() {
               </div>
 
               {/* Product Number */}
-              <div className="space-y-2">
-                <Label htmlFor="productNumber" className="text-white flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  Product Number *
+              <div className="grid grid-cols-[200px_1fr] gap-4 items-center">
+                <Label htmlFor="productNumber" className="text-slate-700 font-medium text-right">
+                  <span className="text-red-500">* </span>Product Number:
                 </Label>
                 <Input
                   id="productNumber"
                   value={formData.productNumber}
                   onChange={(e) => setFormData({ ...formData, productNumber: e.target.value })}
                   placeholder="Enter product number"
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
 
               {/* Quantity */}
-              <div className="space-y-2">
-                <Label htmlFor="quantity" className="text-white">
-                  Quantity *
+              <div className="grid grid-cols-[200px_1fr] gap-4 items-center">
+                <Label htmlFor="quantity" className="text-slate-700 font-medium text-right">
+                  <span className="text-red-500">* </span>Quantity:
                 </Label>
                 <Input
                   id="quantity"
@@ -250,14 +246,14 @@ export default function RegionalTransfer() {
                   min="1"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-slate-50 border-slate-200 text-slate-900"
                 />
               </div>
 
               {/* Notes */}
-              <div className="space-y-2">
-                <Label htmlFor="notes" className="text-white">
-                  Notes / Special Instructions
+              <div className="grid grid-cols-[200px_1fr] gap-4 items-start">
+                <Label htmlFor="notes" className="text-slate-700 font-medium text-right pt-2">
+                  Notes:
                 </Label>
                 <Textarea
                   id="notes"
@@ -265,26 +261,25 @@ export default function RegionalTransfer() {
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Add any special instructions or notes..."
                   rows={4}
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
 
-              {/* Submit Button */}
-              <div className="flex gap-4 pt-4">
+              {/* Submit Buttons */}
+              <div className="flex justify-end gap-3 pt-6">
+                <Button
+                  type="button"
+                  onClick={() => navigate("/dashboard")}
+                  className="bg-red-600 hover:bg-red-700 text-black font-bold tracking-wide px-6"
+                >
+                  CANCEL
+                </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8"
                 >
                   {isSubmitting ? "Submitting..." : "Submit Regional Transfer"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate("/dashboard")}
-                  className="border-slate-600 text-white hover:bg-slate-800"
-                >
-                  Cancel
                 </Button>
               </div>
             </form>
