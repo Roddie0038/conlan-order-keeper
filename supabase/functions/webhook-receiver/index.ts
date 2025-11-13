@@ -227,27 +227,191 @@ serve(async (req) => {
     
     switch (body.event_type) {
       case 'InventoryUpdated':
+      case 'inventory.updated':
         // Update local cached inventory
-        console.log('[Webhook Receiver] Processing InventoryUpdated event');
-        // TODO: Implement inventory update logic
+        console.log('[Webhook Receiver] Processing InventoryUpdated event', body.payload);
+        try {
+          const { plant, product_number, quantity, status, metadata } = body.payload;
+          
+          if (!plant || !product_number || quantity === undefined) {
+            console.error('[Webhook Receiver] Missing required fields for InventoryUpdated');
+            break;
+          }
+
+          const { error: upsertError } = await supabase
+            .from('inventory_cache' as any)
+            .upsert({
+              product_number,
+              plant,
+              quantity: parseInt(quantity),
+              status: status || 'available',
+              sync_trace_id: traceId || body.trace_id,
+              last_updated_at: new Date().toISOString(),
+              metadata: metadata || {}
+            }, {
+              onConflict: 'product_number,plant'
+            });
+
+          if (upsertError) {
+            console.error('[Webhook Receiver] Failed to upsert inventory_cache:', upsertError);
+          } else {
+            console.log(`[Webhook Receiver] ✅ Updated inventory: ${product_number} at ${plant} = ${quantity}`);
+          }
+        } catch (error) {
+          console.error('[Webhook Receiver] Error processing InventoryUpdated:', error);
+        }
+        break;
+
+      case 'inventory.session.exported':
+        // Bulk import from CSV export
+        console.log('[Webhook Receiver] Processing inventory.session.exported event', body.payload);
+        try {
+          const { csv_url, plant, session_id } = body.payload;
+          
+          if (!csv_url) {
+            console.error('[Webhook Receiver] Missing csv_url for inventory.session.exported');
+            break;
+          }
+
+          console.log(`[Webhook Receiver] Downloading CSV from: ${csv_url}`);
+          
+          // Download CSV file
+          const csvResponse = await fetch(csv_url);
+          if (!csvResponse.ok) {
+            throw new Error(`Failed to download CSV: ${csvResponse.statusText}`);
+          }
+          
+          const csvText = await csvResponse.text();
+          const lines = csvText.split('\n').filter(line => line.trim());
+          
+          if (lines.length < 2) {
+            console.error('[Webhook Receiver] CSV file is empty or has no data rows');
+            break;
+          }
+
+          // Parse CSV header
+          const headers = lines[0].split(',').map(h => h.trim());
+          const productCodeIndex = headers.findIndex(h => h.toLowerCase().includes('product code'));
+          const scannedIndex = headers.findIndex(h => h.toLowerCase().includes('scanned'));
+          
+          if (productCodeIndex === -1 || scannedIndex === -1) {
+            console.error('[Webhook Receiver] CSV missing required columns: Product Code, Scanned');
+            break;
+          }
+
+          // Parse data rows and prepare bulk upsert
+          const inventoryUpdates = [];
+          for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim());
+            const productCode = values[productCodeIndex];
+            const scannedQty = parseInt(values[scannedIndex]) || 0;
+            
+            if (productCode && !isNaN(scannedQty)) {
+              inventoryUpdates.push({
+                product_number: productCode,
+                plant: plant || '097', // Default to plant from payload or '097'
+                quantity: scannedQty,
+                status: scannedQty > 0 ? 'available' : 'out_of_stock',
+                sync_trace_id: traceId || body.trace_id || session_id,
+                last_updated_at: new Date().toISOString(),
+                metadata: { source: 'inventory_session_export', session_id }
+              });
+            }
+          }
+
+          console.log(`[Webhook Receiver] Parsed ${inventoryUpdates.length} inventory records from CSV`);
+
+          // Bulk upsert to inventory_cache
+          if (inventoryUpdates.length > 0) {
+            const { error: bulkError } = await supabase
+              .from('inventory_cache' as any)
+              .upsert(inventoryUpdates, {
+                onConflict: 'product_number,plant'
+              });
+
+            if (bulkError) {
+              console.error('[Webhook Receiver] Failed to bulk upsert inventory_cache:', bulkError);
+            } else {
+              console.log(`[Webhook Receiver] ✅ Bulk updated ${inventoryUpdates.length} inventory records`);
+            }
+          }
+        } catch (error) {
+          console.error('[Webhook Receiver] Error processing inventory.session.exported:', error);
+        }
         break;
       
       case 'ItemOutOfStock':
         // Disable ordering for SKU
         console.log('[Webhook Receiver] Processing ItemOutOfStock event');
-        // TODO: Implement out-of-stock logic
+        try {
+          const { plant, product_number } = body.payload;
+          
+          if (!plant || !product_number) {
+            console.error('[Webhook Receiver] Missing required fields for ItemOutOfStock');
+            break;
+          }
+
+          const { error: updateError } = await supabase
+            .from('inventory_cache' as any)
+            .upsert({
+              product_number,
+              plant,
+              quantity: 0,
+              status: 'out_of_stock',
+              sync_trace_id: traceId || body.trace_id,
+              last_updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'product_number,plant'
+            });
+
+          if (updateError) {
+            console.error('[Webhook Receiver] Failed to mark out of stock:', updateError);
+          } else {
+            console.log(`[Webhook Receiver] ✅ Marked out of stock: ${product_number} at ${plant}`);
+          }
+        } catch (error) {
+          console.error('[Webhook Receiver] Error processing ItemOutOfStock:', error);
+        }
         break;
       
       case 'ItemRestocked':
         // Re-enable SKU ordering
         console.log('[Webhook Receiver] Processing ItemRestocked event');
-        // TODO: Implement restock logic
+        try {
+          const { plant, product_number, quantity } = body.payload;
+          
+          if (!plant || !product_number || quantity === undefined) {
+            console.error('[Webhook Receiver] Missing required fields for ItemRestocked');
+            break;
+          }
+
+          const { error: updateError } = await supabase
+            .from('inventory_cache' as any)
+            .upsert({
+              product_number,
+              plant,
+              quantity: parseInt(quantity),
+              status: 'available',
+              sync_trace_id: traceId || body.trace_id,
+              last_updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'product_number,plant'
+            });
+
+          if (updateError) {
+            console.error('[Webhook Receiver] Failed to mark restocked:', updateError);
+          } else {
+            console.log(`[Webhook Receiver] ✅ Marked restocked: ${product_number} at ${plant} = ${quantity}`);
+          }
+        } catch (error) {
+          console.error('[Webhook Receiver] Error processing ItemRestocked:', error);
+        }
         break;
       
       case 'OrderFulfilled':
         // Mark order as completed
         console.log('[Webhook Receiver] Processing OrderFulfilled event');
-        // TODO: Implement order fulfillment logic
+        // TODO: Implement order fulfillment logic if needed
         break;
       
       default:
