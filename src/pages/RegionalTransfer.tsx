@@ -169,34 +169,50 @@ export default function RegionalTransfer() {
     setIsSubmitting(true);
 
     try {
-      // Build the exact payload structure for OT Platform
+      // Generate unique order number for idempotency
+      const orderNumber = `ORD-TRANSFER-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      
+      // Determine store and plant from OT Platform data
+      const storeData = otStores?.find(s => s.store_name === userStore);
+      const storePlant = storeData?.plant || formData.sourcePlant;
+      
+      // Build the exact payload structure for OT Platform (snake_case as required)
       const payload: any = {
         type: "REGIONAL_TRANSFER",
+        order_number: orderNumber,
         
-        // Submitter info
-        submittedByName,
-        submittedByEmail,
-        submittedByStore: userStore,
-        submittedDate,
+        // Required: Submitter info
+        submitted_by_name: submittedByName,
+        submitted_by_email: submittedByEmail,
+        submitted_by_store: userStore,
         
-        // Product details
-        productNumber: formData.productNumber,
-        productDescription: formData.productDescription,
+        // Required: Product details
+        product_number: formData.productNumber,
+        product_description: formData.productDescription,
         quantity: parseInt(formData.quantity),
         
-        // Transport details
-        transportMethod: formData.transportMethod,
-        transportCustomCarrier: formData.transportMethod === "CUSTOM" ? formData.transportCustomCarrier : undefined,
-        costResponsibility: formData.costResponsibility,
+        // Required: Store and Plant (for routing)
+        store: userStore,
+        plant: storePlant,
         
-        // Transfer routing
-        transferType: formData.transferType,
-        sourcePlant: formData.sourcePlant,
-        targetStore: formData.targetStore,
-        targetPlant: formData.transferType === "cross_plant" ? formData.targetPlant : undefined,
+        // Required: Transport details
+        transport_method: formData.transportMethod,
+        cost_responsibility: formData.costResponsibility,
         
-        // Optional notes
-        notes: formData.notes || undefined
+        // Required: Transfer routing
+        transfer_type: formData.transferType,
+        source_plant: formData.sourcePlant,
+        target_store: formData.targetStore,
+        target_plant: formData.transferType === "cross_plant" ? formData.targetPlant : null,
+        
+        // Optional fields
+        transport_custom_carrier: formData.transportMethod === "CUSTOM" ? formData.transportCustomCarrier : null,
+        notes: formData.notes || "",
+        schedule_arrival: "",
+        cross_dock: false,
+        cross_dock_destination: "",
+        receiver_no: "",
+        eta_date: ""
       };
 
       console.log("🚀 REGIONAL TRANSFER - Submitting to OT Platform:", payload);

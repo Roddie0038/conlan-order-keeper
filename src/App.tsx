@@ -10,6 +10,8 @@ import { ConditionalSidebar } from './components/ConditionalSidebar';
 import { AppRoutes } from './components/routing/AppRoutes';
 import { useRegistrationNotification } from './hooks/useRegistrationNotification';
 import { useRealtimeStores } from './hooks/useRealtimeStores';
+import { useRealtimePlants } from './hooks/useRealtimePlants';
+import { useRealtimeColors } from './hooks/useRealtimeColors';
 import { OTSyncProvider } from '@/integrations/ot-platform/OTSyncProvider';
 
 // Create a client
@@ -18,8 +20,10 @@ const queryClient = new QueryClient();
 function AppContent() {
   // Set up registration notification listener
   useRegistrationNotification();
-  // Real-time stores sync
+  // Real-time sync for OT Platform data
   useRealtimeStores();
+  useRealtimePlants();
+  useRealtimeColors();
   
   return (
     <>
