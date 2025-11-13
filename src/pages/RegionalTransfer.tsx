@@ -14,8 +14,11 @@ import { PLANT_STORE_MAP } from "@/utils/plantMapping";
 
 const PLANTS = ["Grand Prairie 097", "Romulus 098", "Mulberry 099"];
 
-// Flatten all stores from plant map
-const ALL_STORES = Object.values(PLANT_STORE_MAP).flat().sort();
+// Flatten all stores from plant map and filter out any empty values
+const ALL_STORES = Object.values(PLANT_STORE_MAP)
+  .flat()
+  .filter(store => store && store.trim() !== '')
+  .sort();
 
 export default function RegionalTransfer() {
   const navigate = useNavigate();
@@ -197,14 +200,14 @@ export default function RegionalTransfer() {
                   Target Plant (Optional - for plant-to-plant transfers)
                 </Label>
                 <Select
-                  value={formData.targetPlant}
-                  onValueChange={(value) => setFormData({ ...formData, targetPlant: value })}
+                  value={formData.targetPlant || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, targetPlant: value === "none" ? "" : value })}
                 >
                   <SelectTrigger id="targetPlant" className="bg-slate-800 border-slate-600 text-white">
                     <SelectValue placeholder="Select target plant (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None (Store delivery)</SelectItem>
+                    <SelectItem value="none">None (Store delivery)</SelectItem>
                     {PLANTS.map((plant) => (
                       <SelectItem key={plant} value={plant}>
                         {plant}
