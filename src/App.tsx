@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
 import { AppRoutes } from './components/routing/AppRoutes';
 import { useRegistrationNotification } from './hooks/useRegistrationNotification';
+import { useRealtimeStores } from './hooks/useRealtimeStores';
 import { OTSyncProvider } from '@/integrations/ot-platform/OTSyncProvider';
 
 // Create a client
@@ -17,6 +18,8 @@ const queryClient = new QueryClient();
 function AppContent() {
   // Set up registration notification listener
   useRegistrationNotification();
+  // Real-time stores sync
+  useRealtimeStores();
   
   return (
     <>
