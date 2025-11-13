@@ -39,6 +39,7 @@ import RegionalTransfer from '@/pages/RegionalTransfer';
 import RegionalTransferHistory from '@/pages/RegionalTransferHistory';
 import OTPlatformTest from '@/pages/OTPlatformTest';
 import OTPlatformMonitoring from '@/pages/OTPlatformMonitoring';
+import InventoryDashboard from '@/pages/InventoryDashboard';
 
 export function AppRoutes() {
   return (
@@ -253,6 +254,12 @@ export function AppRoutes() {
       <Route path="/ot-platform-monitoring" element={
         <AuthGuard>
           <OTPlatformMonitoring />
+        </AuthGuard>
+      } />
+      
+      <Route path="/inventory-dashboard" element={
+        <AuthGuard>
+          <InventoryDashboard />
         </AuthGuard>
       } />
     </Routes>
