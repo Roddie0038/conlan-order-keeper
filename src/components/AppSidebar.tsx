@@ -31,7 +31,8 @@ import {
   Users,
   Mail,
   Webhook,
-  TrendingUp
+  TrendingUp,
+  History
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -86,6 +87,11 @@ const navigationItems = [
     title: "Regional / Plant Transfer",
     url: "/regional-transfer",
     icon: TrendingUp,
+  },
+  {
+    title: "Transfer History",
+    url: "/regional-transfer-history",
+    icon: History,
   },
   {
     title: "Approved Tire Tread List",

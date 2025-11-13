@@ -1,6 +1,8 @@
 
-import { Mail } from "lucide-react";
+import { Mail, TrendingUp, History } from "lucide-react";
 import { DashboardTile, DashboardTileProps } from "./DashboardTile";
+import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 import { OptimizedApprovedTreadsCard } from "./OptimizedApprovedTreadsCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { DeploymentControls } from "@/components/admin/DeploymentControls";
@@ -12,6 +14,7 @@ interface DashboardMenuProps {
 
 export function DashboardMenu({ loaded }: DashboardMenuProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   // Memoize menu items to prevent unnecessary re-calculations
   const menuItems: DashboardTileProps[] = useMemo(() => {
@@ -120,18 +123,6 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         fullSizeImage: true,
         backgroundImage: "/lovable-uploads/79d57732-9949-4d90-812e-8581ada7c116.png",
         loaded
-      },
-      {
-        title: "REGIONAL / PLANT TRANSFER",
-        icon: null,
-        path: "/regional-transfer",
-        color: "bg-gradient-to-br from-blue-600 to-purple-600",
-        borderColor: "border-purple-500",
-        delay: 0.85,
-        size: "col-span-1",
-        hideTitle: false,
-        fullSizeImage: false,
-        loaded
       }
     ];
     
@@ -177,6 +168,41 @@ export function DashboardMenu({ loaded }: DashboardMenuProps) {
         {menuItems.map((item) => (
           <DashboardTile key={item.title} {...item} />
         ))}
+        
+        {/* Regional Transfer Cards */}
+        <Card 
+          className="p-6 hover:bg-accent/50 transition-colors cursor-pointer group"
+          onClick={() => navigate("/regional-transfer")}
+        >
+          <div className="flex flex-col items-center text-center space-y-3">
+            <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+              <TrendingUp className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold">REGIONAL TRANSFER</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Create new cross-plant orders
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card 
+          className="p-6 hover:bg-accent/50 transition-colors cursor-pointer group"
+          onClick={() => navigate("/regional-transfer-history")}
+        >
+          <div className="flex flex-col items-center text-center space-y-3">
+            <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+              <History className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold">TRANSFER HISTORY</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                View all regional transfers
+              </p>
+            </div>
+          </div>
+        </Card>
         
         {/* Approved Treads Card */}
         <OptimizedApprovedTreadsCard loaded={loaded} delay={0.7} />
