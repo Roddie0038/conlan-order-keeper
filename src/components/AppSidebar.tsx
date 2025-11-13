@@ -33,7 +33,8 @@ import {
   Webhook,
   TrendingUp,
   History,
-  TestTube
+  TestTube,
+  Activity
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlant } from "@/contexts/PlantContext";
@@ -159,6 +160,11 @@ const superAdminItems = [
     title: "Webhook Admin",
     url: "/admin/webhooks",
     icon: Webhook,
+  },
+  {
+    title: "OT Platform Monitor",
+    url: "/ot-platform-monitoring",
+    icon: Activity,
   },
 ];
 

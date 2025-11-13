@@ -38,6 +38,7 @@ import InventoryIssues from '@/pages/InventoryIssues';
 import RegionalTransfer from '@/pages/RegionalTransfer';
 import RegionalTransferHistory from '@/pages/RegionalTransferHistory';
 import OTPlatformTest from '@/pages/OTPlatformTest';
+import OTPlatformMonitoring from '@/pages/OTPlatformMonitoring';
 
 export function AppRoutes() {
   return (
@@ -246,6 +247,12 @@ export function AppRoutes() {
       <Route path="/ot-platform-test" element={
         <AuthGuard>
           <OTPlatformTest />
+        </AuthGuard>
+      } />
+      
+      <Route path="/ot-platform-monitoring" element={
+        <AuthGuard>
+          <OTPlatformMonitoring />
         </AuthGuard>
       } />
     </Routes>
