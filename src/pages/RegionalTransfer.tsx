@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Building2, Package, TrendingUp } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
@@ -24,6 +25,7 @@ export default function RegionalTransfer() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const [formData, setFormData] = useState({
     sourcePlant: "",
@@ -34,7 +36,7 @@ export default function RegionalTransfer() {
     notes: ""
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.sourcePlant || !formData.targetStore || !formData.productNumber) {
@@ -46,6 +48,11 @@ export default function RegionalTransfer() {
       return;
     }
 
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmedSubmit = async () => {
+    setShowConfirmDialog(false);
     setIsSubmitting(true);
 
     try {
@@ -146,7 +153,7 @@ export default function RegionalTransfer() {
             <CardDescription>All fields marked with * are required</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleFormSubmit} className="space-y-6">
               {/* Source Plant */}
               <div className="space-y-2">
                 <Label htmlFor="sourcePlant" className="text-white flex items-center gap-2">
@@ -283,6 +290,60 @@ export default function RegionalTransfer() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Confirmation Dialog */}
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogContent className="bg-slate-900 border-slate-700">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white">Confirm Regional Transfer</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-300">
+                Please review the transfer details before submitting:
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            
+            <div className="space-y-3 py-4">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <span className="text-gray-400">Source Plant:</span>
+                <span className="text-white font-medium">{formData.sourcePlant}</span>
+                
+                <span className="text-gray-400">Target Store:</span>
+                <span className="text-white font-medium">{formData.targetStore}</span>
+                
+                {formData.targetPlant && (
+                  <>
+                    <span className="text-gray-400">Target Plant:</span>
+                    <span className="text-white font-medium">{formData.targetPlant}</span>
+                  </>
+                )}
+                
+                <span className="text-gray-400">Product Number:</span>
+                <span className="text-white font-medium">{formData.productNumber}</span>
+                
+                <span className="text-gray-400">Quantity:</span>
+                <span className="text-white font-medium">{formData.quantity}</span>
+              </div>
+              
+              {formData.notes && (
+                <div className="pt-2 border-t border-slate-700">
+                  <span className="text-gray-400 text-sm">Notes:</span>
+                  <p className="text-white text-sm mt-1">{formData.notes}</p>
+                </div>
+              )}
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-slate-800 border-slate-600 text-white hover:bg-slate-700">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmedSubmit}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                Confirm & Submit
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
