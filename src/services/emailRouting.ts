@@ -1,11 +1,8 @@
 // @ts-nocheck
+// EMAIL ROUTING NOTE: This file is deprecated.
+// OT Platform now handles ALL email routing via its own edge functions.
+// This file remains for backward compatibility only.
 import { supabase } from "@/integrations/supabase/client";
-import {
-  getTransferEmailRecipients,
-  getMTOEmailRecipients,
-  getRefurbishedEmailRecipients,
-  getWarrantyEmailRecipients,
-} from "@/config/contactSystem";
 
 export type EmailType = "transfer" | "mto" | "wheel" | "warranty" | "completion";
 
@@ -63,44 +60,23 @@ export async function getStoreEmailRecipients(storeNumber: string, emailType: Em
 }
 
 /**
- * Fallback to legacy contactSystem functions when DB is empty/unavailable.
- * Also used when the store number was missing. No writes are performed.
+ * Deprecated fallback - OT Platform handles all email routing now.
+ * Returns empty array since email routing is handled by OT Platform.
  */
 async function getFallbackRecipients(
   storeNumber: string,
   emailType: EmailType,
   reason: string,
 ): Promise<RoutingResult> {
-  console.log(`📧 EMAIL ROUTING - Using fallback for store ${storeNumber}, type ${emailType}, reason: ${reason}`);
+  console.log(`📧 EMAIL ROUTING - OT Platform handles routing for store ${storeNumber}, type ${emailType}`);
+  console.log(`📧 EMAIL ROUTING - Fallback disabled: ${reason} - All email routing via OT Platform`);
 
-  let recipients: string[] = [];
-
-  switch (emailType) {
-    case "transfer":
-      recipients = getTransferEmailRecipients(storeNumber);
-      break;
-    case "mto":
-      recipients = getMTOEmailRecipients(storeNumber);
-      break;
-    case "wheel":
-      recipients = getRefurbishedEmailRecipients(storeNumber);
-      break;
-    case "warranty":
-      recipients = getWarrantyEmailRecipients(storeNumber);
-      break;
-    case "completion":
-      // Default to transfer contacts for completion emails
-      recipients = getTransferEmailRecipients(storeNumber);
-      break;
-    default:
-      console.warn(`📧 EMAIL ROUTING - Unknown email type: ${emailType}`);
-      recipients = [];
-  }
-
-  console.log(`📧 EMAIL ROUTING - Fallback returned ${recipients.length} recipient(s)`, recipients);
-
-  // NOTE: We intentionally DO NOT write to notification_logs here.
-  return { recipients, source: "fallback", fallbackReason: reason };
+  // OT Platform handles all email routing - no local fallback needed
+  return { 
+    recipients: [], 
+    source: "fallback", 
+    fallbackReason: "OT Platform handles all email routing" 
+  };
 }
 
 /**
