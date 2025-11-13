@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/modern/DashboardSidebar";
@@ -8,6 +8,7 @@ import { DashboardSection } from "@/components/dashboard/modern/DashboardSection
 import { RequestButton } from "@/components/dashboard/modern/RequestButton";
 import { RightPanel } from "@/components/dashboard/modern/RightPanel";
 import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/constants/routes";
 import {
   FileText,
   Package,
@@ -15,7 +16,6 @@ import {
   Shield,
   AlertTriangle,
   ArrowRightLeft,
-  ClipboardList,
   History,
   FileCheck,
   Printer,
@@ -29,6 +29,7 @@ import {
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -58,19 +59,19 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex">
       {/* Left Sidebar */}
-      <DashboardSidebar />
+      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <DashboardTopBar />
+        <DashboardTopBar onMenuClick={() => setSidebarOpen(true)} />
 
         {/* Main Content with Right Panel */}
         <div className="flex-1 flex overflow-hidden">
           {/* Central Content */}
-          <main className="flex-1 overflow-y-auto p-8">
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
             <WelcomeHeader />
 
             <div className="space-y-6 max-w-5xl">
@@ -80,38 +81,38 @@ export default function Dashboard() {
                   <RequestButton
                     icon={ArrowRightLeft}
                     title="Transfer Request"
-                    path="/transfer-request"
+                    path={ROUTES.transferRequest}
                   />
                   <RequestButton
                     icon={FileText}
                     title="MTO Request"
-                    path="/mto-request"
+                    path={ROUTES.mtoRequest}
                   />
                   <RequestButton
                     icon={Wrench}
                     title="Wheel Powder Coat Request"
-                    path="/powder-coat-request"
+                    path={ROUTES.wheelPowderCoat}
                   />
                   <RequestButton
                     icon={Shield}
                     title="Warranty Submission"
-                    path="/warranty-submission"
+                    path={ROUTES.warrantySubmission}
                   />
                   <RequestButton
                     icon={Package}
                     title="Cross-Dock Request"
-                    path="/cross-dock-request"
+                    path={ROUTES.crossDockRequest}
                   />
                   <RequestButton
                     icon={AlertTriangle}
                     title="Customer Complaint"
-                    path="/customer-complaint"
+                    path={ROUTES.customerComplaint}
                     variant="warning"
                   />
                   <RequestButton
                     icon={ArrowRightLeft}
                     title="Regional Transfer Request"
-                    path="/regional-transfer"
+                    path={ROUTES.regionalTransfer}
                   />
                 </div>
               </DashboardSection>
@@ -122,30 +123,30 @@ export default function Dashboard() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-auto py-6 justify-start gap-3"
-                    onClick={() => navigate("/all-orders")}
+                    className="h-auto py-6 justify-start gap-3 bg-slate-800/40 border-white/10 hover:bg-slate-800/60 hover:border-white/20 text-white transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
+                    onClick={() => navigate(ROUTES.orders)}
                   >
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Package className="h-5 w-5 text-primary" />
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-600/30">
+                      <Package className="h-5 w-5 text-white" />
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold">View All Orders</div>
-                      <div className="text-xs text-muted-foreground">Browse order history</div>
+                      <div className="font-semibold text-white">View All Orders</div>
+                      <div className="text-xs text-slate-400">Browse order history</div>
                     </div>
                   </Button>
 
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-auto py-6 justify-start gap-3"
-                    onClick={() => navigate("/transfer-history")}
+                    className="h-auto py-6 justify-start gap-3 bg-slate-800/40 border-white/10 hover:bg-slate-800/60 hover:border-white/20 text-white transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
+                    onClick={() => navigate(ROUTES.transferHistory)}
                   >
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <History className="h-5 w-5 text-primary" />
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-600/30">
+                      <History className="h-5 w-5 text-white" />
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold">View Transfer History</div>
-                      <div className="text-xs text-muted-foreground">Review past transfers</div>
+                      <div className="font-semibold text-white">View Transfer History</div>
+                      <div className="text-xs text-slate-400">Review past transfers</div>
                     </div>
                   </Button>
                 </div>
@@ -157,30 +158,30 @@ export default function Dashboard() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-auto py-6 justify-start gap-3"
-                    onClick={() => navigate("/approved-tread-list")}
+                    className="h-auto py-6 justify-start gap-3 bg-slate-800/40 border-white/10 hover:bg-slate-800/60 hover:border-white/20 text-white transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
+                    onClick={() => navigate(ROUTES.approvedTread)}
                   >
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <FileCheck className="h-5 w-5 text-primary" />
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-600/30">
+                      <FileCheck className="h-5 w-5 text-white" />
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold">Approved Tire Tread List</div>
-                      <div className="text-xs text-muted-foreground">View approved products</div>
+                      <div className="font-semibold text-white">Approved Tire Tread List</div>
+                      <div className="text-xs text-slate-400">View approved products</div>
                     </div>
                   </Button>
 
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-auto py-6 justify-start gap-3"
-                    onClick={() => navigate("/cross-dock-printable")}
+                    className="h-auto py-6 justify-start gap-3 bg-slate-800/40 border-white/10 hover:bg-slate-800/60 hover:border-white/20 text-white transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
+                    onClick={() => navigate(ROUTES.crossDockForms)}
                   >
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Printer className="h-5 w-5 text-primary" />
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-600/30">
+                      <Printer className="h-5 w-5 text-white" />
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold">Cross-Dock Printable Forms</div>
-                      <div className="text-xs text-muted-foreground">Download forms</div>
+                      <div className="font-semibold text-white">Cross-Dock Printable Forms</div>
+                      <div className="text-xs text-slate-400">Download forms</div>
                     </div>
                   </Button>
                 </div>
@@ -193,27 +194,27 @@ export default function Dashboard() {
                     <RequestButton
                       icon={Users}
                       title="User Management"
-                      path="/user-management"
+                      path={ROUTES.userManagement}
                     />
                     <RequestButton
                       icon={Mail}
                       title="Email Routing Tools"
-                      path="/email-routing"
+                      path={ROUTES.emailRouting}
                     />
                     <RequestButton
                       icon={TestTube}
                       title="Test Suite"
-                      path="/test-suite"
+                      path={ROUTES.testSuite}
                     />
                     <RequestButton
                       icon={ToggleLeft}
                       title="Feature Toggles"
-                      path="/feature-toggles"
+                      path={ROUTES.featureToggles}
                     />
                     <RequestButton
                       icon={FileType}
                       title="Templates"
-                      path="/templates"
+                      path={ROUTES.templates}
                     />
                   </div>
                 </DashboardSection>
@@ -221,8 +222,8 @@ export default function Dashboard() {
             </div>
           </main>
 
-          {/* Right Panel */}
-          <div className="border-l border-border p-6 overflow-y-auto">
+          {/* Right Panel - Hidden on mobile/tablet */}
+          <div className="hidden xl:block border-l border-white/10 p-6 overflow-y-auto bg-slate-950/30">
             <RightPanel />
           </div>
         </div>

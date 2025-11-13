@@ -22,27 +22,35 @@ export function RequestButton({
     <button
       onClick={() => navigate(path)}
       className={cn(
-        "w-full flex items-center justify-between p-4 rounded-lg border transition-all hover:border-primary hover:bg-accent/50 group",
-        variant === "warning" && "border-destructive/20 hover:border-destructive"
+        "w-full flex items-center justify-between p-4 rounded-lg border backdrop-blur-sm transition-all group",
+        "bg-slate-800/40 border-white/10 hover:bg-slate-800/60 hover:border-white/20 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5",
+        variant === "warning" && "border-red-500/20 hover:border-red-500/40 hover:bg-red-900/20"
       )}
     >
       <div className="flex items-center gap-3">
         <div
           className={cn(
-            "p-2 rounded-lg",
-            variant === "default" ? "bg-primary/10" : "bg-destructive/10"
+            "p-2 rounded-lg shadow-lg",
+            variant === "default" 
+              ? "bg-gradient-to-br from-blue-600 to-blue-700 shadow-blue-600/30" 
+              : "bg-gradient-to-br from-red-600 to-red-700 shadow-red-600/30"
           )}
         >
           <Icon
             className={cn(
               "h-5 w-5",
-              variant === "default" ? "text-primary" : "text-destructive"
+              "text-white"
             )}
           />
         </div>
-        <span className="font-medium">{title}</span>
+        <span className="font-medium text-white">{title}</span>
       </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+      <ChevronRight className={cn(
+        "h-4 w-4 transition-all",
+        variant === "default" 
+          ? "text-slate-400 group-hover:text-blue-400 group-hover:translate-x-1" 
+          : "text-slate-400 group-hover:text-red-400 group-hover:translate-x-1"
+      )} />
     </button>
   );
 }
