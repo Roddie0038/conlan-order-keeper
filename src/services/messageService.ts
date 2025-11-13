@@ -1,7 +1,6 @@
 
 // @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
-import { getTransferEmailRecipients, getMTOEmailRecipients } from "@/config/contactSystem";
 
 export interface OrderMessage {
   id: string;
@@ -62,10 +61,8 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
 
     console.log("✅ MESSAGE SERVICE - Message sent successfully:", data);
 
-    // Send email notification to recipients
-    if (data) {
-      await sendEmailNotification(data as OrderMessage, messageData);
-    }
+    // Email notifications are handled by OT Platform
+    console.log("📧 MESSAGE SERVICE - Email routing handled by OT Platform");
 
     return { data: data as OrderMessage, error: null };
   } catch (error) {
@@ -78,97 +75,13 @@ export const sendOrderMessage = async (messageData: SendMessageData): Promise<{ 
 };
 
 /**
- * Send email notification for a new message using proper routing logic
+ * Email notifications are now handled by OT Platform
+ * This function is deprecated and no longer used
  */
 export const sendEmailNotification = async (message: OrderMessage, originalData: SendMessageData): Promise<void> => {
-  try {
-    console.log("📧 Sending email notification for message:", message.id);
-    
-    // Get order details to extract store number for routing
-    let orderDetails: any = null;
-    let storeNumber: string = '';
-
-    const { data: orderData } = await supabase
-      .from(message.order_type)
-      .select('*')
-      .eq('id', message.order_id)
-      .single();
-
-    if (orderData) {
-      orderDetails = orderData;
-      // Extract store number from store name (e.g., "Fort Worth 22" -> "22")
-      const storeMatch = orderData.store?.match(/(\d+)$/);
-      storeNumber = storeMatch ? storeMatch[1] : '';
-    }
-
-    if (!orderDetails || !storeNumber) {
-      console.error("❌ Could not determine store number for email routing");
-      return;
-    }
-
-    // Determine recipients based on order type using contact system
-    let recipients: string[] = [];
-    
-    if (message.order_type === 'orders') {
-      // Transfer orders - send to warehouse managers and coordinators
-      recipients = getTransferEmailRecipients(storeNumber);
-    } else if (message.order_type === 'mto_orders') {
-      // MTO orders - send to retread managers, warehouse managers, and coordinators
-      recipients = getMTOEmailRecipients(storeNumber);
-    } else {
-      // Default fallback - use transfer logic
-      recipients = getTransferEmailRecipients(storeNumber);
-    }
-
-    if (recipients.length === 0) {
-      console.error("❌ No recipients found for email notification");
-      return;
-    }
-
-    console.log("📧 Email recipients:", recipients);
-
-    // Generate message threading ID for email
-    const messageId = message.message_id || `msg-${Date.now()}-${message.id}`;
-    
-    // Create email content
-    const emailSubject = `Order #${orderDetails.product_number || orderDetails.id} - New Message from ${orderDetails.store}`;
-    
-    const emailHtml = generateEmailTemplate({
-      message,
-      orderDetails,
-      messageId,
-      isReply: !!message.reply_to_email_id
-    });
-
-    // Send email notification via edge function
-    const { error: emailError } = await supabase.functions.invoke('send-order-message-email', {
-      body: {
-        to: recipients,
-        subject: emailSubject,
-        html: emailHtml,
-        messageId: messageId,
-        inReplyTo: message.reply_to_email_id,
-        orderType: message.order_type,
-        orderId: message.order_id
-      }
-    });
-
-    if (emailError) {
-      console.error("❌ Error sending email via edge function:", emailError);
-      return;
-    }
-
-    // Mark message as email sent
-    await supabase
-      .from('order_messages')
-      .update({ email_sent: true })
-      .eq('id', message.id);
-
-    console.log("✅ Email notification sent successfully to:", recipients);
-
-  } catch (error) {
-    console.error("❌ Error sending email notification:", error);
-  }
+  console.log("📧 Email notification routing is handled by OT Platform");
+  // OT Platform handles all email routing and sending
+  return;
 };
 
 /**
