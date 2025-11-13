@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { otClient } from '@/integrations/ot-platform/client';
 
 export type Plant = 'Grand Prairie 97' | 'Romulus 98' | 'Mulberry 99';
 
@@ -39,24 +40,6 @@ export const PLANT_WEBHOOKS = {
   }
 };
 
-// Official Plant-Store Mapping (Master Reference)
-export const PLANT_STORE_MAP = {
-  "Grand Prairie 97": [
-    "Fort Worth 22", "Grand Prairie Service 27", "Grand Prairie 97", "Houston 28", 
-    "San Antonio 29", "Laredo 35", "Austin 39", "Oklahoma City 30", 
-    "Little Rock 32", "Kansas City 33", "Tulsa 36"
-  ],
-  "Romulus 98": [
-    "Romulus 98", "Toledo 8", "Detroit 11", "Grand Rapids 13", 
-    "Cleveland 18", "Chicago 41"
-  ],
-  "Mulberry 99": [
-    "Miami 3", "Pompano Beach 7", "Fort Myers 9", "Jacksonville 002", 
-    "Ocala 5", "Tallahassee 15", "Mulberry Service 1", "Mulberry 99", 
-    "New Orleans 4", "Tampa 6", "Vero Beach 21", "Sarasota 23", 
-    "Tampa Foam Fill 40"
-  ]
-};
 
 console.log("🔍 PLANT CONTEXT - Loading plant webhooks:", PLANT_WEBHOOKS);
 console.log("🔍 PLANT CONTEXT - Transfer webhook for Grand Prairie 97:", PLANT_WEBHOOKS["Grand Prairie 97"].transferRequests);
@@ -68,6 +51,7 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
   const [currentPlant, setCurrentPlant] = useState<Plant>('Grand Prairie 97');
   const [defaultPlant, setDefaultPlant] = useState<Plant>('Grand Prairie 97');
   const [loading, setLoading] = useState(true);
+  const [plantStoreMap, setPlantStoreMap] = useState<typeof PLANT_WEBHOOKS>({});
 
   // Synchronized setter functions
   const setSelectedPlantSync = (plant: Plant) => {
@@ -82,6 +66,32 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
 
   // Check if current order is cross-plant
   const isCrossPlantOrder = currentPlant !== defaultPlant;
+
+  // Fetch plant-store associations from OT Platform
+  useEffect(() => {
+    const fetchPlantStoreMap = async () => {
+      try {
+        const { data: plants, error } = await otClient
+          .from('app_plants')
+          .select('plant_name, associated_stores')
+          .eq('status', 'active');
+
+        if (error) throw error;
+
+        const map = plants?.reduce((acc, plant) => {
+          acc[plant.plant_name] = plant.associated_stores || [];
+          return acc;
+        }, {} as Record<string, string[]>) || {};
+
+        setPlantStoreMap(map);
+        console.log("🔍 PLANT CONTEXT - Loaded plant-store map from OT Platform:", map);
+      } catch (error) {
+        console.error("🔍 PLANT CONTEXT - Error loading plant-store map:", error);
+      }
+    };
+
+    fetchPlantStoreMap();
+  }, []);
 
   // Load plant preferences from Supabase on user login
   useEffect(() => {
@@ -205,7 +215,7 @@ export function PlantProvider({ children }: { children: React.ReactNode }) {
       defaultPlant,
       isCrossPlantOrder,
       PLANT_WEBHOOKS,
-      PLANT_STORE_MAP
+      PLANT_STORE_MAP: plantStoreMap
     }}>
       {children}
     </PlantContext.Provider>

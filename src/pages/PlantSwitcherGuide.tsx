@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Download, Building2, ArrowRightLeft, AlertTriangle, CheckCircle, X, Info } from 'lucide-react';
-import { PLANT_STORE_MAP } from '@/contexts/PlantContext';
+import { usePlant } from '@/contexts/PlantContext';
 
 const PlantSwitcherGuide = () => {
   const componentRef = useRef<HTMLDivElement>(null);
+  const { PLANT_STORE_MAP } = usePlant();
   
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -98,18 +99,19 @@ const PlantSwitcherGuide = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {Object.entries(PLANT_STORE_MAP).map(([plant, stores], index) => {
+                  {Object.entries(PLANT_STORE_MAP || {}).map(([plant, stores], index) => {
                     const colors = ['blue', 'green', 'orange'];
                     const color = colors[index];
+                    const storeArray = Array.isArray(stores) ? stores : [];
                     return (
                       <div key={plant} className={`p-4 bg-${color}-50 dark:bg-${color}-950/20 rounded-lg border-2 border-${color}-200 dark:border-${color}-800`}>
                         <div className="flex items-center gap-2 mb-3">
                           <div className={`w-4 h-4 rounded-full bg-${color}-500`} />
                           <h3 className={`font-bold text-${color}-700 dark:text-${color}-300`}>{plant}</h3>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">Serves {stores.length} stores:</p>
+                        <p className="text-sm text-muted-foreground mb-2">Serves {storeArray.length} stores:</p>
                         <div className="space-y-1 max-h-32 overflow-y-auto">
-                          {stores.map((store) => (
+                          {storeArray.map((store) => (
                             <Badge key={store} variant="secondary" className="text-xs mr-1 mb-1">
                               {store}
                             </Badge>
@@ -631,15 +633,16 @@ const PlantSwitcherGuide = () => {
                   <div className="space-y-4">
                     <h3 className="font-semibold text-primary">Plant Coverage Summary</h3>
                     <div className="space-y-2">
-                      {Object.entries(PLANT_STORE_MAP).map(([plant, stores], index) => {
+                      {Object.entries(PLANT_STORE_MAP || {}).map(([plant, stores], index) => {
                         const colors = ['blue', 'green', 'orange'];
                         const color = colors[index];
+                        const storeArray = Array.isArray(stores) ? stores : [];
                         return (
                           <div key={plant} className="flex items-center gap-2 p-2 bg-muted rounded">
                             <div className={`w-3 h-3 rounded-full bg-${color}-500`} />
                             <span className="font-medium">{plant}</span>
                             <Badge variant="outline" className="ml-auto">
-                              {stores.length} stores
+                              {storeArray.length} stores
                             </Badge>
                           </div>
                         );
