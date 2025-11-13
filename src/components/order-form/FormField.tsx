@@ -39,15 +39,15 @@ export const FormField = ({
           onValueChange={value => onChange(value)} 
           disabled={disabled}
         >
-          <SelectTrigger className="w-full border border-gray-600 rounded-md h-10 bg-black/40 hover:border-blue-400 focus:border-blue-500 transition-colors shadow-sm backdrop-blur-sm text-white disabled:opacity-100 disabled:text-gray-200 disabled:bg-gray-700/60">
-            <SelectValue placeholder={placeholder} />
+          <SelectTrigger className="w-full border border-gray-600 rounded-md h-10 bg-white hover:border-blue-400 focus:border-blue-500 transition-colors shadow-sm text-gray-900 disabled:opacity-100 disabled:text-gray-600 disabled:bg-gray-100">
+            <SelectValue placeholder={placeholder} className="text-gray-900" />
           </SelectTrigger>
-          <SelectContent className="bg-gray-900/95 border border-gray-800 shadow-md rounded-md backdrop-blur-sm">
+          <SelectContent className="bg-white border border-gray-300 shadow-lg rounded-md z-50">
             {options.map(option => (
               <SelectItem 
                 key={option.id || option.value} 
                 value={option.id || option.value || ""}
-                className="hover:bg-gray-800 cursor-pointer text-gray-200"
+                className="hover:bg-blue-50 cursor-pointer text-gray-900 focus:bg-blue-100"
               >
                 {option.name || option.value}
               </SelectItem>
@@ -70,9 +70,9 @@ export const FormField = ({
         onChange={e => onChange(e.target.value)} 
         placeholder={placeholder} 
         disabled={disabled} 
-        className="w-full border border-gray-600 rounded-md h-10 bg-black/40 disabled:bg-gray-700/40 
+        className="w-full border border-gray-300 rounded-md h-10 bg-white disabled:bg-gray-100 disabled:text-gray-600
                  hover:border-blue-400 focus-visible:border-blue-500 focus-visible:ring-blue-400
-                 transition-all duration-200 shadow-sm backdrop-blur-sm text-white"
+                 transition-all duration-200 shadow-sm text-gray-900 placeholder:text-gray-400"
       />
     </div>
   );
