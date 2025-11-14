@@ -2,6 +2,8 @@
 import { TableCell, TableRow } from "@/components/ui/table";
 import { OrderRecord } from "@/hooks/useFetchOrders";
 import { StatusBadge } from "@/components/orders/StatusBadge";
+import { InventoryStatusBadge } from "@/components/orders/InventoryStatusBadge";
+import { useInventoryStatus } from "@/hooks/useInventoryStatus";
 
 interface OrdersTableRowProps {
   order: OrderRecord;
@@ -9,6 +11,8 @@ interface OrdersTableRowProps {
 }
 
 export function OrdersTableRow({ order, onClick }: OrdersTableRowProps) {
+  const { inventoryStatus } = useInventoryStatus(order.product_number, order.plant || '');
+  
   // Get order type display text
   const getOrderTypeDisplay = (order: OrderRecord): string => {
     if (order.order_type === 'MTO') return 'MTO';
@@ -27,7 +31,18 @@ export function OrdersTableRow({ order, onClick }: OrdersTableRowProps) {
       <TableCell>{order.store || 'N/A'}</TableCell>
       <TableCell>{order.product_number || 'N/A'}</TableCell>
       <TableCell className="max-w-[200px] truncate">{order.description || 'N/A'}</TableCell>
-      <TableCell>{order.quantity || 'N/A'}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          {order.quantity || 'N/A'}
+          {inventoryStatus && (
+            <InventoryStatusBadge
+              status={inventoryStatus.status}
+              quantity={inventoryStatus.quantity}
+              lastUpdated={inventoryStatus.lastUpdated}
+            />
+          )}
+        </div>
+      </TableCell>
       <TableCell>{order.schedule_arrival || 'N/A'}</TableCell>
       <TableCell>{getOrderTypeDisplay(order)}</TableCell>
       <TableCell>{order.cross_dock_destination || 'N/A'}</TableCell>
