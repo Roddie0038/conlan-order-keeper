@@ -40,6 +40,7 @@ export function ContactSection({ form }: ContactSectionProps) {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin || false;
   const elevated = hasFullStoreAccess(user);
+  const isUnassigned = user?.store === 'Unassigned';
   const [managerEmails, setManagerEmails] = useState<string>("");
   const [isLoadingEmails, setIsLoadingEmails] = useState(false);
   const [recipientCount, setRecipientCount] = useState(0);
@@ -89,8 +90,8 @@ export function ContactSection({ form }: ContactSectionProps) {
     // Set current date and time for all users
     form.setValue("dateReceived", getCurrentDateTime());
     
-    if (user && user.store && !isAdmin && !user.hasFullStoreAccess) {
-      // Set store for non-admin users without full store access
+    if (user && user.store && !isAdmin && !user.hasFullStoreAccess && !isUnassigned) {
+      // Set store for non-admin users without full store access (excluding unassigned)
       form.setValue("store", user.store);
       // Fetch and set manager emails
       fetchManagerEmails(user.store);
@@ -144,16 +145,16 @@ export function ContactSection({ form }: ContactSectionProps) {
             <FormItem>
               <FormLabel className="text-white">
                 Store*
-                {!isAdmin && !user?.hasFullStoreAccess && <Lock className="h-3 w-3 ml-1 text-gray-300" />}
+                {!isAdmin && !user?.hasFullStoreAccess && !isUnassigned && <Lock className="h-3 w-3 ml-1 text-gray-300" />}
               </FormLabel>
               <NeoSelect 
                 onValueChange={field.onChange}
                 defaultValue={field.value}
                 value={field.value}
-                disabled={!isAdmin && !user?.hasFullStoreAccess}
+                disabled={!isAdmin && !user?.hasFullStoreAccess && !isUnassigned}
               >
                 <FormControl>
-                  <NeoSelectTrigger className={!isAdmin && !user?.hasFullStoreAccess ? 'opacity-70' : ''}>
+                  <NeoSelectTrigger className={!isAdmin && !user?.hasFullStoreAccess && !isUnassigned ? 'opacity-70' : ''}>
                     <NeoSelectValue placeholder="Select a store" />
                   </NeoSelectTrigger>
                 </FormControl>
