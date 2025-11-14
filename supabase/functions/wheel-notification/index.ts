@@ -114,6 +114,50 @@ serve(async (req) => {
     console.log("📧 WHEEL NOTIFICATION - Processing wheel order:", orderId);
     console.log("📧 WHEEL NOTIFICATION - Wheel data:", wheelData);
 
+    // ============= IDEMPOTENCY CHECK - Prevent Duplicate Notifications =============
+    const idempotencyKey = `wheel:${orderId || wheelData.wheel_number || wheelData.orderNumber || 'unknown'}`;
+    console.log("🔑 WHEEL NOTIFICATION - Checking idempotency key:", idempotencyKey);
+    
+    const { data: existingNotification, error: idempotencyCheckError } = await supabase
+      .from('notification_idempotency')
+      .select('id, created_at')
+      .eq('idempotency_key', idempotencyKey)
+      .maybeSingle();
+
+    if (idempotencyCheckError) {
+      console.error('❌ WHEEL NOTIFICATION - Error checking idempotency:', idempotencyCheckError);
+      // Continue anyway - don't block notifications due to idempotency check failures
+    } else if (existingNotification) {
+      console.log(`⚠️ WHEEL NOTIFICATION - DUPLICATE PREVENTED - Notification already sent at ${existingNotification.created_at}`);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'Duplicate notification prevented',
+        orderId: orderId,
+        idempotencyKey: idempotencyKey,
+        previouslySentAt: existingNotification.created_at
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Record this notification attempt
+    const { error: insertError } = await supabase
+      .from('notification_idempotency')
+      .insert({
+        idempotency_key: idempotencyKey,
+        notification_type: 'wheel_order',
+        created_at: new Date().toISOString()
+      });
+
+    if (insertError) {
+      console.error('❌ WHEEL NOTIFICATION - Error recording idempotency key:', insertError);
+      // Continue anyway - don't block notifications due to recording failures
+    } else {
+      console.log('✅ WHEEL NOTIFICATION - Idempotency key recorded');
+    }
+    // ============= END IDEMPOTENCY CHECK =============
+
     // Extract store number from wheel data
     const storeNumber = normalizeStoreNumber(wheelData.storeName || wheelData.store || '');
     console.log("📧 WHEEL NOTIFICATION - Extracted store number:", storeNumber);
