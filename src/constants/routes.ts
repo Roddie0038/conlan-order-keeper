@@ -4,20 +4,20 @@ export const ROUTES = {
   
   // Request Types
   transferRequest: '/transfer-request',
-  mtoRequest: '/mto-request',
-  wheelPowderCoat: '/powder-coat-request',
-  warrantySubmission: '/warranty-submission',
+  mtoRequest: '/mto-order',
+  wheelPowderCoat: '/wheel-order',
+  warrantySubmission: '/retread-warranty',
   crossDockRequest: '/cross-dock-request',
-  customerComplaint: '/customer-complaint',
+  customerComplaint: '/complaint-tracking',
   regionalTransfer: '/regional-transfer',
   
   // Orders & Transfers
   orders: '/all-orders',
-  transferHistory: '/transfer-history',
+  transferHistory: '/regional-transfer-history',
   
   // Tools & Resources
-  approvedTread: '/approved-tread-list',
-  crossDockForms: '/cross-dock-printable',
+  approvedTread: '/approved-treads',
+  crossDockForms: '/cross-dock',
   
   // Admin
   userManagement: '/user-management',
