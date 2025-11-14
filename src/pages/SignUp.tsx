@@ -125,15 +125,15 @@ export default function SignUp() {
 
       // Step 4: Success!
       toast({
-        title: 'Account created!',
-        description: 'You can now log in with your credentials.',
+        title: 'Account created',
+        description: 'Your account has been created successfully. Please go back to the login page and sign in with your email and password.',
         className: 'bg-green-50 border-green-200'
       });
 
       // Step 5: Redirect to login with pre-filled email
       setTimeout(() => {
         navigate('/login', { state: { email: emailLower } });
-      }, 1000);
+      }, 2000);
 
     } catch (error: any) {
       console.error('Sign up error:', error);
