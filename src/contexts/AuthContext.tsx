@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await (supabase as any)
         .from('ordering_directory')
-        .select('email, full_name, role, primary_plant_code, status, can_access_ordering')
+        .select('email, full_name, role, primary_plant_code, plant_name, store_name, store_code, status, can_access_ordering')
         .eq('user_id', userId)
         .eq('status', 'active')
         .eq('can_access_ordering', true)
@@ -131,9 +131,9 @@ const isUserAdmin = (email: string, role?: string): boolean => {
         ...authUser,
         name: directoryUser.full_name || authUser.email!,
         title: directoryUser.role || 'User',
-        store: 'Unassigned', // Store info may not be in ordering_directory
-        storeName: 'Unassigned',
-        plant: directoryUser.primary_plant_code || 'Grand Prairie 097',
+        store: directoryUser.store_name || 'Unassigned',
+        storeName: directoryUser.store_name || 'Unassigned',
+        plant: directoryUser.plant_name || directoryUser.primary_plant_code || 'Grand Prairie 097',
         isAdmin: isUserAdmin(authUser.email!, directoryUser.role) || isAdminDb,
         username: directoryUser.full_name || authUser.email!,
         storeManager: undefined
