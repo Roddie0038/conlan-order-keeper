@@ -11,6 +11,7 @@ import { isElevated } from '@/server/access/elevated';
 import { getCurrentUser } from '@/server/auth/getUser';
 import { baseOrderSchema, scrubCrossPlantForNonElevated, assertCrossPlantConsistency } from '@/server/validators/order';
 import { auditCrossPlant } from '@/server/audit/crossplant';
+import { updateUnassignedUserStore } from '@/utils/userStoreUpdate';
 
 export async function submitOrder(
   orderData: any,
@@ -88,6 +89,11 @@ export async function submitOrder(
       hasCrossPlantFields: usedCrossPlant,
       service: 'order_submission' 
     });
+
+    // Auto-save store to user profile if they were unassigned
+    if (user?.email && submissionData.store) {
+      await updateUnassignedUserStore(user.email, submissionData.store);
+    }
 
     // Fire-and-forget audit (don't block UX)
     if (usedCrossPlant) {
@@ -181,6 +187,11 @@ export async function submitMTOOrder(orderData: any) {
       service: 'mto_submission' 
     });
 
+    // Auto-save store to user profile if they were unassigned
+    if (user?.email && submissionData.store) {
+      await updateUnassignedUserStore(user.email, submissionData.store);
+    }
+
     // Fire-and-forget audit (don't block UX)
     if (usedCrossPlant) {
       auditCrossPlant({
@@ -271,6 +282,11 @@ export async function submitWheelOrder(orderData: any) {
       hasCrossPlantFields: usedCrossPlant,
       service: 'wheel_submission' 
     });
+
+    // Auto-save store to user profile if they were unassigned
+    if (user?.email && submissionData.store) {
+      await updateUnassignedUserStore(user.email, submissionData.store);
+    }
 
     // Fire-and-forget audit (don't block UX)
     if (usedCrossPlant) {

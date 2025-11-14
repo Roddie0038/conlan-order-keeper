@@ -66,7 +66,7 @@ export function useOrderSubmission() {
         try {
           console.log(`🔍 SUBMIT - Processing order ${order.id}...`);
           
-          const processedOrder = await processOrder(order, destinationPlant);
+          const processedOrder = await processOrder(order, destinationPlant, user?.email);
           processedOrders.push(processedOrder);
           
           console.log(`✅ SUBMIT - Successfully processed order ${order.id}`);
