@@ -1417,9 +1417,12 @@ export type Database = {
           email: string
           full_name: string | null
           permissions_override: Json | null
+          plant_name: string | null
           primary_plant_code: string | null
           role: string
           status: string
+          store_code: string | null
+          store_name: string | null
           updated_at: string | null
           user_id: string
         }
@@ -1428,9 +1431,12 @@ export type Database = {
           email: string
           full_name?: string | null
           permissions_override?: Json | null
+          plant_name?: string | null
           primary_plant_code?: string | null
           role: string
           status: string
+          store_code?: string | null
+          store_name?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -1439,9 +1445,12 @@ export type Database = {
           email?: string
           full_name?: string | null
           permissions_override?: Json | null
+          plant_name?: string | null
           primary_plant_code?: string | null
           role?: string
           status?: string
+          store_code?: string | null
+          store_name?: string | null
           updated_at?: string | null
           user_id?: string
         }

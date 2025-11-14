@@ -15,6 +15,8 @@ interface UserSyncPayload {
     full_name?: string | null;
     role: string;
     primary_plant_code?: string | null;
+    plant?: string | null;
+    store?: string | null;
     permissions_override?: Record<string, any> | null;
     status: string;
     can_access_ordering: boolean;
@@ -136,6 +138,15 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Extract store code from store name (e.g., "Fort Worth 022" -> "022")
+    let storeCode: string | null = null;
+    if (user.store) {
+      const match = user.store.match(/\s(\d{3})$/);
+      if (match) {
+        storeCode = match[1];
+      }
+    }
+
     // Upsert into ordering_directory
     const { error: upsertError } = await supabase
       .from('ordering_directory')
@@ -145,6 +156,9 @@ serve(async (req) => {
         full_name: user.full_name || null,
         role: user.role,
         primary_plant_code: user.primary_plant_code || null,
+        plant_name: user.plant || null,
+        store_name: user.store || null,
+        store_code: storeCode,
         permissions_override: user.permissions_override || null,
         status: user.status,
         can_access_ordering: user.can_access_ordering,
