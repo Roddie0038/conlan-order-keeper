@@ -190,7 +190,7 @@ export default function SignUp() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email" className="text-gray-900 font-medium">Email Address</Label>
               <Input
                 id="email"
                 type="email"
@@ -206,7 +206,7 @@ export default function SignUp() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-900 font-medium">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -240,7 +240,7 @@ export default function SignUp() {
 
             {/* Confirm Password Field */}
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-gray-900 font-medium">Confirm Password</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
@@ -273,16 +273,16 @@ export default function SignUp() {
           </form>
 
           <div className="text-center space-y-4">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-700">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary hover:underline font-medium">
+              <Link to="/login" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
                 Sign in
               </Link>
             </div>
             
             <Link 
               to="/login" 
-              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back to Login
