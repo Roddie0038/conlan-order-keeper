@@ -162,7 +162,7 @@ serve(async (req) => {
     // Get platform webhook secret
     const { data: platform, error: platformError } = await supabase
       .from('app_platforms' as any)
-      .select('id, platform_name, webhook_secret, previous_secret, is_active')
+      .select('id, platform_name, webhook_secret, is_active')
       .eq('platform_key', platformKey)
       .eq('is_active', true)
       .maybeSingle();
@@ -180,13 +180,7 @@ serve(async (req) => {
     const body: WebhookEvent = JSON.parse(rawBody);
 
     // Verify HMAC signature with current secret
-    let isValid = await verifyHmacSignature(rawBody, signature, platform.webhook_secret, timestamp);
-
-    // If current secret fails, try previous secret (during rotation window)
-    if (!isValid && platform.previous_secret) {
-      console.log('[Webhook Receiver] Trying previous secret...');
-      isValid = await verifyHmacSignature(rawBody, signature, platform.previous_secret, timestamp);
-    }
+    const isValid = await verifyHmacSignature(rawBody, signature, platform.webhook_secret, timestamp);
 
     if (!isValid) {
       console.error('[Webhook Receiver] HMAC signature verification failed');
