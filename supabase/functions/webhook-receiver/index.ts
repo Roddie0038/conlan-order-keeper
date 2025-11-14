@@ -52,10 +52,30 @@ async function verifyHmacSignature(
 
 function validateTimestamp(timestamp: string, toleranceMinutes: number = 5): boolean {
   try {
-    const requestTime = new Date(timestamp).getTime();
+    let requestTime: number;
+    
+    // Check if timestamp is a Unix timestamp (numeric string) or ISO date string
+    if (/^\d+$/.test(timestamp)) {
+      // Unix timestamp in seconds - convert to milliseconds
+      requestTime = parseInt(timestamp, 10) * 1000;
+      console.log('[Timestamp Validation] Unix timestamp detected:', timestamp, '→', new Date(requestTime).toISOString());
+    } else {
+      // ISO date string
+      requestTime = new Date(timestamp).getTime();
+      console.log('[Timestamp Validation] ISO timestamp detected:', timestamp);
+    }
+    
     const now = Date.now();
     const diff = Math.abs(now - requestTime);
     const maxDiff = toleranceMinutes * 60 * 1000;
+    
+    console.log('[Timestamp Validation]', {
+      requestTime: new Date(requestTime).toISOString(),
+      serverTime: new Date(now).toISOString(),
+      diffSeconds: Math.round(diff / 1000),
+      maxDiffSeconds: toleranceMinutes * 60,
+      isValid: diff <= maxDiff
+    });
     
     return diff <= maxDiff;
   } catch (error) {
@@ -124,9 +144,17 @@ serve(async (req) => {
 
     // Validate timestamp (5-minute tolerance)
     if (!validateTimestamp(timestamp)) {
-      console.error('[Webhook Receiver] Timestamp validation failed');
+      console.error('[Webhook Receiver] Timestamp validation failed for:', timestamp);
       return new Response(
-        JSON.stringify({ error: 'Request timestamp is outside acceptable window' }),
+        JSON.stringify({ 
+          error: 'Request timestamp is outside acceptable window',
+          details: {
+            received_timestamp: timestamp,
+            server_time: new Date().toISOString(),
+            tolerance_minutes: 5,
+            note: 'Timestamp must be within ±5 minutes of server time. Accepts Unix timestamps (seconds) or ISO 8601 strings.'
+          }
+        }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
