@@ -33,7 +33,7 @@ export function useOrderFormSubmit() {
       // Delegate to unified processor (handles Sheets, secure DB insert, notifications)
       for (const order of selectedOrders) {
         console.log('[SUBMIT] delegating to processOrder', { orderId: order.id });
-        await processOrder(order, selectedPlant);
+        await processOrder(order, selectedPlant, user?.email);
       }
 
       toast({

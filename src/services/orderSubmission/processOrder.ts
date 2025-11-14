@@ -8,6 +8,7 @@ import { logger } from "@/utils/logger";
 import type { OrderFormData } from "@/types/orders";
 import { formatDateForSupabase } from "@/utils/dateTime";
 import { supabase } from "@/integrations/supabase/client";
+import { updateUnassignedUserStore } from "@/utils/userStoreUpdate";
 
 import { normalizeStoreForSubmission, normalizeOrderStoreFields, extractStoreNumber } from "@/utils/storeNormalization";
 import { storeSanitizeForSupabase, logStoreFormatTransformation } from "@/utils/storeSanitization";
@@ -27,9 +28,10 @@ const toPlantCode = (input?: string) => {
  * 
  * @param order - The order to process
  * @param selectedPlant - The currently selected plant from PlantContext
+ * @param userEmail - Optional user email for auto-saving store to profile
  * @returns The processed order with additional metadata
  */
-export const processOrder = async (order: OrderSummary, selectedPlant: string) => {
+export const processOrder = async (order: OrderSummary, selectedPlant: string, userEmail?: string) => {
   console.log('[SUBMIT] processOrder called');
   console.log("🔍 SUBMIT - Processing order:", order.id);
   console.log("🔍 SUBMIT - Original order data:", order);
@@ -371,6 +373,11 @@ export const processOrder = async (order: OrderSummary, selectedPlant: string) =
           }
         }
       }
+    }
+    
+    // Auto-save store to user profile if they were unassigned
+    if (userEmail && displayStore) {
+      await updateUnassignedUserStore(userEmail, displayStore);
     }
     
     return googleSheetsPayload;
