@@ -2,6 +2,13 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// Initialize Supabase client for idempotency checks
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
 
 // Google Apps Script webhook URL for wheel orders
 const WHEEL_ORDERS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyHgFTW0pDGhZOHwUjW5zeqWebs6pXH53Ud8FFC-87bMxCNEf406j0Eu8dQvo_zAhJUEQ/exec";
@@ -28,6 +35,50 @@ serve(async (req) => {
     const wheelOrderData = await req.json();
     console.log("🚀 EDGE FUNCTION - Received wheel order data:", JSON.stringify(wheelOrderData, null, 2));
 
+    // ============= IDEMPOTENCY CHECK - Prevent Duplicate Wheel Order Processing =============
+    // Create a deterministic idempotency key from the order data
+    const idempotencyKey = `wheel-webhook:${wheelOrderData.order_number || wheelOrderData.orderNumber || wheelOrderData.wheel_number || `${wheelOrderData.store}-${wheelOrderData.customerName}-${wheelOrderData.wheelSize}-${Date.now()}`}`;
+    console.log("🔑 WHEEL WEBHOOK - Checking idempotency key:", idempotencyKey);
+    
+    const { data: existingProcessing, error: idempotencyCheckError } = await supabase
+      .from('notification_idempotency')
+      .select('id, created_at')
+      .eq('idempotency_key', idempotencyKey)
+      .maybeSingle();
+
+    if (idempotencyCheckError) {
+      console.error('❌ WHEEL WEBHOOK - Error checking idempotency:', idempotencyCheckError);
+      // Continue anyway - don't block processing due to idempotency check failures
+    } else if (existingProcessing) {
+      console.log(`⚠️ WHEEL WEBHOOK - DUPLICATE PREVENTED - Wheel order already processed at ${existingProcessing.created_at}`);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'Duplicate wheel order processing prevented',
+        idempotencyKey: idempotencyKey,
+        previouslyProcessedAt: existingProcessing.created_at
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Record this processing attempt
+    const { error: insertError } = await supabase
+      .from('notification_idempotency')
+      .insert({
+        idempotency_key: idempotencyKey,
+        notification_type: 'wheel_webhook_processing',
+        created_at: new Date().toISOString()
+      });
+
+    if (insertError) {
+      console.error('❌ WHEEL WEBHOOK - Error recording idempotency key:', insertError);
+      // Continue anyway - don't block processing due to recording failures
+    } else {
+      console.log('✅ WHEEL WEBHOOK - Idempotency key recorded, proceeding with processing');
+    }
+    // ============= END IDEMPOTENCY CHECK =============
+
     // Forward the request to Google Apps Script webhook
     console.log("🚀 EDGE FUNCTION - Forwarding to Google Sheets webhook:", WHEEL_ORDERS_WEBHOOK_URL);
     
@@ -51,18 +102,21 @@ serve(async (req) => {
         try {
           console.log("📧 WHEEL WEBHOOK - Triggering email notifications for store:", storeNumber);
           
+          // Use the same deterministic order ID for notifications (not random!)
+          const orderId = wheelOrderData.order_number || wheelOrderData.orderNumber || wheelOrderData.wheel_number || idempotencyKey;
+          
           // Call the wheel notification function
           const emailResponse = await fetch(
-            `https://cdbixtaqjppvdkyfbhkz.supabase.co/functions/v1/wheel-notification`,
+            `https://cyzywykgdravxfnhskzq.supabase.co/functions/v1/wheel-notification`,
             {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkYml4dGFxanBwdmRreWZiaGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzMzcwNjEsImV4cCI6MjA1NTkxMzA2MX0.mkeq7GvLjzw8om8t9mnlLLozHimoYy-HsRgJ65RRc10`
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
               },
               body: JSON.stringify({
                 wheelData: wheelOrderData,
-                orderId: crypto.randomUUID(), // Generate a UUID for tracking
+                orderId: orderId, // Use deterministic order ID instead of random UUID
                 recipients: [] // Will be populated by the contact system in wheel-notification
               })
             }
