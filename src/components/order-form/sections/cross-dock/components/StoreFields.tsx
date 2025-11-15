@@ -31,12 +31,12 @@ export function StoreFields({ form, onDestinationChange, isAdmin }: StoreFieldsP
             <FormLabel className="flex items-center">
               <MapPin className="h-4 w-4 mr-1 text-gray-400" />
               FROM Store*
-              {!isAdmin && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
+              {!isAdmin && form.watch("store") !== "Unassigned" && <Lock className="h-3 w-3 ml-1 text-gray-500" />}
             </FormLabel>
             <Select 
               onValueChange={field.onChange} 
               defaultValue={field.value} 
-              disabled={!isAdmin}
+              disabled={!isAdmin && form.watch("store") !== "Unassigned"}
             >
               <FormControl>
                 <SelectTrigger className={`transition-all border-gray-300 focus:border-purple-300 focus:ring-1 focus:ring-purple-200 ${!isAdmin ? 'bg-gray-100' : ''}`}>

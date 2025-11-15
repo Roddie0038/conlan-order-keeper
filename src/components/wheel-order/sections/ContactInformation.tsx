@@ -51,7 +51,7 @@ export function ContactInformation({
       
       {/* Store Select - Fixed to use storeId */}
       <div className="space-y-2">
-        {!user?.isAdmin && (
+        {!user?.isAdmin && user?.storeName !== "Unassigned" && (
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
               🔒 LOCKED
@@ -64,7 +64,7 @@ export function ContactInformation({
           onChange={onStoreChange}
           options={stores.map(s => ({ id: s.store_number, name: s.store_name, value: s.store_number }))}
           placeholder="Select store"
-          disabled={!user?.isAdmin}
+          disabled={!user?.isAdmin && user?.storeName !== "Unassigned"}
           required
         />
       </div>
