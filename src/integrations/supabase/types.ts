@@ -2972,6 +2972,9 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string
+          customer_name: string | null
+          date_received: string | null
+          hand_holes: string | null
           id: number
           idempotency_key: string | null
           invoice_number: string | null
@@ -2982,18 +2985,24 @@ export type Database = {
           quantity: number
           received_date: string | null
           role: string | null
+          schedule_arrival: string | null
           service_type: string | null
           status: string
           store: string
           submitted_by_email: string | null
           submitted_by_name: string | null
           updated_at: string
+          wheel_material: string | null
           wheel_number: string
           wheel_size: string | null
+          wheel_type: string | null
         }
         Insert: {
           color?: string | null
           created_at?: string
+          customer_name?: string | null
+          date_received?: string | null
+          hand_holes?: string | null
           id?: number
           idempotency_key?: string | null
           invoice_number?: string | null
@@ -3004,18 +3013,24 @@ export type Database = {
           quantity: number
           received_date?: string | null
           role?: string | null
+          schedule_arrival?: string | null
           service_type?: string | null
           status?: string
           store: string
           submitted_by_email?: string | null
           submitted_by_name?: string | null
           updated_at?: string
+          wheel_material?: string | null
           wheel_number: string
           wheel_size?: string | null
+          wheel_type?: string | null
         }
         Update: {
           color?: string | null
           created_at?: string
+          customer_name?: string | null
+          date_received?: string | null
+          hand_holes?: string | null
           id?: number
           idempotency_key?: string | null
           invoice_number?: string | null
@@ -3026,14 +3041,17 @@ export type Database = {
           quantity?: number
           received_date?: string | null
           role?: string | null
+          schedule_arrival?: string | null
           service_type?: string | null
           status?: string
           store?: string
           submitted_by_email?: string | null
           submitted_by_name?: string | null
           updated_at?: string
+          wheel_material?: string | null
           wheel_number?: string
           wheel_size?: string | null
+          wheel_type?: string | null
         }
         Relationships: []
       }

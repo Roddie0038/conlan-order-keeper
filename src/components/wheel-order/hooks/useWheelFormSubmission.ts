@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { submitOtOrder, type OtOrderPayload } from "@/services/submitOtOrder";
+import { syncWheelOrderToOT } from "@/services/syncWheelOrderToOT";
 import { WheelFormData } from "../types";
 import { useWheelFormValidation } from "./useWheelFormValidation";
 import { getPlantForStore } from "@/utils/storeHelpers";
@@ -81,6 +82,15 @@ export function useWheelFormSubmission(formData: WheelFormData, managerEmail: st
       }
 
       console.log(`✅ WHEEL FORM - Success from ${result.project}, order: ${result.order_number}, trace_id: ${result.trace_id}`);
+      
+      // Sync the wheel order to OT Platform's sync-wheel-order endpoint
+      console.log("🔄 WHEEL FORM - Syncing wheel order to OT Platform");
+      await syncWheelOrderToOT({
+        order_number: result.order_number,
+        ...payload,
+        ot_order_id: result.id,
+        created_at: result.created_at,
+      });
       
       toast({
         title: "🔧 Wheel Order Submitted! 🔧",
