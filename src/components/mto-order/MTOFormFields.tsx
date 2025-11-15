@@ -39,24 +39,15 @@ export const MTOFormFields = ({
         <Separator className="bg-gray-300" />
       </div>
       
-      {isAdmin ? (
-        <FormField 
-          label="Store" 
-          value={formData.store} 
-          onChange={value => onChange("store", value)} 
-          options={stores.map(s => ({ id: s.store_number, name: s.store_name, value: s.store_number }))}
-          placeholder="Select store" 
-          required 
-        />
-      ) : (
-        <FormField 
-          label="Store" 
-          value={formData.store} 
-          onChange={() => {}} 
-          disabled={true} 
-          required 
-        />
-      )}
+      <FormField 
+        label="Store" 
+        value={formData.store} 
+        onChange={value => onChange("store", value)} 
+        options={stores.map(s => ({ id: s.store_number, name: s.store_name, value: s.store_number }))}
+        placeholder="Select store" 
+        disabled={!isAdmin && formData.store !== "Unassigned"}
+        required 
+      />
 
       {/* Plant Field - Read-only, auto-fills based on store */}
       <FormField 

@@ -36,7 +36,7 @@ export function CrossDockRequestForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="requesting_store">Requesting Store *</Label>
-            {isAdmin ? (
+            {isAdmin || userStore === "Unassigned" ? (
               <Select
                 value={formData.requesting_store}
                 onValueChange={(value) => handleChange("requesting_store", value)}

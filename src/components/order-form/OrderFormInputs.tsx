@@ -230,7 +230,7 @@ export const OrderFormInputs = ({
                   onChange("managersEmail", "");
                 }} 
                 options={stores.map(s => ({ id: s.store_number, name: s.store_name, value: s.store_number }))} 
-                disabled={!user?.isAdmin}
+                disabled={!user?.isAdmin && user?.store !== "Unassigned"}
               />
             </div>
 
