@@ -5,7 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AuthHealthMonitor } from './components/auth/AuthHealthMonitor';
 import { PlantProvider } from './contexts/PlantContext';
 import { NotificationProvider } from './contexts/NotificationContext';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/sonner"
 import { ConditionalSidebar } from './components/ConditionalSidebar';
 import { AppRoutes } from './components/routing/AppRoutes';
 import { useRegistrationNotification } from './hooks/useRegistrationNotification';
