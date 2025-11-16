@@ -209,19 +209,32 @@ export function OrderForm() {
       description: `Item added to order for ${values.destinationPlant}. You can add more items or submit the order.`,
     });
     
-    // Reset form after successful ADD
-    if (user?.isAdmin) {
-      reset(defaultValues);
-    } else {
-      const storeValue = form.getValues("store");
-      const managerEmailValue = form.getValues("managersEmail");
-      
-      reset({
-        ...defaultValues,
-        store: storeValue,
-        managersEmail: managerEmailValue
-      });
-    }
+    // Reset form after successful ADD - preserve all fields except product details
+    const preservedValues = {
+      yourName: form.getValues("yourName"),
+      store: form.getValues("store"),
+      dateReceived: form.getValues("dateReceived"),
+      scheduleArrival: form.getValues("scheduleArrival"),
+      notes: form.getValues("notes"),
+      crossDock: form.getValues("crossDock"),
+      crossDockDestination: form.getValues("crossDockDestination"),
+      receiverNo: form.getValues("receiverNo"),
+      etaDate: form.getValues("etaDate"),
+      crossDockConfirmation: form.getValues("crossDockConfirmation"),
+      managersEmail: form.getValues("managersEmail"),
+      destinationPlant: form.getValues("destinationPlant"),
+      ordering_store: form.getValues("ordering_store"),
+      ordering_plant: form.getValues("ordering_plant"),
+      destination_plant: form.getValues("destination_plant")
+    };
+
+    reset({
+      ...preservedValues,
+      // Only clear product details
+      productNumber: "",
+      description: "",
+      quantity: ""
+    });
   };
 
   const handleToggleSelection = (orderId: string) => {
@@ -291,11 +304,11 @@ export function OrderForm() {
         <button
           type="button"
           onClick={handleAddToOrder}
-          disabled={isSubmitting}
+          disabled={isSubmitting || orderSummaries.length > 0}
           aria-busy={isSubmitting}
           className="w-full h-11 rounded-lg font-semibold bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors"
         >
-          Add to Order Summary
+          {orderSummaries.length > 0 ? "Submit pending order first" : "Add to Order Summary"}
         </button>
 
         <button
