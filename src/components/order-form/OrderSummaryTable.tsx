@@ -18,7 +18,7 @@ export const OrderSummaryTable = ({
   return (
     <div className="max-w-full mx-auto bg-white p-6 rounded-lg shadow-lg border border-gray-200">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-900">Order Summary</h2>
+        <h2 className="text-2xl font-bold">Order Summary</h2>
         <ExportButton 
           data={orderSummaries} 
           filename="pending-orders" 
