@@ -29,14 +29,14 @@ export const OrderSummaryTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12">Select</TableHead>
-              <TableHead>Product</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Qty</TableHead>
-              <TableHead>Schedule</TableHead>
-              <TableHead>Cross Dock</TableHead>
-              <TableHead>Cross Dock Destination</TableHead>
-              <TableHead>Notes</TableHead>
+              <TableHead className="w-12 text-gray-900 font-semibold">Select</TableHead>
+              <TableHead className="text-gray-900 font-semibold">Product</TableHead>
+              <TableHead className="text-gray-900 font-semibold">Description</TableHead>
+              <TableHead className="text-gray-900 font-semibold">Qty</TableHead>
+              <TableHead className="text-gray-900 font-semibold">Schedule</TableHead>
+              <TableHead className="text-gray-900 font-semibold">Cross Dock</TableHead>
+              <TableHead className="text-gray-900 font-semibold">Cross Dock Destination</TableHead>
+              <TableHead className="text-gray-900 font-semibold">Notes</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -48,13 +48,13 @@ export const OrderSummaryTable = ({
                     onCheckedChange={() => onToggleSelection(order.id)} 
                   />
                 </TableCell>
-                <TableCell className="font-medium">{order.productNumber}</TableCell>
-                <TableCell className="max-w-xs truncate">{order.description}</TableCell>
-                <TableCell>{order.quantity}</TableCell>
-                <TableCell>{order.scheduleArrival}</TableCell>
-                <TableCell>{order.crossDock}</TableCell>
-                <TableCell>{order.crossDockDestination || '-'}</TableCell>
-                <TableCell className="max-w-xs truncate">{order.notes || '-'}</TableCell>
+                <TableCell className="font-medium text-gray-900">{order.productNumber}</TableCell>
+                <TableCell className="max-w-xs truncate text-gray-900">{order.description}</TableCell>
+                <TableCell className="text-gray-900">{order.quantity}</TableCell>
+                <TableCell className="text-gray-900">{order.scheduleArrival}</TableCell>
+                <TableCell className="text-gray-900">{order.crossDock}</TableCell>
+                <TableCell className="text-gray-900">{order.crossDockDestination || '-'}</TableCell>
+                <TableCell className="max-w-xs truncate text-gray-900">{order.notes || '-'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
