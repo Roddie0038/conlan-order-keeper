@@ -269,6 +269,27 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string | null
+          value_bool: boolean | null
+          value_text: string | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          value_bool?: boolean | null
+          value_text?: string | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          value_bool?: boolean | null
+          value_text?: string | null
+        }
+        Relationships: []
+      }
       approved_treads: {
         Row: {
           category: string | null
@@ -2745,7 +2766,7 @@ export type Database = {
           error_message: string | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           success: boolean
           timestamp: string | null
@@ -2756,7 +2777,7 @@ export type Database = {
           error_message?: string | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           success: boolean
           timestamp?: string | null
@@ -2767,7 +2788,7 @@ export type Database = {
           error_message?: string | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           success?: boolean
           timestamp?: string | null
@@ -2796,7 +2817,7 @@ export type Database = {
           created_at: string | null
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           reset_token: string
           used_at: string | null
           user_agent: string | null
@@ -2806,7 +2827,7 @@ export type Database = {
           created_at?: string | null
           expires_at: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           reset_token: string
           used_at?: string | null
           user_agent?: string | null
@@ -2816,7 +2837,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           reset_token?: string
           used_at?: string | null
           user_agent?: string | null
@@ -3076,6 +3097,7 @@ export type Database = {
         Row: {
           active: boolean
           city: string
+          full_display_name: string | null
           inherit_region: boolean | null
           ot_id: string
           plant_id: string | null
@@ -3087,6 +3109,7 @@ export type Database = {
         Insert: {
           active?: boolean
           city: string
+          full_display_name?: string | null
           inherit_region?: boolean | null
           ot_id: string
           plant_id?: string | null
@@ -3098,6 +3121,7 @@ export type Database = {
         Update: {
           active?: boolean
           city?: string
+          full_display_name?: string | null
           inherit_region?: boolean | null
           ot_id?: string
           plant_id?: string | null
@@ -3113,7 +3137,7 @@ export type Database = {
           created_at: string | null
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_active: boolean | null
           last_accessed: string | null
           platform: string | null
@@ -3125,7 +3149,7 @@ export type Database = {
           created_at?: string | null
           expires_at: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean | null
           last_accessed?: string | null
           platform?: string | null
@@ -3137,7 +3161,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean | null
           last_accessed?: string | null
           platform?: string | null
@@ -3323,7 +3347,7 @@ export type Database = {
           created_at: string | null
           from_plant: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           session_id: string | null
           switch_reason: string | null
           to_plant: string
@@ -3335,7 +3359,7 @@ export type Database = {
           created_at?: string | null
           from_plant: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           session_id?: string | null
           switch_reason?: string | null
           to_plant: string
@@ -3347,7 +3371,7 @@ export type Database = {
           created_at?: string | null
           from_plant?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           session_id?: string | null
           switch_reason?: string | null
           to_plant?: string
@@ -3687,7 +3711,7 @@ export type Database = {
           event_details: Json | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_agent: string | null
           user_email: string | null
           user_id: string | null
@@ -3697,7 +3721,7 @@ export type Database = {
           event_details?: Json | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
@@ -3707,7 +3731,7 @@ export type Database = {
           event_details?: Json | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
@@ -5689,7 +5713,7 @@ export type Database = {
           created_at: string | null
           expires_at: string | null
           id: string | null
-          ip_address: unknown | null
+          ip_address: unknown
           reset_token: string | null
           used_at: string | null
           user_agent: string | null
@@ -5699,7 +5723,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           reset_token?: string | null
           used_at?: string | null
           user_agent?: string | null
@@ -5709,7 +5733,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           reset_token?: string | null
           used_at?: string | null
           user_agent?: string | null
@@ -5800,7 +5824,7 @@ export type Database = {
           created_at: string | null
           expires_at: string | null
           id: string | null
-          ip_address: unknown | null
+          ip_address: unknown
           is_active: boolean | null
           last_accessed: string | null
           platform: string | null
@@ -5812,7 +5836,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean | null
           last_accessed?: string | null
           platform?: string | null
@@ -5824,7 +5848,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean | null
           last_accessed?: string | null
           platform?: string | null
@@ -6093,7 +6117,7 @@ export type Database = {
       v_enums: {
         Row: {
           enum_type: string | null
-          enumlabel: unknown | null
+          enumlabel: unknown
         }
         Relationships: []
       }
@@ -6371,10 +6395,7 @@ export type Database = {
       }
     }
     Functions: {
-      _safe_text: {
-        Args: { v: string }
-        Returns: string
-      }
+      _safe_text: { Args: { v: string }; Returns: string }
       add_recipient_types: {
         Args: {
           p_email: string
@@ -6414,10 +6435,7 @@ export type Database = {
         Args: { target_plant: string }
         Returns: boolean
       }
-      check_system_admin_access: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      check_system_admin_access: { Args: never; Returns: boolean }
       claim_email_jobs: {
         Args: { p_limit: number }
         Returns: {
@@ -6438,6 +6456,12 @@ export type Database = {
           to_email: string | null
           updated_at: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "email_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       clear_temporary_password_requirement: {
         Args: {
@@ -6465,10 +6489,7 @@ export type Database = {
         }
         Returns: string
       }
-      extract_store_from_role: {
-        Args: { role_input: string }
-        Returns: string
-      }
+      extract_store_from_role: { Args: { role_input: string }; Returns: string }
       fn_ser_upsert_merge: {
         Args: {
           p_email_type: Database["public"]["Enums"]["email_type_enum"]
@@ -6501,19 +6522,16 @@ export type Database = {
           updated_by: string | null
           variant: string | null
         }
+        SetofOptions: {
+          from: "*"
+          to: "store_email_recipients"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
-      format_ts_in_tz: {
-        Args: { p_ts: string; p_tz: string }
-        Returns: string
-      }
-      generate_load_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_temporary_password: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      format_ts_in_tz: { Args: { p_ts: string; p_tz: string }; Returns: string }
+      generate_load_id: { Args: never; Returns: string }
+      generate_temporary_password: { Args: never; Returns: string }
       get_crossdock_received_recipients: {
         Args: {
           p_crossdock_store: string
@@ -6528,11 +6546,11 @@ export type Database = {
         }[]
       }
       get_current_inventory_user_role: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["Enums"]["inventory_user_role"]
       }
       get_current_ot_user: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           auth_user_id: string | null
           created_at: string | null
@@ -6559,17 +6577,20 @@ export type Database = {
           updated_at: string | null
           updated_by: string | null
         }
+        SetofOptions: {
+          from: "*"
+          to: "ot_platform_users"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_current_ot_user_role: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["Enums"]["ot_user_role"]
       }
-      get_current_user_plant: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_plant: { Args: never; Returns: string }
       get_message_analytics_summary: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           failed_deliveries: number
           messages_by_plant: Json
@@ -6591,7 +6612,7 @@ export type Database = {
         }[]
       }
       get_plant_consumer_data: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           active: boolean
           address: Json
@@ -6610,7 +6631,7 @@ export type Database = {
         Returns: string
       }
       get_secure_zone_summary: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avg_fill_rate: number
           id: string
@@ -6625,7 +6646,7 @@ export type Database = {
         }[]
       }
       get_store_normalization_verification: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           normalized_value: string
           occurrences: number
@@ -6635,7 +6656,7 @@ export type Database = {
         }[]
       }
       get_zone_summaries: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avg_fill_rate: number
           id: string
@@ -6650,18 +6671,9 @@ export type Database = {
           zone_alert_status: string
         }[]
       }
-      has_net_http_offenders: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      has_plant_access: {
-        Args: { target_plant: string }
-        Returns: boolean
-      }
-      has_store_access: {
-        Args: { target_store: string }
-        Returns: boolean
-      }
+      has_net_http_offenders: { Args: never; Returns: boolean }
+      has_plant_access: { Args: { target_plant: string }; Returns: boolean }
+      has_store_access: { Args: { target_store: string }; Returns: boolean }
       http_enqueue: {
         Args: {
           p_body: string
@@ -6671,10 +6683,7 @@ export type Database = {
         }
         Returns: number
       }
-      http_fetch: {
-        Args: { p_request_id: number }
-        Returns: Json
-      }
+      http_fetch: { Args: { p_request_id: number }; Returns: Json }
       http_post_sync: {
         Args: {
           p_body: Json
@@ -6697,48 +6706,21 @@ export type Database = {
         Args: { order_plant: string; user_default_plant: string }
         Returns: boolean
       }
-      is_cross_platform_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_current_user_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_dynamic_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_elevated_user: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
-      is_inventory_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_inventory_lead_or_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_ot_operations_manager: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_ot_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_system_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_cross_platform_super_admin: { Args: never; Returns: boolean }
+      is_current_user_super_admin: { Args: never; Returns: boolean }
+      is_dynamic_super_admin: { Args: never; Returns: boolean }
+      is_elevated_user: { Args: { user_email: string }; Returns: boolean }
+      is_inventory_admin: { Args: never; Returns: boolean }
+      is_inventory_lead_or_admin: { Args: never; Returns: boolean }
+      is_ot_operations_manager: { Args: never; Returns: boolean }
+      is_ot_super_admin: { Args: never; Returns: boolean }
+      is_system_admin: { Args: never; Returns: boolean }
       is_system_admin_by_email: {
         Args: { user_email: string }
         Returns: boolean
       }
       list_net_http_offenders: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           function_name: string
           schema: string
@@ -6802,22 +6784,10 @@ export type Database = {
         }
         Returns: boolean
       }
-      normalize_plant_from_text: {
-        Args: { txt: string }
-        Returns: string
-      }
-      normalize_plant_name: {
-        Args: { input_plant: string }
-        Returns: string
-      }
-      normalize_store_format: {
-        Args: { input_store: string }
-        Returns: string
-      }
-      normalize_store_name: {
-        Args: { input_store: string }
-        Returns: string
-      }
+      normalize_plant_from_text: { Args: { txt: string }; Returns: string }
+      normalize_plant_name: { Args: { input_plant: string }; Returns: string }
+      normalize_store_format: { Args: { input_store: string }; Returns: string }
+      normalize_store_name: { Args: { input_store: string }; Returns: string }
       normalize_store_number_for_email: {
         Args: { input_store: string }
         Returns: string
@@ -6843,10 +6813,7 @@ export type Database = {
         Args: { p_plant_id: string }
         Returns: undefined
       }
-      refresh_zone_alerts: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      refresh_zone_alerts: { Args: never; Returns: undefined }
       resolve_crossdock_recipients: {
         Args: { p_destination_store: string; p_origin_store: string }
         Returns: {
@@ -6885,12 +6852,39 @@ export type Database = {
           store_name: string
         }[]
       }
-      rpc_safe_http_post: {
-        Args:
-          | { body: Json; headers: Json; timeout_ms?: number; url: string }
-          | { body: string; headers: Json; timeout_ms?: number; url: string }
-        Returns: Json
+      resolve_order_confirmation_recipients: {
+        Args: { p_store: string }
+        Returns: {
+          recipient_email: string
+          recipient_role: string
+        }[]
       }
+      resolve_store_manager_recipients: {
+        Args: { p_store: string }
+        Returns: {
+          recipient_email: string
+          recipient_role: string
+        }[]
+      }
+      rpc_safe_http_post:
+        | {
+            Args: {
+              body: string
+              headers: Json
+              timeout_ms?: number
+              url: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              body: Json
+              headers: Json
+              timeout_ms?: number
+              url: string
+            }
+            Returns: Json
+          }
       rpc_send_transfer_notification: {
         Args: {
           email: string
@@ -6905,22 +6899,25 @@ export type Database = {
         Args: { p_poll_ms?: number; p_request_id: number; p_wait_ms?: number }
         Returns: Json
       }
-      safe_http_post: {
-        Args:
-          | {
+      safe_http_post:
+        | {
+            Args: {
               p_body: Json
               p_headers: Json
               p_timeout_ms?: number
               p_url: string
             }
-          | {
+            Returns: Json
+          }
+        | {
+            Args: {
               p_body: string
               p_headers: Json
               p_timeout_ms?: number
               p_url: string
             }
-        Returns: Json
-      }
+            Returns: Json
+          }
       safe_http_post_and_collect: {
         Args: {
           body: string
@@ -6956,14 +6953,8 @@ export type Database = {
         Args: { _name: string }
         Returns: boolean
       }
-      update_last_login_timestamp: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      validate_user_data_access: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      update_last_login_timestamp: { Args: never; Returns: undefined }
+      validate_user_data_access: { Args: never; Returns: boolean }
     }
     Enums: {
       delivery_status: "pending" | "sent" | "delivered" | "failed" | "bounced"
