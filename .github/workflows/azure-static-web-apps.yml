@@ -16,11 +16,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install
-        run: npm ci
+      # Use pnpm lockfile (avoids npm ci / package-lock mismatch)
+      - name: Enable pnpm (corepack)
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.1 --activate
+
+      - name: Install (pnpm)
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Deploy
         uses: Azure/static-web-apps-deploy@v1
